@@ -1,29 +1,31 @@
 # Transcription and vocabulary annotation
 
-Owners can transcribe the audio/video of their own stories and review AI-suggested
-vocabulary terms. Approved terms are public and exportable as JSON-LD.
+Owners transcribe the audio/video of their own stories and attach vocabulary terms.
+Approved terms are public and exportable as JSON-LD. Everything runs in the page and in
+your Supabase database: no server function and no paid API key.
 
 ## Setup (once)
-1. Run `supabase/annotations.sql` in the Supabase SQL editor (after `schema.sql`).
-2. Install the Supabase CLI, then from the repo root:
-   ```
-   supabase login
-   supabase link --project-ref sqxhzlwqqhodbhfdnaxv
-   supabase secrets set OPENAI_API_KEY=... ANTHROPIC_API_KEY=...
-   supabase secrets set GEONAMES_USERNAME=...     # optional
-   supabase functions deploy annotate-media
-   ```
-   Keys live only in Supabase secrets, never in this repo.
+Run `supabase/annotations.sql` in the Supabase SQL editor (after `schema.sql`). It is safe to
+run again; it replaces its own policies, so run it again after pulling updates.
 
 ## Flow
 Log in → open one of your stories → **Transcribe and annotate** → per audio/video:
-**Transcribe and suggest terms** (Whisper transcript with timestamps, then Claude
-finds mentions, then each mention is looked up in Getty AAT/TGN/ULAN, Wikidata and
-GeoNames) → **Approve / Reject** each suggestion. Visitors see the transcript and the
-approved terms; anyone can **Export JSON-LD**.
+1. Get a transcript: **Transcribe on this device (free)** runs Whisper in the browser
+   (first use downloads ~250 MB, cached afterwards; slow on phones; nothing is uploaded),
+   or **Load a .srt / .vtt / .txt file**, or type it. Edit freely. Format: one line per
+   segment, optionally `[mm:ss-mm:ss] text`.
+2. **Save transcript**, or **Save and find terms automatically**: capitalised words/names
+   in each line are searched on Wikidata (the kind is guessed: person, place, event, concept).
+3. For anything missing, use **+ Add a term** under a line: it searches Wikidata and Getty
+   AAT/TGN/ULAN (Getty may be blocked by the browser; Wikidata still works). Pick the type
+   and add it.
+4. **Approve / Reject** automatic suggestions; fix the type if it was guessed wrong.
+   Visitors see the transcript and approved terms; anyone can **Export JSON-LD**.
 
-Limits: files over 25 MB can't be transcribed (OpenAI limit). Suggestions replace
-earlier *unreviewed* suggestions when re-run; approved/rejected ones are kept.
+The automatic step is a simple name heuristic, not AI: it misses things and suggests wrong
+matches, so review it. Re-saving replaces earlier *unreviewed* automatic suggestions;
+approved/rejected and hand-added ones are kept. Lines without timestamps are stored without
+a time range, and the export then links the whole media file instead of a time fragment.
 
 ## Mapping to the Heritage Digital Twin Ontology (ECHOES HDTO v0.1)
 | App | HDTO / CRM |

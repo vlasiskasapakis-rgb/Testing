@@ -204,6 +204,11 @@
   #sheetTools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; } #sheetTools[hidden] { display: none; }
   #annSheet { z-index: 65; }
   .ann-media { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 10px; }
+  .ann-text { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 15px; font-family: inherit; color: var(--ink); }
+  .ann-media .btn-wide { margin-bottom: 8px; }
+  .ann-add { margin-top: 6px; } .ann-add[hidden], .ann-add div[hidden] { display: none; }
+  .ann-term-in { width: calc(100% - 110px); padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 15px; margin-right: 8px; }
+  .kind-select { min-height: 40px; padding: 4px 10px; font-size: 14px; }
   .ann-seg { margin: 10px 0; padding: 8px 10px; background: var(--mist); border-radius: 10px; }
   .ann-seg .when { font-size: 12px; font-weight: 700; color: var(--amber-text); }
   .ann-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; font-size: 14px; }
@@ -646,11 +651,10 @@
       annotate: "Απομαγνητοφώνηση και σχολιασμός",
       annExport: "Εξαγωγή JSON-LD",
       annTitle: "Σχολιασμός με όρους",
-      annNote: "Το σύστημα προτείνει όρους από τα Getty AAT/TGN/ULAN, Wikidata και GeoNames. Εσύ εγκρίνεις ή απορρίπτεις κάθε πρόταση πριν γίνει δημόσια.",
-      annRun: "Απομαγνητοφώνηση και προτάσεις",
-      annRerun: "Νέα απομαγνητοφώνηση",
-      annRunning: "Επεξεργασία… μπορεί να πάρει λίγα λεπτά.",
-      annDone: "Έτοιμο: {s} τμήματα, {n} προτάσεις.",
+      annNote: "Φτιάξε ή γράψε την απομαγνητοφώνηση και μετά βρες όρους από τα Wikidata και Getty AAT/TGN/ULAN, αυτόματα ή με αναζήτηση. Κάθε όρος γίνεται δημόσιος μόνο όταν τον εγκρίνεις.",
+      annRun: "Αποθήκευση απομαγνητοφώνησης",
+      annRerun: "Αποθήκευση απομαγνητοφώνησης",
+      annRunning: "Επεξεργασία…",
       annNever: "Δεν έχει γίνει ακόμα απομαγνητοφώνηση.",
       annLang: "Γλώσσα: {l}",
       annFailed: "Αποτυχία: {e}",
@@ -664,7 +668,33 @@
       annNoMedia: "Δεν υπάρχει ήχος ή βίντεο σε αυτή την ιστορία.",
       annTranscript: "Απομαγνητοφώνηση",
       annTerms: "Όροι και σύνδεσμοι",
-      annMention: "Αναφορά: «{m}»"
+      annMention: "Αναφορά: «{m}»",
+      annWhisper: "Απομαγνητοφώνηση στη συσκευή (δωρεάν)",
+      annWhisperLoad: "Λήψη μοντέλου ομιλίας… {p}%",
+      annWhisperRun: "Απομαγνητοφώνηση… μπορεί να πάρει λίγα λεπτά. Κράτα την οθόνη ανοιχτή.",
+      annWhisperErr: "Η απομαγνητοφώνηση στη συσκευή απέτυχε: {e}",
+      annUpload: "Φόρτωση αρχείου .srt / .vtt / .txt",
+      annTextLabel: "Απομαγνητοφώνηση: μία γραμμή ανά τμήμα, προαιρετικά με [λλ:δδ-λλ:δδ] μπροστά",
+      annLangLabel: "Γλώσσα ομιλίας",
+      annEmpty: "Πρόσθεσε πρώτα απομαγνητοφώνηση.",
+      annDecodeErr: "Ο browser δεν μπόρεσε να διαβάσει τον ήχο αυτού του αρχείου.",
+      annAuto: "Αποθήκευση και αυτόματη αναζήτηση όρων",
+      annAutoProgress: "Αναζήτηση όρων… {i}/{n}",
+      annAutoDone: "Βρέθηκαν {n} προτάσεις.",
+      annSaved: "Η απομαγνητοφώνηση αποθηκεύτηκε ({s} τμήματα).",
+      annSearch: "Αναζήτηση",
+      annSearchPh: "Γράψε έναν όρο, π.χ. Μυτιλήνη",
+      annAdd: "Προσθήκη",
+      annAddTerm: "+ Προσθήκη όρου",
+      annNoResults: "Δεν βρέθηκαν αποτελέσματα.",
+      annSearchErr: "Η αναζήτηση απέτυχε: {e}",
+      annKind: "Είδος",
+      kind_person: "Πρόσωπο",
+      kind_place: "Τόπος",
+      kind_event: "Γεγονός",
+      kind_object: "Αντικείμενο",
+      kind_material: "Υλικό",
+      kind_concept: "Έννοια"
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -738,11 +768,10 @@
       annotate: "Transcribe and annotate",
       annExport: "Export JSON-LD",
       annTitle: "Annotate with vocabulary terms",
-      annNote: "The system suggests terms from Getty AAT/TGN/ULAN, Wikidata and GeoNames. You approve or reject each suggestion before it becomes public.",
-      annRun: "Transcribe and suggest terms",
-      annRerun: "Transcribe again",
-      annRunning: "Working… this can take a few minutes.",
-      annDone: "Done: {s} segments, {n} suggestions.",
+      annNote: "Create or type the transcript, then find terms from Wikidata and Getty AAT/TGN/ULAN, automatically or by searching. A term only becomes public once you approve it.",
+      annRun: "Save transcript",
+      annRerun: "Save transcript",
+      annRunning: "Working…",
       annNever: "Not transcribed yet.",
       annLang: "Language: {l}",
       annFailed: "Failed: {e}",
@@ -756,7 +785,33 @@
       annNoMedia: "This story has no audio or video.",
       annTranscript: "Transcript",
       annTerms: "Terms and links",
-      annMention: "Mention: “{m}”"
+      annMention: "Mention: “{m}”",
+      annWhisper: "Transcribe on this device (free)",
+      annWhisperLoad: "Downloading speech model… {p}%",
+      annWhisperRun: "Transcribing… this can take a few minutes. Keep the screen on.",
+      annWhisperErr: "On-device transcription failed: {e}",
+      annUpload: "Load a .srt / .vtt / .txt file",
+      annTextLabel: "Transcript: one line per segment, optionally prefixed with [mm:ss-mm:ss]",
+      annLangLabel: "Spoken language",
+      annEmpty: "Add a transcript first.",
+      annDecodeErr: "The browser couldn't read the audio of this file.",
+      annAuto: "Save and find terms automatically",
+      annAutoProgress: "Searching for terms… {i}/{n}",
+      annAutoDone: "Found {n} suggestions.",
+      annSaved: "Transcript saved ({s} segments).",
+      annSearch: "Search",
+      annSearchPh: "Type a term, e.g. Mytilene",
+      annAdd: "Add",
+      annAddTerm: "+ Add a term",
+      annNoResults: "No results.",
+      annSearchErr: "Search failed: {e}",
+      annKind: "Type",
+      kind_person: "Person",
+      kind_place: "Place",
+      kind_event: "Event",
+      kind_object: "Object",
+      kind_material: "Material",
+      kind_concept: "Concept"
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -830,11 +885,10 @@
       annotate: "Transcrire et annoter",
       annExport: "Exporter en JSON-LD",
       annTitle: "Annoter avec des termes de vocabulaire",
-      annNote: "Le système propose des termes de Getty AAT/TGN/ULAN, Wikidata et GeoNames. Vous approuvez ou rejetez chaque suggestion avant sa publication.",
-      annRun: "Transcrire et proposer des termes",
-      annRerun: "Transcrire à nouveau",
-      annRunning: "Traitement… cela peut prendre quelques minutes.",
-      annDone: "Terminé : {s} segments, {n} suggestions.",
+      annNote: "Créez ou saisissez la transcription, puis trouvez des termes dans Wikidata et Getty AAT/TGN/ULAN, automatiquement ou par recherche. Un terme n'est public qu'une fois approuvé.",
+      annRun: "Enregistrer la transcription",
+      annRerun: "Enregistrer la transcription",
+      annRunning: "Traitement…",
       annNever: "Pas encore transcrit.",
       annLang: "Langue : {l}",
       annFailed: "Échec : {e}",
@@ -848,7 +902,33 @@
       annNoMedia: "Cette histoire n'a ni audio ni vidéo.",
       annTranscript: "Transcription",
       annTerms: "Termes et liens",
-      annMention: "Mention : « {m} »"
+      annMention: "Mention : « {m} »",
+      annWhisper: "Transcrire sur cet appareil (gratuit)",
+      annWhisperLoad: "Téléchargement du modèle vocal… {p} %",
+      annWhisperRun: "Transcription… cela peut prendre quelques minutes. Gardez l'écran allumé.",
+      annWhisperErr: "Échec de la transcription sur l'appareil : {e}",
+      annUpload: "Charger un fichier .srt / .vtt / .txt",
+      annTextLabel: "Transcription : une ligne par segment, éventuellement préfixée par [mm:ss-mm:ss]",
+      annLangLabel: "Langue parlée",
+      annEmpty: "Ajoutez d'abord une transcription.",
+      annDecodeErr: "Le navigateur n'a pas pu lire l'audio de ce fichier.",
+      annAuto: "Enregistrer et chercher les termes automatiquement",
+      annAutoProgress: "Recherche de termes… {i}/{n}",
+      annAutoDone: "{n} suggestions trouvées.",
+      annSaved: "Transcription enregistrée ({s} segments).",
+      annSearch: "Rechercher",
+      annSearchPh: "Saisissez un terme, ex. : Mytilène",
+      annAdd: "Ajouter",
+      annAddTerm: "+ Ajouter un terme",
+      annNoResults: "Aucun résultat.",
+      annSearchErr: "Échec de la recherche : {e}",
+      annKind: "Type",
+      kind_person: "Personne",
+      kind_place: "Lieu",
+      kind_event: "Événement",
+      kind_object: "Objet",
+      kind_material: "Matériau",
+      kind_concept: "Concept"
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -922,11 +1002,10 @@
       annotate: "Trascrivi e annota",
       annExport: "Esporta JSON-LD",
       annTitle: "Annota con termini di vocabolario",
-      annNote: "Il sistema propone termini da Getty AAT/TGN/ULAN, Wikidata e GeoNames. Approvi o rifiuti ogni suggerimento prima che diventi pubblico.",
-      annRun: "Trascrivi e suggerisci termini",
-      annRerun: "Trascrivi di nuovo",
-      annRunning: "Elaborazione… può richiedere qualche minuto.",
-      annDone: "Fatto: {s} segmenti, {n} suggerimenti.",
+      annNote: "Crea o digita la trascrizione, poi trova termini da Wikidata e Getty AAT/TGN/ULAN, in automatico o con la ricerca. Un termine diventa pubblico solo dopo la tua approvazione.",
+      annRun: "Salva la trascrizione",
+      annRerun: "Salva la trascrizione",
+      annRunning: "Elaborazione…",
       annNever: "Non ancora trascritto.",
       annLang: "Lingua: {l}",
       annFailed: "Non riuscito: {e}",
@@ -940,7 +1019,33 @@
       annNoMedia: "Questa storia non ha audio o video.",
       annTranscript: "Trascrizione",
       annTerms: "Termini e collegamenti",
-      annMention: "Menzione: «{m}»"
+      annMention: "Menzione: «{m}»",
+      annWhisper: "Trascrivi su questo dispositivo (gratis)",
+      annWhisperLoad: "Download del modello vocale… {p}%",
+      annWhisperRun: "Trascrizione… può richiedere alcuni minuti. Tieni lo schermo acceso.",
+      annWhisperErr: "Trascrizione sul dispositivo non riuscita: {e}",
+      annUpload: "Carica un file .srt / .vtt / .txt",
+      annTextLabel: "Trascrizione: una riga per segmento, facoltativamente preceduta da [mm:ss-mm:ss]",
+      annLangLabel: "Lingua parlata",
+      annEmpty: "Aggiungi prima una trascrizione.",
+      annDecodeErr: "Il browser non ha potuto leggere l'audio di questo file.",
+      annAuto: "Salva e cerca i termini automaticamente",
+      annAutoProgress: "Ricerca dei termini… {i}/{n}",
+      annAutoDone: "Trovati {n} suggerimenti.",
+      annSaved: "Trascrizione salvata ({s} segmenti).",
+      annSearch: "Cerca",
+      annSearchPh: "Scrivi un termine, es. Mitilene",
+      annAdd: "Aggiungi",
+      annAddTerm: "+ Aggiungi un termine",
+      annNoResults: "Nessun risultato.",
+      annSearchErr: "Ricerca non riuscita: {e}",
+      annKind: "Tipo",
+      kind_person: "Persona",
+      kind_place: "Luogo",
+      kind_event: "Evento",
+      kind_object: "Oggetto",
+      kind_material: "Materiale",
+      kind_concept: "Concetto"
     }
   };
 
@@ -1555,7 +1660,7 @@
 
   async function fetchKnowledge(s, all) {
     var ids = s.media.map(function (m) { return m.id; }).filter(Boolean);
-    var aq = sb.from('annotations').select('id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status').in('media_id', ids).order('start_s');
+    var aq = sb.from('annotations').select('id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source').in('media_id', ids).order('start_s');
     if (!all) aq = aq.eq('status', 'approved');
     var res = await Promise.all([
       aq,
@@ -1609,9 +1714,135 @@
     }).catch(function () {});
   }
 
-  async function fnErrorMessage(err) {
-    try { if (err && err.context && err.context.json) { var j = await err.context.json(); if (j && j.error) return j.error; } } catch (e) {}
-    return (err && err.message) || String(err);
+  // --- Αναζήτηση όρων στον browser (Wikidata, Getty)· δεν χρειάζεται κλειδί ή server ---
+  var WD_API = 'https://www.wikidata.org/w/api.php';
+  var KIND_NAMES = ['person', 'place', 'event', 'object', 'material', 'concept'];
+  var WD_EVENT_CLASSES = { Q1190554: 1, Q1656682: 1, Q198: 1, Q178561: 1, Q13418847: 1, Q350604: 1 };
+
+  async function wdSearch(q, lang, limit) {
+    var r = await fetch(WD_API + '?action=wbsearchentities&format=json&origin=*&limit=' + limit +
+      '&language=' + encodeURIComponent(lang) + '&uselang=' + encodeURIComponent(lang) + '&search=' + encodeURIComponent(q));
+    if (!r.ok) throw new Error('Wikidata ' + r.status);
+    var d = await r.json();
+    return (d.search || []).map(function (x) {
+      return { vocabulary: 'wikidata', id: x.id, uri: 'https://www.wikidata.org/entity/' + x.id, label: x.label || x.id, description: x.description || '' };
+    });
+  }
+
+  // Εικάζει το είδος από τα δεδομένα του Wikidata: P31=Q5 πρόσωπο, P625 τόπος, γνωστές κλάσεις γεγονότος.
+  async function wdKinds(ids) {
+    var out = {};
+    for (var i = 0; i < ids.length; i += 50) {
+      try {
+        var r = await fetch(WD_API + '?action=wbgetentities&format=json&origin=*&props=claims&ids=' + ids.slice(i, i + 50).join('|'));
+        if (!r.ok) continue;
+        var d = await r.json();
+        Object.keys(d.entities || {}).forEach(function (id) {
+          var c = d.entities[id].claims || {};
+          var p31 = (c.P31 || []).map(function (x) { return x.mainsnak && x.mainsnak.datavalue && x.mainsnak.datavalue.value && x.mainsnak.datavalue.value.id; });
+          out[id] = p31.indexOf('Q5') >= 0 ? 'person' : c.P625 ? 'place' : p31.some(function (x) { return WD_EVENT_CLASSES[x]; }) ? 'event' : 'concept';
+        });
+      } catch (e) { /* χωρίς είδος -> 'concept' */ }
+    }
+    return out;
+  }
+
+  async function gettySearch(scheme, term) {
+    var clean = term.replace(/["'\\]/g, ' ').trim();
+    if (!clean) return [];
+    var q = 'SELECT ?s ?l WHERE { ?s luc:term "' + clean + '"; skos:inScheme ' + scheme + ': ; a gvp:Subject ; gvp:prefLabelGVP [xl:literalForm ?l] } LIMIT 3';
+    var r = await fetch('https://vocab.getty.edu/sparql.json?query=' + encodeURIComponent(q));
+    if (!r.ok) throw new Error('Getty ' + r.status);
+    var d = await r.json();
+    var kind = scheme === 'tgn' ? 'place' : scheme === 'ulan' ? 'person' : 'concept';
+    return ((d.results || {}).bindings || []).map(function (b) { return { vocabulary: scheme, uri: b.s.value, label: b.l.value, description: '', kind: kind }; });
+  }
+
+  async function searchTerms(q, lang) {
+    var quiet = function (p) { return p.catch(function () { return []; }); };
+    var jobs = [quiet(wdSearch(q, lang, 4))];
+    if (lang !== 'en') jobs.push(quiet(wdSearch(q, 'en', 3)));
+    ['aat', 'tgn', 'ulan'].forEach(function (sc) { jobs.push(quiet(gettySearch(sc, q))); });
+    var all = (await Promise.all(jobs)).reduce(function (a, b) { return a.concat(b); }, []);
+    var seen = {};
+    all = all.filter(function (c) { if (seen[c.uri]) return false; seen[c.uri] = 1; return true; });
+    var kinds = await wdKinds(all.filter(function (c) { return c.id; }).map(function (c) { return c.id; }));
+    all.forEach(function (c) { if (!c.kind) c.kind = kinds[c.id] || 'concept'; });
+    return all;
+  }
+
+  // Φράσεις που μοιάζουν με ονόματα (κεφαλαία)· μονές λέξεις στην αρχή πρότασης αγνοούνται.
+  function nameCandidates(text) {
+    var re = /\p{Lu}[\p{L}\u0300-\u036f'’-]*(?:\s+\p{Lu}[\p{L}\u0300-\u036f'’-]*)*/gu, out = [], m;
+    while ((m = re.exec(text))) {
+      var w = m[0];
+      if (w.length < 3) continue;
+      var atStart = /(^|[.!?;·]\s+)$/.test(text.slice(0, m.index)), multi = w.indexOf(' ') >= 0;
+      if (!multi && atStart) continue;
+      out.push(w);
+      // Η πρώτη λέξη μιας πρότασης είναι κεφαλαία χωρίς να είναι όνομα (π.χ. "Στη Μυτιλήνη")· δοκίμασε και χωρίς αυτήν.
+      if (multi && atStart && w.slice(w.indexOf(' ') + 1).length >= 3) out.push(w.slice(w.indexOf(' ') + 1));
+    }
+    return out;
+  }
+
+  async function saveTranscript(m, lang, segs) {
+    var up = await sb.from('media_transcripts').upsert(
+      { media_id: m.id, language: lang, status: 'done', error: null, text: segs.map(function (g) { return g.text; }).join(' ') },
+      { onConflict: 'media_id' }).select('id').single();
+    if (up.error) throw up.error;
+    var tid = up.data.id;
+    var del = await sb.from('transcript_segments').delete().eq('transcript_id', tid);
+    if (del.error) throw del.error;
+    var rows = segs.map(function (g, i) { return { transcript_id: tid, idx: i, start_s: g.start_s, end_s: g.end_s, text: g.text.slice(0, 1000) }; });
+    var ins = await sb.from('transcript_segments').insert(rows);
+    if (ins.error) throw ins.error;
+    // Οι αυτόματες προτάσεις που δεν έχεις ελέγξει αντικαθίστανται· οι εγκεκριμένες/απορριφθείσες μένουν.
+    var da = await sb.from('annotations').delete().eq('media_id', m.id).eq('source', 'auto').eq('status', 'suggested');
+    if (da.error) throw da.error;
+    return rows;
+  }
+
+  async function autoSuggest(m, lang, segs, onProgress) {
+    var phrases = {}, order = [];
+    segs.forEach(function (g) {
+      nameCandidates(g.text).forEach(function (ph) {
+        if (!phrases[ph]) { phrases[ph] = []; order.push(ph); }
+        if (phrases[ph].indexOf(g) < 0) phrases[ph].push(g);
+      });
+    });
+    order = order.slice(0, 40);
+    var found = {}, done = 0;
+    for (var i = 0; i < order.length; i += 4) {
+      await Promise.all(order.slice(i, i + 4).map(function (ph) {
+        return wdSearch(ph, lang, 2).catch(function () { return []; }).then(function (r) { found[ph] = r; onProgress(++done, order.length); });
+      }));
+    }
+    var ids = [];
+    order.forEach(function (ph) { found[ph].forEach(function (c) { ids.push(c.id); }); });
+    var kinds = await wdKinds(ids.filter(function (x, k) { return ids.indexOf(x) === k; }));
+    var rows = [], seen = {};
+    order.forEach(function (ph) {
+      found[ph].forEach(function (c) {
+        phrases[ph].forEach(function (g) {
+          var key = c.uri + '|' + g.idx;
+          if (seen[key]) return;
+          seen[key] = 1;
+          rows.push({ media_id: m.id, segment_idx: g.idx, start_s: g.start_s, end_s: g.end_s, mention: ph, kind: kinds[c.id] || 'concept',
+            vocabulary: 'wikidata', term_uri: c.uri, label: c.label.slice(0, 200), description: c.description.slice(0, 300), status: 'suggested', source: 'auto' });
+        });
+      });
+    });
+    if (rows.length) { var ins = await sb.from('annotations').insert(rows); if (ins.error) throw ins.error; }
+    return rows.length;
+  }
+
+  function kindSelect(value, label, onChange) {
+    var sel = document.createElement('select'); sel.className = 'lang-select kind-select';
+    KIND_NAMES.forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = t('kind_' + k); sel.appendChild(o); });
+    sel.value = value; sel.setAttribute('aria-label', t('annKind') + ': ' + label);
+    sel.onchange = function () { onChange(sel.value); };
+    return sel;
   }
 
   function annRowEl(a, onChange) {
@@ -1620,6 +1851,10 @@
     var links = termLink(a); row.appendChild(links[0]); row.appendChild(links[1]);
     var ment = document.createElement('span'); ment.textContent = t('annMention', { m: a.mention }); row.appendChild(ment);
     if (a.description) { var ds = document.createElement('span'); ds.className = 'desc'; ds.textContent = a.description; row.appendChild(ds); }
+    row.appendChild(kindSelect(a.kind, a.label, async function (k) {
+      var r = await sb.from('annotations').update({ kind: k }).eq('id', a.id);
+      if (r.error) alert(t('annSaveError', { e: r.error.message })); else a.kind = k;
+    }));
     function btn(label, status) {
       var b = document.createElement('button'); b.type = 'button'; b.textContent = label;
       b.setAttribute('aria-label', label + ': ' + a.label);
@@ -1637,47 +1872,217 @@
     return row;
   }
 
+  // --- Μορφή απομαγνητοφώνησης: μία γραμμή ανά τμήμα, προαιρετικά "[λλ:δδ-λλ:δδ] κείμενο" ---
+  function fmtStamp(sec) { return mmss(sec); }
+  function segmentsToText(segs) {
+    return segs.map(function (g) { return '[' + fmtStamp(g.start_s) + '-' + fmtStamp(g.end_s) + '] ' + g.text; }).join('\n');
+  }
+  function stampToSec(x) { var p = x.split(':').map(Number); return p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p[0] * 60 + p[1]; }
+  function textToSegments(text) {
+    var out = [];
+    text.split(/\r?\n/).forEach(function (line) {
+      line = line.trim();
+      if (!line) return;
+      var m = line.match(/^\[(\d+(?::\d{2}){1,2})(?:\s*-\s*(\d+(?::\d{2}){1,2}))?\]\s*(.*)$/);
+      if (m) out.push({ start_s: stampToSec(m[1]), end_s: m[2] ? stampToSec(m[2]) : null, text: m[3].trim() });
+      else out.push({ start_s: null, end_s: null, text: line });
+    });
+    var t0 = 0;
+    out.forEach(function (g, i) {
+      if (g.start_s === null) g.start_s = t0;
+      if (g.end_s === null) { var nx = out[i + 1]; g.end_s = nx && nx.start_s !== null && nx.start_s >= g.start_s ? nx.start_s : g.start_s; }
+      t0 = g.end_s;
+    });
+    return out.filter(function (g) { return g.text; });
+  }
+  // .srt / .vtt -> γραμμές "[λλ:δδ-λλ:δδ] κείμενο"· σκέτο κείμενο μένει όπως είναι
+  function parseSubtitleFile(raw) {
+    var blocks = raw.replace(/\r/g, '').replace(/^WEBVTT[^\n]*\n/, '').split(/\n{2,}/), lines = [];
+    blocks.forEach(function (b) {
+      var m = b.match(/(\d+:)?(\d{2}):(\d{2})[.,]\d+\s*-->\s*(\d+:)?(\d{2}):(\d{2})[.,]\d+[^\n]*\n([\s\S]*)/);
+      if (!m) { if (b.trim() && !/^\d+$/.test(b.trim())) lines.push(b.trim().replace(/\n/g, ' ')); return; }
+      var a = (parseInt(m[1] || '0', 10) * 3600) + parseInt(m[2], 10) * 60 + parseInt(m[3], 10);
+      var z = (parseInt(m[4] || '0', 10) * 3600) + parseInt(m[5], 10) * 60 + parseInt(m[6], 10);
+      var txt = m[7].replace(/<[^>]+>/g, '').replace(/\n/g, ' ').trim();
+      if (txt) lines.push('[' + fmtStamp(a) + '-' + fmtStamp(z) + '] ' + txt);
+    });
+    return lines.join('\n');
+  }
+
+  // --- Whisper στη συσκευή (transformers.js)· το αρχείο δεν φεύγει από τον browser ---
+  var WHISPER_MODEL = 'Xenova/whisper-small';
+  var whisperPipe = null, whisperLoading = null;
+  var WHISPER_LANG = { el: 'greek', en: 'english', fr: 'french', it: 'italian' };
+
+  async function loadWhisper(onProgress) {
+    if (whisperPipe) return whisperPipe;
+    if (!whisperLoading) {
+      whisperLoading = import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3').then(function (tf) {
+        return tf.pipeline('automatic-speech-recognition', WHISPER_MODEL, {
+          dtype: 'q8',
+          progress_callback: function (e) { if (e && e.status === 'progress' && typeof e.progress === 'number') onProgress(Math.round(e.progress)); }
+        });
+      }).then(function (p) { whisperPipe = p; return p; }, function (e) { whisperLoading = null; throw e; });
+    }
+    return whisperLoading;
+  }
+
+  async function decodeAudio16k(url) {
+    var buf = await (await fetch(url)).arrayBuffer();
+    var AC = window.AudioContext || window.webkitAudioContext, ac = new AC({ sampleRate: 16000 }), ab;
+    try { ab = await ac.decodeAudioData(buf); } catch (e) { throw new Error(t('annDecodeErr')); } finally { try { ac.close(); } catch (e) {} }
+    var a = ab.getChannelData(0);
+    if (ab.numberOfChannels < 2) return a;
+    var b = ab.getChannelData(1), mono = new Float32Array(a.length);
+    for (var i = 0; i < a.length; i++) mono[i] = (a[i] + b[i]) / 2;
+    return mono;
+  }
+
+  async function whisperTranscribe(url, lang, onStatus) {
+    var pipe = await loadWhisper(function (p) { onStatus(t('annWhisperLoad', { p: p })); });
+    onStatus(t('annWhisperRun'));
+    var audio = await decodeAudio16k(url);
+    var res = await pipe(audio, { language: WHISPER_LANG[lang] || 'english', task: 'transcribe', return_timestamps: true, chunk_length_s: 30, stride_length_s: 5 });
+    var chunks = (res.chunks || []).filter(function (c) { return c.text && c.text.trim(); });
+    if (!chunks.length && res.text && res.text.trim()) return [{ start_s: 0, end_s: 0, text: res.text.trim() }];
+    return chunks.map(function (c) { return { start_s: c.timestamp[0] || 0, end_s: c.timestamp[1] == null ? (c.timestamp[0] || 0) : c.timestamp[1], text: c.text.trim() }; });
+  }
+
+  function addTermForm(seg, m, lang, onAdded) {
+    var wrap = document.createElement('div'); wrap.className = 'ann-add';
+    var open = document.createElement('button'); open.type = 'button'; open.className = 'link-btn'; open.textContent = t('annAddTerm');
+    var form = document.createElement('div'); form.hidden = true;
+    var inp = document.createElement('input'); inp.type = 'text'; inp.className = 'ann-term-in'; inp.placeholder = t('annSearchPh'); inp.setAttribute('aria-label', t('annSearchPh'));
+    var go = document.createElement('button'); go.type = 'button'; go.className = 'btn-secondary'; go.textContent = t('annSearch');
+    var out = document.createElement('div'); out.setAttribute('role', 'status');
+    form.appendChild(inp); form.appendChild(go); form.appendChild(out);
+    open.onclick = function () { form.hidden = !form.hidden; if (!form.hidden) inp.focus(); };
+
+    async function search() {
+      var q = inp.value.trim();
+      if (!q) return;
+      go.disabled = true; out.innerHTML = ''; out.textContent = t('annRunning');
+      try {
+        var res = await searchTerms(q, lang);
+        out.textContent = '';
+        if (!res.length) { out.textContent = t('annNoResults'); return; }
+        res.forEach(function (c) {
+          var row = document.createElement('div'); row.className = 'ann-row';
+          var links = termLink({ term_uri: c.uri, label: c.label, vocabulary: c.vocabulary }); row.appendChild(links[0]); row.appendChild(links[1]);
+          if (c.description) { var d = document.createElement('span'); d.className = 'desc'; d.textContent = c.description; row.appendChild(d); }
+          var kind = c.kind;
+          row.appendChild(kindSelect(kind, c.label, function (k) { kind = k; }));
+          var add = document.createElement('button'); add.type = 'button'; add.textContent = t('annAdd'); add.setAttribute('aria-label', t('annAdd') + ': ' + c.label);
+          add.onclick = async function () {
+            add.disabled = true;
+            var r = await sb.from('annotations').insert({
+              media_id: m.id, segment_idx: seg.idx, start_s: seg.start_s, end_s: seg.end_s, mention: q, kind: kind, vocabulary: c.vocabulary,
+              term_uri: c.uri, label: c.label.slice(0, 200), description: (c.description || '').slice(0, 300),
+              status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString()
+            }).select('id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source').single();
+            if (r.error) { alert(t('annSaveError', { e: r.error.message })); add.disabled = false; return; }
+            onAdded(r.data);
+          };
+          row.appendChild(add);
+          out.appendChild(row);
+        });
+      } catch (e) { out.textContent = t('annSearchErr', { e: e.message || e }); }
+      finally { go.disabled = false; }
+    }
+    go.onclick = search;
+    inp.onkeydown = function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); search(); } };
+    wrap.appendChild(open); wrap.appendChild(form);
+    return wrap;
+  }
+
   function annSection(s, m, n) {
     var sec = document.createElement('section'); sec.className = 'ann-media';
+    var uid = 'ann-' + m.id;
     var h = document.createElement('h3'); h.textContent = t('type_' + m.kind) + ' ' + n; sec.appendChild(h);
+
+    var langWrap = document.createElement('div'); langWrap.className = 'input-group';
+    var langLbl = document.createElement('label'); langLbl.htmlFor = uid + '-lang'; langLbl.textContent = t('annLangLabel');
+    var langSel = document.createElement('select'); langSel.id = uid + '-lang'; langSel.className = 'lang-select';
+    ['el', 'en', 'fr', 'it'].forEach(function (c) { var o = document.createElement('option'); o.value = c; o.textContent = c.toUpperCase(); langSel.appendChild(o); });
+    langSel.value = LANG; langWrap.appendChild(langLbl); langWrap.appendChild(langSel); sec.appendChild(langWrap);
+
+    var whisperBtn = document.createElement('button'); whisperBtn.type = 'button'; whisperBtn.className = 'btn-secondary btn-wide'; whisperBtn.textContent = t('annWhisper'); sec.appendChild(whisperBtn);
+    var fileBtn = document.createElement('button'); fileBtn.type = 'button'; fileBtn.className = 'btn-secondary btn-wide'; fileBtn.textContent = t('annUpload'); sec.appendChild(fileBtn);
+    var fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.srt,.vtt,.txt,text/plain,text/vtt'; fileIn.hidden = true; sec.appendChild(fileIn);
+
+    var taWrap = document.createElement('div'); taWrap.className = 'input-group';
+    var taLbl = document.createElement('label'); taLbl.htmlFor = uid + '-text'; taLbl.textContent = t('annTextLabel');
+    var ta = document.createElement('textarea'); ta.id = uid + '-text'; ta.rows = 7; ta.className = 'ann-text';
+    taWrap.appendChild(taLbl); taWrap.appendChild(ta); sec.appendChild(taWrap);
+
     var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
-    var run = document.createElement('button'); run.type = 'button'; run.className = 'btn-primary btn-wide'; sec.appendChild(run);
+    var save = document.createElement('button'); save.type = 'button'; save.className = 'btn-secondary btn-wide'; save.textContent = t('annRun'); sec.appendChild(save);
+    var auto = document.createElement('button'); auto.type = 'button'; auto.className = 'btn-primary btn-wide'; auto.textContent = t('annAuto'); sec.appendChild(auto);
     var list = document.createElement('div'); sec.appendChild(list);
-    var data = null;
+    var data = null, filled = false;
+
+    function busy(on) { [whisperBtn, fileBtn, save, auto, langSel, ta].forEach(function (el) { el.disabled = on; }); }
 
     function paint() {
       var tr = data && data.transcripts.filter(function (x) { return x.media_id === m.id; })[0];
       var anns = data ? data.annotations.filter(function (a) { return a.media_id === m.id; }) : [];
       list.innerHTML = '';
-      run.textContent = t(tr ? 'annRerun' : 'annRun');
-      if (!tr) { status.textContent = t('annNever'); return; }
-      if (tr.status === 'error') { status.textContent = t('annFailed', { e: tr.error || '' }); return; }
-      status.textContent = t('annLang', { l: tr.language || '?' });
-      if (!anns.length) { var none = document.createElement('p'); none.textContent = t('annNoSuggestions'); list.appendChild(none); }
+      if (tr && !filled) { ta.value = segmentsToText(tr.transcript_segments); if (tr.language) langSel.value = tr.language; filled = true; }
+      if (!tr) return;
       tr.transcript_segments.forEach(function (seg) {
         var mine = anns.filter(function (a) { return a.segment_idx === seg.idx; });
-        if (!mine.length) return;
         var box = document.createElement('div'); box.className = 'ann-seg';
         var when = document.createElement('div'); when.className = 'when'; when.textContent = mmss(seg.start_s) + '–' + mmss(seg.end_s);
         var tx = document.createElement('div'); tx.textContent = seg.text;
         box.appendChild(when); box.appendChild(tx);
         mine.forEach(function (a) { box.appendChild(annRowEl(a, paint)); });
+        box.appendChild(addTermForm(seg, m, tr.language || langSel.value, function (row) { data.annotations.push(row); paint(); }));
         list.appendChild(box);
       });
     }
 
     async function reload() { data = await fetchKnowledge(s, true); paint(); }
-    run.onclick = async function () {
-      run.disabled = true; status.textContent = t('annRunning');
+
+    whisperBtn.onclick = async function () {
+      busy(true);
       try {
-        var r = await sb.functions.invoke('annotate-media', { body: { media_id: m.id } });
-        if (r.error) throw new Error(await fnErrorMessage(r.error));
+        var segs = await whisperTranscribe(m.url, langSel.value, function (msg) { status.textContent = msg; });
+        ta.value = segmentsToText(segs); filled = true;
+        status.textContent = '';
+      } catch (e) { status.textContent = t('annWhisperErr', { e: e.message || e }); }
+      finally { busy(false); }
+    };
+    fileBtn.onclick = function () { fileIn.click(); };
+    fileIn.onchange = function () {
+      var f = fileIn.files && fileIn.files[0];
+      if (!f) return;
+      var rd = new FileReader();
+      rd.onload = function () { ta.value = parseSubtitleFile(String(rd.result || '')); filled = true; };
+      rd.readAsText(f);
+      fileIn.value = '';
+    };
+
+    async function saveFlow(withAuto) {
+      var segs = textToSegments(ta.value).slice(0, 400);
+      if (!segs.length) { status.textContent = t('annEmpty'); ta.focus(); return; }
+      busy(true); status.textContent = t('annRunning');
+      try {
+        var rows = await saveTranscript(m, langSel.value, segs);
+        var msg = t('annSaved', { s: rows.length });
+        if (withAuto) {
+          var count = await autoSuggest(m, langSel.value, rows.map(function (r) { return { idx: r.idx, start_s: r.start_s, end_s: r.end_s, text: r.text }; }),
+            function (i, total) { status.textContent = t('annAutoProgress', { i: i, n: total }); });
+          msg = t('annAutoDone', { n: count });
+        }
+        filled = false;
         await reload();
-        status.textContent = t('annDone', { s: r.data.segments, n: r.data.suggestions });
+        status.textContent = msg;
       } catch (e) {
         status.textContent = t('annFailed', { e: e.message || e });
-      } finally { run.disabled = false; }
-    };
+      } finally { busy(false); }
+    }
+    save.onclick = function () { saveFlow(false); };
+    auto.onclick = function () { saveFlow(true); };
     reload().catch(function (e) { status.textContent = t('annFailed', { e: e.message || e }); });
     return sec;
   }
@@ -1734,10 +2139,10 @@
       graph.push({
         '@id': sid + '#annotation-' + a.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:tagging' },
         'oa:hasBody': { '@id': a.term_uri },
-        'oa:hasTarget': {
+        'oa:hasTarget': a.end_s > a.start_s ? {
           'oa:hasSource': { '@id': m.url },
           'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + a.start_s + ',' + a.end_s }
-        }
+        } : { 'oa:hasSource': { '@id': m.url } }
       });
     });
     if (!narr['hdt:HP10_tells_about'].length) delete narr['hdt:HP10_tells_about'];
