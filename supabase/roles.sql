@@ -81,6 +81,11 @@ create policy "read visible media" on public.story_media for select
   using (exists (select 1 from public.stories s where s.id = story_media.story_id));
 -- "owners insert media" / "owners delete media" from schema.sql stay as they are.
 
+-- Word timings for each transcript line: [{"w": "word", "s": start_seconds, "e": end_seconds}, ...]
+alter table public.transcript_segments add column if not exists words jsonb;
+alter table public.transcript_segments drop constraint if exists transcript_segments_words_check;
+alter table public.transcript_segments add  constraint transcript_segments_words_check check (words is null or jsonb_typeof(words) = 'array');
+
 -- ---------- transcripts, segments, annotations: annotators write ----------
 drop policy if exists "transcripts are public"    on public.media_transcripts;
 drop policy if exists "owners write transcripts"  on public.media_transcripts;

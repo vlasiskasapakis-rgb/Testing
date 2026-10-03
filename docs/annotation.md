@@ -38,6 +38,18 @@ every list and query, but anyone who is given a draft file's exact URL could ope
    suggestions start with their transcript line's range.
 4. **Publish for everyone**.
 
+## Exact seconds for suggestions
+A term points at the seconds where its word is spoken, not at its whole transcript line:
+- **Word timings** (Whisper on this device, or the Groq server option) are saved with each line
+  (`transcript_segments.words`; run `roles.sql` once to add the column). Terms found in such a line get the exact
+  range of the word, with a little padding.
+- **No word timings** (typed text, `.srt`/`.vtt`, or a line you edited): the range is *estimated* from where the word sits
+  in the line, with a minimum width of about 1 second. Check these; use **Time → Find exact seconds**, or set
+  start/end with the player.
+- **Set exact times for all suggestions** refines older suggestions that still cover the whole line. Anything
+  you already adjusted is left alone.
+- Editing a line's text in the box drops its word timings (they no longer match); re-run the transcription to get them back.
+
 ## What the public sees
 - Every audio/video has a **timeline** under its player: amber bars are the parts linked to images, blue bars are the parts
   where a term applies. Tap a bar to play from there; the line follows the playback. Terms with no time range apply to the
