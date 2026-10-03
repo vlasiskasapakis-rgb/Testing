@@ -706,7 +706,12 @@
       annQ_balanced: "Ισορροπημένη",
       annQ_best: "Καλύτερη (αργή)",
       annWhisperRunGpu: "Απομαγνητοφώνηση με την κάρτα γραφικών… Κράτα την οθόνη ανοιχτή.",
-      annWhisperFallback: "Η κάρτα γραφικών δεν χρησιμοποιήθηκε· συνεχίζω με τον επεξεργαστή (πιο αργά)…"
+      annWhisperFallback: "Η κάρτα γραφικών δεν χρησιμοποιήθηκε· συνεχίζω με τον επεξεργαστή (πιο αργά)…",
+      annServer: "Απομαγνητοφώνηση στον διακομιστή (δωρεάν, γρήγορη)",
+      annServerRun: "Αποστολή και απομαγνητοφώνηση… συνήθως λίγα δευτερόλεπτα.",
+      annServerErr: "Η απομαγνητοφώνηση στον διακομιστή απέτυχε: {e}",
+      annServerEmpty: "Δεν βρέθηκε ομιλία στο αρχείο.",
+      annServerMissing: "Ο διακομιστής απομαγνητοφώνησης δεν είναι διαθέσιμος (δεν έχει στηθεί ακόμα)."
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -833,7 +838,12 @@
       annQ_balanced: "Balanced",
       annQ_best: "Best (slow)",
       annWhisperRunGpu: "Transcribing with the graphics chip… Keep the screen on.",
-      annWhisperFallback: "The graphics chip could not be used; continuing on the processor (slower)…"
+      annWhisperFallback: "The graphics chip could not be used; continuing on the processor (slower)…",
+      annServer: "Transcribe on the server (free, fast)",
+      annServerRun: "Sending and transcribing… usually a few seconds.",
+      annServerErr: "Server transcription failed: {e}",
+      annServerEmpty: "No speech was found in the file.",
+      annServerMissing: "The transcription server is not available (it has not been set up yet)."
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -960,7 +970,12 @@
       annQ_balanced: "Équilibré",
       annQ_best: "Meilleur (lent)",
       annWhisperRunGpu: "Transcription avec la puce graphique… Gardez l'écran allumé.",
-      annWhisperFallback: "La puce graphique est inutilisable ; je continue sur le processeur (plus lent)…"
+      annWhisperFallback: "La puce graphique est inutilisable ; je continue sur le processeur (plus lent)…",
+      annServer: "Transcrire sur le serveur (gratuit, rapide)",
+      annServerRun: "Envoi et transcription… généralement quelques secondes.",
+      annServerErr: "Échec de la transcription sur le serveur : {e}",
+      annServerEmpty: "Aucune parole détectée dans le fichier.",
+      annServerMissing: "Le serveur de transcription n'est pas disponible (il n'a pas encore été configuré)."
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -1087,7 +1102,12 @@
       annQ_balanced: "Bilanciata",
       annQ_best: "Migliore (lenta)",
       annWhisperRunGpu: "Trascrizione con la scheda grafica… Tieni lo schermo acceso.",
-      annWhisperFallback: "Impossibile usare la scheda grafica; continuo sul processore (più lento)…"
+      annWhisperFallback: "Impossibile usare la scheda grafica; continuo sul processore (più lento)…",
+      annServer: "Trascrivi sul server (gratis, veloce)",
+      annServerRun: "Invio e trascrizione… di solito pochi secondi.",
+      annServerErr: "Trascrizione sul server non riuscita: {e}",
+      annServerEmpty: "Nessun parlato trovato nel file.",
+      annServerMissing: "Il server di trascrizione non è disponibile (non è ancora stato configurato)."
     }
   };
 
@@ -2027,6 +2047,20 @@
     return mono;
   }
 
+  async function fnErrorMessage(err) {
+    try { if (err && err.context && err.context.json) { var j = await err.context.json(); if (j && j.error) return j.error; } } catch (e) {}
+    if (err && /FunctionsFetchError|Failed to send/i.test((err.name || '') + ' ' + (err.message || ''))) return t('annServerMissing');
+    return (err && err.message) || String(err);
+  }
+
+  async function serverTranscribe(mediaId, lang) {
+    var r = await sb.functions.invoke('transcribe-media', { body: { media_id: mediaId, language: lang } });
+    if (r.error) throw new Error(await fnErrorMessage(r.error));
+    var segs = (r.data && r.data.segments) || [];
+    if (!segs.length) throw new Error(t('annServerEmpty'));
+    return segs;
+  }
+
   async function whisperTranscribe(url, lang, quality, onStatus) {
     var audio = await decodeAudio16k(url);
     async function run(device) {
@@ -2110,6 +2144,7 @@
     qSel.onchange = function () { try { localStorage.setItem(QUALITY_KEY, qSel.value); } catch (e) {} };
     qWrap.appendChild(qLbl); qWrap.appendChild(qSel); sec.appendChild(qWrap);
 
+    var serverBtn = document.createElement('button'); serverBtn.type = 'button'; serverBtn.className = 'btn-primary btn-wide'; serverBtn.textContent = t('annServer'); sec.appendChild(serverBtn);
     var whisperBtn = document.createElement('button'); whisperBtn.type = 'button'; whisperBtn.className = 'btn-secondary btn-wide'; whisperBtn.textContent = t('annWhisper'); sec.appendChild(whisperBtn);
     var fileBtn = document.createElement('button'); fileBtn.type = 'button'; fileBtn.className = 'btn-secondary btn-wide'; fileBtn.textContent = t('annUpload'); sec.appendChild(fileBtn);
     var fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.srt,.vtt,.txt,text/plain,text/vtt'; fileIn.hidden = true; sec.appendChild(fileIn);
@@ -2125,7 +2160,7 @@
     var list = document.createElement('div'); sec.appendChild(list);
     var data = null, filled = false;
 
-    function busy(on) { [whisperBtn, fileBtn, save, auto, langSel, qSel, ta].forEach(function (el) { el.disabled = on; }); }
+    function busy(on) { [serverBtn, whisperBtn, fileBtn, save, auto, langSel, qSel, ta].forEach(function (el) { el.disabled = on; }); }
 
     function paint() {
       var tr = data && data.transcripts.filter(function (x) { return x.media_id === m.id; })[0];
@@ -2154,6 +2189,15 @@
         ta.value = segmentsToText(segs); filled = true;
         status.textContent = '';
       } catch (e) { status.textContent = t('annWhisperErr', { e: e.message || e }); }
+      finally { busy(false); }
+    };
+    serverBtn.onclick = async function () {
+      busy(true); status.textContent = t('annServerRun');
+      try {
+        var segs = await serverTranscribe(m.id, langSel.value);
+        ta.value = segmentsToText(segs); filled = true;
+        status.textContent = '';
+      } catch (e) { status.textContent = t('annServerErr', { e: e.message || e }); }
       finally { busy(false); }
     };
     fileBtn.onclick = function () { fileIn.click(); };

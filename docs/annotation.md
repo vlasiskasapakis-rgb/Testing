@@ -8,9 +8,17 @@ your Supabase database: no server function and no paid API key.
 Run `supabase/annotations.sql` in the Supabase SQL editor (after `schema.sql`). It is safe to
 run again; it replaces its own policies, so run it again after pulling updates.
 
+## Optional: free fast transcription on the server (Groq)
+1. Create a free key at console.groq.com.
+2. Supabase dashboard -> Edge Functions -> Secrets: add `GROQ_API_KEY`.
+3. Edge Functions -> Deploy a new function -> Via Editor, name it exactly `transcribe-media`,
+   paste `supabase/functions/transcribe-media/index.ts`, deploy (leave Verify JWT on).
+The button **Transcribe on the server (free, fast)** then works. Files over 25 MB are
+refused and the shared free quota can run out; the on-device and file options still work.
+
 ## Flow
 Log in → open one of your stories → **Transcribe and annotate** → per audio/video:
-1. Get a transcript: **Transcribe on this device (free)** runs Whisper in the browser
+1. Get a transcript: **Transcribe on the server** (if set up), or **Transcribe on this device (free)** runs Whisper in the browser
    (first use downloads ~250 MB, cached afterwards; slow on phones; nothing is uploaded),
    or **Load a .srt / .vtt / .txt file**, or type it. Edit freely. Format: one line per
    segment, optionally `[mm:ss-mm:ss] text`.
