@@ -30,6 +30,16 @@ Log in → open one of your stories → **Transcribe and annotate** → per audi
 4. **Approve / Reject** automatic suggestions; fix the type if it was guessed wrong.
    Visitors see the transcript and approved terms; anyone can **Export JSON-LD**.
 
+## Images
+In **Transcribe and annotate**, each image of your story appears with the terms you have already
+approved from the audio/video. Tick the ones the image shows. Optionally **Mark area** and drag a
+box on the image (stored as fractions of its width/height, so it survives resizing).
+**Suggest matches (on this device)** runs CLIP in the browser (first use downloads ~150 MB) and
+pre-suggests up to 3 likely terms per image for you to approve or reject. It is experimental: it
+works best for clear objects/places and compares against English labels. Visitors see approved terms
+and boxes under the image; the JSON-LD export adds `HP9` / `P67 refers to` on the image and a
+`xywh=percent:` fragment for boxes.
+
 The automatic step is a simple name heuristic, not AI: it misses things and suggests wrong
 matches, so review it. Re-saving replaces earlier *unreviewed* automatic suggestions;
 approved/rejected and hand-added ones are kept. Lines without timestamps are stored without

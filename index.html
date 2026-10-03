@@ -203,6 +203,16 @@
   .vocab-tag { font-size: 11px; font-weight: 700; color: var(--amber-text); margin-left: 6px; text-transform: uppercase; }
   #sheetTools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; } #sheetTools[hidden] { display: none; }
   #annSheet { z-index: 65; }
+  .img-frame { position: relative; line-height: 0; }
+  .story-media .img-frame img, .ann-media .img-frame img { width: 100%; height: auto; max-height: none; display: block; border-radius: 12px; background: #000; }
+  .region-layer { position: absolute; inset: 0; pointer-events: none; }
+  .region-layer.drawing { pointer-events: auto; cursor: crosshair; touch-action: none; outline: 3px solid var(--amber); }
+  .region-box { position: absolute; box-sizing: border-box; pointer-events: none; border: 3px solid var(--amber); box-shadow: 0 0 0 1px rgba(255,255,255,.9) inset, 0 0 0 1px rgba(0,0,0,.45); }
+  .region-box.suggested { border-style: dashed; }
+  .img-terms { margin-top: 8px; font-size: 14px; color: var(--muted); }
+  .term-row label { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; min-height: 40px; }
+  .term-row input[type=checkbox] { width: 22px; height: 22px; }
+  .badge-sug { font-size: 12px; font-weight: 700; color: var(--amber-text); }
   .btn-danger { padding: 12px 22px; min-height: 48px; font-weight: 700; background: #fff; color: var(--danger); border: 2px solid var(--danger); }
   .ann-media { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 10px; }
   .ann-text { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 15px; font-family: inherit; color: var(--ink); }
@@ -711,7 +721,20 @@
       annServerRun: "Αποστολή και απομαγνητοφώνηση… συνήθως λίγα δευτερόλεπτα.",
       annServerErr: "Η απομαγνητοφώνηση στον διακομιστή απέτυχε: {e}",
       annServerEmpty: "Δεν βρέθηκε ομιλία στο αρχείο.",
-      annServerMissing: "Ο διακομιστής απομαγνητοφώνησης δεν είναι διαθέσιμος (δεν έχει στηθεί ακόμα)."
+      annServerMissing: "Ο διακομιστής απομαγνητοφώνησης δεν είναι διαθέσιμος (δεν έχει στηθεί ακόμα).",
+      imgTerms: "Ποιους όρους δείχνει αυτή η εικόνα;",
+      imgNoTerms: "Εγκρίνε πρώτα όρους από τις απομαγνητοφωνήσεις· θα εμφανιστούν εδώ.",
+      imgMark: "Σήμανση περιοχής",
+      imgMarkHint: "Σύρε πάνω στην εικόνα για να σημαδέψεις την περιοχή. Είναι προαιρετικό.",
+      imgClear: "Εκκαθάριση περιοχής",
+      imgClip: "Πρότεινε αντιστοιχίσεις (στη συσκευή)",
+      imgClipLoad: "Λήψη μοντέλου εικόνας… {p}%",
+      imgClipRun: "Σύγκριση της εικόνας με τους όρους σου…",
+      imgClipNone: "Δεν βρέθηκαν πιθανές αντιστοιχίσεις.",
+      imgClipDone: "Προστέθηκαν {n} προτάσεις. Έλεγξέ τις παραπάνω.",
+      imgClipErr: "Οι προτάσεις απέτυχαν: {e}",
+      imgSuggested: "πρόταση",
+      imgDepicts: "Στην εικόνα:"
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -843,7 +866,20 @@
       annServerRun: "Sending and transcribing… usually a few seconds.",
       annServerErr: "Server transcription failed: {e}",
       annServerEmpty: "No speech was found in the file.",
-      annServerMissing: "The transcription server is not available (it has not been set up yet)."
+      annServerMissing: "The transcription server is not available (it has not been set up yet).",
+      imgTerms: "Which terms does this image show?",
+      imgNoTerms: "Approve terms from the transcripts first; they will appear here.",
+      imgMark: "Mark area",
+      imgMarkHint: "Drag on the image to mark the area. This is optional.",
+      imgClear: "Clear area",
+      imgClip: "Suggest matches (on this device)",
+      imgClipLoad: "Downloading image model… {p}%",
+      imgClipRun: "Comparing the image with your terms…",
+      imgClipNone: "No likely matches found.",
+      imgClipDone: "{n} suggestions added. Review them above.",
+      imgClipErr: "Suggestions failed: {e}",
+      imgSuggested: "suggested",
+      imgDepicts: "In this image:"
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -975,7 +1011,20 @@
       annServerRun: "Envoi et transcription… généralement quelques secondes.",
       annServerErr: "Échec de la transcription sur le serveur : {e}",
       annServerEmpty: "Aucune parole détectée dans le fichier.",
-      annServerMissing: "Le serveur de transcription n'est pas disponible (il n'a pas encore été configuré)."
+      annServerMissing: "Le serveur de transcription n'est pas disponible (il n'a pas encore été configuré).",
+      imgTerms: "Quels termes cette image montre-t-elle ?",
+      imgNoTerms: "Approuvez d'abord des termes des transcriptions ; ils apparaîtront ici.",
+      imgMark: "Marquer une zone",
+      imgMarkHint: "Faites glisser sur l'image pour marquer la zone. C'est facultatif.",
+      imgClear: "Effacer la zone",
+      imgClip: "Suggérer des correspondances (sur cet appareil)",
+      imgClipLoad: "Téléchargement du modèle d'image… {p} %",
+      imgClipRun: "Comparaison de l'image avec vos termes…",
+      imgClipNone: "Aucune correspondance probable trouvée.",
+      imgClipDone: "{n} suggestions ajoutées. Vérifiez-les ci-dessus.",
+      imgClipErr: "Échec des suggestions : {e}",
+      imgSuggested: "suggestion",
+      imgDepicts: "Dans cette image :"
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -1107,7 +1156,20 @@
       annServerRun: "Invio e trascrizione… di solito pochi secondi.",
       annServerErr: "Trascrizione sul server non riuscita: {e}",
       annServerEmpty: "Nessun parlato trovato nel file.",
-      annServerMissing: "Il server di trascrizione non è disponibile (non è ancora stato configurato)."
+      annServerMissing: "Il server di trascrizione non è disponibile (non è ancora stato configurato).",
+      imgTerms: "Quali termini mostra questa immagine?",
+      imgNoTerms: "Approva prima i termini delle trascrizioni; compariranno qui.",
+      imgMark: "Segna un'area",
+      imgMarkHint: "Trascina sull'immagine per segnare l'area. È facoltativo.",
+      imgClear: "Cancella l'area",
+      imgClip: "Suggerisci corrispondenze (su questo dispositivo)",
+      imgClipLoad: "Download del modello di immagini… {p}%",
+      imgClipRun: "Confronto dell'immagine con i tuoi termini…",
+      imgClipNone: "Nessuna corrispondenza probabile trovata.",
+      imgClipDone: "Aggiunti {n} suggerimenti. Controllali sopra.",
+      imgClipErr: "Suggerimenti non riusciti: {e}",
+      imgSuggested: "suggerito",
+      imgDepicts: "In questa immagine:"
     }
   };
 
@@ -1318,7 +1380,11 @@
       else if (m.kind === 'video') { el = document.createElement('video'); el.controls = true; el.playsInline = true; el.preload = 'metadata'; el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1)); }
       else { el = document.createElement('audio'); el.controls = true; el.preload = 'metadata'; el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1)); }
       el.src = m.url;
-      $('sheetMedia').appendChild(el);
+      if (m.kind === 'image') {
+        var wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.dataset.mediaId = m.id || '';
+        var frame = document.createElement('div'); frame.className = 'img-frame';
+        frame.appendChild(el); wrap.appendChild(frame); $('sheetMedia').appendChild(wrap);
+      } else { $('sheetMedia').appendChild(el); }
     });
   }
   function tr_(s) { return st(s).title; }
@@ -1756,7 +1822,7 @@
 
   async function fetchKnowledge(s, all) {
     var ids = s.media.map(function (m) { return m.id; }).filter(Boolean);
-    var aq = sb.from('annotations').select('id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source').in('media_id', ids).order('start_s');
+    var aq = sb.from('annotations').select('id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source,region_x,region_y,region_w,region_h').in('media_id', ids).order('start_s');
     if (!all) aq = aq.eq('status', 'approved');
     var res = await Promise.all([
       aq,
@@ -1777,13 +1843,37 @@
     return [link, tag];
   }
 
+  function hasRegion(a) { return a.region_x != null && a.region_w > 0 && a.region_h > 0; }
+  function regionBox(a, extraClass) {
+    var d = document.createElement('div'); d.className = 'region-box' + (extraClass ? ' ' + extraClass : '');
+    d.style.left = (a.region_x * 100) + '%'; d.style.top = (a.region_y * 100) + '%';
+    d.style.width = (a.region_w * 100) + '%'; d.style.height = (a.region_h * 100) + '%';
+    d.title = a.label; return d;
+  }
+  // Εμφάνιση εγκεκριμένων όρων και περιοχών κάτω από κάθε εικόνα στο φύλλο ιστορίας
+  function renderImageTerms(s, k) {
+    s.media.filter(function (m) { return m.kind === 'image' && m.id; }).forEach(function (m) {
+      var wrap = $('sheetMedia').querySelector('.img-wrap[data-media-id="' + m.id + '"]');
+      if (!wrap) return;
+      var mine = k.annotations.filter(function (a) { return a.media_id === m.id && a.status === 'approved'; });
+      if (!mine.length) return;
+      var frame = wrap.querySelector('.img-frame');
+      mine.filter(hasRegion).forEach(function (a) { frame.appendChild(regionBox(a)); });
+      var info = document.createElement('div'); info.className = 'img-terms';
+      info.appendChild(document.createTextNode(t('imgDepicts') + ' '));
+      var ul = document.createElement('ul'); ul.className = 'term-list';
+      mine.forEach(function (a) { var li = document.createElement('li'); termLink(a).forEach(function (n) { li.appendChild(n); }); ul.appendChild(li); });
+      info.appendChild(ul); wrap.appendChild(info);
+    });
+  }
+
   function renderKnowledge(s) {
     var box = $('sheetKnow');
     box.innerHTML = '';
     currentSheetStory = s;
     var owner = isOwner(s);
-    var hasAV = !!(s.media && s.media.some(function (m) { return m.kind !== 'image'; }));
-    $('annotateBtn').hidden = !(owner && hasAV);
+    var annotatable = !!(s.media && s.media.some(function (m) { return m.id; }));
+    $('annotateBtn').hidden = !(owner && annotatable);
     $('deleteBtn').hidden = !(owner && hasDbMedia(s));
     $('exportBtn').hidden = !hasDbMedia(s);
     $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden && $('deleteBtn').hidden;
@@ -1796,6 +1886,7 @@
         var pre = document.createElement('pre'); pre.textContent = tr.text;
         d.appendChild(sm); d.appendChild(pre); box.appendChild(d);
       });
+      renderImageTerms(s, k);
       if (k.annotations.length) {
         var h = document.createElement('h3'); h.textContent = t('annTerms'); box.appendChild(h);
         var ul = document.createElement('ul'); ul.className = 'term-list';
@@ -1942,6 +2033,9 @@
     return sel;
   }
 
+  var annListeners = [];
+  function notifyAnn() { annListeners.forEach(function (f) { try { f(); } catch (e) {} }); }
+
   function annRowEl(a, onChange) {
     var row = document.createElement('div');
     row.className = 'ann-row ' + a.status;
@@ -1960,7 +2054,7 @@
         var patch = { status: status, approved_by: status === 'approved' ? currentUser.id : null, approved_at: status === 'approved' ? new Date().toISOString() : null };
         var r = await sb.from('annotations').update(patch).eq('id', a.id);
         if (r.error) { alert(t('annSaveError', { e: r.error.message })); b.disabled = false; return; }
-        a.status = status; onChange();
+        a.status = status; onChange(); notifyAnn();
       };
       row.appendChild(b);
     }
@@ -2010,7 +2104,11 @@
   // Ταχύτητα/ποιότητα: tiny (γρήγορο), base, small (καλύτερο). Με WebGPU τρέχει στην κάρτα γραφικών.
   var WHISPER_MODELS = { fast: 'Xenova/whisper-tiny', balanced: 'Xenova/whisper-base', best: 'Xenova/whisper-small' };
   var QUALITY_KEY = 'wm_whisper_quality';
-  var whisperPipes = {}, whisperTf = null;
+  var whisperPipes = {}, tfModule = null;
+  function loadTf() {
+    if (!tfModule) tfModule = import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3').catch(function (e) { tfModule = null; throw e; });
+    return tfModule;
+  }
   var WHISPER_LANG = { el: 'greek', en: 'english', fr: 'french', it: 'italian' };
 
   function savedQuality() {
@@ -2024,9 +2122,7 @@
   async function loadWhisper(quality, device, onProgress) {
     var key = quality + ':' + device;
     if (whisperPipes[key]) return whisperPipes[key];
-    if (!whisperTf) whisperTf = import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
-    var tf;
-    try { tf = await whisperTf; } catch (e) { whisperTf = null; throw e; }
+    var tf = await loadTf();
     var opts = device === 'webgpu'
       ? { device: 'webgpu', dtype: { encoder_model: 'fp32', decoder_model_merged: 'q4' } }
       : { dtype: 'q8' };
@@ -2175,7 +2271,7 @@
         var tx = document.createElement('div'); tx.textContent = seg.text;
         box.appendChild(when); box.appendChild(tx);
         mine.forEach(function (a) { box.appendChild(annRowEl(a, paint)); });
-        box.appendChild(addTermForm(seg, m, tr.language || langSel.value, function (row) { data.annotations.push(row); paint(); }));
+        box.appendChild(addTermForm(seg, m, tr.language || langSel.value, function (row) { data.annotations.push(row); paint(); notifyAnn(); }));
         list.appendChild(box);
       });
     }
@@ -2235,13 +2331,201 @@
     return sec;
   }
 
+  // --- Εικόνες: σύνδεση με όρους της ιστορίας, προαιρετική περιοχή, προτάσεις CLIP στη συσκευή ---
+  var clipPipe = null;
+
+  async function enLabels(terms) {
+    var out = {}, ids = [];
+    terms.forEach(function (tm) {
+      if (tm.vocabulary === 'wikidata') ids.push(tm.term_uri.split('/').pop()); else out[tm.term_uri] = tm.label;
+    });
+    for (var i = 0; i < ids.length; i += 50) {
+      try {
+        var r = await fetch(WD_API + '?action=wbgetentities&format=json&origin=*&props=labels&languages=en&ids=' + ids.slice(i, i + 50).join('|'));
+        if (!r.ok) continue;
+        var d = await r.json();
+        Object.keys(d.entities || {}).forEach(function (id) {
+          var l = d.entities[id].labels && d.entities[id].labels.en;
+          if (l) out['https://www.wikidata.org/entity/' + id] = l.value;
+        });
+      } catch (e) { /* θα χρησιμοποιηθεί η υπάρχουσα ετικέτα */ }
+    }
+    return out;
+  }
+
+  // Συγκρίνει την εικόνα με τους όρους (CLIP, zero-shot) και προτείνει όσους ταιριάζουν πιθανότατα.
+  async function clipSuggest(m, terms, existing, onStatus) {
+    var cands = terms.filter(function (tm) { return !existing.some(function (a) { return a.term_uri === tm.term_uri; }); });
+    if (!cands.length) return 0;
+    var tf = await loadTf();
+    if (!clipPipe) {
+      clipPipe = await tf.pipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32', {
+        progress_callback: function (e) { if (e && e.status === 'progress' && typeof e.progress === 'number') onStatus(t('imgClipLoad', { p: Math.round(e.progress) })); }
+      });
+    }
+    onStatus(t('imgClipRun'));
+    var en = await enLabels(cands);
+    var labels = cands.map(function (tm) { return en[tm.term_uri] || tm.label; });
+    var distract = ['something unrelated', 'a blurry or dark photo'];
+    var out = await clipPipe(m.url, labels.concat(distract));
+    var score = {};
+    out.forEach(function (o) { if (!(o.label in score)) score[o.label] = o.score; });
+    var bestDistract = Math.max.apply(null, distract.map(function (d) { return score[d] || 0; }));
+    var picks = cands.map(function (tm, i) { return { tm: tm, score: score[labels[i]] || 0 }; })
+      .filter(function (x) { return x.score >= 0.3 && x.score > bestDistract; })
+      .sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+    if (!picks.length) return 0;
+    var rows = picks.map(function (x) {
+      return { media_id: m.id, mention: x.tm.label, kind: x.tm.kind, vocabulary: x.tm.vocabulary, term_uri: x.tm.term_uri, label: x.tm.label,
+        description: x.tm.description || '', status: 'suggested', source: 'clip' };
+    });
+    var ins = await sb.from('annotations').insert(rows);
+    if (ins.error) throw ins.error;
+    return rows.length;
+  }
+
+  var ANN_COLS = 'id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source,region_x,region_y,region_w,region_h';
+
+  function imageSection(s, m, n) {
+    var sec = document.createElement('section'); sec.className = 'ann-media';
+    var h = document.createElement('h3'); h.textContent = t('type_image') + ' ' + n; sec.appendChild(h);
+
+    var frame = document.createElement('div'); frame.className = 'img-frame';
+    var img = document.createElement('img'); img.src = m.url; img.alt = t('type_image') + ' ' + n;
+    var layer = document.createElement('div'); layer.className = 'region-layer';
+    frame.appendChild(img); frame.appendChild(layer); sec.appendChild(frame);
+
+    var hint = document.createElement('p'); hint.className = 'sheet-sub'; hint.hidden = true; hint.textContent = t('imgMarkHint'); sec.appendChild(hint);
+    var head = document.createElement('h3'); head.textContent = t('imgTerms'); sec.appendChild(head);
+    var list = document.createElement('div'); sec.appendChild(list);
+    var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
+    var clipBtn = document.createElement('button'); clipBtn.type = 'button'; clipBtn.className = 'btn-secondary btn-wide'; clipBtn.textContent = t('imgClip'); sec.appendChild(clipBtn);
+
+    var terms = [], anns = [], drawFor = null;
+
+    function paint() {
+      layer.innerHTML = '';
+      anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }).forEach(function (a) { layer.appendChild(regionBox(a, a.status === 'suggested' ? 'suggested' : '')); });
+      list.innerHTML = '';
+      if (!terms.length) { var p = document.createElement('p'); p.textContent = t('imgNoTerms'); list.appendChild(p); return; }
+      terms.forEach(function (tm, i) {
+        var ex = anns.filter(function (a) { return a.term_uri === tm.term_uri && a.status !== 'rejected'; })[0];
+        var row = document.createElement('div'); row.className = 'ann-row term-row';
+        var lab = document.createElement('label');
+        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!(ex && ex.status === 'approved');
+        lab.appendChild(cb); lab.appendChild(document.createTextNode(tm.label));
+        var tag = document.createElement('span'); tag.className = 'vocab-tag'; tag.textContent = VOCAB_LABEL[tm.vocabulary] || tm.vocabulary; lab.appendChild(tag);
+        row.appendChild(lab);
+        function btn(label, fn) {
+          var b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.setAttribute('aria-label', label + ': ' + tm.label);
+          b.onclick = async function () { b.disabled = true; try { await fn(); } catch (e) { alert(t('annSaveError', { e: e.message || e })); } paint(); };
+          row.appendChild(b); return b;
+        }
+        async function setStatus(a, status) {
+          var r = await sb.from('annotations').update({ status: status, approved_by: status === 'approved' ? currentUser.id : null, approved_at: status === 'approved' ? new Date().toISOString() : null }).eq('id', a.id);
+          if (r.error) throw r.error; a.status = status;
+        }
+        cb.onchange = async function () {
+          cb.disabled = true;
+          try {
+            if (cb.checked) {
+              if (ex) await setStatus(ex, 'approved');
+              else {
+                var r = await sb.from('annotations').insert({ media_id: m.id, mention: tm.label, kind: tm.kind, vocabulary: tm.vocabulary, term_uri: tm.term_uri, label: tm.label,
+                  description: tm.description || '', status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString() }).select(ANN_COLS).single();
+                if (r.error) throw r.error; anns.push(r.data);
+              }
+            } else if (ex) {
+              var d = await sb.from('annotations').delete().eq('id', ex.id);
+              if (d.error) throw d.error; anns.splice(anns.indexOf(ex), 1);
+            }
+          } catch (e) { alert(t('annSaveError', { e: e.message || e })); }
+          paint();
+        };
+        if (ex && ex.status === 'suggested') {
+          var sg = document.createElement('span'); sg.className = 'badge-sug'; sg.textContent = t('imgSuggested'); row.appendChild(sg);
+          btn(t('annApprove'), function () { return setStatus(ex, 'approved'); });
+          btn(t('annReject'), function () { return setStatus(ex, 'rejected'); });
+        }
+        if (ex && ex.status === 'approved') {
+          var mark = btn(t('imgMark'), async function () { drawFor = drawFor === ex ? null : ex; });
+          mark.setAttribute('aria-pressed', drawFor === ex ? 'true' : 'false');
+          if (hasRegion(ex)) btn(t('imgClear'), async function () {
+            var r = await sb.from('annotations').update({ region_x: null, region_y: null, region_w: null, region_h: null }).eq('id', ex.id);
+            if (r.error) throw r.error; ex.region_x = ex.region_y = ex.region_w = ex.region_h = null;
+          });
+        }
+        list.appendChild(row);
+      });
+      layer.classList.toggle('drawing', !!drawFor); hint.hidden = !drawFor;
+    }
+
+    // Σχεδίαση περιοχής με σύρσιμο (δείκτης: ποντίκι ή αφή)
+    var start = null, preview = null;
+    function pt(ev) {
+      var r = img.getBoundingClientRect();
+      return { x: Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)) };
+    }
+    function rectOf(a, b) { return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y) }; }
+    layer.onpointerdown = function (ev) {
+      if (!drawFor) return;
+      ev.preventDefault(); layer.setPointerCapture(ev.pointerId);
+      start = pt(ev); preview = regionBox({ region_x: start.x, region_y: start.y, region_w: 0, region_h: 0, label: '' }, 'suggested'); layer.appendChild(preview);
+    };
+    layer.onpointermove = function (ev) {
+      if (!start) return;
+      var r = rectOf(start, pt(ev));
+      preview.style.left = r.x * 100 + '%'; preview.style.top = r.y * 100 + '%'; preview.style.width = r.w * 100 + '%'; preview.style.height = r.h * 100 + '%';
+    };
+    layer.onpointerup = async function (ev) {
+      if (!start) return;
+      var r = rectOf(start, pt(ev)); start = null; if (preview) { preview.remove(); preview = null; }
+      var target = drawFor;
+      if (!target || r.w < 0.02 || r.h < 0.02) { paint(); return; }
+      var res = await sb.from('annotations').update({ region_x: r.x, region_y: r.y, region_w: r.w, region_h: r.h }).eq('id', target.id);
+      if (res.error) { alert(t('annSaveError', { e: res.error.message })); }
+      else { target.region_x = r.x; target.region_y = r.y; target.region_w = r.w; target.region_h = r.h; }
+      drawFor = null; paint();
+    };
+
+    async function reload() {
+      var k = await fetchKnowledge(s, true);
+      var imageIds = {};
+      s.media.forEach(function (x) { if (x.kind === 'image') imageIds[x.id] = true; });
+      var seen = {};
+      terms = k.annotations.filter(function (a) {
+        if (a.status !== 'approved' || imageIds[a.media_id] || seen[a.term_uri]) return false;
+        seen[a.term_uri] = 1; return true;
+      });
+      anns = k.annotations.filter(function (a) { return a.media_id === m.id; });
+      paint();
+    }
+    annListeners.push(function () { return reload(); });
+
+    clipBtn.onclick = async function () {
+      if (!terms.length) { status.textContent = t('imgNoTerms'); return; }
+      clipBtn.disabled = true;
+      try {
+        var added = await clipSuggest(m, terms, anns, function (msg) { status.textContent = msg; });
+        await reload();
+        status.textContent = added ? t('imgClipDone', { n: added }) : t('imgClipNone');
+      } catch (e) { status.textContent = t('imgClipErr', { e: e.message || e }); }
+      finally { clipBtn.disabled = false; }
+    };
+    reload().catch(function (e) { status.textContent = t('annFailed', { e: e.message || e }); });
+    return sec;
+  }
+
   $('annotateBtn').onclick = function () {
     var s = currentSheetStory;
     if (!s || !isOwner(s)) return;
     var body = $('annBody'); body.innerHTML = '';
+    annListeners = [];
     var av = s.media.filter(function (m) { return m.kind !== 'image' && m.id; });
-    if (!av.length) { var p = document.createElement('p'); p.textContent = t('annNoMedia'); body.appendChild(p); }
+    var imgs = s.media.filter(function (m) { return m.kind === 'image' && m.id; });
+    if (!av.length && !imgs.length) { var p = document.createElement('p'); p.textContent = t('annNoMedia'); body.appendChild(p); }
     av.forEach(function (m, i) { body.appendChild(annSection(s, m, i + 1)); });
+    imgs.forEach(function (m, i) { body.appendChild(imageSection(s, m, i + 1)); });
     openDialog('annSheet');
   };
   $('annCloseBtn').onclick = function () { closeDialog('annSheet'); if (currentSheetStory) renderKnowledge(currentSheetStory); };
@@ -2263,9 +2547,12 @@
     };
     graph.push(ent, { '@id': twin, '@type': 'hdt:HC2_Heritage_Digital_Twin', 'crm:P67_refers_to': { '@id': entity } }, narr);
 
+    var repById = {};
     s.media.forEach(function (m) {
       if (!m.id) return;
       var rep = { '@id': m.url, '@type': m.kind === 'audio' ? 'hdt:HC5_Digital_Representation' : 'hdt:HC7_Digital_Visual_Object', 'hdt:HP22_represents': { '@id': entity } };
+      if (m.kind === 'image') rep['hdt:HP9_is_visual_representation_of'] = { '@id': entity };
+      repById[m.id] = rep;
       graph.push(rep);
       if (m.kind === 'image') return;
       var tr = k.transcripts.filter(function (x) { return x.media_id === m.id && x.status === 'done'; })[0];
@@ -2283,6 +2570,21 @@
       if (!m) return;
       var term = { '@id': a.term_uri, '@type': KIND_CLASS[a.kind] || 'crm:E1_CRM_Entity', 'skos:prefLabel': a.label, 'skos:inScheme': { '@id': VOCAB_SCHEME[a.vocabulary] } };
       graph.push(term);
+      if (m.kind === 'image') {
+        var irep = repById[m.id];
+        (irep['crm:P67_refers_to'] = irep['crm:P67_refers_to'] || []).push({ '@id': a.term_uri });
+        var pct = function (v) { return +(v * 100).toFixed(2); };
+        graph.push({
+          '@id': sid + '#annotation-' + a.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:tagging' },
+          'oa:hasBody': { '@id': a.term_uri },
+          'oa:hasTarget': hasRegion(a) ? {
+            'oa:hasSource': { '@id': m.url },
+            'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' },
+              'rdf:value': 'xywh=percent:' + pct(a.region_x) + ',' + pct(a.region_y) + ',' + pct(a.region_w) + ',' + pct(a.region_h) }
+          } : { 'oa:hasSource': { '@id': m.url } }
+        });
+        return;
+      }
       narr[a.kind === 'event' ? 'hdt:HP10_tells_about' : 'crm:P67_refers_to'].push({ '@id': a.term_uri });
       graph.push({
         '@id': sid + '#annotation-' + a.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:tagging' },

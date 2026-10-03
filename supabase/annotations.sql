@@ -44,9 +44,22 @@ create table if not exists public.annotations (
   created_at  timestamptz not null default now()
 );
 
--- Older versions only allowed 'ai' and 'user'; 'auto' marks heuristic suggestions.
+-- Older versions only allowed 'ai' and 'user'; 'auto' marks heuristic transcript suggestions
+-- and 'clip' marks on-device image-match suggestions.
 alter table public.annotations drop constraint if exists annotations_source_check;
-alter table public.annotations add  constraint annotations_source_check check (source in ('ai', 'user', 'auto'));
+alter table public.annotations add  constraint annotations_source_check check (source in ('ai', 'user', 'auto', 'clip'));
+
+-- Image annotations: optional area as fractions (0-1) of the image width/height.
+alter table public.annotations add column if not exists region_x real;
+alter table public.annotations add column if not exists region_y real;
+alter table public.annotations add column if not exists region_w real;
+alter table public.annotations add column if not exists region_h real;
+alter table public.annotations drop constraint if exists annotations_region_check;
+alter table public.annotations add  constraint annotations_region_check check (
+  (region_x is null and region_y is null and region_w is null and region_h is null)
+  or (region_x between 0 and 1 and region_y between 0 and 1 and region_w > 0 and region_h > 0
+      and region_x + region_w <= 1.0001 and region_y + region_h <= 1.0001)
+);
 
 create index if not exists annotations_media_idx on public.annotations(media_id);
 
