@@ -203,6 +203,7 @@
   .vocab-tag { font-size: 11px; font-weight: 700; color: var(--amber-text); margin-left: 6px; text-transform: uppercase; }
   #sheetTools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; } #sheetTools[hidden] { display: none; }
   #annSheet { z-index: 65; }
+  .btn-danger { padding: 12px 22px; min-height: 48px; font-weight: 700; background: #fff; color: var(--danger); border: 2px solid var(--danger); }
   .ann-media { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 10px; }
   .ann-text { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 15px; font-family: inherit; color: var(--ink); }
   .ann-media .btn-wide { margin-bottom: 8px; }
@@ -377,6 +378,7 @@
     <div id="sheetTools" hidden>
       <button id="annotateBtn" class="btn-secondary" hidden data-i18n="annotate"></button>
       <button id="exportBtn" class="btn-secondary" hidden data-i18n="annExport"></button>
+      <button id="deleteBtn" class="btn-danger" hidden data-i18n="deleteStory"></button>
     </div>
     <button id="closeInfoBtn" data-i18n="close"></button>
   </div>
@@ -694,7 +696,11 @@
       kind_event: "Γεγονός",
       kind_object: "Αντικείμενο",
       kind_material: "Υλικό",
-      kind_concept: "Έννοια"
+      kind_concept: "Έννοια",
+      deleteStory: "Διαγραφή ιστορίας",
+      deleteConfirm: "Να διαγραφεί οριστικά η ιστορία «{t}» μαζί με τα αρχεία, την απομαγνητοφώνηση και τους όρους της; Δεν μπορεί να αναιρεθεί.",
+      deleteError: "Η διαγραφή απέτυχε: {e}",
+      deleted: "Η ιστορία διαγράφηκε."
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -811,7 +817,11 @@
       kind_event: "Event",
       kind_object: "Object",
       kind_material: "Material",
-      kind_concept: "Concept"
+      kind_concept: "Concept",
+      deleteStory: "Delete story",
+      deleteConfirm: "Permanently delete the story \"{t}\" with its files, transcript and terms? This cannot be undone.",
+      deleteError: "Deleting failed: {e}",
+      deleted: "The story was deleted."
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -928,7 +938,11 @@
       kind_event: "Événement",
       kind_object: "Objet",
       kind_material: "Matériau",
-      kind_concept: "Concept"
+      kind_concept: "Concept",
+      deleteStory: "Supprimer l'histoire",
+      deleteConfirm: "Supprimer définitivement l'histoire « {t} » avec ses fichiers, sa transcription et ses termes ? Cette action est irréversible.",
+      deleteError: "Échec de la suppression : {e}",
+      deleted: "L'histoire a été supprimée."
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -1045,7 +1059,11 @@
       kind_event: "Evento",
       kind_object: "Oggetto",
       kind_material: "Materiale",
-      kind_concept: "Concetto"
+      kind_concept: "Concetto",
+      deleteStory: "Elimina la storia",
+      deleteConfirm: "Eliminare definitivamente la storia «{t}» con i suoi file, la trascrizione e i termini? L'azione non può essere annullata.",
+      deleteError: "Eliminazione non riuscita: {e}",
+      deleted: "La storia è stata eliminata."
     }
   };
 
@@ -1589,13 +1607,47 @@
     if (map && markerCluster) addPoiMarker(s);
   }
 
+  function removeStoryRuntime(s) {
+    var i = STORIES.indexOf(s);
+    if (i >= 0) STORIES.splice(i, 1);
+    var el = $('html-marker-' + s.id);
+    if (el) el.remove();
+    for (var k = poiLayers.length - 1; k >= 0; k--) {
+      if (poiLayers[k].s === s) { if (markerCluster) markerCluster.removeLayer(poiLayers[k].m); poiLayers.splice(k, 1); }
+    }
+    lastNearestId = null;
+    if (me) renderNearest(false);
+    if (!STORIES.length) $('nearest').classList.remove('on');
+  }
+
+  $('deleteBtn').onclick = async function () {
+    var s = currentSheetStory;
+    if (!sb || !s || !isOwner(s)) return;
+    if (!window.confirm(t('deleteConfirm', { t: st(s).title }))) return;
+    var b = this; b.disabled = true;
+    try {
+      // Η γραμμή σβήνεται πρώτη (σβήνει και πολυμέσα, απομαγνητοφωνήσεις, όρους)· τα αρχεία μετά.
+      var r = await sb.from('stories').delete().eq('id', s.dbId);
+      if (r.error) throw r.error;
+      var paths = s.media.map(function (m) { return m.path; }).filter(Boolean);
+      if (paths.length) { try { await sb.storage.from(BUCKET).remove(paths); } catch (e) { /* ορφανά αρχεία δεν επηρεάζουν την εφαρμογή */ } }
+      clearSheetMedia();
+      currentSheetStory = null;
+      closeDialog('infoSheet');
+      removeStoryRuntime(s);
+      announce(t('deleted'));
+    } catch (e) {
+      alert(t('deleteError', { e: e.message || e }));
+    } finally { b.disabled = false; }
+  };
+
   function storyFromRow(r) {
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
       id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
-        return { id: m.id, kind: m.kind, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl };
+        return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl };
       })
     };
   }
@@ -1688,8 +1740,9 @@
     var owner = isOwner(s);
     var hasAV = !!(s.media && s.media.some(function (m) { return m.kind !== 'image'; }));
     $('annotateBtn').hidden = !(owner && hasAV);
+    $('deleteBtn').hidden = !(owner && hasDbMedia(s));
     $('exportBtn').hidden = !hasDbMedia(s);
-    $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden;
+    $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden && $('deleteBtn').hidden;
     if (!hasDbMedia(s)) return;
     fetchKnowledge(s, false).then(function (k) {
       if (currentSheetStory !== s) return;
