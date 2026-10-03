@@ -193,6 +193,24 @@
   #authSheet { z-index: 70; }
   .link-btn { background: none; color: var(--petrol); text-decoration: underline; font-weight: 600; padding: 8px 4px; min-height: 44px; border-radius: 8px; }
 
+  .story-know { margin: 8px 0; }
+  .story-know h3, .ann-media h3 { margin: 14px 0 6px; font-size: 16px; font-style: italic; color: var(--petrol); }
+  .story-know details { margin: 6px 0; } .story-know summary { cursor: pointer; font-weight: 600; color: var(--petrol); min-height: 32px; }
+  .story-know pre { white-space: pre-wrap; font-family: inherit; font-size: 15px; background: var(--mist); border-radius: 10px; padding: 10px; }
+  .term-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .term-list li { background: var(--sky-soft); border-radius: 999px; padding: 4px 12px; font-size: 14px; }
+  .term-list a { color: var(--petrol); font-weight: 600; }
+  .vocab-tag { font-size: 11px; font-weight: 700; color: var(--amber-text); margin-left: 6px; text-transform: uppercase; }
+  #sheetTools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; } #sheetTools[hidden] { display: none; }
+  #annSheet { z-index: 65; }
+  .ann-media { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 10px; }
+  .ann-seg { margin: 10px 0; padding: 8px 10px; background: var(--mist); border-radius: 10px; }
+  .ann-seg .when { font-size: 12px; font-weight: 700; color: var(--amber-text); }
+  .ann-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; font-size: 14px; }
+  .ann-row .desc { color: var(--muted); flex-basis: 100%; }
+  .ann-row button { padding: 6px 14px; min-height: 40px; font-weight: 700; background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); }
+  .ann-row.approved { border-left: 4px solid var(--petrol); padding-left: 8px; } .ann-row.rejected { opacity: .55; }
+
   /* ---------- Φύλλα / διάλογοι ---------- */
   .edit-sheet { position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; justify-content: flex-end; background: rgba(14,63,80,.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); pointer-events: auto; }
   .edit-sheet.on { display: flex; }
@@ -350,6 +368,11 @@
     <p id="sheetAuthor" class="story-author"></p>
     <p id="sheetBody"></p>
     <div id="sheetMedia" class="story-media"></div>
+    <div id="sheetKnow" class="story-know"></div>
+    <div id="sheetTools" hidden>
+      <button id="annotateBtn" class="btn-secondary" hidden data-i18n="annotate"></button>
+      <button id="exportBtn" class="btn-secondary" hidden data-i18n="annExport"></button>
+    </div>
     <button id="closeInfoBtn" data-i18n="close"></button>
   </div>
 </div>
@@ -491,6 +514,15 @@
 </div>
 
 <!-- 3. Τελικό αποτέλεσμα -->
+<div id="annSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="annTitle">
+  <div class="sheet-inner">
+    <h2 id="annTitle" data-i18n="annTitle"></h2>
+    <p class="sheet-sub" data-i18n="annNote"></p>
+    <div id="annBody"></div>
+    <button id="annCloseBtn" class="btn-primary" style="margin-top:14px" data-i18n="close"></button>
+  </div>
+</div>
+
 <div id="authSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="authTitle">
   <div class="sheet-inner">
     <h2 id="authTitle"></h2>
@@ -610,7 +642,29 @@
       published: "Η ιστορία δημοσιεύτηκε.",
       loginToAdd: "Συνδέσου για να προσθέσεις ιστορίες.",
       loadStoriesError: "Δεν φορτώθηκαν οι ιστορίες των χρηστών.",
-      byAuthor: "Από {n}"
+      byAuthor: "Από {n}",
+      annotate: "Απομαγνητοφώνηση και σχολιασμός",
+      annExport: "Εξαγωγή JSON-LD",
+      annTitle: "Σχολιασμός με όρους",
+      annNote: "Το σύστημα προτείνει όρους από τα Getty AAT/TGN/ULAN, Wikidata και GeoNames. Εσύ εγκρίνεις ή απορρίπτεις κάθε πρόταση πριν γίνει δημόσια.",
+      annRun: "Απομαγνητοφώνηση και προτάσεις",
+      annRerun: "Νέα απομαγνητοφώνηση",
+      annRunning: "Επεξεργασία… μπορεί να πάρει λίγα λεπτά.",
+      annDone: "Έτοιμο: {s} τμήματα, {n} προτάσεις.",
+      annNever: "Δεν έχει γίνει ακόμα απομαγνητοφώνηση.",
+      annLang: "Γλώσσα: {l}",
+      annFailed: "Αποτυχία: {e}",
+      annApprove: "Έγκριση",
+      annReject: "Απόρριψη",
+      annUndo: "Αναίρεση",
+      annApproved: "Εγκρίθηκε",
+      annRejected: "Απορρίφθηκε",
+      annNoSuggestions: "Δεν βρέθηκαν προτάσεις.",
+      annSaveError: "Η αποθήκευση απέτυχε: {e}",
+      annNoMedia: "Δεν υπάρχει ήχος ή βίντεο σε αυτή την ιστορία.",
+      annTranscript: "Απομαγνητοφώνηση",
+      annTerms: "Όροι και σύνδεσμοι",
+      annMention: "Αναφορά: «{m}»"
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -680,7 +734,29 @@
       published: "Your story was published.",
       loginToAdd: "Log in to add stories.",
       loadStoriesError: "Couldn't load community stories.",
-      byAuthor: "By {n}"
+      byAuthor: "By {n}",
+      annotate: "Transcribe and annotate",
+      annExport: "Export JSON-LD",
+      annTitle: "Annotate with vocabulary terms",
+      annNote: "The system suggests terms from Getty AAT/TGN/ULAN, Wikidata and GeoNames. You approve or reject each suggestion before it becomes public.",
+      annRun: "Transcribe and suggest terms",
+      annRerun: "Transcribe again",
+      annRunning: "Working… this can take a few minutes.",
+      annDone: "Done: {s} segments, {n} suggestions.",
+      annNever: "Not transcribed yet.",
+      annLang: "Language: {l}",
+      annFailed: "Failed: {e}",
+      annApprove: "Approve",
+      annReject: "Reject",
+      annUndo: "Undo",
+      annApproved: "Approved",
+      annRejected: "Rejected",
+      annNoSuggestions: "No suggestions found.",
+      annSaveError: "Saving failed: {e}",
+      annNoMedia: "This story has no audio or video.",
+      annTranscript: "Transcript",
+      annTerms: "Terms and links",
+      annMention: "Mention: “{m}”"
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -750,7 +826,29 @@
       published: "Votre histoire a été publiée.",
       loginToAdd: "Connectez-vous pour ajouter des histoires.",
       loadStoriesError: "Impossible de charger les histoires des utilisateurs.",
-      byAuthor: "Par {n}"
+      byAuthor: "Par {n}",
+      annotate: "Transcrire et annoter",
+      annExport: "Exporter en JSON-LD",
+      annTitle: "Annoter avec des termes de vocabulaire",
+      annNote: "Le système propose des termes de Getty AAT/TGN/ULAN, Wikidata et GeoNames. Vous approuvez ou rejetez chaque suggestion avant sa publication.",
+      annRun: "Transcrire et proposer des termes",
+      annRerun: "Transcrire à nouveau",
+      annRunning: "Traitement… cela peut prendre quelques minutes.",
+      annDone: "Terminé : {s} segments, {n} suggestions.",
+      annNever: "Pas encore transcrit.",
+      annLang: "Langue : {l}",
+      annFailed: "Échec : {e}",
+      annApprove: "Approuver",
+      annReject: "Rejeter",
+      annUndo: "Annuler",
+      annApproved: "Approuvé",
+      annRejected: "Rejeté",
+      annNoSuggestions: "Aucune suggestion trouvée.",
+      annSaveError: "Échec de l'enregistrement : {e}",
+      annNoMedia: "Cette histoire n'a ni audio ni vidéo.",
+      annTranscript: "Transcription",
+      annTerms: "Termes et liens",
+      annMention: "Mention : « {m} »"
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -820,7 +918,29 @@
       published: "La tua storia è stata pubblicata.",
       loginToAdd: "Accedi per aggiungere storie.",
       loadStoriesError: "Impossibile caricare le storie degli utenti.",
-      byAuthor: "Di {n}"
+      byAuthor: "Di {n}",
+      annotate: "Trascrivi e annota",
+      annExport: "Esporta JSON-LD",
+      annTitle: "Annota con termini di vocabolario",
+      annNote: "Il sistema propone termini da Getty AAT/TGN/ULAN, Wikidata e GeoNames. Approvi o rifiuti ogni suggerimento prima che diventi pubblico.",
+      annRun: "Trascrivi e suggerisci termini",
+      annRerun: "Trascrivi di nuovo",
+      annRunning: "Elaborazione… può richiedere qualche minuto.",
+      annDone: "Fatto: {s} segmenti, {n} suggerimenti.",
+      annNever: "Non ancora trascritto.",
+      annLang: "Lingua: {l}",
+      annFailed: "Non riuscito: {e}",
+      annApprove: "Approva",
+      annReject: "Rifiuta",
+      annUndo: "Annulla",
+      annApproved: "Approvato",
+      annRejected: "Rifiutato",
+      annNoSuggestions: "Nessun suggerimento trovato.",
+      annSaveError: "Salvataggio non riuscito: {e}",
+      annNoMedia: "Questa storia non ha audio o video.",
+      annTranscript: "Trascrizione",
+      annTerms: "Termini e collegamenti",
+      annMention: "Menzione: «{m}»"
     }
   };
 
@@ -1015,6 +1135,7 @@
     $('sheetBody').textContent = tr.text;
     $('sheetAuthor').textContent = s.author ? t('byAuthor', { n: s.author }) : '';
     renderSheetMedia(s);
+    renderKnowledge(s);
     openDialog('infoSheet');
   }
   function clearSheetMedia() {
@@ -1034,8 +1155,8 @@
     });
   }
   function tr_(s) { return st(s).title; }
-  $('closeInfoBtn').addEventListener('click', function () { clearSheetMedia(); closeDialog('infoSheet'); });
-  escHandlers.infoSheet = function () { clearSheetMedia(); closeDialog('infoSheet'); };
+  $('closeInfoBtn').addEventListener('click', function () { clearSheetMedia(); currentSheetStory = null; closeDialog('infoSheet'); });
+  escHandlers.infoSheet = function () { clearSheetMedia(); currentSheetStory = null; closeDialog('infoSheet'); };
 
   function createMarkerEl(s) {
     var container = $('ar-overlay-container');
@@ -1366,10 +1487,10 @@
   function storyFromRow(r) {
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
-      id: 'u-' + r.id, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
+      id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
-        return { kind: m.kind, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl };
+        return { id: m.id, kind: m.kind, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl };
       })
     };
   }
@@ -1377,7 +1498,7 @@
   async function loadRemoteStories() {
     if (!sb) return;
     try {
-      var r = await sb.from('stories').select('id,title,lat,lon,radius,author_name,story_media(kind,path,position)').order('created_at');
+      var r = await sb.from('stories').select('id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)').order('created_at');
       if (r.error) throw r.error;
       r.data.forEach(function (row) { addStoryRuntime(storyFromRow(row)); });
     } catch (e) {
@@ -1406,18 +1527,247 @@
         var author = userName(currentUser);
         var ins = await sb.from('stories').insert({ id: sid, title: title, lat: pos.lat, lon: pos.lon, author_name: author });
         if (ins.error) throw ins.error;
-        var mi = await sb.from('story_media').insert(rows);
+        var mi = await sb.from('story_media').insert(rows).select('id,position');
         if (mi.error) throw mi.error;
+        mi.data.forEach(function (d) { rows[d.position].id = d.id; });
       } catch (e) {
         try { await sb.from('stories').delete().eq('id', sid); } catch (_) {}
         if (uploaded.length) { try { await sb.storage.from(BUCKET).remove(uploaded); } catch (_) {} }
         throw e;
       }
-      return storyFromRow({ id: sid, title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
-        story_media: rows.map(function (r) { return { kind: r.kind, path: r.path, position: r.position }; }) });
+      return storyFromRow({ id: sid, user_id: uid, title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
+        story_media: rows.map(function (r) { return { id: r.id, kind: r.kind, path: r.path, position: r.position }; }) });
     }
   };
   loadRemoteStories();
+
+  // ==========================================
+  // 1c. ΣΧΟΛΙΑΣΜΟΣ (απομαγνητοφώνηση + ελεγχόμενα λεξιλόγια, HDT/CRM)
+  // ==========================================
+  var VOCAB_LABEL = { aat: 'AAT', tgn: 'TGN', ulan: 'ULAN', wikidata: 'Wikidata', geonames: 'GeoNames' };
+  var VOCAB_SCHEME = { aat: 'http://vocab.getty.edu/aat/', tgn: 'http://vocab.getty.edu/tgn/', ulan: 'http://vocab.getty.edu/ulan/', wikidata: 'https://www.wikidata.org/entity/', geonames: 'https://sws.geonames.org/' };
+  var currentSheetStory = null;
+
+  function isOwner(s) { return !!(currentUser && s.ownerId && s.ownerId === currentUser.id); }
+  function hasDbMedia(s) { return !!(sb && s.dbId && s.media && s.media.some(function (m) { return m.id; })); }
+  function safeUrl(u) { return /^https?:\/\//i.test(u) ? u : '#'; }
+  function mmss(sec) { sec = Math.max(0, Math.round(sec)); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }
+
+  async function fetchKnowledge(s, all) {
+    var ids = s.media.map(function (m) { return m.id; }).filter(Boolean);
+    var aq = sb.from('annotations').select('id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status').in('media_id', ids).order('start_s');
+    if (!all) aq = aq.eq('status', 'approved');
+    var res = await Promise.all([
+      aq,
+      sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids)
+    ]);
+    if (res[0].error) throw res[0].error;
+    if (res[1].error) throw res[1].error;
+    res[1].data.forEach(function (tr) { tr.transcript_segments.sort(function (a, b) { return a.idx - b.idx; }); });
+    return { annotations: res[0].data, transcripts: res[1].data };
+  }
+
+  function termLink(a) {
+    var link = document.createElement('a');
+    link.href = safeUrl(a.term_uri); link.target = '_blank'; link.rel = 'noopener noreferrer';
+    link.textContent = a.label;
+    var tag = document.createElement('span');
+    tag.className = 'vocab-tag'; tag.textContent = VOCAB_LABEL[a.vocabulary] || a.vocabulary;
+    return [link, tag];
+  }
+
+  function renderKnowledge(s) {
+    var box = $('sheetKnow');
+    box.innerHTML = '';
+    currentSheetStory = s;
+    var owner = isOwner(s);
+    var hasAV = !!(s.media && s.media.some(function (m) { return m.kind !== 'image'; }));
+    $('annotateBtn').hidden = !(owner && hasAV);
+    $('exportBtn').hidden = !hasDbMedia(s);
+    $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden;
+    if (!hasDbMedia(s)) return;
+    fetchKnowledge(s, false).then(function (k) {
+      if (currentSheetStory !== s) return;
+      k.transcripts.filter(function (tr) { return tr.status === 'done' && tr.text; }).forEach(function (tr) {
+        var d = document.createElement('details');
+        var sm = document.createElement('summary'); sm.textContent = t('annTranscript');
+        var pre = document.createElement('pre'); pre.textContent = tr.text;
+        d.appendChild(sm); d.appendChild(pre); box.appendChild(d);
+      });
+      if (k.annotations.length) {
+        var h = document.createElement('h3'); h.textContent = t('annTerms'); box.appendChild(h);
+        var ul = document.createElement('ul'); ul.className = 'term-list';
+        var seen = {};
+        k.annotations.forEach(function (a) {
+          if (seen[a.term_uri]) return; seen[a.term_uri] = 1;
+          var li = document.createElement('li');
+          termLink(a).forEach(function (n) { li.appendChild(n); });
+          ul.appendChild(li);
+        });
+        box.appendChild(ul);
+      }
+    }).catch(function () {});
+  }
+
+  async function fnErrorMessage(err) {
+    try { if (err && err.context && err.context.json) { var j = await err.context.json(); if (j && j.error) return j.error; } } catch (e) {}
+    return (err && err.message) || String(err);
+  }
+
+  function annRowEl(a, onChange) {
+    var row = document.createElement('div');
+    row.className = 'ann-row ' + a.status;
+    var links = termLink(a); row.appendChild(links[0]); row.appendChild(links[1]);
+    var ment = document.createElement('span'); ment.textContent = t('annMention', { m: a.mention }); row.appendChild(ment);
+    if (a.description) { var ds = document.createElement('span'); ds.className = 'desc'; ds.textContent = a.description; row.appendChild(ds); }
+    function btn(label, status) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = label;
+      b.setAttribute('aria-label', label + ': ' + a.label);
+      b.onclick = async function () {
+        b.disabled = true;
+        var patch = { status: status, approved_by: status === 'approved' ? currentUser.id : null, approved_at: status === 'approved' ? new Date().toISOString() : null };
+        var r = await sb.from('annotations').update(patch).eq('id', a.id);
+        if (r.error) { alert(t('annSaveError', { e: r.error.message })); b.disabled = false; return; }
+        a.status = status; onChange();
+      };
+      row.appendChild(b);
+    }
+    if (a.status === 'suggested') { btn(t('annApprove'), 'approved'); btn(t('annReject'), 'rejected'); }
+    else { var st_ = document.createElement('strong'); st_.textContent = t(a.status === 'approved' ? 'annApproved' : 'annRejected'); row.appendChild(st_); btn(t('annUndo'), 'suggested'); }
+    return row;
+  }
+
+  function annSection(s, m, n) {
+    var sec = document.createElement('section'); sec.className = 'ann-media';
+    var h = document.createElement('h3'); h.textContent = t('type_' + m.kind) + ' ' + n; sec.appendChild(h);
+    var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
+    var run = document.createElement('button'); run.type = 'button'; run.className = 'btn-primary btn-wide'; sec.appendChild(run);
+    var list = document.createElement('div'); sec.appendChild(list);
+    var data = null;
+
+    function paint() {
+      var tr = data && data.transcripts.filter(function (x) { return x.media_id === m.id; })[0];
+      var anns = data ? data.annotations.filter(function (a) { return a.media_id === m.id; }) : [];
+      list.innerHTML = '';
+      run.textContent = t(tr ? 'annRerun' : 'annRun');
+      if (!tr) { status.textContent = t('annNever'); return; }
+      if (tr.status === 'error') { status.textContent = t('annFailed', { e: tr.error || '' }); return; }
+      status.textContent = t('annLang', { l: tr.language || '?' });
+      if (!anns.length) { var none = document.createElement('p'); none.textContent = t('annNoSuggestions'); list.appendChild(none); }
+      tr.transcript_segments.forEach(function (seg) {
+        var mine = anns.filter(function (a) { return a.segment_idx === seg.idx; });
+        if (!mine.length) return;
+        var box = document.createElement('div'); box.className = 'ann-seg';
+        var when = document.createElement('div'); when.className = 'when'; when.textContent = mmss(seg.start_s) + '–' + mmss(seg.end_s);
+        var tx = document.createElement('div'); tx.textContent = seg.text;
+        box.appendChild(when); box.appendChild(tx);
+        mine.forEach(function (a) { box.appendChild(annRowEl(a, paint)); });
+        list.appendChild(box);
+      });
+    }
+
+    async function reload() { data = await fetchKnowledge(s, true); paint(); }
+    run.onclick = async function () {
+      run.disabled = true; status.textContent = t('annRunning');
+      try {
+        var r = await sb.functions.invoke('annotate-media', { body: { media_id: m.id } });
+        if (r.error) throw new Error(await fnErrorMessage(r.error));
+        await reload();
+        status.textContent = t('annDone', { s: r.data.segments, n: r.data.suggestions });
+      } catch (e) {
+        status.textContent = t('annFailed', { e: e.message || e });
+      } finally { run.disabled = false; }
+    };
+    reload().catch(function (e) { status.textContent = t('annFailed', { e: e.message || e }); });
+    return sec;
+  }
+
+  $('annotateBtn').onclick = function () {
+    var s = currentSheetStory;
+    if (!s || !isOwner(s)) return;
+    var body = $('annBody'); body.innerHTML = '';
+    var av = s.media.filter(function (m) { return m.kind !== 'image' && m.id; });
+    if (!av.length) { var p = document.createElement('p'); p.textContent = t('annNoMedia'); body.appendChild(p); }
+    av.forEach(function (m, i) { body.appendChild(annSection(s, m, i + 1)); });
+    openDialog('annSheet');
+  };
+  $('annCloseBtn').onclick = function () { closeDialog('annSheet'); if (currentSheetStory) renderKnowledge(currentSheetStory); };
+  escHandlers.annSheet = function () { $('annCloseBtn').click(); };
+
+  // --- Εξαγωγή JSON-LD (HDT ontology + CIDOC-CRM + Web Annotation) ---
+  // Το HDTO v0.1 δεν δημοσιεύει ακόμη επίσημο namespace· ορίστε WM_CONFIG.HDT_NS όταν υπάρξει.
+  var KIND_CLASS = { person: 'crm:E21_Person', place: 'crm:E53_Place', event: 'crm:E5_Event', object: 'crm:E70_Thing', material: 'crm:E57_Materials', concept: 'crm:E55_Type' };
+
+  function buildJsonLd(s, k) {
+    var sid = 'urn:walkingmemory:story:' + s.dbId;
+    var entity = sid + '#heritage-entity', twin = sid + '#digital-twin', narrative = sid + '#narrative';
+    var graph = [];
+    var narr = { '@id': narrative, '@type': 'nont:Narrative', 'hdt:HP10_tells_about': [], 'crm:P67_refers_to': [] };
+    var ent = {
+      '@id': entity, '@type': 'hdt:HC1_Heritage_Entity', 'rdfs:label': st(s).title,
+      'crm:P168_place_is_defined_by': { '@type': 'crm:E94_Space_Primitive', '@value': 'POINT(' + s.lon + ' ' + s.lat + ')' },
+      'hdt:HP1_has_digital_twin': { '@id': twin }, 'hdt:HP2_has_story': { '@id': narrative }
+    };
+    graph.push(ent, { '@id': twin, '@type': 'hdt:HC2_Heritage_Digital_Twin', 'crm:P67_refers_to': { '@id': entity } }, narr);
+
+    s.media.forEach(function (m) {
+      if (!m.id) return;
+      var rep = { '@id': m.url, '@type': m.kind === 'audio' ? 'hdt:HC5_Digital_Representation' : 'hdt:HC7_Digital_Visual_Object', 'hdt:HP22_represents': { '@id': entity } };
+      graph.push(rep);
+      if (m.kind === 'image') return;
+      var tr = k.transcripts.filter(function (x) { return x.media_id === m.id && x.status === 'done'; })[0];
+      var narration = { '@id': sid + '#narration-' + m.id, '@type': 'nont:Narration', 'hdt:HP4_narrates': { '@id': narrative }, 'crm:P165_incorporates': { '@id': m.url } };
+      if (tr) {
+        var doc = sid + '#transcript-' + m.id;
+        narration['hdt:HP8_is_narrated_in_document'] = { '@id': doc };
+        graph.push({ '@id': doc, '@type': ['hdt:HC6_Digital_Document', 'crm:E31_Document'], 'hdt:HP11_documents': { '@id': entity }, 'dcterms:language': tr.language, 'rdf:value': tr.text });
+      }
+      graph.push(narration);
+    });
+
+    k.annotations.forEach(function (a) {
+      var m = s.media.filter(function (x) { return x.id === a.media_id; })[0];
+      if (!m) return;
+      var term = { '@id': a.term_uri, '@type': KIND_CLASS[a.kind] || 'crm:E1_CRM_Entity', 'skos:prefLabel': a.label, 'skos:inScheme': { '@id': VOCAB_SCHEME[a.vocabulary] } };
+      graph.push(term);
+      narr[a.kind === 'event' ? 'hdt:HP10_tells_about' : 'crm:P67_refers_to'].push({ '@id': a.term_uri });
+      graph.push({
+        '@id': sid + '#annotation-' + a.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:tagging' },
+        'oa:hasBody': { '@id': a.term_uri },
+        'oa:hasTarget': {
+          'oa:hasSource': { '@id': m.url },
+          'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + a.start_s + ',' + a.end_s }
+        }
+      });
+    });
+    if (!narr['hdt:HP10_tells_about'].length) delete narr['hdt:HP10_tells_about'];
+    if (!narr['crm:P67_refers_to'].length) delete narr['crm:P67_refers_to'];
+
+    return {
+      '@context': {
+        crm: 'http://www.cidoc-crm.org/cidoc-crm/', hdt: CFG.HDT_NS || 'urn:echoes:hdto:', nont: 'https://dlnarratives.eu/ontology/',
+        oa: 'http://www.w3.org/ns/oa#', skos: 'http://www.w3.org/2004/02/skos/core#', dcterms: 'http://purl.org/dc/terms/',
+        rdfs: 'http://www.w3.org/2000/01/rdf-schema#', rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+      },
+      '@graph': graph
+    };
+  }
+
+  $('exportBtn').onclick = async function () {
+    var s = currentSheetStory;
+    if (!s || !hasDbMedia(s)) return;
+    var b = this; b.disabled = true;
+    try {
+      var k = await fetchKnowledge(s, false);
+      var blob = new Blob([JSON.stringify(buildJsonLd(s, k), null, 2)], { type: 'application/ld+json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'story-' + s.dbId + '.jsonld';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+    } catch (e) { alert(t('annSaveError', { e: e.message || e })); }
+    finally { b.disabled = false; }
+  };
+  onLangChange(function () { if (currentSheetStory) renderKnowledge(currentSheetStory); });
 
   // ==========================================
   // 2. EDITOR (μη καταστροφικός)
