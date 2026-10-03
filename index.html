@@ -238,6 +238,19 @@
   .lnk-box { border-top: 1px dashed var(--line-strong); margin-top: 10px; padding-top: 8px; }
   .lnk-box .time-in { width: 90px; padding: 8px 10px; border: 2px solid var(--line-strong); border-radius: 10px; font-size: 15px; }
   .lnk-box audio, .lnk-box video { width: 100%; max-height: 220px; margin: 6px 0; }
+  .tl { margin: 4px 0 12px; }
+  .tl-legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin: 2px 0 4px; }
+  .tl-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -2px; }
+  .tl-track { position: relative; background: var(--mist); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 4px; cursor: pointer; }
+  .tl-item { position: absolute; height: 16px; min-width: 8px; border: 0; padding: 0; border-radius: 4px; opacity: .9; box-shadow: 0 0 0 1px rgba(255,255,255,.8) inset; }
+  .tl-item.img { background: var(--amber); } .tl-item.term { background: var(--sky); }
+  .tl-item.active { outline: 2px solid var(--petrol); opacity: 1; }
+  .tl-head { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--petrol); pointer-events: none; }
+  .now-terms { margin-top: 8px; }
+  .term-times { margin-left: 4px; } .term-times button { background: none; color: var(--petrol); font-weight: 700; font-size: 12px; padding: 2px 6px; min-height: 28px; border-radius: 6px; border: 1px solid var(--line-strong); margin-left: 4px; }
+  .ann-when { font-size: 13px; font-weight: 700; color: var(--amber-text); }
+  .ann-time-panel { flex-basis: 100%; }
+  .ann-player { width: 100%; max-height: 220px; margin: 6px 0; }
   .btn-danger { padding: 12px 22px; min-height: 48px; font-weight: 700; background: #fff; color: var(--danger); border: 2px solid var(--danger); }
   .ann-media { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 10px; }
   .ann-text { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 15px; font-family: inherit; color: var(--ink); }
@@ -809,7 +822,19 @@
       lnkBad: "Βάλε έγκυρη αρχή και τέλος· το τέλος πρέπει να είναι μετά την αρχή.",
       lnkErr: "Η αποθήκευση της σύνδεσης απέτυχε: {e}",
       lnkNoAV: "Πρόσθεσε ήχο ή βίντεο στην ιστορία για να συνδέσεις εικόνες.",
-      uploadDone: "Η ιστορία ανέβηκε. Θα τη δουν οι σχολιαστές και θα δημοσιευτεί μετά τον σχολιασμό."
+      uploadDone: "Η ιστορία ανέβηκε. Θα τη δουν οι σχολιαστές και θα δημοσιευτεί μετά τον σχολιασμό.",
+      tlImages: "Εικόνες",
+      tlTerms: "Όροι",
+      tlItemImg: "Εικόνα {n}",
+      tlAria: "{l}, {a}–{b}. Αναπαραγωγή από εδώ",
+      tlNowTerms: "Όροι σε αυτή τη στιγμή",
+      annTimeWhole: "Ολόκληρη η καταγραφή",
+      annTimeEdit: "Χρόνος",
+      annTimeSave: "Αποθήκευση χρόνου",
+      annTimeStartNow: "Αρχή = τρέχων χρόνος",
+      annTimeEndNow: "Τέλος = τρέχων χρόνος",
+      annTimeClear: "Ολόκληρη η καταγραφή",
+      annPlayerHint: "Χρησιμοποίησε τον αναπαραγωγέα για να βρεις την ακριβή στιγμή κάθε όρου."
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -988,7 +1013,19 @@
       lnkBad: "Enter a valid start and end; the end must be after the start.",
       lnkErr: "Saving the link failed: {e}",
       lnkNoAV: "Add an audio or video to this story to link images to it.",
-      uploadDone: "Story uploaded. Annotators will review it and it will be published after annotation."
+      uploadDone: "Story uploaded. Annotators will review it and it will be published after annotation.",
+      tlImages: "Images",
+      tlTerms: "Terms",
+      tlItemImg: "Image {n}",
+      tlAria: "{l}, {a}–{b}. Play from here",
+      tlNowTerms: "Terms at this moment",
+      annTimeWhole: "Whole recording",
+      annTimeEdit: "Time",
+      annTimeSave: "Save time",
+      annTimeStartNow: "Start = current time",
+      annTimeEndNow: "End = current time",
+      annTimeClear: "Whole recording",
+      annPlayerHint: "Use the player to find the exact moment of each term."
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -1167,7 +1204,19 @@
       lnkBad: "Saisissez un début et une fin valides ; la fin doit suivre le début.",
       lnkErr: "Échec de l'enregistrement du lien : {e}",
       lnkNoAV: "Ajoutez un audio ou une vidéo à cette histoire pour y lier des images.",
-      uploadDone: "Histoire envoyée. Les annotateurs la reverront et elle sera publiée après annotation."
+      uploadDone: "Histoire envoyée. Les annotateurs la reverront et elle sera publiée après annotation.",
+      tlImages: "Images",
+      tlTerms: "Termes",
+      tlItemImg: "Image {n}",
+      tlAria: "{l}, {a}–{b}. Lire à partir d'ici",
+      tlNowTerms: "Termes à ce moment",
+      annTimeWhole: "Enregistrement entier",
+      annTimeEdit: "Durée",
+      annTimeSave: "Enregistrer la durée",
+      annTimeStartNow: "Début = temps actuel",
+      annTimeEndNow: "Fin = temps actuel",
+      annTimeClear: "Enregistrement entier",
+      annPlayerHint: "Utilisez le lecteur pour trouver le moment exact de chaque terme."
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -1346,7 +1395,19 @@
       lnkBad: "Inserisci un inizio e una fine validi; la fine deve seguire l'inizio.",
       lnkErr: "Salvataggio del collegamento non riuscito: {e}",
       lnkNoAV: "Aggiungi un audio o un video alla storia per collegarvi le immagini.",
-      uploadDone: "Storia caricata. Gli annotatori la esamineranno e sarà pubblicata dopo l'annotazione."
+      uploadDone: "Storia caricata. Gli annotatori la esamineranno e sarà pubblicata dopo l'annotazione.",
+      tlImages: "Immagini",
+      tlTerms: "Termini",
+      tlItemImg: "Immagine {n}",
+      tlAria: "{l}, {a}–{b}. Riproduci da qui",
+      tlNowTerms: "Termini in questo momento",
+      annTimeWhole: "Intera registrazione",
+      annTimeEdit: "Tempo",
+      annTimeSave: "Salva il tempo",
+      annTimeStartNow: "Inizio = tempo attuale",
+      annTimeEndNow: "Fine = tempo attuale",
+      annTimeClear: "Intera registrazione",
+      annPlayerHint: "Usa il lettore per trovare il momento esatto di ogni termine."
     }
   };
 
@@ -1563,6 +1624,8 @@
       el.src = m.url;
       el.addEventListener('timeupdate', function () { updateStage(el); });
       el.addEventListener('seeked', function () { updateStage(el); });
+      el.addEventListener('loadedmetadata', function () { if (sheetK) paintTimeline(s, el); });
+      el.addEventListener('durationchange', function () { if (sheetK) paintTimeline(s, el); });
       el.addEventListener('play', function () {
         $('sheetMedia').querySelectorAll('audio, video').forEach(function (o) { if (o !== el) o.pause(); });
       });
@@ -2108,6 +2171,16 @@
   escHandlers.listSheet = function () { closeDialog('listSheet'); };
   onLangChange(function () { if ($('listSheet').classList.contains('on')) renderList(); });
 
+  function fmtT(sec) { var mm = Math.floor(sec / 60), r = sec - mm * 60; return String(mm).padStart(2, '0') + ':' + (r < 10 ? '0' : '') + r.toFixed(1); }
+  function parseTime(x) {
+    x = String(x).trim().replace(',', '.');
+    if (/^\d+(\.\d+)?$/.test(x)) return parseFloat(x);
+    var a = x.match(/^(\d+):(\d{1,2}(?:\.\d+)?)$/); if (a) return +a[1] * 60 + parseFloat(a[2]);
+    var b = x.match(/^(\d+):(\d{1,2}):(\d{1,2}(?:\.\d+)?)$/); if (b) return +b[1] * 3600 + +b[2] * 60 + parseFloat(b[3]);
+    return NaN;
+  }
+  function hasRange(a) { return a.end_s != null && a.start_s != null && a.end_s > a.start_s; }
+
   function hasRegion(a) { return a.region_x != null && a.region_w > 0 && a.region_h > 0; }
   function regionBox(a, extraClass) {
     var d = document.createElement('div'); d.className = 'region-box' + (extraClass ? ' ' + extraClass : '');
@@ -2151,26 +2224,108 @@
     updateStage(el);
   }
 
-  // Εμφανίζει στη σκηνή τις εικόνες που συνδέονται με την τρέχουσα στιγμή του ήχου/βίντεο
+  // Εμφανίζει στη σκηνή τις εικόνες και τους όρους που αφορούν την τρέχουσα στιγμή του ήχου/βίντεο
   function updateStage(avEl) {
     var stage = $('syncStage'), s = currentSheetStory;
     if (!stage || !s) return;
     var now = avEl.currentTime, avId = avEl.dataset.mediaId;
     var active = currentLinks.filter(function (l) { return l.av_media_id === avId && now >= l.start_s && now < l.end_s; });
-    var key = active.map(function (l) { return l.id; }).join(',');
+    var terms = sheetK ? sheetK.annotations.filter(function (a) {
+      return a.status === 'approved' && a.media_id === avId && hasRange(a) && now >= a.start_s && now < a.end_s;
+    }) : [];
+    var key = active.map(function (l) { return l.id; }).join(',') + '|' + terms.map(function (a) { return a.id; }).join(',');
     document.querySelectorAll('#sheetImages .link-card').forEach(function (c) { c.classList.toggle('active', active.some(function (l) { return l.id === c.dataset.linkId; })); });
     document.querySelectorAll('#sheetKnow .tr-line').forEach(function (b) {
       b.classList.toggle('now', b.dataset.mediaId === avId && now >= +b.dataset.start && now < +b.dataset.end);
     });
+    // Δείκτης θέσης και ενεργά τμήματα στη γραμμή χρόνου
+    var tl = $('sheetMedia').querySelector('.tl[data-media-id="' + avId + '"]');
+    if (tl) {
+      var dur = +tl.dataset.dur || 1;
+      tl.querySelectorAll('.tl-head').forEach(function (hd) { hd.style.left = Math.min(100, now / dur * 100) + '%'; });
+      tl.querySelectorAll('.tl-item').forEach(function (it) { it.classList.toggle('active', now >= +it.dataset.start && now < +it.dataset.end); });
+    }
     if (stage.dataset.key === key) return;
     stage.dataset.key = key; stage.innerHTML = '';
-    if (!active.length) { stage.hidden = true; return; }
+    if (!active.length && !terms.length) { stage.hidden = true; return; }
     stage.hidden = false;
     var h = document.createElement('h3'); h.textContent = t('imgNow'); stage.appendChild(h);
     active.forEach(function (l) {
       var im = mediaById(s, l.image_media_id);
       if (im) stage.appendChild(figureFor(s, im, s.media.filter(function (x) { return x.kind === 'image'; }).indexOf(im) + 1));
     });
+    if (terms.length) {
+      var nt = document.createElement('div'); nt.className = 'now-terms';
+      var th = document.createElement('div'); th.className = 'img-terms'; th.textContent = t('tlNowTerms'); nt.appendChild(th);
+      var ul = document.createElement('ul'); ul.className = 'term-list';
+      terms.forEach(function (a) { var li = document.createElement('li'); termLink(a).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
+      nt.appendChild(ul); stage.appendChild(nt);
+    }
+  }
+
+  // Γραμμή χρόνου κάτω από κάθε ήχο/βίντεο: ποια μέρη αφορούν εικόνες και ποια όρους
+  function avDuration(el, items) {
+    var d = el.duration;
+    if (isFinite(d) && d > 0) return d;
+    var m = 0; items.forEach(function (i) { if (i.end > m) m = i.end; });
+    return (m * 1.05) || 1;
+  }
+
+  function timelineItems(s, avId) {
+    var out = [];
+    if (!sheetK) return out;
+    var imgs = s.media.filter(function (x) { return x.kind === 'image'; });
+    sheetK.links.filter(function (l) { return l.av_media_id === avId; }).forEach(function (l) {
+      var n = imgs.indexOf(mediaById(s, l.image_media_id)) + 1;
+      out.push({ type: 'img', start: l.start_s, end: l.end_s, label: t('tlItemImg', { n: n }) });
+    });
+    sheetK.annotations.filter(function (a) { return a.status === 'approved' && a.media_id === avId && hasRange(a); }).forEach(function (a) {
+      out.push({ type: 'term', start: a.start_s, end: a.end_s, label: a.label });
+    });
+    return out;
+  }
+
+  function paintTimeline(s, avEl) {
+    var id = avEl.dataset.mediaId;
+    var old = $('sheetMedia').querySelector('.tl[data-media-id="' + id + '"]');
+    if (old) old.remove();
+    var items = timelineItems(s, id);
+    if (!items.length) return;
+    var dur = avDuration(avEl, items);
+    var box = document.createElement('div'); box.className = 'tl'; box.dataset.mediaId = id; box.dataset.dur = dur;
+    var lg = document.createElement('div'); lg.className = 'tl-legend';
+    [['img', 'tlImages', 'var(--amber)'], ['term', 'tlTerms', 'var(--sky)']].forEach(function (x) {
+      if (!items.some(function (i) { return i.type === x[0]; })) return;
+      var sp = document.createElement('span'); var sw = document.createElement('i'); sw.style.background = x[2];
+      sp.appendChild(sw); sp.appendChild(document.createTextNode(t(x[1]))); lg.appendChild(sp);
+    });
+    box.appendChild(lg);
+    ['img', 'term'].forEach(function (type) {
+      var list = items.filter(function (i) { return i.type === type; }).sort(function (a, b) { return a.start - b.start; });
+      if (!list.length) return;
+      var lanes = [];
+      list.forEach(function (i) {
+        var k = lanes.findIndex(function (le) { return le <= i.start; });
+        if (k < 0) { k = lanes.length; lanes.push(0); }
+        lanes[k] = i.end; i.lane = k;
+      });
+      var track = document.createElement('div'); track.className = 'tl-track'; track.style.height = (lanes.length * 20 + 4) + 'px';
+      list.forEach(function (i) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'tl-item ' + type;
+        var left = Math.min(99.2, i.start / dur * 100), width = Math.max(0.8, Math.min(100 - left, (i.end - i.start) / dur * 100));
+        b.style.left = left + '%'; b.style.width = width + '%'; b.style.top = (2 + i.lane * 20) + 'px';
+        b.dataset.start = i.start; b.dataset.end = i.end;
+        b.title = i.label + ' · ' + mmss(i.start) + '–' + mmss(i.end);
+        b.setAttribute('aria-label', t('tlAria', { l: i.label, a: mmss(i.start), b: mmss(i.end) }));
+        b.onclick = function (ev) { ev.stopPropagation(); seekPlay(id, i.start); };
+        track.appendChild(b);
+      });
+      var head = document.createElement('div'); head.className = 'tl-head'; track.appendChild(head);
+      track.onclick = function (ev) { if (ev.target !== track) return; var r = track.getBoundingClientRect(); seekPlay(id, (ev.clientX - r.left) / r.width * dur); };
+      box.appendChild(track);
+    });
+    avEl.insertAdjacentElement('afterend', box);
+    updateStage(avEl);
   }
 
   function renderImages(s, k) {
@@ -2180,6 +2335,7 @@
     currentLinks = k ? k.links : [];
     var stage = document.createElement('div'); stage.id = 'syncStage'; stage.className = 'sync-stage'; stage.hidden = true;
     stage.setAttribute('aria-live', 'polite'); box.appendChild(stage);
+    if (k) $('sheetMedia').querySelectorAll('audio, video').forEach(function (el) { paintTimeline(s, el); });
     var images = s.media.filter(function (m) { return m.kind === 'image'; });
     var linked = {};
     currentLinks.forEach(function (l) { linked[l.image_media_id] = true; });
@@ -2241,11 +2397,24 @@
       if (k.annotations.length) {
         var h = document.createElement('h3'); h.textContent = t('annTerms'); box.appendChild(h);
         var ul = document.createElement('ul'); ul.className = 'term-list';
-        var seen = {};
+        var byUri = {}, order = [];
         k.annotations.forEach(function (a) {
-          if (seen[a.term_uri]) return; seen[a.term_uri] = 1;
-          var li = document.createElement('li');
-          termLink(a).forEach(function (n) { li.appendChild(n); });
+          if (!byUri[a.term_uri]) { byUri[a.term_uri] = { a: a, times: [] }; order.push(a.term_uri); }
+          if (hasRange(a)) byUri[a.term_uri].times.push(a);
+        });
+        order.forEach(function (uri) {
+          var g = byUri[uri], li = document.createElement('li');
+          termLink(g.a).forEach(function (n) { li.appendChild(n); });
+          if (g.times.length) {
+            var sp = document.createElement('span'); sp.className = 'term-times';
+            g.times.sort(function (x, y) { return x.start_s - y.start_s; }).slice(0, 6).forEach(function (x) {
+              var b = document.createElement('button'); b.type = 'button'; b.textContent = '▶ ' + mmss(x.start_s);
+              b.setAttribute('aria-label', t('trPlay', { t: mmss(x.start_s) }) + ': ' + x.label);
+              b.onclick = function () { seekPlay(x.media_id, x.start_s); };
+              sp.appendChild(b);
+            });
+            li.appendChild(sp);
+          }
           ul.appendChild(li);
         });
         box.appendChild(ul);
@@ -2387,7 +2556,7 @@
   var annListeners = [];
   function notifyAnn() { annListeners.forEach(function (f) { try { f(); } catch (e) {} }); }
 
-  function annRowEl(a, onChange) {
+  function annRowEl(a, onChange, ctx) {
     var row = document.createElement('div');
     row.className = 'ann-row ' + a.status;
     var links = termLink(a); row.appendChild(links[0]); row.appendChild(links[1]);
@@ -2408,6 +2577,33 @@
         a.status = status; onChange(); notifyAnn();
       };
       row.appendChild(b);
+    }
+    if (ctx) {
+      var when = document.createElement('span'); when.className = 'ann-when';
+      when.textContent = hasRange(a) ? mmss(a.start_s) + '–' + mmss(a.end_s) : t('annTimeWhole');
+      row.appendChild(when);
+      var panel = document.createElement('div'); panel.className = 'ann-time-panel'; panel.hidden = true;
+      var si = document.createElement('input'); si.type = 'text'; si.className = 'time-in'; si.inputMode = 'decimal'; si.setAttribute('aria-label', t('lnkStart'));
+      var ei = document.createElement('input'); ei.type = 'text'; ei.className = 'time-in'; ei.inputMode = 'decimal'; ei.setAttribute('aria-label', t('lnkEnd'));
+      if (hasRange(a)) { si.value = fmtT(a.start_s); ei.value = fmtT(a.end_s); }
+      function tb(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.onclick = fn; panel.appendChild(b); return b; }
+      panel.insertBefore(ei, panel.firstChild); panel.insertBefore(si, panel.firstChild);
+      tb(t('annTimeStartNow'), function () { si.value = fmtT(ctx.getTime()); });
+      tb(t('annTimeEndNow'), function () { ei.value = fmtT(ctx.getTime()); });
+      async function saveTime(st_, en_) {
+        var r = await sb.from('annotations').update({ start_s: st_, end_s: en_ }).eq('id', a.id);
+        if (r.error) { alert(t('annSaveError', { e: r.error.message })); return; }
+        a.start_s = st_; a.end_s = en_; onChange(); notifyAnn();
+      }
+      tb(t('annTimeSave'), function () {
+        var x = parseTime(si.value), y = parseTime(ei.value);
+        if (!(x >= 0) || !(y > x)) { alert(t('lnkBad')); return; }
+        saveTime(x, y);
+      });
+      tb(t('annTimeClear'), function () { saveTime(null, null); });
+      var tg = document.createElement('button'); tg.type = 'button'; tg.textContent = t('annTimeEdit'); tg.setAttribute('aria-expanded', 'false');
+      tg.onclick = function () { panel.hidden = !panel.hidden; tg.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true'); if (!panel.hidden && hasRange(a)) ctx.seek(a.start_s); };
+      row.appendChild(tg); row.appendChild(panel);
     }
     if (a.status === 'suggested') { btn(t('annApprove'), 'approved'); btn(t('annReject'), 'rejected'); }
     else { var st_ = document.createElement('strong'); st_.textContent = t(a.status === 'approved' ? 'annApproved' : 'annRejected'); row.appendChild(st_); btn(t('annUndo'), 'suggested'); }
@@ -2576,6 +2772,11 @@
     var sec = document.createElement('section'); sec.className = 'ann-media';
     var uid = 'ann-' + m.id;
     var h = document.createElement('h3'); h.textContent = t('type_' + m.kind) + ' ' + n; sec.appendChild(h);
+    var playerEl = document.createElement(m.kind === 'video' ? 'video' : 'audio');
+    playerEl.className = 'ann-player'; playerEl.controls = true; playerEl.preload = 'metadata'; playerEl.src = m.url;
+    playerEl.setAttribute('aria-label', t('type_' + m.kind) + ' ' + n); sec.appendChild(playerEl);
+    var ph = document.createElement('p'); ph.className = 'sheet-sub'; ph.textContent = t('annPlayerHint'); sec.appendChild(ph);
+    var ctx = { getTime: function () { return playerEl.currentTime || 0; }, seek: function (x) { try { playerEl.currentTime = x; } catch (e) {} } };
 
     var langWrap = document.createElement('div'); langWrap.className = 'input-group';
     var langLbl = document.createElement('label'); langLbl.htmlFor = uid + '-lang'; langLbl.textContent = t('annLangLabel');
@@ -2621,7 +2822,7 @@
         var when = document.createElement('div'); when.className = 'when'; when.textContent = mmss(seg.start_s) + '–' + mmss(seg.end_s);
         var tx = document.createElement('div'); tx.textContent = seg.text;
         box.appendChild(when); box.appendChild(tx);
-        mine.forEach(function (a) { box.appendChild(annRowEl(a, paint)); });
+        mine.forEach(function (a) { box.appendChild(annRowEl(a, paint, ctx)); });
         box.appendChild(addTermForm(seg, m, tr.language || langSel.value, function (row) { data.annotations.push(row); paint(); notifyAnn(); }));
         list.appendChild(box);
       });
@@ -2862,14 +3063,6 @@
     var avs = s.media.filter(function (x) { return x.kind !== 'image' && x.id; });
     var lineSel = null, playerEl = null, startIn = null, endIn = null;
 
-    function fmtT(sec) { var mm = Math.floor(sec / 60), r = sec - mm * 60; return String(mm).padStart(2, '0') + ':' + (r < 10 ? '0' : '') + r.toFixed(1); }
-    function parseTime(x) {
-      x = String(x).trim().replace(',', '.');
-      if (/^\d+(\.\d+)?$/.test(x)) return parseFloat(x);
-      var a = x.match(/^(\d+):(\d{1,2}(?:\.\d+)?)$/); if (a) return +a[1] * 60 + parseFloat(a[2]);
-      var b = x.match(/^(\d+):(\d{1,2}):(\d{1,2}(?:\.\d+)?)$/); if (b) return +b[1] * 3600 + +b[2] * 60 + parseFloat(b[3]);
-      return NaN;
-    }
     function avLabel(id) { var i = avs.findIndex(function (x) { return x.id === id; }); return i < 0 ? '' : t('type_' + avs[i].kind) + ' ' + (i + 1); }
 
     function refreshLines() {

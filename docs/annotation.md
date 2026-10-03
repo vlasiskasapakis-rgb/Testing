@@ -33,12 +33,18 @@ every list and query, but anyone who is given a draft file's exact URL could ope
 3. For each image: tick the terms it shows, optionally mark an area, and use **Link this image to a
    moment of the story**: choose the audio/video, pick a transcript line or set start/end (the small
    player has "Start/End = current time"), then **Add link**. An image can have several links.
+   Each term on an audio/video row has a **Time** button: set when in the recording it applies (the
+   player on that section has Start/End = current time), or choose **Whole recording**. Transcript-based
+   suggestions start with their transcript line's range.
 4. **Publish for everyone**.
 
 ## What the public sees
+- Every audio/video has a **timeline** under its player: amber bars are the parts linked to images, blue bars are the parts
+  where a term applies. Tap a bar to play from there; the line follows the playback. Terms with no time range apply to the
+  whole recording and have no bar.
 - Image-only story: the image with its approved terms and marked areas.
 - Story with audio/video: while it plays, the image linked to the current moment appears under the
-  player (with its areas and terms). **Images tied to the story** lists each linked image with
+  player (with its areas), together with the terms that apply to that moment. **Images tied to the story** lists each linked image with
   **▶ from mm:ss**: tapping it jumps the playback there. Transcript lines are tappable too.
 
 # Transcription and vocabulary annotation
