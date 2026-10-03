@@ -964,43 +964,8 @@
     }
   }, true);
 
-  var STORIES = [
-    { id: 'sapfous', lat: 39.106668, lon: 26.557367, radius: 40, t: {
-      el: { title: 'Πλατεία Σαπφούς', sub: 'Κέντρο', text: 'Η κεντρική πλατεία της Μυτιλήνης δίπλα στο λιμάνι.' },
-      en: { title: 'Sappho Square', sub: 'Centre', text: "Mytilene's central square, next to the harbour." },
-      fr: { title: 'Place Sappho', sub: 'Centre', text: 'La place centrale de Mytilène, à côté du port.' },
-      it: { title: 'Piazza Saffo', sub: 'Centro', text: 'La piazza centrale di Mitilene, accanto al porto.' } } },
-    { id: 'therapon', lat: 39.105126, lon: 26.554749, radius: 35, t: {
-      el: { title: 'Άγιος Θεράπων', sub: 'Ερμού', text: 'Η μεγαλύτερη εκκλησία της πόλης με τον εντυπωσιακό τρούλο.' },
-      en: { title: 'Agios Therapon', sub: 'Ermou Street', text: "The city's largest church, with its impressive dome." },
-      fr: { title: 'Saint-Thérapon', sub: 'Rue Ermou', text: "La plus grande église de la ville, avec sa coupole impressionnante." },
-      it: { title: 'San Terapone', sub: 'Via Ermou', text: 'La chiesa più grande della città, con la sua cupola imponente.' } } },
-    { id: 'mikrasiatisa', lat: 39.112350, lon: 26.557179, radius: 35, t: {
-      el: { title: 'Μικρασιάτισσα Μάνα', sub: 'Επάνω Σκάλα', text: 'Το μνημείο που είναι αφιερωμένο στη Μικρασιάτισσα Μάνα.' },
-      en: { title: 'Asia Minor Mother', sub: 'Epano Skala', text: 'The monument dedicated to the Mother of Asia Minor.' },
-      fr: { title: "Mère d'Asie Mineure", sub: 'Epano Skala', text: "Le monument dédié à la Mère d'Asie Mineure." },
-      it: { title: "Madre dell'Asia Minore", sub: 'Epano Skala', text: "Il monumento dedicato alla Madre dell'Asia Minore." } } },
-    { id: 'geni_tzami', lat: 39.110375, lon: 26.557753, radius: 35, t: {
-      el: { title: 'Γενί Τζαμί', sub: 'Επάνω Σκάλα', text: 'Το ιστορικό οθωμανικό τέμενος της Μυτιλήνης.' },
-      en: { title: 'Yeni Mosque', sub: 'Epano Skala', text: "Mytilene's historic Ottoman mosque." },
-      fr: { title: 'Mosquée Yeni', sub: 'Epano Skala', text: 'La mosquée ottomane historique de Mytilène.' },
-      it: { title: 'Moschea Yeni', sub: 'Epano Skala', text: 'La storica moschea ottomana di Mitilene.' } } },
-    { id: 'agios_eudokimos', lat: 39.109996, lon: 26.556444, radius: 35, t: {
-      el: { title: 'Άγιος Ευδόκιμος', sub: 'Ιστορικό Κέντρο', text: 'Ιστορικός ναός της πόλης.' },
-      en: { title: 'Agios Evdokimos', sub: 'Historic Centre', text: 'A historic church of the city.' },
-      fr: { title: 'Saint-Eudocime', sub: 'Centre historique', text: 'Une église historique de la ville.' },
-      it: { title: "Sant'Eudocimo", sub: 'Centro storico', text: 'Una chiesa storica della città.' } } },
-    { id: 'agalma', lat: 39.105871, lon: 26.563128, radius: 40, t: {
-      el: { title: 'Άγαλμα Ελευθερίας', sub: 'Λιμάνι', text: 'Το εμβληματικό άγαλμα που δεσπόζει στην είσοδο του λιμανιού.' },
-      en: { title: 'Statue of Liberty', sub: 'Harbour', text: 'The iconic statue overlooking the harbour entrance.' },
-      fr: { title: 'Statue de la Liberté', sub: 'Port', text: "La statue emblématique qui domine l'entrée du port." },
-      it: { title: 'Statua della Libertà', sub: 'Porto', text: "L'iconica statua che domina l'ingresso del porto." } } },
-    { id: 'kastro', lat: 39.111665, lon: 26.562324, radius: 50, t: {
-      el: { title: 'Κάστρο Μυτιλήνης', sub: 'Βόρεια Πλευρά', text: 'Ένα από τα μεγαλύτερα κάστρα της Μεσογείου.' },
-      en: { title: 'Mytilene Castle', sub: 'North side', text: 'One of the largest castles in the Mediterranean.' },
-      fr: { title: 'Château de Mytilène', sub: 'Côté nord', text: "L'un des plus grands châteaux de la Méditerranée." },
-      it: { title: 'Castello di Mitilene', sub: 'Lato nord', text: 'Uno dei castelli più grandi del Mediterraneo.' } } }
-  ];
+  var STORIES = [];   // φορτώνονται από τη βάση (Supabase)
+  var DEFAULT_CENTER = [39.106668, 26.557367];   // Μυτιλήνη
 
   function st(s) { return s.t[LANG] || s.t.el; }
   function fmtDist(d) { return d >= 1000 ? (d / 1000).toFixed(1) + ' km' : Math.round(d) + ' m'; }
@@ -1191,7 +1156,7 @@
     markerCluster.addLayer(m);
   }
   function initMap() {
-    map = L.map('map', { zoomControl: true, attributionControl: true }).setView([STORIES[0].lat, STORIES[0].lon], 16);
+    map = L.map('map', { zoomControl: true, attributionControl: true }).setView(STORIES[0] ? [STORIES[0].lat, STORIES[0].lon] : DEFAULT_CENTER, 16);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
