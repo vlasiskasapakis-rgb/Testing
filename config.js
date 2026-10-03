@@ -4,6 +4,6 @@
 // security policies in supabase/schema.sql, so never put the service_role key here.
 // While these are empty the app still works as a read-only guide of the built-in stories.
 window.WM_CONFIG = {
-  SUPABASE_URL: '',
+  SUPABASE_URL: 'https://sqxhzlwqqhodbhfdnaxv.supabase.co',
   SUPABASE_ANON_KEY: ''
 };
