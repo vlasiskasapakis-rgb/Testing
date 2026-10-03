@@ -30,7 +30,7 @@ every list and query, but anyone who is given a draft file's exact URL could ope
 ## Annotator workflow
 1. **Stories** (top left) lists every story with its status; open one without having to be nearby.
 2. **Transcribe and annotate**: for each audio/video get a transcript, find or add terms, approve.
-3. For each image: tick the terms it shows, optionally mark an area, and use **Link this image to a
+3. For each image (shown as a small thumbnail; tap it to open it larger in a popup): tick the terms it shows, optionally mark an area (**Mark area** opens the popup, drag on the image), and use **Link this image to a
    moment of the story**: choose the audio/video, pick a transcript line or set start/end (the small
    player has "Start/End = current time"), then **Add link**. An image can have several links.
    Each term on an audio/video row has a **Time** button: set when in the recording it applies (the

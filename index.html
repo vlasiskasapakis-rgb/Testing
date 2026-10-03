@@ -204,7 +204,15 @@
   #sheetTools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; } #sheetTools[hidden] { display: none; }
   #annSheet { z-index: 65; }
   .img-frame { position: relative; line-height: 0; }
-  .story-media .img-frame img, .ann-media .img-frame img { width: 100%; height: auto; max-height: none; display: block; border-radius: 12px; background: #000; }
+  .story-media .img-frame { display: inline-block; max-width: 100%; }
+  .story-media .img-frame img { display: block; width: auto; max-width: 100%; max-height: 42vh; height: auto; border-radius: 12px; background: #000; cursor: zoom-in; }
+  #imgPopup { z-index: 80; }
+  #imgPopup .sheet-inner { max-height: 96vh; }
+  .popup-stage { display: flex; justify-content: center; }
+  .popup-frame { position: relative; display: inline-block; line-height: 0; max-width: 100%; }
+  .popup-frame img { display: block; width: auto; height: auto; max-width: 100%; max-height: 62vh; border-radius: 12px; background: #000; }
+  .img-thumb { display: block; padding: 0; width: 120px; height: 90px; overflow: hidden; border: 2px solid var(--line-strong); border-radius: 12px; background: #000; cursor: zoom-in; }
+  .img-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .region-layer { position: absolute; inset: 0; pointer-events: none; }
   .region-layer.drawing { pointer-events: auto; cursor: crosshair; touch-action: none; outline: 3px solid var(--amber); }
   .region-box { position: absolute; box-sizing: border-box; pointer-events: none; border: 3px solid var(--amber); box-shadow: 0 0 0 1px rgba(255,255,255,.9) inset, 0 0 0 1px rgba(0,0,0,.45); }
@@ -585,6 +593,15 @@
   </div>
 </div>
 
+<div id="imgPopup" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="imgPopupTitle">
+  <div class="sheet-inner">
+    <h2 id="imgPopupTitle"></h2>
+    <p id="imgPopupHint" class="sheet-sub" hidden></p>
+    <div class="popup-stage"><div class="popup-frame"><img id="imgPopupImg" alt=""><div id="imgPopupLayer" class="region-layer"></div></div></div>
+    <button id="imgPopupClose" class="btn-primary" style="margin-top:14px" data-i18n="close"></button>
+  </div>
+</div>
+
 <div id="annSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="annTitle">
   <div class="sheet-inner">
     <h2 id="annTitle" data-i18n="annTitle"></h2>
@@ -839,7 +856,9 @@
       annTimeNotFound: "Δεν βρέθηκε αυτή η λέξη στη γραμμή της απομαγνητοφώνησης.",
       annRefine: "Ακριβείς χρόνοι για όλες τις προτάσεις",
       annRefined: "Βελτιώθηκαν οι χρόνοι για {n} προτάσεις.",
-      annRefineNone: "Δεν υπάρχει τίποτα προς βελτίωση."
+      annRefineNone: "Δεν υπάρχει τίποτα προς βελτίωση.",
+      imgEnlarge: "Μεγέθυνση εικόνας",
+      imgAreasCount: "Σημαδεμένες περιοχές: {n}"
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -1035,7 +1054,9 @@
       annTimeNotFound: "That word was not found in the transcript line.",
       annRefine: "Set exact times for all suggestions",
       annRefined: "Refined the times of {n} suggestions.",
-      annRefineNone: "Nothing to refine."
+      annRefineNone: "Nothing to refine.",
+      imgEnlarge: "Enlarge image",
+      imgAreasCount: "Marked areas: {n}"
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -1231,7 +1252,9 @@
       annTimeNotFound: "Ce mot n'a pas été trouvé dans la ligne de transcription.",
       annRefine: "Temps exacts pour toutes les suggestions",
       annRefined: "Durées affinées pour {n} suggestions.",
-      annRefineNone: "Rien à affiner."
+      annRefineNone: "Rien à affiner.",
+      imgEnlarge: "Agrandir l'image",
+      imgAreasCount: "Zones marquées : {n}"
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -1427,7 +1450,9 @@
       annTimeNotFound: "Parola non trovata nella riga di trascrizione.",
       annRefine: "Tempi esatti per tutti i suggerimenti",
       annRefined: "Tempi precisati per {n} suggerimenti.",
-      annRefineNone: "Niente da precisare."
+      annRefineNone: "Niente da precisare.",
+      imgEnlarge: "Ingrandisci l'immagine",
+      imgAreasCount: "Aree segnate: {n}"
     }
   };
 
@@ -2251,6 +2276,48 @@
     d.style.width = (a.region_w * 100) + '%'; d.style.height = (a.region_h * 100) + '%';
     d.title = a.label; return d;
   }
+  // ---------- Αναδυόμενο παράθυρο εικόνας (προβολή και σήμανση περιοχής) ----------
+  var popupDraw = null;
+  function openImagePopup(o) {
+    $('imgPopupTitle').textContent = o.title || o.alt || '';
+    var img = $('imgPopupImg'); img.alt = o.alt || ''; img.src = o.url;
+    var layer = $('imgPopupLayer'); layer.innerHTML = '';
+    (o.regions || []).forEach(function (a) { layer.appendChild(regionBox(a, a.status === 'suggested' ? 'suggested' : '')); });
+    popupDraw = o.draw ? o : null;
+    layer.classList.toggle('drawing', !!o.draw);
+    var hint = $('imgPopupHint'); hint.hidden = !o.draw; hint.textContent = t('imgMarkHint');
+    openDialog('imgPopup', $('imgPopupClose'));
+  }
+  $('imgPopupClose').onclick = function () { popupDraw = null; closeDialog('imgPopup'); };
+  escHandlers.imgPopup = function () { $('imgPopupClose').click(); };
+
+  // Σχεδίαση περιοχής με σύρσιμο (ποντίκι ή αφή) πάνω στη μεγάλη εικόνα
+  (function () {
+    var layer = $('imgPopupLayer'), start = null, preview = null;
+    function pt(ev) {
+      var r = $('imgPopupImg').getBoundingClientRect();
+      return { x: Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)) };
+    }
+    function rectOf(a, b) { return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y) }; }
+    layer.onpointerdown = function (ev) {
+      if (!popupDraw) return;
+      ev.preventDefault(); layer.setPointerCapture(ev.pointerId);
+      start = pt(ev); preview = regionBox({ region_x: start.x, region_y: start.y, region_w: 0, region_h: 0, label: '' }, 'suggested'); layer.appendChild(preview);
+    };
+    layer.onpointermove = function (ev) {
+      if (!start) return;
+      var r = rectOf(start, pt(ev));
+      preview.style.left = r.x * 100 + '%'; preview.style.top = r.y * 100 + '%'; preview.style.width = r.w * 100 + '%'; preview.style.height = r.h * 100 + '%';
+    };
+    layer.onpointerup = function (ev) {
+      if (!start) return;
+      var r = rectOf(start, pt(ev)); start = null; if (preview) { preview.remove(); preview = null; }
+      if (!popupDraw || r.w < 0.02 || r.h < 0.02) return;      // πολύ μικρό: δοκίμασε ξανά
+      var cb = popupDraw.onRect; popupDraw = null;
+      closeDialog('imgPopup'); cb(r);
+    };
+  })();
+
   // ---------- Εικόνες, σύνδεση με χρόνο αφήγησης και συγχρονισμός αναπαραγωγής ----------
   var sheetK = null, currentLinks = [];
 
@@ -2265,6 +2332,10 @@
     frame.appendChild(img);
     var mine = annsForImage(m.id);
     mine.filter(hasRegion).forEach(function (a) { frame.appendChild(regionBox(a)); });
+    function enlarge() { openImagePopup({ url: m.url, alt: img.alt, title: img.alt, regions: mine.filter(hasRegion) }); }
+    img.tabIndex = 0; img.setAttribute('role', 'button'); img.setAttribute('aria-label', t('imgEnlarge') + ': ' + img.alt);
+    img.onclick = enlarge;
+    img.onkeydown = function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); enlarge(); } };
     wrap.appendChild(frame);
     if (mine.length) {
       var info = document.createElement('div'); info.className = 'img-terms';
@@ -3077,22 +3148,23 @@
     var sec = document.createElement('section'); sec.className = 'ann-media';
     var h = document.createElement('h3'); h.textContent = t('type_image') + ' ' + n; sec.appendChild(h);
 
-    var frame = document.createElement('div'); frame.className = 'img-frame';
-    var img = document.createElement('img'); img.src = m.url; img.alt = t('type_image') + ' ' + n;
-    var layer = document.createElement('div'); layer.className = 'region-layer';
-    frame.appendChild(img); frame.appendChild(layer); sec.appendChild(frame);
-
-    var hint = document.createElement('p'); hint.className = 'sheet-sub'; hint.hidden = true; hint.textContent = t('imgMarkHint'); sec.appendChild(hint);
+    var imgAlt = t('type_image') + ' ' + n;
+    var thumb = document.createElement('button'); thumb.type = 'button'; thumb.className = 'img-thumb'; thumb.setAttribute('aria-label', t('imgEnlarge') + ': ' + imgAlt);
+    var timg = document.createElement('img'); timg.src = m.url; timg.alt = ''; thumb.appendChild(timg); sec.appendChild(thumb);
+    var areaNote = document.createElement('p'); areaNote.className = 'sheet-sub'; sec.appendChild(areaNote);
+    thumb.onclick = function () {
+      openImagePopup({ url: m.url, alt: imgAlt, title: imgAlt, regions: anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }) });
+    };
     var head = document.createElement('h3'); head.textContent = t('imgTerms'); sec.appendChild(head);
     var list = document.createElement('div'); sec.appendChild(list);
     var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
     var clipBtn = document.createElement('button'); clipBtn.type = 'button'; clipBtn.className = 'btn-secondary btn-wide'; clipBtn.textContent = t('imgClip'); sec.appendChild(clipBtn);
 
-    var terms = [], anns = [], drawFor = null, links = [], transcripts = [], selAvId = null, lnkInit = false;
+    var terms = [], anns = [], links = [], transcripts = [], selAvId = null, lnkInit = false;
 
     function paint() {
-      layer.innerHTML = '';
-      anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }).forEach(function (a) { layer.appendChild(regionBox(a, a.status === 'suggested' ? 'suggested' : '')); });
+      var nAreas = anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }).length;
+      areaNote.textContent = nAreas ? t('imgAreasCount', { n: nAreas }) : '';
       list.innerHTML = '';
       if (!terms.length) { var p = document.createElement('p'); p.textContent = t('imgNoTerms'); list.appendChild(p); return; }
       terms.forEach(function (tm, i) {
@@ -3135,8 +3207,18 @@
           btn(t('annReject'), function () { return setStatus(ex, 'rejected'); });
         }
         if (ex && ex.status === 'approved') {
-          var mark = btn(t('imgMark'), async function () { drawFor = drawFor === ex ? null : ex; });
-          mark.setAttribute('aria-pressed', drawFor === ex ? 'true' : 'false');
+          btn(t('imgMark'), async function () {
+            openImagePopup({
+              url: m.url, alt: imgAlt, title: imgAlt + ' — ' + tm.label, draw: true,
+              regions: anns.filter(function (a) { return a !== ex && a.status !== 'rejected' && hasRegion(a); }),
+              onRect: async function (r) {
+                var res = await sb.from('annotations').update({ region_x: r.x, region_y: r.y, region_w: r.w, region_h: r.h }).eq('id', ex.id);
+                if (res.error) alert(t('annSaveError', { e: res.error.message }));
+                else { ex.region_x = r.x; ex.region_y = r.y; ex.region_w = r.w; ex.region_h = r.h; }
+                paint();
+              }
+            });
+          });
           if (hasRegion(ex)) btn(t('imgClear'), async function () {
             var r = await sb.from('annotations').update({ region_x: null, region_y: null, region_w: null, region_h: null }).eq('id', ex.id);
             if (r.error) throw r.error; ex.region_x = ex.region_y = ex.region_w = ex.region_h = null;
@@ -3144,36 +3226,7 @@
         }
         list.appendChild(row);
       });
-      layer.classList.toggle('drawing', !!drawFor); hint.hidden = !drawFor;
     }
-
-    // Σχεδίαση περιοχής με σύρσιμο (δείκτης: ποντίκι ή αφή)
-    var start = null, preview = null;
-    function pt(ev) {
-      var r = img.getBoundingClientRect();
-      return { x: Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)) };
-    }
-    function rectOf(a, b) { return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y) }; }
-    layer.onpointerdown = function (ev) {
-      if (!drawFor) return;
-      ev.preventDefault(); layer.setPointerCapture(ev.pointerId);
-      start = pt(ev); preview = regionBox({ region_x: start.x, region_y: start.y, region_w: 0, region_h: 0, label: '' }, 'suggested'); layer.appendChild(preview);
-    };
-    layer.onpointermove = function (ev) {
-      if (!start) return;
-      var r = rectOf(start, pt(ev));
-      preview.style.left = r.x * 100 + '%'; preview.style.top = r.y * 100 + '%'; preview.style.width = r.w * 100 + '%'; preview.style.height = r.h * 100 + '%';
-    };
-    layer.onpointerup = async function (ev) {
-      if (!start) return;
-      var r = rectOf(start, pt(ev)); start = null; if (preview) { preview.remove(); preview = null; }
-      var target = drawFor;
-      if (!target || r.w < 0.02 || r.h < 0.02) { paint(); return; }
-      var res = await sb.from('annotations').update({ region_x: r.x, region_y: r.y, region_w: r.w, region_h: r.h }).eq('id', target.id);
-      if (res.error) { alert(t('annSaveError', { e: res.error.message })); }
-      else { target.region_x = r.x; target.region_y = r.y; target.region_w = r.w; target.region_h = r.h; }
-      drawFor = null; paint();
-    };
 
     async function reload() {
       var k = await fetchKnowledge(s, true);
