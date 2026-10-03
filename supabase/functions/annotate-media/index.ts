@@ -1,10 +1,11 @@
-// Supabase Edge Function: transcribe a story's audio/video with OpenAI Whisper,
-// then ask Claude which people / places / events / things are mentioned and
-// resolve each mention against real vocabularies (Getty AAT/TGN/ULAN, Wikidata,
-// GeoNames). Results are stored as *suggested* annotations for the owner to review.
+// Supabase Edge Function: take the transcript the owner produced in the browser
+// (Whisper in the page, or typed/uploaded), ask Claude which people / places /
+// events / things are mentioned, and resolve each mention against real
+// vocabularies (Getty AAT/TGN/ULAN, Wikidata, GeoNames). Results are stored as
+// *suggested* annotations for the owner to review. Claude cannot hear audio, so
+// transcription itself never happens here.
 //
-// Secrets (supabase secrets set ...): OPENAI_API_KEY, ANTHROPIC_API_KEY,
-// optional GEONAMES_USERNAME. SUPABASE_URL / SUPABASE_ANON_KEY /
+// Secrets (supabase secrets set ...): ANTHROPIC_API_KEY, optional GEONAMES_USERNAME. SUPABASE_URL / SUPABASE_ANON_KEY /
 // SUPABASE_SERVICE_ROLE_KEY are provided automatically by Supabase.
 
 // @ts-ignore: resolved by Deno at runtime
@@ -12,9 +13,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 declare const Deno: any;
 
 const MODEL = 'claude-sonnet-5-5';
-const MAX_BYTES = 25 * 1024 * 1024;   // OpenAI transcription upload limit
+const MAX_SEGMENTS = 400, MAX_TEXT = 1000;
 const KINDS = ['person', 'place', 'event', 'object', 'material', 'concept'];
-const LANG_CODES: Record<string, string> = { greek: 'el', english: 'en', french: 'fr', italian: 'it' };
+const LANGS = ['el', 'en', 'fr', 'it'];
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -25,21 +26,6 @@ const json = (body: unknown, status = 200) =>
 
 type Mention = { segment: number; surface: string; kind: string; label_en: string };
 type Candidate = { vocabulary: string; uri: string; label: string; description: string };
-
-async function transcribe(blob: Blob, filename: string) {
-  const form = new FormData();
-  form.append('file', blob, filename);
-  form.append('model', 'whisper-1');
-  form.append('response_format', 'verbose_json');
-  form.append('timestamp_granularities[]', 'segment');
-  const r = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${Deno.env.get('OPENAI_API_KEY')}` },
-    body: form,
-  });
-  if (!r.ok) throw new Error(`Transcription failed (${r.status})`);
-  return await r.json();
-}
 
 async function extractMentions(segments: { idx: number; text: string }[]): Promise<Mention[]> {
   const system =
@@ -134,15 +120,29 @@ Deno.serve(async (req: Request) => {
   const { data: u } = await userClient.auth.getUser();
   if (!u?.user) return json({ error: 'Not signed in' }, 401);
 
-  let mediaId = '';
-  try { mediaId = String((await req.json()).media_id || ''); } catch { /* handled below */ }
+  let mediaId = '', lang = 'en', raw: any[] = [];
+  try {
+    const body = await req.json();
+    mediaId = String(body.media_id || '');
+    lang = LANGS.includes(body.language) ? body.language : 'en';
+    raw = Array.isArray(body.segments) ? body.segments : [];
+  } catch { /* handled below */ }
   if (!/^[0-9a-f-]{36}$/i.test(mediaId)) return json({ error: 'media_id required' }, 400);
+  if (raw.length === 0 || raw.length > MAX_SEGMENTS) return json({ error: `Send between 1 and ${MAX_SEGMENTS} transcript segments` }, 400);
 
   const admin = createClient(url, svc);
-  const { data: media } = await admin.from('story_media').select('id,kind,path,stories!inner(user_id)').eq('id', mediaId).single();
+  const { data: media } = await admin.from('story_media').select('id,kind,stories!inner(user_id)').eq('id', mediaId).single();
   if (!media) return json({ error: 'Media not found' }, 404);
   if (media.stories.user_id !== u.user.id) return json({ error: 'Not your story' }, 403);
   if (media.kind === 'image') return json({ error: 'Images have no audio to transcribe' }, 400);
+
+  const segments = raw.map((s: any, i: number) => ({
+    idx: i,
+    start_s: Math.max(0, Number(s.start_s) || 0),
+    end_s: Math.max(0, Number(s.end_s) || 0),
+    text: String(s.text || '').trim().slice(0, MAX_TEXT),
+  })).filter((s) => s.text).map((s, i) => ({ ...s, idx: i }));
+  if (!segments.length) return json({ error: 'Transcript is empty' }, 400);
 
   const setStatus = async (status: string, error: string | null, extra: Record<string, unknown> = {}) => {
     const { data } = await admin.from('media_transcripts')
@@ -151,24 +151,13 @@ Deno.serve(async (req: Request) => {
   };
 
   try {
-    await setStatus('pending', null);
-    const dl = await admin.storage.from('story-media').download(media.path);
-    if (dl.error || !dl.data) throw new Error('Could not read the media file');
-    if (dl.data.size > MAX_BYTES) throw new Error('File is larger than 25 MB, which is the transcription limit');
-
-    const tr = await transcribe(dl.data, media.path.split('/').pop() || 'media');
-    const lang = LANG_CODES[String(tr.language || '').toLowerCase()] || 'en';
-    const segments = (tr.segments || []).map((s: any, i: number) => ({
-      idx: i, start_s: Number(s.start) || 0, end_s: Number(s.end) || 0, text: String(s.text || '').trim(),
-    })).filter((s: any) => s.text);
-
-    const transcriptId = await setStatus('done', null, { language: lang, text: String(tr.text || '') });
+    const transcriptId = await setStatus('done', null, { language: lang, text: segments.map((s) => s.text).join(' ') });
     await admin.from('transcript_segments').delete().eq('transcript_id', transcriptId);
-    if (segments.length) await admin.from('transcript_segments').insert(segments.map((s: any) => ({ ...s, transcript_id: transcriptId })));
+    await admin.from('transcript_segments').insert(segments.map((s) => ({ ...s, transcript_id: transcriptId })));
     // Keep what the owner already reviewed; replace only untouched suggestions.
     await admin.from('annotations').delete().eq('media_id', mediaId).eq('source', 'ai').eq('status', 'suggested');
 
-    const mentions = segments.length ? await extractMentions(segments.map((s: any) => ({ idx: s.idx, text: s.text }))) : [];
+    const mentions = await extractMentions(segments.map((s) => ({ idx: s.idx, text: s.text })));
     const rows: Record<string, unknown>[] = [];
     for (const m of mentions) {
       const seg = segments[m.segment];

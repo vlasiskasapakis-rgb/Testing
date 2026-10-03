@@ -204,6 +204,8 @@
   #sheetTools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; } #sheetTools[hidden] { display: none; }
   #annSheet { z-index: 65; }
   .ann-media { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 10px; }
+  .ann-text { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 15px; font-family: inherit; color: var(--ink); }
+  .ann-media .btn-wide { margin-bottom: 8px; }
   .ann-seg { margin: 10px 0; padding: 8px 10px; background: var(--mist); border-radius: 10px; }
   .ann-seg .when { font-size: 12px; font-weight: 700; color: var(--amber-text); }
   .ann-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; font-size: 14px; }
@@ -646,9 +648,9 @@
       annotate: "Απομαγνητοφώνηση και σχολιασμός",
       annExport: "Εξαγωγή JSON-LD",
       annTitle: "Σχολιασμός με όρους",
-      annNote: "Το σύστημα προτείνει όρους από τα Getty AAT/TGN/ULAN, Wikidata και GeoNames. Εσύ εγκρίνεις ή απορρίπτεις κάθε πρόταση πριν γίνει δημόσια.",
-      annRun: "Απομαγνητοφώνηση και προτάσεις",
-      annRerun: "Νέα απομαγνητοφώνηση",
+      annNote: "Φτιάξε ή γράψε την απομαγνητοφώνηση. Μετά το Claude προτείνει όρους από τα Getty AAT/TGN/ULAN, Wikidata και GeoNames και εσύ εγκρίνεις ή απορρίπτεις κάθε πρόταση πριν γίνει δημόσια.",
+      annRun: "Αποθήκευση και προτάσεις όρων",
+      annRerun: "Αποθήκευση και νέες προτάσεις",
       annRunning: "Επεξεργασία… μπορεί να πάρει λίγα λεπτά.",
       annDone: "Έτοιμο: {s} τμήματα, {n} προτάσεις.",
       annNever: "Δεν έχει γίνει ακόμα απομαγνητοφώνηση.",
@@ -664,7 +666,16 @@
       annNoMedia: "Δεν υπάρχει ήχος ή βίντεο σε αυτή την ιστορία.",
       annTranscript: "Απομαγνητοφώνηση",
       annTerms: "Όροι και σύνδεσμοι",
-      annMention: "Αναφορά: «{m}»"
+      annMention: "Αναφορά: «{m}»",
+      annWhisper: "Απομαγνητοφώνηση στη συσκευή (δωρεάν)",
+      annWhisperLoad: "Λήψη μοντέλου ομιλίας… {p}%",
+      annWhisperRun: "Απομαγνητοφώνηση… μπορεί να πάρει λίγα λεπτά. Κράτα την οθόνη ανοιχτή.",
+      annWhisperErr: "Η απομαγνητοφώνηση στη συσκευή απέτυχε: {e}",
+      annUpload: "Φόρτωση αρχείου .srt / .vtt / .txt",
+      annTextLabel: "Απομαγνητοφώνηση: μία γραμμή ανά τμήμα, προαιρετικά με [λλ:δδ-λλ:δδ] μπροστά",
+      annLangLabel: "Γλώσσα ομιλίας",
+      annEmpty: "Πρόσθεσε πρώτα απομαγνητοφώνηση.",
+      annDecodeErr: "Ο browser δεν μπόρεσε να διαβάσει τον ήχο αυτού του αρχείου."
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -738,9 +749,9 @@
       annotate: "Transcribe and annotate",
       annExport: "Export JSON-LD",
       annTitle: "Annotate with vocabulary terms",
-      annNote: "The system suggests terms from Getty AAT/TGN/ULAN, Wikidata and GeoNames. You approve or reject each suggestion before it becomes public.",
-      annRun: "Transcribe and suggest terms",
-      annRerun: "Transcribe again",
+      annNote: "Create or type the transcript. Then Claude suggests terms from Getty AAT/TGN/ULAN, Wikidata and GeoNames, and you approve or reject each suggestion before it becomes public.",
+      annRun: "Save and suggest terms",
+      annRerun: "Save and suggest terms again",
       annRunning: "Working… this can take a few minutes.",
       annDone: "Done: {s} segments, {n} suggestions.",
       annNever: "Not transcribed yet.",
@@ -756,7 +767,16 @@
       annNoMedia: "This story has no audio or video.",
       annTranscript: "Transcript",
       annTerms: "Terms and links",
-      annMention: "Mention: “{m}”"
+      annMention: "Mention: “{m}”",
+      annWhisper: "Transcribe on this device (free)",
+      annWhisperLoad: "Downloading speech model… {p}%",
+      annWhisperRun: "Transcribing… this can take a few minutes. Keep the screen on.",
+      annWhisperErr: "On-device transcription failed: {e}",
+      annUpload: "Load a .srt / .vtt / .txt file",
+      annTextLabel: "Transcript: one line per segment, optionally prefixed with [mm:ss-mm:ss]",
+      annLangLabel: "Spoken language",
+      annEmpty: "Add a transcript first.",
+      annDecodeErr: "The browser couldn't read the audio of this file."
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -830,9 +850,9 @@
       annotate: "Transcrire et annoter",
       annExport: "Exporter en JSON-LD",
       annTitle: "Annoter avec des termes de vocabulaire",
-      annNote: "Le système propose des termes de Getty AAT/TGN/ULAN, Wikidata et GeoNames. Vous approuvez ou rejetez chaque suggestion avant sa publication.",
-      annRun: "Transcrire et proposer des termes",
-      annRerun: "Transcrire à nouveau",
+      annNote: "Créez ou saisissez la transcription. Ensuite Claude propose des termes de Getty AAT/TGN/ULAN, Wikidata et GeoNames, et vous approuvez ou rejetez chaque suggestion avant sa publication.",
+      annRun: "Enregistrer et proposer des termes",
+      annRerun: "Enregistrer et proposer à nouveau",
       annRunning: "Traitement… cela peut prendre quelques minutes.",
       annDone: "Terminé : {s} segments, {n} suggestions.",
       annNever: "Pas encore transcrit.",
@@ -848,7 +868,16 @@
       annNoMedia: "Cette histoire n'a ni audio ni vidéo.",
       annTranscript: "Transcription",
       annTerms: "Termes et liens",
-      annMention: "Mention : « {m} »"
+      annMention: "Mention : « {m} »",
+      annWhisper: "Transcrire sur cet appareil (gratuit)",
+      annWhisperLoad: "Téléchargement du modèle vocal… {p} %",
+      annWhisperRun: "Transcription… cela peut prendre quelques minutes. Gardez l'écran allumé.",
+      annWhisperErr: "Échec de la transcription sur l'appareil : {e}",
+      annUpload: "Charger un fichier .srt / .vtt / .txt",
+      annTextLabel: "Transcription : une ligne par segment, éventuellement préfixée par [mm:ss-mm:ss]",
+      annLangLabel: "Langue parlée",
+      annEmpty: "Ajoutez d'abord une transcription.",
+      annDecodeErr: "Le navigateur n'a pas pu lire l'audio de ce fichier."
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -922,9 +951,9 @@
       annotate: "Trascrivi e annota",
       annExport: "Esporta JSON-LD",
       annTitle: "Annota con termini di vocabolario",
-      annNote: "Il sistema propone termini da Getty AAT/TGN/ULAN, Wikidata e GeoNames. Approvi o rifiuti ogni suggerimento prima che diventi pubblico.",
-      annRun: "Trascrivi e suggerisci termini",
-      annRerun: "Trascrivi di nuovo",
+      annNote: "Crea o digita la trascrizione. Poi Claude suggerisce termini da Getty AAT/TGN/ULAN, Wikidata e GeoNames, e approvi o rifiuti ogni suggerimento prima che diventi pubblico.",
+      annRun: "Salva e suggerisci termini",
+      annRerun: "Salva e suggerisci di nuovo",
       annRunning: "Elaborazione… può richiedere qualche minuto.",
       annDone: "Fatto: {s} segmenti, {n} suggerimenti.",
       annNever: "Non ancora trascritto.",
@@ -940,7 +969,16 @@
       annNoMedia: "Questa storia non ha audio o video.",
       annTranscript: "Trascrizione",
       annTerms: "Termini e collegamenti",
-      annMention: "Menzione: «{m}»"
+      annMention: "Menzione: «{m}»",
+      annWhisper: "Trascrivi su questo dispositivo (gratis)",
+      annWhisperLoad: "Download del modello vocale… {p}%",
+      annWhisperRun: "Trascrizione… può richiedere alcuni minuti. Tieni lo schermo acceso.",
+      annWhisperErr: "Trascrizione sul dispositivo non riuscita: {e}",
+      annUpload: "Carica un file .srt / .vtt / .txt",
+      annTextLabel: "Trascrizione: una riga per segmento, facoltativamente preceduta da [mm:ss-mm:ss]",
+      annLangLabel: "Lingua parlata",
+      annEmpty: "Aggiungi prima una trascrizione.",
+      annDecodeErr: "Il browser non ha potuto leggere l'audio di questo file."
     }
   };
 
@@ -1637,22 +1675,117 @@
     return row;
   }
 
+  // --- Μορφή απομαγνητοφώνησης: μία γραμμή ανά τμήμα, προαιρετικά "[λλ:δδ-λλ:δδ] κείμενο" ---
+  function fmtStamp(sec) { return mmss(sec); }
+  function segmentsToText(segs) {
+    return segs.map(function (g) { return '[' + fmtStamp(g.start_s) + '-' + fmtStamp(g.end_s) + '] ' + g.text; }).join('\n');
+  }
+  function stampToSec(x) { var p = x.split(':').map(Number); return p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p[0] * 60 + p[1]; }
+  function textToSegments(text) {
+    var out = [];
+    text.split(/\r?\n/).forEach(function (line) {
+      line = line.trim();
+      if (!line) return;
+      var m = line.match(/^\[(\d+(?::\d{2}){1,2})(?:\s*-\s*(\d+(?::\d{2}){1,2}))?\]\s*(.*)$/);
+      if (m) out.push({ start_s: stampToSec(m[1]), end_s: m[2] ? stampToSec(m[2]) : null, text: m[3].trim() });
+      else out.push({ start_s: null, end_s: null, text: line });
+    });
+    var t0 = 0;
+    out.forEach(function (g, i) {
+      if (g.start_s === null) g.start_s = t0;
+      if (g.end_s === null) { var nx = out[i + 1]; g.end_s = nx && nx.start_s !== null && nx.start_s >= g.start_s ? nx.start_s : g.start_s; }
+      t0 = g.end_s;
+    });
+    return out.filter(function (g) { return g.text; });
+  }
+  // .srt / .vtt -> γραμμές "[λλ:δδ-λλ:δδ] κείμενο"· σκέτο κείμενο μένει όπως είναι
+  function parseSubtitleFile(raw) {
+    var blocks = raw.replace(/\r/g, '').replace(/^WEBVTT[^\n]*\n/, '').split(/\n{2,}/), lines = [];
+    blocks.forEach(function (b) {
+      var m = b.match(/(\d+:)?(\d{2}):(\d{2})[.,]\d+\s*-->\s*(\d+:)?(\d{2}):(\d{2})[.,]\d+[^\n]*\n([\s\S]*)/);
+      if (!m) { if (b.trim() && !/^\d+$/.test(b.trim())) lines.push(b.trim().replace(/\n/g, ' ')); return; }
+      var a = (parseInt(m[1] || '0', 10) * 3600) + parseInt(m[2], 10) * 60 + parseInt(m[3], 10);
+      var z = (parseInt(m[4] || '0', 10) * 3600) + parseInt(m[5], 10) * 60 + parseInt(m[6], 10);
+      var txt = m[7].replace(/<[^>]+>/g, '').replace(/\n/g, ' ').trim();
+      if (txt) lines.push('[' + fmtStamp(a) + '-' + fmtStamp(z) + '] ' + txt);
+    });
+    return lines.join('\n');
+  }
+
+  // --- Whisper στη συσκευή (transformers.js)· το αρχείο δεν φεύγει από τον browser ---
+  var WHISPER_MODEL = 'Xenova/whisper-small';
+  var whisperPipe = null, whisperLoading = null;
+  var WHISPER_LANG = { el: 'greek', en: 'english', fr: 'french', it: 'italian' };
+
+  async function loadWhisper(onProgress) {
+    if (whisperPipe) return whisperPipe;
+    if (!whisperLoading) {
+      whisperLoading = import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3').then(function (tf) {
+        return tf.pipeline('automatic-speech-recognition', WHISPER_MODEL, {
+          dtype: 'q8',
+          progress_callback: function (e) { if (e && e.status === 'progress' && typeof e.progress === 'number') onProgress(Math.round(e.progress)); }
+        });
+      }).then(function (p) { whisperPipe = p; return p; }, function (e) { whisperLoading = null; throw e; });
+    }
+    return whisperLoading;
+  }
+
+  async function decodeAudio16k(url) {
+    var buf = await (await fetch(url)).arrayBuffer();
+    var AC = window.AudioContext || window.webkitAudioContext, ac = new AC({ sampleRate: 16000 }), ab;
+    try { ab = await ac.decodeAudioData(buf); } catch (e) { throw new Error(t('annDecodeErr')); } finally { try { ac.close(); } catch (e) {} }
+    var a = ab.getChannelData(0);
+    if (ab.numberOfChannels < 2) return a;
+    var b = ab.getChannelData(1), mono = new Float32Array(a.length);
+    for (var i = 0; i < a.length; i++) mono[i] = (a[i] + b[i]) / 2;
+    return mono;
+  }
+
+  async function whisperTranscribe(url, lang, onStatus) {
+    var pipe = await loadWhisper(function (p) { onStatus(t('annWhisperLoad', { p: p })); });
+    onStatus(t('annWhisperRun'));
+    var audio = await decodeAudio16k(url);
+    var res = await pipe(audio, { language: WHISPER_LANG[lang] || 'english', task: 'transcribe', return_timestamps: true, chunk_length_s: 30, stride_length_s: 5 });
+    var chunks = (res.chunks || []).filter(function (c) { return c.text && c.text.trim(); });
+    if (!chunks.length && res.text && res.text.trim()) return [{ start_s: 0, end_s: 0, text: res.text.trim() }];
+    return chunks.map(function (c) { return { start_s: c.timestamp[0] || 0, end_s: c.timestamp[1] == null ? (c.timestamp[0] || 0) : c.timestamp[1], text: c.text.trim() }; });
+  }
+
   function annSection(s, m, n) {
     var sec = document.createElement('section'); sec.className = 'ann-media';
+    var uid = 'ann-' + m.id;
     var h = document.createElement('h3'); h.textContent = t('type_' + m.kind) + ' ' + n; sec.appendChild(h);
+
+    var langWrap = document.createElement('div'); langWrap.className = 'input-group';
+    var langLbl = document.createElement('label'); langLbl.htmlFor = uid + '-lang'; langLbl.textContent = t('annLangLabel');
+    var langSel = document.createElement('select'); langSel.id = uid + '-lang'; langSel.className = 'lang-select';
+    ['el', 'en', 'fr', 'it'].forEach(function (c) { var o = document.createElement('option'); o.value = c; o.textContent = c.toUpperCase(); langSel.appendChild(o); });
+    langSel.value = LANG; langWrap.appendChild(langLbl); langWrap.appendChild(langSel); sec.appendChild(langWrap);
+
+    var whisperBtn = document.createElement('button'); whisperBtn.type = 'button'; whisperBtn.className = 'btn-secondary btn-wide'; whisperBtn.textContent = t('annWhisper'); sec.appendChild(whisperBtn);
+    var fileBtn = document.createElement('button'); fileBtn.type = 'button'; fileBtn.className = 'btn-secondary btn-wide'; fileBtn.textContent = t('annUpload'); sec.appendChild(fileBtn);
+    var fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.srt,.vtt,.txt,text/plain,text/vtt'; fileIn.hidden = true; sec.appendChild(fileIn);
+
+    var taWrap = document.createElement('div'); taWrap.className = 'input-group';
+    var taLbl = document.createElement('label'); taLbl.htmlFor = uid + '-text'; taLbl.textContent = t('annTextLabel');
+    var ta = document.createElement('textarea'); ta.id = uid + '-text'; ta.rows = 7; ta.className = 'ann-text';
+    taWrap.appendChild(taLbl); taWrap.appendChild(ta); sec.appendChild(taWrap);
+
     var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
     var run = document.createElement('button'); run.type = 'button'; run.className = 'btn-primary btn-wide'; sec.appendChild(run);
     var list = document.createElement('div'); sec.appendChild(list);
-    var data = null;
+    var data = null, filled = false;
+
+    function busy(on) { [whisperBtn, fileBtn, run, langSel, ta].forEach(function (el) { el.disabled = on; }); }
 
     function paint() {
       var tr = data && data.transcripts.filter(function (x) { return x.media_id === m.id; })[0];
       var anns = data ? data.annotations.filter(function (a) { return a.media_id === m.id; }) : [];
       list.innerHTML = '';
       run.textContent = t(tr ? 'annRerun' : 'annRun');
-      if (!tr) { status.textContent = t('annNever'); return; }
+      if (tr && !filled) { ta.value = segmentsToText(tr.transcript_segments); if (tr.language) langSel.value = tr.language; filled = true; }
+      if (!tr) { return; }
       if (tr.status === 'error') { status.textContent = t('annFailed', { e: tr.error || '' }); return; }
-      status.textContent = t('annLang', { l: tr.language || '?' });
       if (!anns.length) { var none = document.createElement('p'); none.textContent = t('annNoSuggestions'); list.appendChild(none); }
       tr.transcript_segments.forEach(function (seg) {
         var mine = anns.filter(function (a) { return a.segment_idx === seg.idx; });
@@ -1667,17 +1800,40 @@
     }
 
     async function reload() { data = await fetchKnowledge(s, true); paint(); }
-    run.onclick = async function () {
-      run.disabled = true; status.textContent = t('annRunning');
+
+    whisperBtn.onclick = async function () {
+      busy(true);
       try {
-        var r = await sb.functions.invoke('annotate-media', { body: { media_id: m.id } });
+        var segs = await whisperTranscribe(m.url, langSel.value, function (msg) { status.textContent = msg; });
+        ta.value = segmentsToText(segs); filled = true;
+        status.textContent = '';
+      } catch (e) { status.textContent = t('annWhisperErr', { e: e.message || e }); }
+      finally { busy(false); }
+    };
+    fileBtn.onclick = function () { fileIn.click(); };
+    fileIn.onchange = function () {
+      var f = fileIn.files && fileIn.files[0];
+      if (!f) return;
+      var rd = new FileReader();
+      rd.onload = function () { ta.value = parseSubtitleFile(String(rd.result || '')); filled = true; };
+      rd.readAsText(f);
+      fileIn.value = '';
+    };
+    run.onclick = async function () {
+      var segs = textToSegments(ta.value);
+      if (!segs.length) { status.textContent = t('annEmpty'); ta.focus(); return; }
+      busy(true); status.textContent = t('annRunning');
+      try {
+        var r = await sb.functions.invoke('annotate-media', { body: { media_id: m.id, language: langSel.value, segments: segs } });
         if (r.error) throw new Error(await fnErrorMessage(r.error));
+        filled = false;
         await reload();
         status.textContent = t('annDone', { s: r.data.segments, n: r.data.suggestions });
       } catch (e) {
         status.textContent = t('annFailed', { e: e.message || e });
-      } finally { run.disabled = false; }
+      } finally { busy(false); }
     };
+    run.textContent = t('annRun');
     reload().catch(function (e) { status.textContent = t('annFailed', { e: e.message || e }); });
     return sec;
   }
@@ -1734,10 +1890,10 @@
       graph.push({
         '@id': sid + '#annotation-' + a.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:tagging' },
         'oa:hasBody': { '@id': a.term_uri },
-        'oa:hasTarget': {
+        'oa:hasTarget': a.end_s > a.start_s ? {
           'oa:hasSource': { '@id': m.url },
           'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + a.start_s + ',' + a.end_s }
-        }
+        } : { 'oa:hasSource': { '@id': m.url } }
       });
     });
     if (!narr['hdt:HP10_tells_about'].length) delete narr['hdt:HP10_tells_about'];

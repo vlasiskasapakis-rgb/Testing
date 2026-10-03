@@ -9,21 +9,27 @@ vocabulary terms. Approved terms are public and exportable as JSON-LD.
    ```
    supabase login
    supabase link --project-ref sqxhzlwqqhodbhfdnaxv
-   supabase secrets set OPENAI_API_KEY=... ANTHROPIC_API_KEY=...
+   supabase secrets set ANTHROPIC_API_KEY=...
    supabase secrets set GEONAMES_USERNAME=...     # optional
    supabase functions deploy annotate-media
    ```
-   Keys live only in Supabase secrets, never in this repo.
+   The key lives only in Supabase secrets, never in this repo. No speech-to-text key is
+   needed: Claude cannot hear audio, so the transcript is produced in the browser.
 
 ## Flow
 Log in → open one of your stories → **Transcribe and annotate** → per audio/video:
-**Transcribe and suggest terms** (Whisper transcript with timestamps, then Claude
-finds mentions, then each mention is looked up in Getty AAT/TGN/ULAN, Wikidata and
-GeoNames) → **Approve / Reject** each suggestion. Visitors see the transcript and the
-approved terms; anyone can **Export JSON-LD**.
+1. Get a transcript: **Transcribe on this device (free)** runs Whisper in the browser
+   (first use downloads ~250 MB, cached afterwards; slow on phones; nothing is uploaded),
+   or **Load a .srt / .vtt / .txt file**, or type it. Edit it freely. Format: one line per
+   segment, optionally `[mm:ss-mm:ss] text`.
+2. **Save and suggest terms**: the transcript text is sent to the Edge Function; Claude finds
+   mentions and each is looked up in Getty AAT/TGN/ULAN, Wikidata and GeoNames.
+3. **Approve / Reject** each suggestion. Visitors see the transcript and approved terms;
+   anyone can **Export JSON-LD**.
 
-Limits: files over 25 MB can't be transcribed (OpenAI limit). Suggestions replace
-earlier *unreviewed* suggestions when re-run; approved/rejected ones are kept.
+Re-saving replaces earlier *unreviewed* suggestions; approved/rejected ones are kept.
+Lines without timestamps are stored without a time range, and the export then links the
+whole media file instead of a time fragment.
 
 ## Mapping to the Heritage Digital Twin Ontology (ECHOES HDTO v0.1)
 | App | HDTO / CRM |
