@@ -1,0 +1,2446 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8" />
+<!-- WCAG 1.4.4: επιτρέπεται η μεγέθυνση (αφαιρέθηκαν user-scalable/maximum-scale) -->
+<meta name="theme-color" content="#186078" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Walking Memory — Μυτιλήνη</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,600;1,700&display=swap" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/three.js/build/ar-threex-location-only.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
+
+<style>
+  :root {
+    /* Χρώματα από το logo Walking Memory */
+    --petrol: #186078;       /* κύριο: κείμενο, κουμπιά */
+    --petrol-deep: #0E3F50;  /* σκούρες επιφάνειες */
+    --sky: #249CCC;          /* γραμμές, περιγράμματα, εστίαση */
+    --sky-soft: #E7F4FA;
+    --sky-light: #7CCAEB;    /* κείμενο πάνω σε σκούρο */
+    --amber: #E0904F;        /* το «μονοπάτι» — έμφαση */
+    --amber-text: #9A5413;   /* πορτοκαλί για μικρό κείμενο σε λευκό */
+    --ink: #12303B;
+    --paper: #FFFFFF;
+    --mist: #F2F7F9;
+    --line: #D3E3EA;
+    --line-strong: #6F8D99;  /* όρια πεδίων (≥3:1) */
+    --danger: #B3261E;
+    --muted: #4B6470;
+    --brand-path: linear-gradient(90deg, #E0904F 0%, #249CCC 55%, #186078 100%);
+    /* ψευδώνυμα για inline styles */
+    --chalk: var(--amber); --bone: #fff; --sea-dark: var(--petrol); --sea-light: var(--sky-light);
+    --font: "Exo 2", "Segoe UI", Roboto, system-ui, sans-serif;
+    --pad: 16px;
+    --handle: calc(56px + env(safe-area-inset-bottom));
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
+    background: var(--petrol-deep); color: var(--ink);
+    font-family: var(--font); font-size: 17px; line-height: 1.5;
+  }
+  button, input, select { font-family: inherit; }
+  button { font-size: inherit; cursor: pointer; border: 0; border-radius: 999px; }
+  h1, h2 { font-style: italic; font-weight: 700; color: var(--petrol); letter-spacing: -0.01em; line-height: 1.15; }
+
+  :focus { outline: none; }
+  :focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; box-shadow: 0 0 0 6px rgba(255,255,255,.85); }
+
+  .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+
+  a-scene, a-scene .a-canvas { position: fixed !important; inset: 0 !important; width: 100% !important; height: 100% !important; z-index: 0; }
+  body.editing a-scene, body.editing a-scene .a-canvas { visibility: hidden !important; }
+
+  /* ---------- Ετικέτες AR ---------- */
+  #ar-overlay-container { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+  .ar-html-marker {
+    position: absolute; transform: translate(-50%, -50%);
+    background: rgba(255,255,255,.96); color: var(--ink);
+    border-left: 4px solid var(--sky); border-radius: 12px;
+    padding: 8px 12px; width: 184px; min-height: 44px; text-align: left;
+    box-shadow: 0 6px 18px rgba(14,63,80,.35);
+    pointer-events: auto;
+    transition: left .15s ease-out, top .15s ease-out, transform .2s ease-out, box-shadow .2s ease-out;
+  }
+  .ar-html-marker.locked { opacity: .85; filter: grayscale(.7); border-left-color: var(--line-strong) !important; }
+  .ar-html-marker.closest { z-index: 100 !important; border-left-color: var(--amber); transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 10px 24px rgba(14,63,80,.45); }
+  .closest-badge {
+    position: absolute; top: -12px; right: -8px; display: none; pointer-events: none;
+    background: var(--amber); color: var(--ink); font-size: 12px; font-weight: 700;
+    padding: 2px 10px; border-radius: 999px; box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  }
+  .ar-html-marker.closest .closest-badge { display: block; }
+  .ar-html-marker .m-title { display: block; font-size: 15px; font-weight: 700; font-style: italic; color: var(--petrol); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ar-html-marker .m-sub { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ar-html-marker .m-dist { display: block; font-size: 12px; font-weight: 600; color: var(--amber-text); }
+
+  /* ---------- Αρχική οθόνη ---------- */
+  #gate {
+    position: fixed; inset: 0; z-index: 40; overflow: hidden auto;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: calc(28px + env(safe-area-inset-top)) 28px calc(28px + env(safe-area-inset-bottom));
+    background: var(--paper); color: var(--ink);
+  }
+  .gate-path { position: absolute; top: 0; right: -18%; width: 78%; height: 100%; opacity: .16; pointer-events: none; z-index: 0; }
+  .gate-logo, .gate-body { position: relative; z-index: 1; }
+  .gate-logo img { height: 56px; width: auto; display: block; }
+  .gate-body { max-width: 34rem; }
+  #gate h1 { font-size: 32px; margin: 0 0 14px; }
+  #gate p { color: var(--muted); margin: 0; }
+  .rule { height: 4px; width: 72px; border-radius: 2px; background: var(--brand-path); margin: 0 0 18px; }
+  #startBtn {
+    margin-top: 24px; width: 100%; padding: 17px; min-height: 56px;
+    background: var(--petrol); color: #fff; font-size: 18px; font-weight: 700; font-style: italic;
+    box-shadow: 0 8px 20px rgba(24,96,120,.3);
+  }
+  #startBtn:disabled { opacity: .7; }
+  .gate-lang { display: flex; align-items: center; gap: 10px; margin-top: 20px; }
+  .gate-lang label { font-size: 15px; font-weight: 600; color: var(--petrol); }
+
+  .lang-select {
+    font-size: 16px; font-weight: 600; padding: 8px 14px; min-height: 44px;
+    border-radius: 999px; border: 2px solid var(--line-strong);
+    background: #fff; color: var(--petrol);
+  }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; inset: 0; z-index: 20; pointer-events: none; display: none; }
+  #hud.on { display: block; }
+  #status {
+    position: absolute; top: calc(var(--pad) + env(safe-area-inset-top)); left: var(--pad); right: var(--pad);
+    padding: 9px 16px; border-radius: 999px;
+    background: rgba(255,255,255,.94); color: var(--petrol); font-size: 14px; font-weight: 600;
+    box-shadow: 0 4px 14px rgba(14,63,80,.25);
+  }
+  #langWrap { position: absolute; top: calc(var(--pad) + env(safe-area-inset-top) + 54px); right: var(--pad); pointer-events: auto; }
+  #langWrap .lang-select { box-shadow: 0 4px 14px rgba(14,63,80,.25); }
+
+  /* ---------- Χάρτης ---------- */
+  #drawer { position: fixed; left: 0; right: 0; bottom: 0; height: 52%; z-index: 15; display: flex; flex-direction: column; transform: translateY(calc(100% - var(--handle))); transition: transform .28s cubic-bezier(.32,.72,0,1); }
+  #drawer.open { transform: translateY(0); }
+  #handle {
+    position: relative; flex: none; height: var(--handle); width: 100%;
+    display: flex; align-items: center; gap: 12px; padding: 0 20px env(safe-area-inset-bottom);
+    background: #fff; color: var(--petrol); border-radius: 20px 20px 0 0;
+    box-shadow: 0 -6px 18px rgba(14,63,80,.2); pointer-events: auto; touch-action: none;
+  }
+  #handle::before { content: ''; position: absolute; top: 0; left: 24px; right: 24px; height: 4px; border-radius: 0 0 4px 4px; background: var(--brand-path); }
+  #handle .grip { width: 34px; height: 4px; border-radius: 2px; background: #9FB6C0; flex: none; }
+  #handle .lbl { font-size: 16px; font-weight: 700; font-style: italic; }
+  #map { position: relative; flex: 1; background: var(--mist); pointer-events: auto; }
+  .leaflet-container { background: var(--mist); font-family: inherit; }
+  .map-cluster-dot { background: var(--petrol); color: #fff; border: 3px solid #fff; border-radius: 50%; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+  #compass { position: absolute; top: 12px; right: 10px; z-index: 500; width: 54px; height: 54px; border-radius: 50%; background: #fff; color: var(--petrol); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(14,63,80,.3); }
+  #compass .needle { position: absolute; inset: 0; transform-origin: 50% 50%; }
+  #compass .needle::before { content: ''; position: absolute; left: 50%; top: 6px; transform: translateX(-50%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 14px solid var(--amber); }
+  #compass .needle::after { content: ''; position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 14px solid rgba(24,96,120,.3); }
+
+  #nearest {
+    position: absolute; left: var(--pad); right: var(--pad); bottom: calc(var(--handle) + var(--pad));
+    display: none; width: calc(100% - var(--pad) * 2); text-align: left; padding: 14px 18px;
+    background: #fff; color: var(--ink); border-radius: 16px; border-left: 6px solid var(--amber);
+    box-shadow: 0 8px 22px rgba(14,63,80,.3); pointer-events: auto; transition: bottom .28s;
+  }
+  #nearest.on { display: block; }
+  body.drawer-open #nearest { bottom: calc(52% + var(--pad)); }
+  #nearest .dist { display: block; font-size: 14px; font-weight: 600; color: var(--amber-text); }
+  #nearest .name { display: block; font-size: 20px; font-weight: 700; font-style: italic; color: var(--petrol); }
+
+  .me-wrap { position: relative; width: 56px; height: 56px; }
+  .me-rot { position: absolute; inset: 0; transform-origin: 50% 50%; }
+  .me-cone { position: absolute; left: 50%; bottom: 50%; transform: translateX(-50%); border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 30px solid rgba(36,156,204,.55); }
+  .me-rot.unknown .me-cone { display: none; }
+  .me-dot { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 18px; height: 18px; border-radius: 50%; background: var(--sky); border: 3px solid #fff; box-shadow: 0 0 0 2px var(--petrol); }
+  .poi-dot { width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 4px solid var(--petrol); margin: 4px; }
+
+  #addBtn {
+    position: fixed; bottom: calc(var(--handle) + var(--pad) + 76px); right: var(--pad); z-index: 25;
+    width: 58px; height: 58px; display: none; align-items: center; justify-content: center;
+    background: var(--petrol); color: #fff; font-size: 32px; font-weight: 400;
+    border: 3px solid #fff; box-shadow: 0 6px 16px rgba(14,63,80,.4); pointer-events: auto;
+  }
+  #addBtn.on { display: flex; }
+  body.drawer-open #addBtn { bottom: calc(52% + var(--pad)); }
+
+  /* ---------- Φύλλα / διάλογοι ---------- */
+  .edit-sheet { position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; justify-content: flex-end; background: rgba(14,63,80,.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); pointer-events: auto; }
+  .edit-sheet.on { display: flex; }
+  #infoSheet { z-index: 30; }
+  .sheet-inner {
+    position: relative; background: var(--paper); color: var(--ink);
+    padding: 30px 20px calc(24px + env(safe-area-inset-bottom));
+    max-height: 95vh; overflow-y: auto; border-radius: 22px 22px 0 0;
+    box-shadow: 0 -8px 30px rgba(14,63,80,.3);
+  }
+  .sheet-inner::before { content: ''; position: absolute; top: 0; left: 28px; right: 28px; height: 4px; border-radius: 0 0 4px 4px; background: var(--brand-path); }
+  .sheet-inner h2 { margin: 0 0 12px; font-size: 24px; }
+  .sheet-sub { color: var(--muted); margin-top: -6px; font-size: 14px; }
+  #closeInfoBtn { padding: 12px 26px; background: var(--petrol); color: #fff; font-size: 16px; font-weight: 700; margin-top: 10px; min-height: 48px; }
+
+  .input-group { margin-bottom: 18px; }
+  .input-group > label, .group-label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--petrol); font-style: normal; }
+  .input-group input[type="text"] { width: 100%; padding: 12px 14px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 16px; color: var(--ink); }
+  .input-group input[aria-invalid="true"] { border-color: var(--danger); }
+  .loc-box { font-variant-numeric: tabular-nums; padding: 9px 14px; background: var(--mist); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); }
+  .field-error { color: var(--danger); font-size: 14px; font-weight: 600; margin: 6px 0 0; }
+  .field-error:empty { display: none; }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 22px; }
+  .btn-row button { flex: 1; padding: 13px 14px; font-size: 16px; font-weight: 700; min-height: 50px; }
+  .btn-primary { background: var(--petrol); color: #fff; }
+  .btn-secondary { background: #fff; color: var(--petrol); box-shadow: inset 0 0 0 2px var(--petrol); }
+  .btn-wide { width: 100%; padding: 12px; margin-top: 8px; min-height: 50px; font-weight: 700; }
+  .btn-dashed { background: var(--sky-soft); color: var(--petrol); box-shadow: none; border: 2px dashed var(--petrol); }
+
+  #mediaList { list-style: none; padding: 0; margin: 0 0 12px; }
+  .media-list-item { background: var(--mist); border: 1px solid var(--line); padding: 10px 10px 10px 14px; margin-bottom: 8px; border-radius: 14px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .media-list-item .mi-text { min-width: 0; overflow: hidden; }
+  .media-list-item .mi-name { display: block; font-weight: 700; color: var(--petrol); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .media-list-item .mi-changes { display: block; font-size: 13px; color: var(--amber-text); }
+  .media-list-item small { color: var(--muted); font-weight: 400; }
+  .empty-note { font-size: 14px; color: var(--muted); margin: 0; }
+  .icon-btn { min-width: 44px; min-height: 44px; font-size: 16px; color: #fff; }
+  .icon-btn.edit { background: var(--petrol); margin-right: 6px; }
+  .icon-btn.del { background: var(--danger); }
+
+  .preview-note { font-size: 14px; background: var(--sky-soft); color: var(--ink); border-left: 4px solid var(--sky); padding: 9px 12px; border-radius: 10px; margin: 0 0 16px; }
+
+  /* ---------- Editor ---------- */
+  .editor-box { position: relative; width: 100%; background: var(--petrol-deep); border-radius: 14px; overflow: hidden; margin-bottom: 15px; display: none; touch-action: none; }
+  #imageCanvas { width: 100%; display: block; touch-action: none; }
+  #imageCanvas:focus-visible { outline: 3px solid var(--amber); outline-offset: -3px; box-shadow: none; }
+  .img-hint { position: absolute; top: 10px; left: 10px; background: rgba(14,63,80,.88); color: #fff; padding: 5px 10px; font-size: 12px; border-radius: 10px; pointer-events: none; max-width: 55%; }
+  .img-tools { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 10; }
+  .img-tools button { padding: 6px 14px; font-size: 13px; font-weight: 700; min-height: 36px; }
+  #kbCursor { position: absolute; border: 3px dashed var(--amber); border-radius: 50%; pointer-events: none; display: none; transform: translate(-50%, -50%); box-shadow: 0 0 0 2px #000; }
+
+  #videoContainer { position: relative; width: 100%; overflow: hidden; border-radius: 14px 14px 0 0; background: #000; }
+  #vidPlayBtn { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); background: rgba(14,63,80,.85); color: #fff; border: 2px solid #fff; width: 62px; height: 62px; font-size: 24px; display: flex; align-items: center; justify-content: center; z-index: 6; box-shadow: 0 4px 12px rgba(0,0,0,.4); }
+  #vidPlayBtn.playing { left: auto; top: auto; right: 8px; bottom: 8px; transform: none; width: 44px; height: 44px; font-size: 16px; }
+
+  .fx-badge { display: none; background: var(--petrol-deep); color: #fff; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; border-left: 4px solid var(--amber); }
+  .fx-badge.on { display: inline-block; }
+  #vidFxBadge { position: absolute; top: 8px; left: 8px; z-index: 5; pointer-events: none; }
+
+  .timeline-wrap { position: relative; width: 100%; background: var(--petrol-deep); overflow: hidden; cursor: pointer; }
+  .timeline-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .timeline-layer:focus-visible { outline: 3px solid var(--amber); outline-offset: -3px; box-shadow: none; }
+  .timeline-block { position: absolute; height: 100%; border-left: 1px solid #fff; border-right: 1px solid #fff; z-index: 2; }
+  .timeline-block.blur { background: rgba(224,144,79,.75); }
+  .timeline-block.mute { background: rgba(179,38,30,.6); background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.28) 0 4px, transparent 4px 8px); }
+  .time-now { font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 600; color: var(--petrol); }
+
+  .range-item, .mute-item { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; color: var(--ink); box-shadow: 0 1px 3px rgba(14,63,80,.08); }
+  .rr { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; }
+  .rr + .rr { margin-top: 8px; }
+  .rr input[type="number"] { width: 78px; padding: 6px 8px; border-radius: 10px; border: 2px solid var(--line-strong); font-size: 16px; min-height: 38px; font-variant-numeric: tabular-nums; }
+  .rr label { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--ink); }
+  .rr input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--petrol); }
+  .nowbtn { background: var(--sky-soft); color: var(--petrol); box-shadow: inset 0 0 0 1px var(--petrol); padding: 6px 12px; font-size: 13px; font-weight: 700; min-height: 36px; }
+  .delrow { margin-left: auto; background: var(--danger); color: #fff; padding: 6px 10px; font-size: 14px; min-width: 38px; min-height: 38px; }
+  .add-row-btn { padding: 10px 18px; background: #fff; color: var(--petrol); border: 2px dashed var(--petrol); font-size: 14px; font-weight: 700; min-height: 44px; margin-top: 4px; }
+
+  /* ---------- Επεξεργασία σε εξέλιξη ---------- */
+  #processingOverlay { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200; text-align: center; padding: 24px; background: rgba(255,255,255,.97); color: var(--ink); }
+  #processingOverlay.on { display: flex; }
+  #procTitle { color: var(--petrol); }
+  #procBar { width: 80%; max-width: 340px; height: 10px; background: var(--line); border-radius: 5px; margin-top: 18px; overflow: hidden; }
+  #procBarFill { height: 100%; width: 0%; background: var(--brand-path); background-size: 340px 100%; border-radius: 5px; transition: width .2s linear; }
+
+  #confirmModal { z-index: 150; }
+  #recorderModal { z-index: 100; }
+  #recStatusTimer { font-size: 34px; font-weight: 700; font-style: italic; font-variant-numeric: tabular-nums; color: var(--petrol); margin: 18px 0; }
+
+  #procVideo { position: fixed; left: 0; top: 0; width: 2px; height: 2px; opacity: 0.01; pointer-events: none; z-index: -1; }
+</style>
+</head>
+<body>
+
+<!-- Ανακοινώσεις για αναγνώστες οθόνης (WCAG 4.1.3) -->
+<div id="srLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+<main id="gate" aria-labelledby="gateTitle">
+  <svg class="gate-path" aria-hidden="true" focusable="false" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+    <defs><linearGradient id="gatePathGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E0904F"/><stop offset=".5" stop-color="#249CCC"/><stop offset="1" stop-color="#186078"/>
+    </linearGradient></defs>
+    <path d="M250 -30 C 110 80, 340 170, 205 280 S 80 460, 230 550 S 340 730, 160 850" fill="none" stroke="url(#gatePathGrad)" stroke-width="48" stroke-linecap="round"/>
+  </svg>
+  <div class="gate-logo"><img src="data:image/png;base64,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" alt="Walking Memory" width="216" height="68"></div>
+  <div class="gate-body">
+  <h1 id="gateTitle" data-i18n="gateTitle"></h1>
+  <div class="rule" aria-hidden="true"></div>
+  <p data-i18n="gateText"></p>
+  <div class="gate-lang">
+    <label for="langGate" data-i18n="language"></label>
+    <select id="langGate" class="lang-select">
+      <option value="el" lang="el">Ελληνικά</option>
+      <option value="en" lang="en">English</option>
+      <option value="fr" lang="fr">Français</option>
+      <option value="it" lang="it">Italiano</option>
+    </select>
+  </div>
+  <button id="startBtn" data-i18n="start"></button>
+</div>
+</main>
+
+<div id="hud">
+  <div id="status" role="status" aria-live="off"></div>
+  <div id="langWrap">
+    <label for="langHud" class="sr-only" data-i18n="language"></label>
+    <select id="langHud" class="lang-select">
+      <option value="el" lang="el">EL</option>
+      <option value="en" lang="en">EN</option>
+      <option value="fr" lang="fr">FR</option>
+      <option value="it" lang="it">IT</option>
+    </select>
+  </div>
+  <button id="nearest"><span class="dist"></span><span class="name"></span></button>
+</div>
+
+<div id="ar-overlay-container"></div>
+
+<button id="addBtn" data-i18n-aria="addStory"><span aria-hidden="true">+</span></button>
+
+<div id="drawer">
+  <button id="handle" aria-expanded="false" aria-controls="map"><span class="grip" aria-hidden="true"></span><span class="lbl" data-i18n="map"></span></button>
+  <div id="map" role="region" data-i18n-aria="map" inert>
+    <div id="compass" aria-hidden="true"><span class="needle"></span><span class="deg">—</span></div>
+  </div>
+</div>
+
+<!-- Προβολή ιστορίας -->
+<div id="infoSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-inner">
+    <h2 id="sheetTitle"></h2>
+    <p id="sheetSub" class="sheet-sub"></p>
+    <p id="sheetBody"></p>
+    <button id="closeInfoBtn" data-i18n="close"></button>
+  </div>
+</div>
+
+<!-- 1. Νέα ιστορία -->
+<div id="uploadSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="uploadTitle">
+  <div class="sheet-inner">
+    <h2 id="uploadTitle" data-i18n="newStory"></h2>
+    <div class="input-group">
+      <span class="group-label" id="locLabel" data-i18n="locLabel"></span>
+      <div id="locDisplay" class="loc-box" aria-labelledby="locLabel"></div>
+    </div>
+    <div class="input-group">
+      <label for="storyTitle" data-i18n="storyTitle"></label>
+      <input type="text" id="storyTitle" data-i18n-ph="titlePh" autocomplete="off" aria-describedby="titleError" required>
+      <p id="titleError" class="field-error" role="alert"></p>
+    </div>
+
+    <div class="input-group">
+      <h3 class="group-label" id="mediaHeading" data-i18n="media" style="margin:0 0 4px;"></h3>
+      <ul id="mediaList" aria-labelledby="mediaHeading"></ul>
+      <p id="mediaError" class="field-error" role="alert"></p>
+      <input type="file" id="singleFileInput" accept="image/*,video/*,audio/*" hidden>
+      <button class="btn-wide btn-dashed" id="triggerFileBtn" data-i18n="addFile"></button>
+      <button class="btn-primary btn-wide" id="recordAudioBtn" data-i18n="recordAudio"></button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" id="cancelStoryBtn" data-i18n="cancel"></button>
+      <button class="btn-primary" id="finishStoryBtn" data-i18n="finish"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Επιβεβαίωση -->
+<div id="confirmModal" class="edit-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText confirmSummary">
+  <div class="sheet-inner">
+    <h2 id="confirmTitle" data-i18n="confirmTitle"></h2>
+    <p id="confirmText" data-i18n="confirmText"></p>
+    <p id="confirmSummary" class="sheet-sub" style="margin-top:0;"></p>
+    <p style="font-size:14px; color:var(--muted);" data-i18n="confirmNote"></p>
+    <div class="btn-row">
+      <button class="btn-secondary" id="confirmBackBtn" data-i18n="backToCheck"></button>
+      <button class="btn-primary" id="confirmApplyBtn" data-autofocus data-i18n="saveAll"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Ηχογράφηση -->
+<div id="recorderModal" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="recTitle">
+  <div class="sheet-inner" style="text-align: center;">
+    <h2 id="recTitle" data-i18n="recTitle"></h2>
+    <p id="recStatusTimer" role="timer" data-i18n-aria="recElapsed">00:00</p>
+    <div class="btn-row">
+      <button class="btn-secondary" id="cancelRecBtn" data-i18n="cancel"></button>
+      <button class="btn-primary" id="stopRecBtn" data-autofocus style="background: var(--danger);" data-i18n="recStop"></button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Editor -->
+<div id="editorSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+  <div class="sheet-inner" style="position: relative;">
+    <h2 id="editorTitle" data-i18n="editTitle"></h2>
+    <p id="editorFilename" class="sheet-sub" style="word-break: break-all;"></p>
+    <p class="preview-note" data-i18n="previewNote"></p>
+
+    <!-- Εικόνα -->
+    <div id="imageEditor" class="editor-box">
+      <canvas id="imageCanvas" tabindex="0" role="img" data-i18n-aria="imageCanvas" aria-describedby="imgHint kbHint"></canvas>
+      <div id="kbCursor"></div>
+      <div class="img-hint" aria-hidden="true">
+        <span id="imgHint" data-i18n="blurHint"></span><br>
+        <span id="kbHint" data-i18n="kbHint"></span>
+      </div>
+      <div class="img-tools">
+        <button id="undoBlurBtn" style="background:var(--chalk); color:var(--ink);" data-i18n="undo"></button>
+        <button id="clearBlurBtn" style="background:var(--danger); color:#fff;" data-i18n="clear"></button>
+      </div>
+    </div>
+
+    <!-- Βίντεο -->
+    <div id="videoEditor" class="editor-box" style="background:transparent;">
+      <div id="videoContainer">
+        <video id="videoPreview" playsinline preload="metadata" style="width:100%; display:block; cursor:pointer; background:#000;"></video>
+        <span id="vidFxBadge" class="fx-badge"></span>
+        <button id="vidPlayBtn" data-i18n-aria="play"><span aria-hidden="true">▶</span></button>
+      </div>
+
+      <div id="videoTimelineContainer" class="timeline-wrap" style="height:60px; border-radius:0 0 14px 14px; margin-bottom:6px;">
+        <canvas id="videoGridCanvas" class="timeline-layer" aria-hidden="true"></canvas>
+        <div id="videoTimeline" class="timeline-layer" tabindex="0" role="slider" data-i18n-aria="videoTimeline" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"></div>
+        <div id="videoProgressFill" style="position:absolute; top:0; left:0; width:0%; height:100%; background:rgba(255,255,255,0.15); pointer-events:none; z-index:3;"></div>
+        <div id="videoPlayhead" style="position:absolute; top:0; left:0; width:2px; height:100%; background:#fff; pointer-events:none; box-shadow:0 0 4px rgba(0,0,0,0.8); display:none; z-index:4;"></div>
+      </div>
+
+      <div id="vTimeNow" class="time-now" style="margin-bottom:12px;" aria-hidden="true"></div>
+
+      <h3 class="group-label" data-i18n="editRanges" style="margin:0 0 6px;"></h3>
+      <div id="videoRangeList"></div>
+      <button id="addRangeBtn" class="add-row-btn" data-i18n="addRange"></button>
+    </div>
+
+    <!-- Ήχος -->
+    <div id="audioEditor" style="display:none; width:100%; margin-bottom:15px;">
+      <audio id="audioPreview" style="display:none;"></audio>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <span id="aTimeNow" class="time-now" aria-hidden="true"></span>
+        <span id="audFxBadge" class="fx-badge"></span>
+      </div>
+      <div style="display:flex; align-items:stretch; gap:8px; margin-bottom:10px;">
+        <button id="wavePlayBtn" data-i18n-aria="play" style="flex:none; background:var(--petrol); color:#fff; border-radius:14px; width:50px; font-size:18px;"><span aria-hidden="true">▶</span></button>
+        <div id="waveContainer" class="timeline-wrap" style="flex:1; height:90px; border-radius:14px;">
+          <canvas id="audioWaveCanvas" class="timeline-layer" aria-hidden="true"></canvas>
+          <div id="audioTimeline" class="timeline-layer" tabindex="0" role="slider" data-i18n-aria="audioTimeline" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"></div>
+          <div id="audioProgressFill" style="position:absolute; top:0; left:0; width:0%; height:100%; background:rgba(255,255,255,0.15); pointer-events:none; z-index:3;"></div>
+          <div id="audioPlayhead" style="position:absolute; top:0; left:0; width:2px; height:100%; background:#fff; pointer-events:none; box-shadow:0 0 4px rgba(0,0,0,0.8); display:none; z-index:4;"></div>
+        </div>
+      </div>
+
+      <h3 class="group-label" data-i18n="muteStamps" style="margin:0 0 6px;"></h3>
+      <div id="audioMuteList"></div>
+      <button id="addAudioRangeBtn" class="add-row-btn" data-i18n="addMute"></button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" id="cancelSingleBtn" data-i18n="cancelShort"></button>
+      <button class="btn-primary" id="saveFileBtn" data-i18n="keep"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Επεξεργασία σε εξέλιξη -->
+<div id="processingOverlay" role="alertdialog" aria-modal="true" aria-labelledby="procTitle" aria-describedby="procMsg" tabindex="-1">
+  <h2 id="procTitle" style="margin:0 0 10px; font-size:20px;" data-i18n="processing"></h2>
+  <p id="procMsg" style="font-size:15px; margin:0;"></p>
+  <div id="procBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-aria="progress"><div id="procBarFill"></div></div>
+  <p style="font-size:14px; margin-top:14px;" data-i18n="procNote"></p>
+</div>
+
+<!-- 3. Τελικό αποτέλεσμα -->
+<div id="previewSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+  <div class="sheet-inner">
+    <h2 id="previewTitle" data-i18n="finalTitle"></h2>
+    <p class="sheet-sub" data-i18n="finalNote"></p>
+    <div id="localPreviewContainer" style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="backToUploadBtn" data-i18n="backToFiles"></button>
+      <button class="btn-primary" id="closePreviewBtn" data-i18n="closePreview"></button>
+    </div>
+  </div>
+</div>
+
+<video id="procVideo" playsinline preload="auto" aria-hidden="true" tabindex="-1"></video>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function(id) { return document.getElementById(id); };
+
+  // ==========================================
+  // 0. ΜΕΤΑΦΡΑΣΕΙΣ
+  // ==========================================
+  var LANGS = ['el', 'en', 'fr', 'it'];
+  var I18N = {
+    el: {
+      pageTitle: "Walking Memory — Μυτιλήνη", language: "Γλώσσα",
+      gateTitle: "Διαδρομή μνήμης, κέντρο Μυτιλήνης",
+      gateText: "Χρειάζεται κάμερα, τοποθεσία και αισθητήρες κίνησης. Δούλεψε σε ανοιχτό χώρο.",
+      start: "Ξεκίνα τη διαδρομή", opening: "Άνοιγμα κάμερας…", retry: "Δοκίμασε ξανά", permDenied: "Δεν δόθηκε άδεια.",
+      waitingFix: "Αναμονή για στίγμα…", accuracy: "Ακρίβεια {m}m.", compassDeg: "Πυξίδα {d}°", gpsError: "Σφάλμα GPS",
+      youAreHere: "Είσαι εδώ", mAway: "{m}m μακριά", closest: "📍 Πιο κοντά", distance: "Απόσταση: {d}",
+      calculating: "Υπολογισμός…", locked: "κλειδωμένο",
+      lockedAlert: "Είσαι {m}m μακριά.\n\nΠλησίασε κάτω από 100m για να ξεκλειδώσεις αυτήν την ιστορία!",
+      map: "Χάρτης", close: "Κλείσιμο", addStory: "Προσθήκη νέας ιστορίας",
+      newStory: "Νέα ιστορία", locLabel: "Τοποθεσία (κλειδωμένη στο στίγμα σου)", waiting: "Αναμονή…",
+      storyTitle: "Τίτλος ιστορίας", titlePh: "π.χ. Η παλιά αγορά", media: "Πολυμέσα",
+      noFiles: "Δεν έχεις προσθέσει αρχεία ακόμα.", addFile: "+ Προσθήκη αρχείου", recordAudio: "🎤 Ηχογράφηση ήχου",
+      cancel: "Ακύρωση", finish: "Ολοκλήρωση ιστορίας",
+      titleRequired: "Βάλε έναν τίτλο για την ιστορία σου.", fileRequired: "Πρόσθεσε τουλάχιστον ένα αρχείο.",
+      confirmTitle: "Οριστική αποθήκευση",
+      confirmText: "Τώρα όλες οι αλλαγές στα πολυμέσα θα αποθηκευτούν οριστικά (θολώματα και σιγάσεις).",
+      confirmSummary: "{n} αρχεία, {e} με αλλαγές, {p} προς αποθήκευση.",
+      confirmNote: "Η επεξεργασία των βίντεο γίνεται σε πραγματικό χρόνο και μπορεί να πάρει λίγη ώρα. Μην κλειδώσεις την οθόνη.",
+      backToCheck: "Πίσω για έλεγχο", saveAll: "Αποθήκευση όλων",
+      recTitle: "Ζωντανή ηχογράφηση", recStop: "Τέλος και αποθήκευση", recElapsed: "Διάρκεια ηχογράφησης",
+      micError: "Δεν ήταν δυνατή η πρόσβαση στο μικρόφωνο: ", recordingFile: "ηχογράφηση",
+      editTitle: "Επεξεργασία αρχείου",
+      previewNote: "Βλέπεις προεπισκόπηση. Το αρχικό αρχείο δεν αλλάζει· οι αλλαγές εφαρμόζονται οριστικά στην «Ολοκλήρωση ιστορίας».",
+      blurHint: "Σύρε ή πάτα για θόλωμα", kbHint: "Πληκτρολόγιο: βέλη για μετακίνηση, Enter για θόλωμα",
+      imageCanvas: "Εικόνα προς επεξεργασία", undo: "↩ Αναίρεση", clear: "Καθαρισμός",
+      loadingVideo: "Φόρτωση βίντεο…", loadingAudio: "Φόρτωση ήχου…", timeNow: "Τρέχον σημείο: {c}s / {d}s",
+      play: "Αναπαραγωγή", pause: "Παύση", videoTimeline: "Χρονογραμμή βίντεο", audioTimeline: "Χρονογραμμή ήχου",
+      seconds: "{s} δευτερόλεπτα από {d}",
+      editRanges: "Διαστήματα επεξεργασίας", addRange: "+ Προσθήκη διαστήματος",
+      from: "Από", to: "έως", startSec: "Αρχή σε δευτερόλεπτα", endSec: "Τέλος σε δευτερόλεπτα",
+      now: "τώρα", nowStart: "Ορισμός αρχής στο τρέχον σημείο", nowEnd: "Ορισμός τέλους στο τρέχον σημείο",
+      mute: "Σίγαση", blur: "Θόλωμα", deleteRange: "Διαγραφή διαστήματος", previewFx: "Προεπισκόπηση: {fx}",
+      muteStamps: "Σημεία σίγασης", addMute: "+ Προσθήκη σημείου σίγασης",
+      cancelShort: "Άκυρο", keep: "Κράτα τις ρυθμίσεις", kept: "Οι ρυθμίσεις κρατήθηκαν: {name}",
+      type_image: "Εικόνα", type_video: "Βίντεο", type_audio: "Ήχος",
+      blur1: "1 περιοχή θολώματος", blurN: "{n} περιοχές θολώματος",
+      pts1: "1 σημείο επεξεργασίας", ptsN: "{n} σημεία επεξεργασίας", noChanges: "Χωρίς αλλαγές",
+      saved: "✓ αποθηκευμένο", pending: "⏳ εκκρεμεί αποθήκευση",
+      editItem: "Επεξεργασία: {name}", deleteItem: "Διαγραφή: {name}", removed: "Αφαιρέθηκε: {name}",
+      processing: "Γίνεται επεξεργασία…", pleaseWait: "Παρακαλώ περιμένετε…",
+      procNote: "Εφαρμογή αλλαγών. Μην κλειδώσεις την οθόνη.", savingChanges: "Αποθήκευση αλλαγών…",
+      fileOf: "Αρχείο {i} από {n} · {name}", warmup: "προθέρμανση", progress: "Πρόοδος",
+      saveError: "Σφάλμα στην αποθήκευση: {e}\n\nΤα αρχικά αρχεία και οι ρυθμίσεις σου είναι ασφαλή. Δοκίμασε ξανά.",
+      finalTitle: "Τα αρχεία σου (τελικό αποτέλεσμα)",
+      finalNote: "Αυτά είναι τα αρχεία με τις αλλαγές εφαρμοσμένες. Αν κάτι δεν σου αρέσει, γύρνα πίσω· τα αρχικά αρχεία κρατιούνται.",
+      backToFiles: "Πίσω στα αρχεία", closePreview: "Κλείσιμο προβολής", allSaved: "Όλα τα αρχεία αποθηκεύτηκαν.",
+      errVideoTimeout: "Το βίντεο δεν φόρτωσε.", errVideoLoad: "Σφάλμα φόρτωσης βίντεο.",
+      errNoRec: "Ο browser δεν υποστηρίζει εγγραφή βίντεο.", errPlayback: "Δεν ξεκίνησε η αναπαραγωγή: ",
+      errFileRead: "Αποτυχία ανάγνωσης αρχείου.", errImage: "Αποτυχία φόρτωσης εικόνας."
+    },
+    en: {
+      pageTitle: "Walking Memory — Mytilene", language: "Language",
+      gateTitle: "Memory trail, Mytilene centre",
+      gateText: "Needs camera, location and motion sensors. Use it outdoors.",
+      start: "Start the trail", opening: "Opening camera…", retry: "Try again", permDenied: "Permission was not granted.",
+      waitingFix: "Waiting for location…", accuracy: "Accuracy {m} m.", compassDeg: "Compass {d}°", gpsError: "GPS error",
+      youAreHere: "You are here", mAway: "{m} m away", closest: "📍 Closest", distance: "Distance: {d}",
+      calculating: "Calculating…", locked: "locked",
+      lockedAlert: "You are {m} m away.\n\nGet within 100 m to unlock this story!",
+      map: "Map", close: "Close", addStory: "Add a new story",
+      newStory: "New story", locLabel: "Location (locked to your position)", waiting: "Waiting…",
+      storyTitle: "Story title", titlePh: "e.g. The old market", media: "Media",
+      noFiles: "You haven't added any files yet.", addFile: "+ Add file", recordAudio: "🎤 Record audio",
+      cancel: "Cancel", finish: "Finish story",
+      titleRequired: "Enter a title for your story.", fileRequired: "Add at least one file.",
+      confirmTitle: "Final save",
+      confirmText: "All media changes will now be saved permanently (blurs and mutes).",
+      confirmSummary: "{n} files, {e} with changes, {p} to save.",
+      confirmNote: "Videos are processed in real time, so this can take a while. Don't lock your screen.",
+      backToCheck: "Back to review", saveAll: "Save all",
+      recTitle: "Live recording", recStop: "Stop and save", recElapsed: "Recording time",
+      micError: "Couldn't access the microphone: ", recordingFile: "recording",
+      editTitle: "Edit file",
+      previewNote: "This is a preview. The original file isn't changed; edits are applied permanently when you select “Finish story”.",
+      blurHint: "Drag or tap to blur", kbHint: "Keyboard: arrows to move, Enter to blur",
+      imageCanvas: "Image being edited", undo: "↩ Undo", clear: "Clear all",
+      loadingVideo: "Loading video…", loadingAudio: "Loading audio…", timeNow: "Position: {c}s / {d}s",
+      play: "Play", pause: "Pause", videoTimeline: "Video timeline", audioTimeline: "Audio timeline",
+      seconds: "{s} of {d} seconds",
+      editRanges: "Edit ranges", addRange: "+ Add range",
+      from: "From", to: "to", startSec: "Start in seconds", endSec: "End in seconds",
+      now: "now", nowStart: "Set start to current position", nowEnd: "Set end to current position",
+      mute: "Mute", blur: "Blur", deleteRange: "Delete range", previewFx: "Preview: {fx}",
+      muteStamps: "Mute ranges", addMute: "+ Add mute range",
+      cancelShort: "Cancel", keep: "Keep settings", kept: "Settings kept: {name}",
+      type_image: "Image", type_video: "Video", type_audio: "Audio",
+      blur1: "1 blurred area", blurN: "{n} blurred areas",
+      pts1: "1 edit range", ptsN: "{n} edit ranges", noChanges: "No changes",
+      saved: "✓ saved", pending: "⏳ not saved yet",
+      editItem: "Edit: {name}", deleteItem: "Delete: {name}", removed: "Removed: {name}",
+      processing: "Processing…", pleaseWait: "Please wait…",
+      procNote: "Applying changes. Don't lock your screen.", savingChanges: "Saving changes…",
+      fileOf: "File {i} of {n} · {name}", warmup: "preparing", progress: "Progress",
+      saveError: "Save failed: {e}\n\nYour original files and settings are safe. Please try again.",
+      finalTitle: "Your files (final result)",
+      finalNote: "These are your files with the changes applied. If something's wrong, go back — the originals are kept.",
+      backToFiles: "Back to files", closePreview: "Close preview", allSaved: "All files saved.",
+      errVideoTimeout: "The video didn't load.", errVideoLoad: "Error loading video.",
+      errNoRec: "This browser can't record video.", errPlayback: "Playback didn't start: ",
+      errFileRead: "Couldn't read the file.", errImage: "Couldn't load the image."
+    },
+    fr: {
+      pageTitle: "Walking Memory — Mytilène", language: "Langue",
+      gateTitle: "Parcours de mémoire, centre de Mytilène",
+      gateText: "Nécessite la caméra, la localisation et les capteurs de mouvement. À utiliser en extérieur.",
+      start: "Commencer le parcours", opening: "Ouverture de la caméra…", retry: "Réessayer", permDenied: "Autorisation refusée.",
+      waitingFix: "En attente de la position…", accuracy: "Précision {m} m.", compassDeg: "Boussole {d}°", gpsError: "Erreur GPS",
+      youAreHere: "Vous êtes ici", mAway: "à {m} m", closest: "📍 Le plus proche", distance: "Distance : {d}",
+      calculating: "Calcul…", locked: "verrouillé",
+      lockedAlert: "Vous êtes à {m} m.\n\nApprochez-vous à moins de 100 m pour débloquer cette histoire !",
+      map: "Carte", close: "Fermer", addStory: "Ajouter une histoire",
+      newStory: "Nouvelle histoire", locLabel: "Emplacement (fixé sur votre position)", waiting: "En attente…",
+      storyTitle: "Titre de l'histoire", titlePh: "ex. : Le vieux marché", media: "Médias",
+      noFiles: "Vous n'avez encore ajouté aucun fichier.", addFile: "+ Ajouter un fichier", recordAudio: "🎤 Enregistrer du son",
+      cancel: "Annuler", finish: "Terminer l'histoire",
+      titleRequired: "Saisissez un titre pour votre histoire.", fileRequired: "Ajoutez au moins un fichier.",
+      confirmTitle: "Enregistrement définitif",
+      confirmText: "Toutes les modifications des médias vont maintenant être enregistrées définitivement (flous et coupures de son).",
+      confirmSummary: "{n} fichiers, {e} modifiés, {p} à enregistrer.",
+      confirmNote: "Les vidéos sont traitées en temps réel, cela peut prendre un moment. Ne verrouillez pas l'écran.",
+      backToCheck: "Revenir vérifier", saveAll: "Tout enregistrer",
+      recTitle: "Enregistrement en cours", recStop: "Arrêter et enregistrer", recElapsed: "Durée d'enregistrement",
+      micError: "Impossible d'accéder au micro : ", recordingFile: "enregistrement",
+      editTitle: "Modifier le fichier",
+      previewNote: "Ceci est un aperçu. Le fichier d'origine n'est pas modifié ; les modifications sont appliquées définitivement avec « Terminer l'histoire ».",
+      blurHint: "Glissez ou touchez pour flouter", kbHint: "Clavier : flèches pour déplacer, Entrée pour flouter",
+      imageCanvas: "Image en cours de modification", undo: "↩ Défaire", clear: "Tout effacer",
+      loadingVideo: "Chargement de la vidéo…", loadingAudio: "Chargement de l'audio…", timeNow: "Position : {c} s / {d} s",
+      play: "Lecture", pause: "Pause", videoTimeline: "Chronologie vidéo", audioTimeline: "Chronologie audio",
+      seconds: "{s} secondes sur {d}",
+      editRanges: "Plages de modification", addRange: "+ Ajouter une plage",
+      from: "De", to: "à", startSec: "Début en secondes", endSec: "Fin en secondes",
+      now: "ici", nowStart: "Début = position actuelle", nowEnd: "Fin = position actuelle",
+      mute: "Couper le son", blur: "Flou", deleteRange: "Supprimer la plage", previewFx: "Aperçu : {fx}",
+      muteStamps: "Plages sans son", addMute: "+ Ajouter une plage sans son",
+      cancelShort: "Annuler", keep: "Garder les réglages", kept: "Réglages conservés : {name}",
+      type_image: "Image", type_video: "Vidéo", type_audio: "Audio",
+      blur1: "1 zone floutée", blurN: "{n} zones floutées",
+      pts1: "1 plage modifiée", ptsN: "{n} plages modifiées", noChanges: "Aucune modification",
+      saved: "✓ enregistré", pending: "⏳ pas encore enregistré",
+      editItem: "Modifier : {name}", deleteItem: "Supprimer : {name}", removed: "Supprimé : {name}",
+      processing: "Traitement…", pleaseWait: "Veuillez patienter…",
+      procNote: "Application des modifications. Ne verrouillez pas l'écran.", savingChanges: "Enregistrement des modifications…",
+      fileOf: "Fichier {i} sur {n} · {name}", warmup: "préparation", progress: "Progression",
+      saveError: "Échec de l'enregistrement : {e}\n\nVos fichiers d'origine et vos réglages sont intacts. Réessayez.",
+      finalTitle: "Vos fichiers (résultat final)",
+      finalNote: "Voici vos fichiers avec les modifications appliquées. Si quelque chose ne va pas, revenez en arrière : les originaux sont conservés.",
+      backToFiles: "Retour aux fichiers", closePreview: "Fermer l'aperçu", allSaved: "Tous les fichiers sont enregistrés.",
+      errVideoTimeout: "La vidéo ne s'est pas chargée.", errVideoLoad: "Erreur de chargement de la vidéo.",
+      errNoRec: "Ce navigateur ne peut pas enregistrer de vidéo.", errPlayback: "La lecture n'a pas démarré : ",
+      errFileRead: "Impossible de lire le fichier.", errImage: "Impossible de charger l'image."
+    },
+    it: {
+      pageTitle: "Walking Memory — Mitilene", language: "Lingua",
+      gateTitle: "Percorso della memoria, centro di Mitilene",
+      gateText: "Servono fotocamera, posizione e sensori di movimento. Usala all'aperto.",
+      start: "Inizia il percorso", opening: "Apertura fotocamera…", retry: "Riprova", permDenied: "Autorizzazione negata.",
+      waitingFix: "In attesa della posizione…", accuracy: "Precisione {m} m.", compassDeg: "Bussola {d}°", gpsError: "Errore GPS",
+      youAreHere: "Sei qui", mAway: "a {m} m", closest: "📍 Più vicino", distance: "Distanza: {d}",
+      calculating: "Calcolo…", locked: "bloccato",
+      lockedAlert: "Sei a {m} m.\n\nAvvicinati entro 100 m per sbloccare questa storia!",
+      map: "Mappa", close: "Chiudi", addStory: "Aggiungi una storia",
+      newStory: "Nuova storia", locLabel: "Posizione (bloccata sulla tua posizione)", waiting: "In attesa…",
+      storyTitle: "Titolo della storia", titlePh: "es. Il vecchio mercato", media: "Contenuti multimediali",
+      noFiles: "Non hai ancora aggiunto file.", addFile: "+ Aggiungi file", recordAudio: "🎤 Registra audio",
+      cancel: "Annulla", finish: "Completa la storia",
+      titleRequired: "Inserisci un titolo per la tua storia.", fileRequired: "Aggiungi almeno un file.",
+      confirmTitle: "Salvataggio definitivo",
+      confirmText: "Tutte le modifiche ai contenuti verranno ora salvate definitivamente (sfocature e silenziamenti).",
+      confirmSummary: "{n} file, {e} con modifiche, {p} da salvare.",
+      confirmNote: "I video vengono elaborati in tempo reale e potrebbe volerci un po'. Non bloccare lo schermo.",
+      backToCheck: "Torna a controllare", saveAll: "Salva tutto",
+      recTitle: "Registrazione in corso", recStop: "Ferma e salva", recElapsed: "Durata registrazione",
+      micError: "Impossibile accedere al microfono: ", recordingFile: "registrazione",
+      editTitle: "Modifica file",
+      previewNote: "Questa è un'anteprima. Il file originale non cambia; le modifiche vengono applicate definitivamente con «Completa la storia».",
+      blurHint: "Trascina o tocca per sfocare", kbHint: "Tastiera: frecce per spostare, Invio per sfocare",
+      imageCanvas: "Immagine in modifica", undo: "↩ Annulla", clear: "Cancella tutto",
+      loadingVideo: "Caricamento video…", loadingAudio: "Caricamento audio…", timeNow: "Posizione: {c}s / {d}s",
+      play: "Riproduci", pause: "Pausa", videoTimeline: "Timeline video", audioTimeline: "Timeline audio",
+      seconds: "{s} secondi su {d}",
+      editRanges: "Intervalli di modifica", addRange: "+ Aggiungi intervallo",
+      from: "Da", to: "a", startSec: "Inizio in secondi", endSec: "Fine in secondi",
+      now: "ora", nowStart: "Inizio = posizione attuale", nowEnd: "Fine = posizione attuale",
+      mute: "Muto", blur: "Sfocatura", deleteRange: "Elimina intervallo", previewFx: "Anteprima: {fx}",
+      muteStamps: "Intervalli silenziati", addMute: "+ Aggiungi intervallo muto",
+      cancelShort: "Annulla", keep: "Mantieni impostazioni", kept: "Impostazioni mantenute: {name}",
+      type_image: "Immagine", type_video: "Video", type_audio: "Audio",
+      blur1: "1 area sfocata", blurN: "{n} aree sfocate",
+      pts1: "1 intervallo modificato", ptsN: "{n} intervalli modificati", noChanges: "Nessuna modifica",
+      saved: "✓ salvato", pending: "⏳ non ancora salvato",
+      editItem: "Modifica: {name}", deleteItem: "Elimina: {name}", removed: "Rimosso: {name}",
+      processing: "Elaborazione…", pleaseWait: "Attendere…",
+      procNote: "Applicazione delle modifiche. Non bloccare lo schermo.", savingChanges: "Salvataggio modifiche…",
+      fileOf: "File {i} di {n} · {name}", warmup: "preparazione", progress: "Avanzamento",
+      saveError: "Salvataggio non riuscito: {e}\n\nI file originali e le impostazioni sono al sicuro. Riprova.",
+      finalTitle: "I tuoi file (risultato finale)",
+      finalNote: "Questi sono i file con le modifiche applicate. Se qualcosa non va, torna indietro: gli originali sono conservati.",
+      backToFiles: "Torna ai file", closePreview: "Chiudi anteprima", allSaved: "Tutti i file sono stati salvati.",
+      errVideoTimeout: "Il video non si è caricato.", errVideoLoad: "Errore di caricamento del video.",
+      errNoRec: "Questo browser non può registrare video.", errPlayback: "La riproduzione non è partita: ",
+      errFileRead: "Impossibile leggere il file.", errImage: "Impossibile caricare l'immagine."
+    }
+  };
+
+  function detectLang() {
+    try {
+      var saved = localStorage.getItem('dm_lang');
+      if (saved && LANGS.indexOf(saved) !== -1) return saved;
+    } catch (e) {}
+    var prefs = navigator.languages || [navigator.language || 'el'];
+    for (var i = 0; i < prefs.length; i++) {
+      var code = String(prefs[i]).slice(0, 2).toLowerCase();
+      if (LANGS.indexOf(code) !== -1) return code;
+    }
+    return 'el';
+  }
+
+  var LANG = detectLang();
+
+  function t(key, vars) {
+    var s = (I18N[LANG] && I18N[LANG][key]) || I18N.el[key] || key;
+    if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
+    return s;
+  }
+
+  function applyLang(root) {
+    root = root || document;
+    root.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.dataset.i18n); });
+    root.querySelectorAll('[data-i18n-ph]').forEach(function (el) { el.placeholder = t(el.dataset.i18nPh); });
+    root.querySelectorAll('[data-i18n-aria]').forEach(function (el) { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+  }
+
+  // Για λειτουργίες που πρέπει να ξαναζωγραφίσουν κείμενο όταν αλλάζει η γλώσσα
+  var langListeners = [];
+  function onLangChange(fn) { langListeners.push(fn); }
+
+  function setLang(code) {
+    if (LANGS.indexOf(code) === -1) return;
+    LANG = code;
+    try { localStorage.setItem('dm_lang', code); } catch (e) {}
+    document.documentElement.lang = code;       // WCAG 3.1.1
+    document.title = t('pageTitle');            // WCAG 2.4.2
+    $('langGate').value = code;
+    $('langHud').value = code;
+    applyLang();
+    langListeners.forEach(function (fn) { try { fn(); } catch (e) {} });
+  }
+
+  $('langGate').addEventListener('change', function () { setLang(this.value); });
+  $('langHud').addEventListener('change', function () { setLang(this.value); });
+
+  function announce(msg) {
+    var r = $('srLive');
+    r.textContent = '';
+    setTimeout(function () { r.textContent = msg; }, 60);
+  }
+
+  // ==========================================
+  // 0b. ΔΙΑΛΟΓΟΙ (εστίαση, Tab, Escape)
+  // ==========================================
+  var dialogStack = [];
+  var FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  function focusablesIn(el) {
+    return Array.prototype.filter.call(el.querySelectorAll(FOCUSABLE), function (n) {
+      return !n.hidden && n.getClientRects().length > 0;
+    });
+  }
+
+  function openDialog(id, focusEl) {
+    var el = $(id);
+    if (!el.classList.contains('on')) {
+      el.classList.add('on');
+      dialogStack.push({ id: id, ret: document.activeElement });
+    }
+    setTimeout(function () {
+      var target = focusEl || el.querySelector('[data-autofocus]') || focusablesIn(el)[0] || el;
+      if (target === el && !el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+      try { target.focus(); } catch (e) {}
+    }, 40);
+  }
+
+  function closeDialog(id, noRestore) {
+    var el = $(id);
+    el.classList.remove('on');
+    for (var i = dialogStack.length - 1; i >= 0; i--) {
+      if (dialogStack[i].id === id) {
+        var entry = dialogStack.splice(i, 1)[0];
+        if (!noRestore && entry.ret && document.contains(entry.ret) && entry.ret.getClientRects().length) {
+          try { entry.ret.focus(); } catch (e) {}
+        }
+        break;
+      }
+    }
+  }
+
+  var escHandlers = {};
+
+  document.addEventListener('keydown', function (e) {
+    var top = dialogStack.length ? $(dialogStack[dialogStack.length - 1].id) : null;
+    if (!top) return;
+
+    if (e.key === 'Escape' && escHandlers[top.id]) {
+      e.preventDefault();
+      escHandlers[top.id]();
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      var items = focusablesIn(top);
+      if (!items.length) { e.preventDefault(); return; }
+      var first = items[0], last = items[items.length - 1];
+      if (!top.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  // ==========================================
+  // 1. AR & ΧΑΡΤΗΣ
+  // ==========================================
+  window.hardwareHeading = null;
+  window.currentEditIndex = -1;
+
+  window.addEventListener('deviceorientation', function(e) {
+    if (e.webkitCompassHeading !== undefined) window.hardwareHeading = e.webkitCompassHeading;
+  }, true);
+
+  window.addEventListener('deviceorientationabsolute', function(e) {
+    if (e.alpha !== null) {
+      var alpha = e.alpha ? e.alpha * Math.PI / 180 : 0;
+      var beta = e.beta ? e.beta * Math.PI / 180 : 0;
+      var gamma = e.gamma ? e.gamma * Math.PI / 180 : 0;
+      var cA = Math.cos(alpha), sA = Math.sin(alpha);
+      var cB = Math.cos(beta), sB = Math.sin(beta);
+      var cG = Math.cos(gamma), sG = Math.sin(gamma);
+      var vX = -cA * sG - sA * sB * cG;
+      var vY = -sA * sG + cA * sB * cG;
+      var heading = Math.atan2(vX, vY) * 180 / Math.PI;
+      if (heading < 0) heading += 360;
+      window.hardwareHeading = heading;
+    }
+  }, true);
+
+  var STORIES = [
+    { id: 'sapfous', lat: 39.106668, lon: 26.557367, radius: 40, t: {
+      el: { title: 'Πλατεία Σαπφούς', sub: 'Κέντρο', text: 'Η κεντρική πλατεία της Μυτιλήνης δίπλα στο λιμάνι.' },
+      en: { title: 'Sappho Square', sub: 'Centre', text: "Mytilene's central square, next to the harbour." },
+      fr: { title: 'Place Sappho', sub: 'Centre', text: 'La place centrale de Mytilène, à côté du port.' },
+      it: { title: 'Piazza Saffo', sub: 'Centro', text: 'La piazza centrale di Mitilene, accanto al porto.' } } },
+    { id: 'therapon', lat: 39.105126, lon: 26.554749, radius: 35, t: {
+      el: { title: 'Άγιος Θεράπων', sub: 'Ερμού', text: 'Η μεγαλύτερη εκκλησία της πόλης με τον εντυπωσιακό τρούλο.' },
+      en: { title: 'Agios Therapon', sub: 'Ermou Street', text: "The city's largest church, with its impressive dome." },
+      fr: { title: 'Saint-Thérapon', sub: 'Rue Ermou', text: "La plus grande église de la ville, avec sa coupole impressionnante." },
+      it: { title: 'San Terapone', sub: 'Via Ermou', text: 'La chiesa più grande della città, con la sua cupola imponente.' } } },
+    { id: 'mikrasiatisa', lat: 39.112350, lon: 26.557179, radius: 35, t: {
+      el: { title: 'Μικρασιάτισσα Μάνα', sub: 'Επάνω Σκάλα', text: 'Το μνημείο που είναι αφιερωμένο στη Μικρασιάτισσα Μάνα.' },
+      en: { title: 'Asia Minor Mother', sub: 'Epano Skala', text: 'The monument dedicated to the Mother of Asia Minor.' },
+      fr: { title: "Mère d'Asie Mineure", sub: 'Epano Skala', text: "Le monument dédié à la Mère d'Asie Mineure." },
+      it: { title: "Madre dell'Asia Minore", sub: 'Epano Skala', text: "Il monumento dedicato alla Madre dell'Asia Minore." } } },
+    { id: 'geni_tzami', lat: 39.110375, lon: 26.557753, radius: 35, t: {
+      el: { title: 'Γενί Τζαμί', sub: 'Επάνω Σκάλα', text: 'Το ιστορικό οθωμανικό τέμενος της Μυτιλήνης.' },
+      en: { title: 'Yeni Mosque', sub: 'Epano Skala', text: "Mytilene's historic Ottoman mosque." },
+      fr: { title: 'Mosquée Yeni', sub: 'Epano Skala', text: 'La mosquée ottomane historique de Mytilène.' },
+      it: { title: 'Moschea Yeni', sub: 'Epano Skala', text: 'La storica moschea ottomana di Mitilene.' } } },
+    { id: 'agios_eudokimos', lat: 39.109996, lon: 26.556444, radius: 35, t: {
+      el: { title: 'Άγιος Ευδόκιμος', sub: 'Ιστορικό Κέντρο', text: 'Ιστορικός ναός της πόλης.' },
+      en: { title: 'Agios Evdokimos', sub: 'Historic Centre', text: 'A historic church of the city.' },
+      fr: { title: 'Saint-Eudocime', sub: 'Centre historique', text: 'Une église historique de la ville.' },
+      it: { title: "Sant'Eudocimo", sub: 'Centro storico', text: 'Una chiesa storica della città.' } } },
+    { id: 'agalma', lat: 39.105871, lon: 26.563128, radius: 40, t: {
+      el: { title: 'Άγαλμα Ελευθερίας', sub: 'Λιμάνι', text: 'Το εμβληματικό άγαλμα που δεσπόζει στην είσοδο του λιμανιού.' },
+      en: { title: 'Statue of Liberty', sub: 'Harbour', text: 'The iconic statue overlooking the harbour entrance.' },
+      fr: { title: 'Statue de la Liberté', sub: 'Port', text: "La statue emblématique qui domine l'entrée du port." },
+      it: { title: 'Statua della Libertà', sub: 'Porto', text: "L'iconica statua che domina l'ingresso del porto." } } },
+    { id: 'kastro', lat: 39.111665, lon: 26.562324, radius: 50, t: {
+      el: { title: 'Κάστρο Μυτιλήνης', sub: 'Βόρεια Πλευρά', text: 'Ένα από τα μεγαλύτερα κάστρα της Μεσογείου.' },
+      en: { title: 'Mytilene Castle', sub: 'North side', text: 'One of the largest castles in the Mediterranean.' },
+      fr: { title: 'Château de Mytilène', sub: 'Côté nord', text: "L'un des plus grands châteaux de la Méditerranée." },
+      it: { title: 'Castello di Mitilene', sub: 'Lato nord', text: 'Uno dei castelli più grandi del Mediterraneo.' } } }
+  ];
+
+  function st(s) { return s.t[LANG] || s.t.el; }
+  function fmtDist(d) { return d >= 1000 ? (d / 1000).toFixed(1) + ' km' : Math.round(d) + ' m'; }
+
+  var MIN_DIST = 2;
+  var me = null, map = null, meMarker = null, accCircle = null, followMe = true, gpsFailed = false;
+  window.currentHeading = null;
+
+  var arPaused = false;
+  function setAR(active) {
+    var sc = document.querySelector('a-scene');
+    if (!sc) return;
+    if (!active && !arPaused) { try { sc.pause(); } catch(e){} arPaused = true; document.body.classList.add('editing'); }
+    else if (active && arPaused) { try { sc.play(); } catch(e){} arPaused = false; document.body.classList.remove('editing'); }
+  }
+
+  function distanceMetres(lat1, lon1, lat2, lon2) {
+    var R = 6371000, rad = function(d) { return d * Math.PI / 180; };
+    var a = Math.sin(rad(lat2 - lat1)/2) * Math.sin(rad(lat2 - lat1)/2) + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lon2 - lon1)/2) * Math.sin(rad(lon2 - lon1)/2);
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+
+  AFRAME.registerComponent('hud-compass', {
+    tick: function () {
+      if (window.hardwareHeading === null) return;
+      var h = window.hardwareHeading;
+      window.currentHeading = h;
+      if (this.displayHeading === undefined) this.displayHeading = h;
+      var diff = h - (this.displayHeading % 360);
+      if (diff > 180) diff -= 360; else if (diff < -180) diff += 360;
+      this.displayHeading += diff * 0.1;
+      var needle = document.querySelector('#compass .needle');
+      var degOut = document.querySelector('#compass .deg');
+      if (needle) {
+        needle.style.transform = 'rotate(' + (-this.displayHeading) + 'deg)';
+        degOut.textContent = Math.round(((this.displayHeading % 360) + 360) % 360) + '°';
+      }
+      applyHeadingToDot();
+      updateHTMLMarkersPosition();
+    }
+  });
+
+  function openStorySheet(s) {
+    var tr = st(s);
+    $('sheetTitle').textContent = tr.title;
+    $('sheetSub').textContent = tr.sub;
+    $('sheetBody').textContent = tr.text;
+    openDialog('infoSheet');
+  }
+  $('closeInfoBtn').addEventListener('click', function () { closeDialog('infoSheet'); });
+  escHandlers.infoSheet = function () { closeDialog('infoSheet'); };
+
+  function buildScene() {
+    var container = $('ar-overlay-container');
+    container.innerHTML = '';
+    STORIES.forEach(function (s) {
+      var btn = document.createElement('button');
+      btn.className = 'ar-html-marker';
+      btn.id = 'html-marker-' + s.id;
+      btn.style.display = 'none';
+      btn.innerHTML =
+        '<span class="closest-badge" aria-hidden="true"></span>' +
+        '<span class="m-title"><span class="lock" aria-hidden="true">🔒 </span><span class="mt"></span></span>' +
+        '<span class="m-sub"></span>' +
+        '<span class="m-dist"></span>';
+      btn.onclick = function () {
+        if (me) {
+          var d = distanceMetres(me.lat, me.lon, s.lat, s.lon);
+          if (d > 100) { alert(t('lockedAlert', { m: Math.round(d) })); return; }
+        }
+        openStorySheet(s);
+      };
+      container.appendChild(btn);
+    });
+    refreshMarkerTexts();
+
+    var scene = document.createElement('a-scene');
+    scene.setAttribute('hud-compass', '');
+    scene.setAttribute('vr-mode-ui', 'enabled: false');
+    scene.setAttribute('arjs', 'sourceType: webcam; videoTexture: true; debugUIEnabled: false');
+    scene.setAttribute('aria-hidden', 'true');
+    scene.innerHTML = '<a-camera id="cam" gps-new-camera="gpsMinDistance: ' + MIN_DIST + '"></a-camera>';
+    document.body.appendChild(scene);
+  }
+
+  function refreshMarkerTexts() {
+    STORIES.forEach(function (s) {
+      var el = $('html-marker-' + s.id);
+      if (!el) return;
+      var tr = st(s);
+      el.querySelector('.closest-badge').textContent = t('closest');
+      el.querySelector('.mt').textContent = tr.title;
+      el.querySelector('.m-sub').textContent = tr.sub;
+      el.querySelector('.m-dist').textContent = s.d != null ? t('distance', { d: fmtDist(s.d) }) : t('calculating');
+      el._label = null;
+    });
+  }
+  onLangChange(refreshMarkerTexts);
+
+  function updateHTMLMarkersPosition() {
+    if (!me || window.currentHeading === null) return;
+    if (!document.querySelector('#cam')) return;
+
+    var items = [], minDist = Infinity, closestId = null;
+
+    STORIES.forEach(function (s) {
+      s.d = distanceMetres(me.lat, me.lon, s.lat, s.lon);
+      if (s.d < minDist) { minDist = s.d; closestId = s.id; }
+    });
+
+    STORIES.forEach(function (s) {
+      var el = $('html-marker-' + s.id);
+      if (!el) return;
+
+      var distTxt = t('distance', { d: fmtDist(s.d) });
+      var distEl = el.querySelector('.m-dist');
+      if (distEl.textContent !== distTxt) distEl.textContent = distTxt;
+
+      var isClosest = s.id === closestId, isLocked = s.d > 100;
+      el.classList.toggle('closest', isClosest);
+      el.classList.toggle('locked', isLocked);
+      el.querySelector('.lock').style.display = isLocked ? 'inline' : 'none';
+
+      var label = st(s).title + ', ' + fmtDist(s.d) + (isLocked ? ', ' + t('locked') : '') + (isClosest ? ', ' + t('closest').replace('📍 ', '') : '');
+      if (el._label !== label) { el.setAttribute('aria-label', label); el._label = label; }
+
+      el.style.zIndex = Math.max(1, 90 - Math.floor(s.d / 10));
+
+      var rad = function(d) { return d * Math.PI / 180; };
+      var dLon = rad(s.lon - me.lon);
+      var y = Math.sin(dLon) * Math.cos(rad(s.lat));
+      var x = Math.cos(rad(me.lat)) * Math.sin(rad(s.lat)) - Math.sin(rad(me.lat)) * Math.cos(rad(s.lat)) * Math.cos(dLon);
+      var bearing = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+
+      var angleDiff = bearing - window.currentHeading;
+      while (angleDiff < -180) angleDiff += 360;
+      while (angleDiff > 180) angleDiff -= 360;
+
+      if (Math.abs(angleDiff) < 70) {
+        items.push({ el: el, x: window.innerWidth / 2 + (angleDiff / 70) * (window.innerWidth / 2) });
+      } else if (document.activeElement !== el) {
+        el.style.display = 'none';
+      }
+    });
+
+    items.sort(function (a, b) { return a.x - b.x; });
+    var baseY = window.innerHeight / 2, minSpacing = 130;
+
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      it.el.style.display = 'block';
+      var ty = baseY;
+      if (i > 0 && Math.abs(items[i].x - items[i - 1].x) < minSpacing) ty = baseY + ((i % 2 === 0) ? -55 : 55);
+      it.el.style.left = it.x + 'px';
+      it.el.style.top = ty + 'px';
+    }
+  }
+
+  var poiLayers = [];
+  function initMap() {
+    map = L.map('map', { zoomControl: true, attributionControl: true }).setView([STORIES[0].lat, STORIES[0].lon], 16);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    var markers = L.markerClusterGroup({ maxClusterRadius: 40, iconCreateFunction: function (c) { return L.divIcon({ html: c.getChildCount(), className: 'map-cluster-dot', iconSize: [32, 32] }); } });
+    STORIES.forEach(function (s) {
+      var m = L.marker([s.lat, s.lon], {
+        icon: L.divIcon({ html: '<div class="poi-dot"></div>', iconSize: [24, 24], iconAnchor: [12, 12], className: '' }),
+        title: st(s).title, alt: st(s).title, keyboard: true
+      }).on('click', function () { openStorySheet(s); });
+      poiLayers.push({ m: m, s: s });
+      markers.addLayer(m);
+    });
+    map.addLayer(markers);
+    map.on('dragstart', function () { followMe = false; });
+  }
+
+  onLangChange(function () {
+    poiLayers.forEach(function (p) {
+      var el = p.m.getElement();
+      if (el) { el.title = st(p.s).title; el.setAttribute('aria-label', st(p.s).title); }
+    });
+  });
+
+  function updateMap() {
+    if (!map || !me) return;
+    var ll = [me.lat, me.lon];
+    if (!meMarker) {
+      meMarker = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="me-wrap" aria-hidden="true"><div class="me-rot unknown"><div class="me-cone"></div><div class="me-dot"></div></div></div>', iconSize: [56, 56], iconAnchor: [28, 28] }), zIndexOffset: 1000, keyboard: false, interactive: false }).addTo(map);
+      accCircle = L.circle(ll, { radius: me.accuracy || 0, color: '#249CCC', weight: 2, fillOpacity: 0.12, interactive: false }).addTo(map);
+    } else {
+      meMarker.setLatLng(ll); accCircle.setLatLng(ll).setRadius(me.accuracy || 0);
+    }
+    if (followMe) map.setView(ll, map.getZoom(), { animate: false });
+  }
+
+  var cachedRot = null, displayMapHeading = 0;
+  function applyHeadingToDot() {
+    if (!meMarker || window.currentHeading === null) return;
+    if (!cachedRot) { var elm = meMarker.getElement(); if (elm) cachedRot = elm.querySelector('.me-rot'); }
+    if (!cachedRot) return;
+    cachedRot.classList.remove('unknown');
+    var diff = window.currentHeading - (displayMapHeading % 360);
+    if (diff > 180) diff -= 360; else if (diff < -180) diff += 360;
+    displayMapHeading += diff;
+    cachedRot.style.transform = 'rotate(' + displayMapHeading + 'deg)';
+  }
+
+  $('handle').addEventListener('click', function () {
+    var open = $('drawer').classList.toggle('open');
+    document.body.classList.toggle('drawer-open', open);
+    this.setAttribute('aria-expanded', open ? 'true' : 'false');
+    $('map').inert = !open;   // WCAG 2.4.11: δεν εστιάζεται κάτι κρυμμένο εκτός οθόνης
+    if (map) setTimeout(function () { map.invalidateSize(); updateMap(); }, 300);
+  });
+
+  function renderStatus() {
+    if (gpsFailed && !me) { $('status').textContent = t('gpsError'); return; }
+    if (!me) { $('status').textContent = t('waitingFix'); return; }
+    $('status').textContent = t('accuracy', { m: Math.round(me.accuracy) }) +
+      (window.currentHeading === null ? '' : ' ' + t('compassDeg', { d: Math.round(window.currentHeading) }));
+  }
+
+  var lastNearestId = null;
+  function renderNearest(announceChange) {
+    if (!me) return;
+    var ranked = STORIES.map(function (s) { return { s: s, d: distanceMetres(me.lat, me.lon, s.lat, s.lon) }; })
+                        .sort(function (a, b) { return a.d - b.d; })[0];
+    if (!ranked) return;
+    var btn = $('nearest');
+    var here = ranked.d <= ranked.s.radius;
+    btn.querySelector('.dist').textContent = here ? t('youAreHere') : t('mAway', { m: Math.round(ranked.d) });
+    btn.querySelector('.name').textContent = st(ranked.s).title;
+    btn.classList.add('on');
+    btn.onclick = function () { openStorySheet(ranked.s); };
+
+    var key = ranked.s.id + (here ? ':here' : '');
+    if (announceChange && key !== lastNearestId) {
+      lastNearestId = key;
+      announce((here ? t('youAreHere') + ': ' : '') + st(ranked.s).title);
+    }
+  }
+
+  function renderLoc() {
+    $('locDisplay').textContent = me ? me.lat.toFixed(5) + ', ' + me.lon.toFixed(5) : t('waiting');
+  }
+
+  onLangChange(function () { renderStatus(); renderNearest(false); renderLoc(); });
+
+  function onPosition(pos) {
+    me = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy };
+    updateMap();
+    renderStatus();
+    renderLoc();
+    $('addBtn').classList.add('on');
+    renderNearest(true);
+  }
+
+  $('startBtn').addEventListener('click', function () {
+    var btn = this;
+    btn.disabled = true; btn.textContent = t('opening');
+    (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function' ? DeviceOrientationEvent.requestPermission() : Promise.resolve('granted'))
+    .then(function (state) {
+      if (state !== 'granted') throw new Error(t('permDenied'));
+      buildScene();
+      $('gate').style.display = 'none';
+      $('hud').classList.add('on');
+      initMap();
+      renderStatus();
+      $('langHud').focus();
+      navigator.geolocation.watchPosition(onPosition, function () { gpsFailed = true; renderStatus(); announce(t('gpsError')); }, { enableHighAccuracy: true, timeout: 10000 });
+    }).catch(function (e) {
+      btn.disabled = false; btn.textContent = t('retry');
+      alert(e && e.message ? e.message : e);
+    });
+  });
+
+  // ==========================================
+  // 2. EDITOR (μη καταστροφικός)
+  // ==========================================
+  var MAX_IMAGE_W = 1600, MAX_VIDEO_W = 640, VIDEO_BITRATE = 1000000;
+  var BRUSH_FRAC = 0.05, BRUSH_MIN = 24;
+
+  var processedFiles = [];   // { originalFile, name, num, kind, meta, blob, outType }
+  var currentFile = null, currentObjectURL = null, previewURLs = [];
+
+  var canvas = $('imageCanvas'), ctx = canvas.getContext('2d', { alpha: false });
+  var imgObj = null, isDrawing = false;
+  var blurSrc = document.createElement('canvas');
+  var imgStrokes = [], curStroke = null;
+  var kbPos = { x: 0.5, y: 0.5 };
+
+  var cachedVideoRanges = [], cachedAudioRanges = [];
+  var vidLoading = false, audLoading = false;
+
+  function getKind(file) {
+    var ty = file.type || '';
+    if (ty.startsWith('image/')) return 'image';
+    if (ty.startsWith('video/')) return 'video';
+    return 'audio';
+  }
+  function nameOf(f) { return t('type_' + f.kind) + ' ' + f.num; }
+
+  var progressOn = false, lastPctAnnounce = -1;
+  function showProgress(on, msg, pct, title) {
+    if (on && !progressOn) { progressOn = true; openDialog('processingOverlay', $('processingOverlay')); }
+    if (!on && progressOn) { progressOn = false; closeDialog('processingOverlay', true); }
+    if (title != null) $('procTitle').textContent = title;
+    if (msg != null) $('procMsg').textContent = msg;
+    if (pct != null) {
+      var p = Math.max(0, Math.min(100, pct));
+      $('procBarFill').style.width = p + '%';
+      $('procBar').setAttribute('aria-valuenow', Math.round(p));
+      // Ανακοίνωση ανά 25% για να μην "φλυαρεί"
+      var bucket = Math.floor(p / 25);
+      if (on && bucket !== lastPctAnnounce) { lastPctAnnounce = bucket; if (bucket > 0 && bucket < 4) announce(Math.round(p) + '%'); }
+    }
+  }
+
+  function waitForFiniteDuration(media) {
+    return new Promise(function (resolve) {
+      if (isFinite(media.duration) && media.duration > 0) { resolve(); return; }
+      var done = false;
+      function finish(force) {
+        if (done) return;
+        if (!force && !isFinite(media.duration)) return;
+        done = true;
+        media.removeEventListener('durationchange', onEv);
+        media.removeEventListener('timeupdate', onEv);
+        try { media.currentTime = 0; } catch (e) {}
+        resolve();
+      }
+      function onEv() { finish(false); }
+      media.addEventListener('durationchange', onEv);
+      media.addEventListener('timeupdate', onEv);
+      try { media.currentTime = 1e7; } catch (e) {}
+      setTimeout(function () { finish(true); }, 3000);
+    });
+  }
+
+  function inRanges(ranges, tm, key) {
+    for (var i = 0; i < ranges.length; i++) {
+      var r = ranges[i];
+      if ((!key || r[key]) && tm >= r.s && tm < r.e) return true;
+    }
+    return false;
+  }
+
+  function pickInterval(d) {
+    if (d > 120) return 30;
+    if (d > 60) return 15;
+    if (d > 20) return 5;
+    if (d > 10) return 2;
+    return 1;
+  }
+
+  // --- Θόλωμα (με υποστήριξη iOS) ---
+  var _filterSupported = null;
+  function supportsCanvasFilter() {
+    if (_filterSupported !== null) return _filterSupported;
+    try {
+      var c = document.createElement('canvas'); c.width = 5; c.height = 5;
+      var x = c.getContext('2d');
+      if (!('filter' in x)) return (_filterSupported = false);
+      x.fillStyle = '#000'; x.fillRect(0, 0, 5, 5);
+      x.filter = 'blur(2px)';
+      x.fillStyle = '#fff'; x.fillRect(2, 2, 1, 1);
+      _filterSupported = x.getImageData(1, 2, 1, 1).data[0] > 0;
+    } catch (e) { _filterSupported = false; }
+    return _filterSupported;
+  }
+
+  function buildBlurSource(src, dst) {
+    var w = src.width, h = src.height;
+    dst.width = w; dst.height = h;
+    var dctx = dst.getContext('2d');
+    if (supportsCanvasFilter()) {
+      dctx.filter = 'blur(16px)'; dctx.drawImage(src, 0, 0); dctx.filter = 'none';
+      return;
+    }
+    var target = Math.max(8, Math.round(w / 20));
+    var steps = [], cur = src, cw = w, ch = h;
+    while (cw / 2 >= target) {
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(cw / 2)); c.height = Math.max(1, Math.round(ch / 2));
+      var cc = c.getContext('2d');
+      cc.imageSmoothingEnabled = true; cc.imageSmoothingQuality = 'high';
+      cc.drawImage(cur, 0, 0, c.width, c.height);
+      steps.push(c); cur = c; cw = c.width; ch = c.height;
+    }
+    for (var i = steps.length - 2; i >= 0; i--) {
+      var up = steps[i], uc = up.getContext('2d');
+      uc.imageSmoothingEnabled = true; uc.imageSmoothingQuality = 'high';
+      uc.clearRect(0, 0, up.width, up.height);
+      uc.drawImage(cur, 0, 0, up.width, up.height);
+      cur = up;
+    }
+    dctx.imageSmoothingEnabled = true; dctx.imageSmoothingQuality = 'high';
+    dctx.drawImage(cur, 0, 0, w, h);
+  }
+
+  function blurDot(tctx, src, x, y, r) {
+    tctx.save();
+    tctx.beginPath(); tctx.arc(x, y, r, 0, Math.PI * 2); tctx.clip();
+    tctx.drawImage(src, 0, 0);
+    tctx.restore();
+  }
+
+  function paintStrokes(tctx, src, strokes, w, h) {
+    strokes.forEach(function (g) { g.forEach(function (p) { blurDot(tctx, src, p.x * w, p.y * h, p.r * w); }); });
+  }
+
+  function redrawImage() {
+    if (!imgObj) return;
+    ctx.drawImage(imgObj, 0, 0, canvas.width, canvas.height);
+    paintStrokes(ctx, blurSrc, imgStrokes, canvas.width, canvas.height);
+  }
+
+  function loadImage(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var im = new Image();
+      im.onload = function () { URL.revokeObjectURL(url); resolve(im); };
+      im.onerror = function () { URL.revokeObjectURL(url); reject(new Error(t('errImage'))); };
+      im.src = url;
+    });
+  }
+
+  async function renderImageFinal(file, strokes) {
+    var im = await loadImage(file);
+    var k = Math.min(1, MAX_IMAGE_W / im.width);
+    var c = document.createElement('canvas');
+    c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+    var cctx = c.getContext('2d', { alpha: false });
+    cctx.drawImage(im, 0, 0, c.width, c.height);
+    if (strokes && strokes.length) {
+      var bs = document.createElement('canvas');
+      buildBlurSource(c, bs);
+      paintStrokes(cctx, bs, strokes, c.width, c.height);
+    }
+    return await new Promise(function (res) { c.toBlob(res, 'image/jpeg', 0.82); });
+  }
+
+  // --- Χρόνος / sliders ---
+  function fmtSec(v) { return (isFinite(v) ? v : 0).toFixed(1); }
+
+  function renderVideoTime() {
+    var v = $('videoPreview');
+    $('vTimeNow').textContent = vidLoading ? t('loadingVideo') : t('timeNow', { c: fmtSec(v.currentTime), d: isFinite(v.duration) ? fmtSec(v.duration) : '?' });
+    updateSliderAria($('videoTimeline'), v);
+  }
+  function renderAudioTime() {
+    var a = $('audioPreview');
+    $('aTimeNow').textContent = audLoading ? t('loadingAudio') : t('timeNow', { c: fmtSec(a.currentTime), d: isFinite(a.duration) ? fmtSec(a.duration) : '?' });
+    updateSliderAria($('audioTimeline'), a);
+  }
+  onLangChange(function () { renderVideoTime(); renderAudioTime(); applyVideoFx(); applyAudioFx(); updatePlayButtons(); });
+
+  function updateSliderAria(el, media) {
+    var d = isFinite(media.duration) ? media.duration : 0;
+    el.setAttribute('aria-valuemax', d.toFixed(1));
+    el.setAttribute('aria-valuenow', fmtSec(media.currentTime));
+    el.setAttribute('aria-valuetext', t('seconds', { s: fmtSec(media.currentTime), d: d.toFixed(1) }));
+  }
+
+  function sliderKeys(media, e) {
+    var d = media.duration;
+    if (!isFinite(d) || d <= 0) return;
+    var step = e.shiftKey ? 5 : 1, nt = null;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowUp': nt = media.currentTime + step; break;
+      case 'ArrowLeft': case 'ArrowDown': nt = media.currentTime - step; break;
+      case 'PageUp': nt = media.currentTime + 10; break;
+      case 'PageDown': nt = media.currentTime - 10; break;
+      case 'Home': nt = 0; break;
+      case 'End': nt = d; break;
+      case ' ': case 'Enter':
+        e.preventDefault();
+        if (media.paused) media.play(); else media.pause();
+        return;
+      default: return;
+    }
+    e.preventDefault();
+    media.currentTime = Math.max(0, Math.min(d, nt));
+  }
+  $('videoTimeline').addEventListener('keydown', function (e) { sliderKeys($('videoPreview'), e); });
+  $('audioTimeline').addEventListener('keydown', function (e) { sliderKeys($('audioPreview'), e); });
+
+  // --- Timeline βίντεο ---
+  function drawTicks(gctx, width, height, duration, topOffset, labelY) {
+    var interval = pickInterval(duration);
+    gctx.fillStyle = 'rgba(242, 237, 228, 0.9)';
+    gctx.font = '11px monospace';
+    gctx.textBaseline = 'top';
+    for (var tt = 0; tt <= duration; tt += interval) {
+      var x = (tt / duration) * width;
+      gctx.textAlign = x < 10 ? 'left' : (x > width - 15 ? 'right' : 'center');
+      gctx.fillText(tt + 's', x, labelY);
+      gctx.fillStyle = 'rgba(242, 237, 228, 0.15)';
+      gctx.fillRect(x, topOffset, 1, height - topOffset);
+      gctx.fillStyle = 'rgba(242, 237, 228, 0.9)';
+    }
+  }
+
+  function updateVideoTimeline() {
+    cachedVideoRanges = readVideoRanges();
+    applyVideoFx();
+
+    var timeline = $('videoTimeline');
+    timeline.innerHTML = '';
+    var duration = $('videoPreview').duration;
+    if (!isFinite(duration) || duration <= 0) return;
+
+    var gc = $('videoGridCanvas'), gctx = gc.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var rect = gc.getBoundingClientRect();
+    var width = rect.width || gc.parentElement.clientWidth || 300, height = rect.height || 60;
+    gc.width = width * dpr; gc.height = height * dpr;
+    gctx.scale(dpr, dpr);
+    gctx.clearRect(0, 0, width, height);
+    var topOffset = 18;
+    drawTicks(gctx, width, height, duration, topOffset, 4);
+
+    cachedVideoRanges.forEach(function (r) {
+      var leftPct = Math.max(0, Math.min(100, (r.s / duration) * 100));
+      var widthPct = Math.max(0, Math.min(100 - leftPct, ((r.e - r.s) / duration) * 100));
+      ['blur', 'mute'].forEach(function (kind) {
+        if (!r[kind]) return;
+        var b = document.createElement('div');
+        b.className = 'timeline-block ' + kind;
+        b.style.left = leftPct + '%'; b.style.width = widthPct + '%'; b.style.top = topOffset + 'px';
+        timeline.appendChild(b);
+      });
+    });
+  }
+
+  // --- Timeline ήχου ---
+  function readAudioRanges() {
+    var out = [];
+    document.querySelectorAll('#audioMuteList .mute-item').forEach(function (el) {
+      var s = parseFloat(el.querySelector('.r-start').value), e = parseFloat(el.querySelector('.r-end').value);
+      if (!isNaN(s) && !isNaN(e) && e > s) out.push({ s: s, e: e, mute: true });
+    });
+    return out;
+  }
+
+  function updateAudioTimeline() {
+    cachedAudioRanges = readAudioRanges();
+    applyAudioFx();
+    var timeline = $('audioTimeline');
+    timeline.innerHTML = '';
+    var duration = $('audioPreview').duration;
+    if (!isFinite(duration) || duration <= 0) return;
+    cachedAudioRanges.forEach(function (r) {
+      var leftPct = Math.max(0, Math.min(100, (r.s / duration) * 100));
+      var widthPct = Math.max(0, Math.min(100 - leftPct, ((r.e - r.s) / duration) * 100));
+      var b = document.createElement('div');
+      b.className = 'timeline-block mute';
+      b.style.left = leftPct + '%'; b.style.width = widthPct + '%'; b.style.top = '16px';
+      timeline.appendChild(b);
+    });
+  }
+
+  function drawWaveform(buffer) {
+    var wc = $('audioWaveCanvas'), wctx = wc.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var rect = wc.getBoundingClientRect();
+    var width = rect.width || wc.parentElement.clientWidth || 300, height = rect.height || 90;
+    wc.width = width * dpr; wc.height = height * dpr;
+    wctx.scale(dpr, dpr);
+    wctx.clearRect(0, 0, width, height);
+
+    var topOffset = 16, waveH = height - topOffset;
+    wctx.fillStyle = 'rgba(124, 202, 235, 0.25)';
+    wctx.fillRect(0, topOffset + waveH / 2 - 1, width, 2);
+    wctx.fillStyle = '#7CCAEB';
+
+    var data = buffer.getChannelData(0);
+    var step = Math.ceil(data.length / width), amp = waveH / 2;
+    for (var i = 0; i < width; i++) {
+      var min = 1, max = -1, start = i * step, end = Math.min(start + step, data.length);
+      for (var j = start; j < end; j++) { var d = data[j]; if (d < min) min = d; if (d > max) max = d; }
+      var y1 = topOffset + (1 + min) * amp, y2 = topOffset + (1 + max) * amp;
+      wctx.fillRect(i, y1, 1, Math.max(1, y2 - y1));
+    }
+    if (isFinite(buffer.duration) && buffer.duration > 0) drawTicks(wctx, width, height, buffer.duration, topOffset - 2, 2);
+  }
+
+  // --- Ζωντανή προεπισκόπηση εφέ ---
+  function applyVideoFx() {
+    if ($('videoEditor').style.display === 'none') return;
+    var vid = $('videoPreview'), tm = vid.currentTime || 0;
+    var blur = inRanges(cachedVideoRanges, tm, 'blur'), mute = inRanges(cachedVideoRanges, tm, 'mute');
+    var f = blur ? 'blur(18px)' : 'none';
+    if (vid.style.filter !== f) { vid.style.filter = f; vid.style.webkitFilter = f; }
+    if (vid.muted !== mute) vid.muted = mute;
+    var parts = [];
+    if (blur) parts.push(t('blur'));
+    if (mute) parts.push(t('mute'));
+    var badge = $('vidFxBadge');
+    var txt = parts.length ? t('previewFx', { fx: parts.join(' + ') }) : '';
+    if (badge.textContent !== txt) badge.textContent = txt;
+    badge.classList.toggle('on', parts.length > 0);
+  }
+
+  function applyAudioFx() {
+    if ($('audioEditor').style.display === 'none') return;
+    var aud = $('audioPreview');
+    var mute = inRanges(cachedAudioRanges, aud.currentTime || 0);
+    if (aud.muted !== mute) aud.muted = mute;
+    var badge = $('audFxBadge');
+    badge.textContent = t('previewFx', { fx: t('mute') });
+    badge.classList.toggle('on', mute);
+  }
+
+  function resetPreviewFx() {
+    var vid = $('videoPreview'), aud = $('audioPreview');
+    vid.style.filter = 'none'; vid.style.webkitFilter = 'none'; vid.muted = false;
+    aud.muted = false;
+    $('vidFxBadge').classList.remove('on');
+    $('audFxBadge').classList.remove('on');
+    cachedVideoRanges = []; cachedAudioRanges = [];
+  }
+
+  var fxRaf = null;
+  function fxLoop() {
+    applyVideoFx(); applyAudioFx();
+    if (!$('videoPreview').paused || !$('audioPreview').paused) fxRaf = requestAnimationFrame(fxLoop);
+    else fxRaf = null;
+  }
+  function startFxLoop() { if (!fxRaf) fxRaf = requestAnimationFrame(fxLoop); }
+
+  function setPlayBtn(btn, playing) {
+    btn.querySelector('span').textContent = playing ? '⏸' : '▶';
+    btn.setAttribute('aria-label', t(playing ? 'pause' : 'play'));
+  }
+  function updatePlayButtons() {
+    setPlayBtn($('vidPlayBtn'), !$('videoPreview').paused);
+    setPlayBtn($('wavePlayBtn'), !$('audioPreview').paused);
+  }
+
+  // --- Audio player ---
+  function toggleAudio() {
+    var aud = $('audioPreview');
+    if (aud.paused) { applyAudioFx(); aud.play(); } else aud.pause();
+  }
+  $('wavePlayBtn').onclick = toggleAudio;
+
+  $('waveContainer').onclick = function (e) {
+    var aud = $('audioPreview');
+    if (!isFinite(aud.duration) || aud.duration <= 0) return;
+    var rect = this.getBoundingClientRect();
+    aud.currentTime = ((e.clientX - rect.left) / rect.width) * aud.duration;
+    applyAudioFx();
+  };
+
+  $('audioPreview').addEventListener('play', function () { $('waveContainer').classList.add('playing'); updatePlayButtons(); startFxLoop(); });
+  $('audioPreview').addEventListener('pause', updatePlayButtons);
+  $('audioPreview').addEventListener('seeked', function () { applyAudioFx(); renderAudioTime(); });
+  $('audioPreview').addEventListener('timeupdate', function () {
+    if (isFinite(this.duration) && this.duration > 0) {
+      var pct = (this.currentTime / this.duration) * 100;
+      $('audioPlayhead').style.display = 'block';
+      $('audioPlayhead').style.left = pct + '%';
+      $('audioProgressFill').style.width = pct + '%';
+    }
+    renderAudioTime();
+  });
+
+  // --- Video player ---
+  function toggleVideo() {
+    var v = $('videoPreview');
+    if (v.paused) { applyVideoFx(); v.play(); } else v.pause();
+  }
+  $('videoPreview').onclick = toggleVideo;
+  $('vidPlayBtn').onclick = function (e) { e.stopPropagation(); toggleVideo(); };
+
+  $('videoPreview').addEventListener('play', function () {
+    $('vidPlayBtn').classList.add('playing');
+    updatePlayButtons();
+    startFxLoop();
+  });
+  $('videoPreview').addEventListener('pause', function () {
+    $('vidPlayBtn').classList.remove('playing');
+    updatePlayButtons();
+  });
+  $('videoPreview').addEventListener('seeked', function () { applyVideoFx(); renderVideoTime(); });
+
+  $('videoTimelineContainer').onclick = function (e) {
+    var vid = $('videoPreview');
+    if (!isFinite(vid.duration) || vid.duration <= 0) return;
+    var rect = this.getBoundingClientRect();
+    vid.currentTime = ((e.clientX - rect.left) / rect.width) * vid.duration;
+    applyVideoFx();
+  };
+
+  $('videoPreview').addEventListener('timeupdate', function () {
+    if (isFinite(this.duration) && this.duration > 0) {
+      var pct = (this.currentTime / this.duration) * 100;
+      $('videoPlayhead').style.display = 'block';
+      $('videoPlayhead').style.left = pct + '%';
+      $('videoProgressFill').style.width = pct + '%';
+    }
+    renderVideoTime();
+  });
+
+  // --- Γραμμές stamps (κοινό μοτίβο για βίντεο και ήχο) ---
+  function rowTimesHTML(start, end) {
+    return '<div class="rr">' +
+      '<label><span data-i18n="from"></span> <input type="number" step="0.1" min="0" inputmode="decimal" class="r-start" data-i18n-aria="startSec" value="' + (start != null ? start : '') + '"> s</label>' +
+      '<button type="button" class="nowbtn" data-field="r-start" data-i18n="now" data-i18n-aria="nowStart"></button>' +
+      '<label><span data-i18n="to"></span> <input type="number" step="0.1" min="0" inputmode="decimal" class="r-end" data-i18n-aria="endSec" value="' + (end != null ? end : '') + '"> s</label>' +
+      '<button type="button" class="nowbtn" data-field="r-end" data-i18n="now" data-i18n-aria="nowEnd"></button>' +
+      '<button type="button" class="delrow" data-i18n-aria="deleteRange"><span aria-hidden="true">✕</span></button>' +
+      '</div>';
+  }
+
+  function addAudioMuteRow(start, end) {
+    var div = document.createElement('div');
+    div.className = 'mute-item';
+    div.setAttribute('role', 'group');
+    div.innerHTML = rowTimesHTML(start, end);
+    applyLang(div);
+    $('audioMuteList').appendChild(div);
+    updateAudioTimeline();
+    return div;
+  }
+
+  function addVideoRangeRow(start, end, mute, blur) {
+    var div = document.createElement('div');
+    div.className = 'range-item';
+    div.setAttribute('role', 'group');
+    div.innerHTML = rowTimesHTML(start, end) +
+      '<div class="rr">' +
+        '<label><input type="checkbox" class="r-mute"' + (mute !== false ? ' checked' : '') + '> <span data-i18n="mute"></span></label>' +
+        '<label><input type="checkbox" class="r-blur"' + (blur ? ' checked' : '') + '> <span data-i18n="blur"></span></label>' +
+      '</div>';
+    applyLang(div);
+    $('videoRangeList').appendChild(div);
+    updateVideoTimeline();
+    return div;
+  }
+
+  function focusNewRow(row) { var inp = row.querySelector('.r-start'); if (inp) inp.focus(); }
+
+  $('addAudioRangeBtn').onclick = function () { focusNewRow(addAudioMuteRow()); };
+  $('addRangeBtn').onclick = function () { focusNewRow(addVideoRangeRow()); };
+
+  function wireRowList(listId, itemClass, media, update, addBtnId) {
+    var list = $(listId);
+    list.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      var row = b.closest('.' + itemClass);
+      if (b.classList.contains('delrow')) {
+        var next = row.nextElementSibling || row.previousElementSibling;
+        row.remove();
+        update();
+        (next ? next.querySelector('.r-start') : $(addBtnId)).focus();
+        return;
+      }
+      if (b.classList.contains('nowbtn')) {
+        row.querySelector('.' + b.dataset.field).value = fmtSec(media().currentTime || 0);
+        update();
+      }
+    });
+    list.addEventListener('input', update);
+    list.addEventListener('change', update);
+  }
+  wireRowList('audioMuteList', 'mute-item', function () { return $('audioPreview'); }, updateAudioTimeline, 'addAudioRangeBtn');
+  wireRowList('videoRangeList', 'range-item', function () { return $('videoPreview'); }, updateVideoTimeline, 'addRangeBtn');
+
+  function readVideoRanges() {
+    var out = [];
+    document.querySelectorAll('#videoRangeList .range-item').forEach(function (row) {
+      var s = parseFloat(row.querySelector('.r-start').value);
+      var e = parseFloat(row.querySelector('.r-end').value);
+      if (isNaN(s) || isNaN(e) || e <= s) return;
+      var mute = row.querySelector('.r-mute').checked, blur = row.querySelector('.r-blur').checked;
+      if (!mute && !blur) return;
+      out.push({ s: s, e: e, mute: mute, blur: blur });
+    });
+    return out;
+  }
+
+  // --- Νέα ιστορία ---
+  function clearErrors() {
+    $('titleError').textContent = '';
+    $('mediaError').textContent = '';
+    $('storyTitle').removeAttribute('aria-invalid');
+  }
+
+  $('addBtn').onclick = function () {
+    if (!me) return;
+    renderLoc();
+    setAR(false);
+    openDialog('uploadSheet');
+  };
+
+  $('cancelStoryBtn').onclick = function () {
+    $('storyTitle').value = '';
+    processedFiles = [];
+    clearErrors();
+    updateMediaListUI();
+    closeDialog('uploadSheet');
+    setAR(true);
+  };
+  escHandlers.uploadSheet = function () { $('cancelStoryBtn').click(); };
+
+  $('storyTitle').addEventListener('input', function () {
+    if (this.value.trim()) { $('titleError').textContent = ''; this.removeAttribute('aria-invalid'); }
+  });
+
+  $('triggerFileBtn').onclick = function () { $('singleFileInput').click(); };
+
+  // --- Ηχογράφηση ---
+  var mediaRecorder = null, audioChunks = [], recTimerInterval = null, recSeconds = 0, recordingStream = null, recCancelled = false;
+
+  $('recordAudioBtn').onclick = async function () {
+    try {
+      recordingStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      audioChunks = []; recCancelled = false;
+
+      var mimeType = '';
+      ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].some(function (ty) {
+        if (MediaRecorder.isTypeSupported(ty)) { mimeType = ty; return true; }
+        return false;
+      });
+
+      mediaRecorder = new MediaRecorder(recordingStream, mimeType ? { mimeType: mimeType } : {});
+      mediaRecorder.ondataavailable = function (e) { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = function () {
+        if (recordingStream) { recordingStream.getTracks().forEach(function (tr) { tr.stop(); }); recordingStream = null; }
+        if (recCancelled) return;
+        var finalMime = mediaRecorder.mimeType || 'audio/mp4';
+        var ext = finalMime.includes('webm') ? 'webm' : (finalMime.includes('ogg') ? 'ogg' : 'm4a');
+        var fileName = t('recordingFile') + '_' + new Date().toISOString().slice(0, 10) + '.' + ext;
+        var recordedFile = new File([new Blob(audioChunks, { type: finalMime })], fileName, { type: finalMime });
+        closeDialog('recorderModal', true);
+        window.currentEditIndex = -1;
+        loadFileIntoEditor(recordedFile, null);
+      };
+
+      mediaRecorder.start(250);
+      recSeconds = 0;
+      $('recStatusTimer').textContent = '00:00';
+      openDialog('recorderModal');
+      recTimerInterval = setInterval(function () {
+        recSeconds++;
+        $('recStatusTimer').textContent = String(Math.floor(recSeconds / 60)).padStart(2, '0') + ':' + String(recSeconds % 60).padStart(2, '0');
+      }, 1000);
+    } catch (err) {
+      alert(t('micError') + (err.message || err));
+    }
+  };
+
+  $('stopRecBtn').onclick = function () {
+    clearInterval(recTimerInterval);
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  };
+
+  $('cancelRecBtn').onclick = function () {
+    clearInterval(recTimerInterval);
+    recCancelled = true;
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    if (recordingStream) { recordingStream.getTracks().forEach(function (tr) { tr.stop(); }); recordingStream = null; }
+    closeDialog('recorderModal');
+  };
+  escHandlers.recorderModal = function () { $('cancelRecBtn').click(); };
+
+  // --- Άνοιγμα αρχείου στον editor ---
+  function loadFileIntoEditor(file, savedMeta) {
+    currentFile = file;
+    setAR(false);
+    closeDialog('uploadSheet', true);
+    $('editorFilename').textContent = file.name;
+
+    try { $('videoPreview').pause(); $('audioPreview').pause(); } catch (e) {}
+
+    $('imageEditor').style.display = 'none';
+    $('videoEditor').style.display = 'none';
+    $('audioEditor').style.display = 'none';
+    $('audioMuteList').innerHTML = '';
+    $('videoRangeList').innerHTML = '';
+    $('videoTimeline').innerHTML = '';
+    $('audioTimeline').innerHTML = '';
+    $('videoPlayhead').style.display = 'none';
+    $('videoProgressFill').style.width = '0%';
+    $('audioPlayhead').style.display = 'none';
+    $('audioProgressFill').style.width = '0%';
+    $('vidPlayBtn').classList.remove('playing');
+    resetPreviewFx();
+
+    if (currentObjectURL) URL.revokeObjectURL(currentObjectURL);
+    currentObjectURL = URL.createObjectURL(file);
+
+    var kind = getKind(file);
+
+    if (kind === 'image') {
+      $('imageEditor').style.display = 'block';
+      imgStrokes = (savedMeta && savedMeta.strokes) ? JSON.parse(JSON.stringify(savedMeta.strokes)) : [];
+      imgObj = null;
+      kbPos = { x: 0.5, y: 0.5 };
+      var im = new Image();
+      im.onload = function () {
+        imgObj = im;
+        var k = Math.min(1, MAX_IMAGE_W / im.width);
+        canvas.width = Math.round(im.width * k);
+        canvas.height = Math.round(im.height * k);
+        ctx.drawImage(im, 0, 0, canvas.width, canvas.height);
+        buildBlurSource(canvas, blurSrc);
+        redrawImage();
+      };
+      im.src = currentObjectURL;
+      openDialog('editorSheet', canvas);
+    }
+    else if (kind === 'video') {
+      $('videoEditor').style.display = 'block';
+      vidLoading = true;
+      renderVideoTime();
+      var vid = $('videoPreview');
+      vid.onloadedmetadata = function () {
+        vid.onloadedmetadata = null;
+        waitForFiniteDuration(vid).then(function () {
+          vidLoading = false;
+          renderVideoTime();
+          if (savedMeta && savedMeta.ranges && savedMeta.ranges.length) {
+            savedMeta.ranges.forEach(function (r) { addVideoRangeRow(r.s, r.e, r.mute, r.blur); });
+          } else {
+            addVideoRangeRow();
+          }
+          updateVideoTimeline();
+        });
+      };
+      vid.src = currentObjectURL;
+      vid.load();
+      updatePlayButtons();
+      openDialog('editorSheet', $('vidPlayBtn'));
+    }
+    else {
+      $('audioEditor').style.display = 'block';
+      audLoading = true;
+      renderAudioTime();
+      var aud = $('audioPreview');
+      aud.onloadedmetadata = function () {
+        aud.onloadedmetadata = null;
+        waitForFiniteDuration(aud).then(function () {
+          audLoading = false;
+          renderAudioTime();
+          if (savedMeta && savedMeta.ranges && savedMeta.ranges.length) {
+            savedMeta.ranges.forEach(function (r) { addAudioMuteRow(r.s, r.e); });
+          } else {
+            addAudioMuteRow();
+          }
+          updateAudioTimeline();
+        });
+      };
+      aud.src = currentObjectURL;
+      aud.load();
+      updatePlayButtons();
+
+      var wc = $('audioWaveCanvas');
+      wc.getContext('2d').clearRect(0, 0, wc.width, wc.height);
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        var aCtx = new (window.AudioContext || window.webkitAudioContext)();
+        aCtx.decodeAudioData(e.target.result, function (buffer) {
+          drawWaveform(buffer);
+          try { aCtx.close(); } catch (err) {}
+        }, function () { try { aCtx.close(); } catch (err) {} });
+      };
+      reader.readAsArrayBuffer(file);
+      openDialog('editorSheet', $('wavePlayBtn'));
+    }
+  }
+
+  $('singleFileInput').onchange = function () {
+    if (this.files.length === 0) return;
+    var f = this.files[0];
+    this.value = '';
+    window.currentEditIndex = -1;
+    $('mediaError').textContent = '';
+    loadFileIntoEditor(f, null);
+  };
+
+  // --- Πινέλο θολώματος (αφή/ποντίκι) ---
+  function getCanvasPos(e) {
+    var rect = canvas.getBoundingClientRect();
+    var cX = (e.touches && e.touches.length) ? e.touches[0].clientX : e.clientX;
+    var cY = (e.touches && e.touches.length) ? e.touches[0].clientY : e.clientY;
+    return { x: (cX - rect.left) * canvas.width / rect.width, y: (cY - rect.top) * canvas.height / rect.height };
+  }
+
+  function brushR() { return Math.max(BRUSH_MIN, canvas.width * BRUSH_FRAC); }
+
+  function addStrokePoint(pos) {
+    var w = canvas.width, h = canvas.height, r = brushR();
+    var last = curStroke.length ? curStroke[curStroke.length - 1] : null;
+    var pts = [];
+    if (last) {
+      var lx = last.x * w, ly = last.y * h;
+      var n = Math.floor(Math.hypot(pos.x - lx, pos.y - ly) / (r / 2));
+      for (var i = 1; i <= n; i++) pts.push({ x: lx + (pos.x - lx) * i / (n + 1), y: ly + (pos.y - ly) * i / (n + 1) });
+    }
+    pts.push(pos);
+    pts.forEach(function (p) {
+      curStroke.push({ x: p.x / w, y: p.y / h, r: r / w });
+      blurDot(ctx, blurSrc, p.x, p.y, r);
+    });
+  }
+
+  function handleDrawStart(e) {
+    if (!imgObj) return;
+    e.preventDefault();
+    isDrawing = true;
+    curStroke = [];
+    imgStrokes.push(curStroke);
+    addStrokePoint(getCanvasPos(e));
+  }
+  function handleDrawMove(e) { if (!isDrawing) return; e.preventDefault(); addStrokePoint(getCanvasPos(e)); }
+  function handleDrawEnd() { isDrawing = false; curStroke = null; }
+
+  canvas.addEventListener('touchstart', handleDrawStart, { passive: false });
+  canvas.addEventListener('touchmove', handleDrawMove, { passive: false });
+  canvas.addEventListener('touchend', handleDrawEnd);
+  canvas.addEventListener('touchcancel', handleDrawEnd);
+  canvas.addEventListener('mousedown', handleDrawStart);
+  canvas.addEventListener('mousemove', handleDrawMove);
+  canvas.addEventListener('mouseup', handleDrawEnd);
+  canvas.addEventListener('mouseleave', handleDrawEnd);
+
+  // --- Πινέλο με πληκτρολόγιο (WCAG 2.1.1) ---
+  function placeKbCursor() {
+    var cur = $('kbCursor');
+    var cw = canvas.clientWidth, chh = canvas.clientHeight;
+    if (!cw || !canvas.width) return;
+    var d = (brushR() / canvas.width) * cw * 2;
+    cur.style.width = d + 'px';
+    cur.style.height = d + 'px';
+    cur.style.left = (canvas.offsetLeft + kbPos.x * cw) + 'px';
+    cur.style.top = (canvas.offsetTop + kbPos.y * chh) + 'px';
+  }
+
+  canvas.addEventListener('focus', function () {
+    if (canvas.matches(':focus-visible')) { $('kbCursor').style.display = 'block'; placeKbCursor(); }
+  });
+  canvas.addEventListener('blur', function () { $('kbCursor').style.display = 'none'; });
+
+  canvas.addEventListener('keydown', function (e) {
+    if (!imgObj) return;
+    var step = e.shiftKey ? 0.1 : 0.02, handled = true;
+    switch (e.key) {
+      case 'ArrowLeft': kbPos.x = Math.max(0, kbPos.x - step); break;
+      case 'ArrowRight': kbPos.x = Math.min(1, kbPos.x + step); break;
+      case 'ArrowUp': kbPos.y = Math.max(0, kbPos.y - step); break;
+      case 'ArrowDown': kbPos.y = Math.min(1, kbPos.y + step); break;
+      case 'Enter': case ' ':
+        curStroke = [];
+        imgStrokes.push(curStroke);
+        addStrokePoint({ x: kbPos.x * canvas.width, y: kbPos.y * canvas.height });
+        curStroke = null;
+        break;
+      default: handled = false;
+    }
+    if (handled) {
+      e.preventDefault();
+      $('kbCursor').style.display = 'block';
+      placeKbCursor();
+    }
+  });
+
+  $('undoBlurBtn').onclick = function () { if (imgStrokes.length) { imgStrokes.pop(); redrawImage(); } };
+  $('clearBlurBtn').onclick = function () { if (imgStrokes.length) { imgStrokes = []; redrawImage(); } };
+
+  function leaveEditor(focusEl) {
+    try { $('videoPreview').pause(); $('audioPreview').pause(); } catch (e) {}
+    resetPreviewFx();
+    currentFile = null;
+    window.currentEditIndex = -1;
+    closeDialog('editorSheet', true);
+    openDialog('uploadSheet', focusEl);
+  }
+
+  $('cancelSingleBtn').onclick = function () { leaveEditor($('triggerFileBtn')); };
+  escHandlers.editorSheet = function () { $('cancelSingleBtn').click(); };
+
+  // --- Κράτημα ρυθμίσεων ---
+  $('saveFileBtn').onclick = function () {
+    if (!currentFile) return;
+    var kind = getKind(currentFile);
+    var meta = {};
+    if (kind === 'image') meta.strokes = JSON.parse(JSON.stringify(imgStrokes));
+    else if (kind === 'video') meta.ranges = readVideoRanges();
+    else meta.ranges = readAudioRanges();
+
+    var idx = window.currentEditIndex;
+    var item = idx !== -1 ? processedFiles[idx] : null;
+    if (item) {
+      item.meta = meta; item.blob = null; item.outType = null;
+    } else {
+      var count = processedFiles.filter(function (x) { return x.kind === kind; }).length + 1;
+      item = { originalFile: currentFile, name: currentFile.name, num: count, kind: kind, meta: meta, blob: null, outType: null };
+      processedFiles.push(item);
+      idx = processedFiles.length - 1;
+    }
+
+    updateMediaListUI();
+    announce(t('kept', { name: nameOf(item) }));
+    leaveEditor(document.querySelector('#mediaList [data-act="edit"][data-i="' + idx + '"]'));
+  };
+
+  function describeChanges(f) {
+    if (f.kind === 'image') {
+      var n = (f.meta.strokes || []).length;
+      return n === 0 ? t('noChanges') : (n === 1 ? t('blur1') : t('blurN', { n: n }));
+    }
+    var r = (f.meta.ranges || []).length;
+    return r === 0 ? t('noChanges') : (r === 1 ? t('pts1') : t('ptsN', { n: r }));
+  }
+
+  function countEdits(f) {
+    return f.kind === 'image' ? (f.meta.strokes || []).length : (f.meta.ranges || []).length;
+  }
+
+  function escHTML(s) {
+    return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+  }
+
+  function updateMediaListUI() {
+    var list = $('mediaList');
+    if (!processedFiles.length) {
+      list.innerHTML = '<li class="empty-note">' + escHTML(t('noFiles')) + '</li>';
+      return;
+    }
+    var html = '';
+    processedFiles.forEach(function (f, i) {
+      var nm = nameOf(f);
+      html += '<li class="media-list-item">' +
+                '<div class="mi-text">' +
+                  '<span class="mi-name" title="' + escHTML(f.name) + '">' + escHTML(nm) + ' <small>(' + Math.round(f.originalFile.size / 1024) + ' KB)</small></span>' +
+                  '<span class="mi-changes">' + escHTML(describeChanges(f)) + ' · ' + escHTML(f.blob ? t('saved') : t('pending')) + '</span>' +
+                '</div>' +
+                '<div style="flex-shrink:0;">' +
+                  '<button type="button" class="icon-btn edit" data-act="edit" data-i="' + i + '" aria-label="' + escHTML(t('editItem', { name: nm })) + '"><span aria-hidden="true">✏️</span></button>' +
+                  '<button type="button" class="icon-btn del" data-act="del" data-i="' + i + '" aria-label="' + escHTML(t('deleteItem', { name: nm })) + '"><span aria-hidden="true">✕</span></button>' +
+                '</div>' +
+              '</li>';
+    });
+    list.innerHTML = html;
+  }
+  onLangChange(updateMediaListUI);
+
+  $('mediaList').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-act]'); if (!b) return;
+    var i = parseInt(b.dataset.i, 10), f = processedFiles[i];
+    if (!f) return;
+    if (b.dataset.act === 'edit') {
+      window.currentEditIndex = i;
+      loadFileIntoEditor(f.originalFile, f.meta);
+    } else {
+      var nm = nameOf(f);
+      processedFiles.splice(i, 1);
+      updateMediaListUI();
+      announce(t('removed', { name: nm }));
+      var next = document.querySelector('#mediaList [data-act="edit"][data-i="' + Math.min(i, processedFiles.length - 1) + '"]');
+      (next || $('triggerFileBtn')).focus();
+    }
+  });
+
+  // --- Ολοκλήρωση ιστορίας (WCAG 3.3.1: ενσωματωμένα μηνύματα λάθους) ---
+  function renderConfirmSummary() {
+    var pending = processedFiles.filter(function (f) { return !f.blob; }).length;
+    var withEdits = processedFiles.filter(function (f) { return countEdits(f) > 0; }).length;
+    $('confirmSummary').textContent = t('confirmSummary', { n: processedFiles.length, e: withEdits, p: pending });
+  }
+  onLangChange(renderConfirmSummary);
+
+  $('finishStoryBtn').onclick = function () {
+    clearErrors();
+    if (!$('storyTitle').value.trim()) {
+      $('titleError').textContent = t('titleRequired');
+      $('storyTitle').setAttribute('aria-invalid', 'true');
+      $('storyTitle').focus();
+      return;
+    }
+    if (!processedFiles.length) {
+      $('mediaError').textContent = t('fileRequired');
+      $('triggerFileBtn').focus();
+      return;
+    }
+    renderConfirmSummary();
+    closeDialog('uploadSheet', true);
+    openDialog('confirmModal');
+  };
+
+  $('confirmBackBtn').onclick = function () {
+    closeDialog('confirmModal', true);
+    openDialog('uploadSheet', $('finishStoryBtn'));
+  };
+  escHandlers.confirmModal = function () { $('confirmBackBtn').click(); };
+
+  var procAudio = null;
+  function getProcAudio() {
+    if (procAudio) return procAudio;
+    var actx = new (window.AudioContext || window.webkitAudioContext)();
+    var src = actx.createMediaElementSource($('procVideo'));
+    var gain = actx.createGain();
+    src.connect(gain);
+    gain.connect(actx.destination);
+    procAudio = { ctx: actx, src: src, gain: gain };
+    return procAudio;
+  }
+
+  $('confirmApplyBtn').onclick = function () {
+    closeDialog('confirmModal', true);
+
+    // Ξεκλείδωμα ήχου/βίντεο μέσα στο πάτημα (iOS)
+    var firstVid = processedFiles.find(function (f) { return !f.blob && f.kind === 'video' && (f.meta.ranges || []).length; });
+    if (firstVid) {
+      try {
+        var pa = getProcAudio();
+        if (pa.ctx.state === 'suspended') pa.ctx.resume();
+        var pv = $('procVideo');
+        var unlockUrl = URL.createObjectURL(firstVid.originalFile);
+        pv.src = unlockUrl;
+        var p = pv.play();
+        if (p && p.then) p.then(function () { pv.pause(); }).catch(function () {});
+        setTimeout(function () { URL.revokeObjectURL(unlockUrl); }, 5000);
+      } catch (e) {}
+    }
+    applyAllEdits();
+  };
+
+  async function applyAllEdits() {
+    var todo = processedFiles.filter(function (f) { return !f.blob; });
+    var total = todo.length;
+    lastPctAnnounce = -1;
+
+    try {
+      for (var k = 0; k < todo.length; k++) {
+        var f = todo[k];
+        var head = t('fileOf', { i: k + 1, n: total, name: nameOf(f) });
+        var base = (k / total) * 100, span = 100 / total;
+        showProgress(true, head, base, t('savingChanges'));
+        announce(head);
+
+        if (f.kind === 'image') {
+          f.blob = await renderImageFinal(f.originalFile, f.meta.strokes);
+          f.outType = 'image/jpeg';
+        } else if (f.kind === 'video') {
+          var vr = f.meta.ranges || [];
+          if (vr.length) {
+            f.blob = await processVideoFile(f.originalFile, vr, function (pct, txt) {
+              showProgress(true, head + ' · ' + txt, base + span * pct / 100);
+            });
+            f.outType = f.blob.type || 'video/webm';
+          } else {
+            f.blob = f.originalFile; f.outType = f.originalFile.type;
+          }
+        } else {
+          var ar = f.meta.ranges || [];
+          if (ar.length) {
+            f.blob = await processAudioLocal(f.originalFile, ar);
+            f.outType = 'audio/wav';
+          } else {
+            f.blob = f.originalFile; f.outType = f.originalFile.type || 'audio/mp4';
+          }
+        }
+        showProgress(true, head, base + span);
+      }
+    } catch (e) {
+      showProgress(false);
+      updateMediaListUI();
+      alert(t('saveError', { e: (e && e.message ? e.message : e) }));
+      openDialog('uploadSheet', $('finishStoryBtn'));
+      return;
+    }
+
+    showProgress(false);
+    updateMediaListUI();
+    announce(t('allSaved'));
+    showLocalPreview();
+  }
+
+  function showLocalPreview() {
+    var container = $('localPreviewContainer');
+    clearPreview();
+
+    processedFiles.forEach(function (f, i) {
+      var box = document.createElement('section');
+      box.style.cssText = 'background:#F2F7F9; border:1px solid #D3E3EA; padding:12px; border-radius:14px; color:#12303B;';
+      var h = document.createElement('h3');
+      h.className = 'pv-name';
+      h.dataset.i = i;
+      h.style.cssText = 'margin:0 0 8px; font-size:16px; font-style:italic; color:#186078;';
+      h.textContent = nameOf(f);
+      box.appendChild(h);
+
+      var url = URL.createObjectURL(f.blob);
+      previewURLs.push(url);
+      var el;
+      if (f.kind === 'image') {
+        el = document.createElement('img');
+        el.alt = nameOf(f);
+        el.style.cssText = 'width:100%; max-height:180px; object-fit:contain; border-radius:10px; background:#fff;';
+      } else if (f.kind === 'video') {
+        el = document.createElement('video');
+        el.controls = true; el.playsInline = true; el.preload = 'metadata';
+        el.setAttribute('aria-label', nameOf(f));
+        el.style.cssText = 'width:100%; max-height:220px; border-radius:10px; background:#000;';
+      } else {
+        el = document.createElement('audio');
+        el.controls = true; el.preload = 'metadata';
+        el.setAttribute('aria-label', nameOf(f));
+        el.style.width = '100%';
+      }
+      el.src = url;
+      box.appendChild(el);
+      container.appendChild(box);
+    });
+
+    container.querySelectorAll('video, audio').forEach(fixDuration);
+    setAR(false);
+    openDialog('previewSheet', $('previewTitle'));
+    $('previewTitle').setAttribute('tabindex', '-1');
+  }
+
+  onLangChange(function () {
+    document.querySelectorAll('#localPreviewContainer .pv-name').forEach(function (h) {
+      var f = processedFiles[+h.dataset.i];
+      if (f) h.textContent = nameOf(f);
+    });
+  });
+
+  function fixDuration(v) {
+    v.addEventListener('loadedmetadata', function () {
+      if (!isFinite(v.duration)) waitForFiniteDuration(v);
+    }, { once: true });
+  }
+
+  function clearPreview() {
+    var c = $('localPreviewContainer');
+    c.querySelectorAll('video, audio').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); });
+    c.innerHTML = '';
+    previewURLs.forEach(function (u) { URL.revokeObjectURL(u); });
+    previewURLs = [];
+  }
+
+  $('backToUploadBtn').onclick = function () {
+    clearPreview();
+    closeDialog('previewSheet', true);
+    openDialog('uploadSheet', $('finishStoryBtn'));
+  };
+  escHandlers.previewSheet = function () { $('backToUploadBtn').click(); };
+
+  $('closePreviewBtn').onclick = function () {
+    clearPreview();
+    closeDialog('previewSheet', true);
+    setAR(true);
+    if ($('addBtn').classList.contains('on')) $('addBtn').focus();
+  };
+
+  // --- Τελική επεξεργασία βίντεο ---
+  function loadProcVideo(video, url) {
+    return new Promise(function (resolve, reject) {
+      var tmo = setTimeout(function () { reject(new Error(t('errVideoTimeout'))); }, 15000);
+      video.onloadedmetadata = function () { clearTimeout(tmo); video.onloadedmetadata = null; video.onerror = null; resolve(); };
+      video.onerror = function () { clearTimeout(tmo); video.onerror = null; reject(new Error(t('errVideoLoad'))); };
+      video.src = url;
+      video.load();
+    });
+  }
+
+  async function processVideoFile(file, ranges, onProg) {
+    if (!window.MediaRecorder) throw new Error(t('errNoRec'));
+    var video = $('procVideo');
+    video.muted = false;
+    var url = URL.createObjectURL(file);
+    try {
+      await loadProcVideo(video, url);
+      await waitForFiniteDuration(video);
+      return await recordProcessedVideo(video, ranges, onProg);
+    } finally {
+      try { video.pause(); } catch (e) {}
+      video.removeAttribute('src');
+      video.load();
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  function recordProcessedVideo(video, ranges, onProg) {
+    return new Promise(function (resolve, reject) {
+      var mime = [
+        'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus',
+        'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm'
+      ].filter(function (ty) { try { return MediaRecorder.isTypeSupported(ty); } catch (e) { return false; } })[0];
+      if (!mime) { reject(new Error(t('errNoRec'))); return; }
+
+      var blurRanges = ranges.filter(function (r) { return r.blur; });
+      var muteRanges = ranges.filter(function (r) { return r.mute; });
+
+      var vw = video.videoWidth || 640, vh = video.videoHeight || 480;
+      var k = Math.min(1, MAX_VIDEO_W / vw);
+      var ow = Math.max(2, Math.round(vw * k / 2) * 2), oh = Math.max(2, Math.round(vh * k / 2) * 2);
+
+      var oCanvas = document.createElement('canvas');
+      oCanvas.width = ow; oCanvas.height = oh;
+      var oCtx = oCanvas.getContext('2d', { alpha: false });
+      oCtx.imageSmoothingEnabled = true;
+
+      var scratch = document.createElement('canvas');
+      var tw = 24, th = Math.max(1, Math.round(tw * vh / vw));
+      scratch.width = tw; scratch.height = th;
+      var sctx = scratch.getContext('2d', { alpha: false });
+      sctx.imageSmoothingEnabled = true;
+
+      var pa;
+      try { pa = getProcAudio(); } catch (e) { reject(new Error('Audio: ' + e.message)); return; }
+      var audioCtx = pa.ctx, gainNode = pa.gain;
+      var destNode = audioCtx.createMediaStreamDestination();
+      gainNode.connect(destNode);
+      gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+
+      function cleanupAudio() {
+        try { gainNode.disconnect(destNode); } catch (e) {}
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+      }
+
+      var vTracks = oCanvas.captureStream(30).getVideoTracks();
+      var stream = new MediaStream(vTracks.concat(destNode.stream.getAudioTracks()));
+
+      var rec;
+      try { rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: VIDEO_BITRATE }); }
+      catch (e) { cleanupAudio(); reject(new Error('MediaRecorder: ' + e.message)); return; }
+
+      var chunks = [], running = true, finished = false, lastUI = 0;
+      rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      rec.onstop = function () {
+        if (finished) return; finished = true;
+        running = false;
+        try { video.pause(); } catch (e) {}
+        video.onended = null;
+        vTracks.forEach(function (tr) { try { tr.stop(); } catch (e) {} });
+        cleanupAudio();
+        resolve(new Blob(chunks, { type: mime.split(';')[0] }));
+      };
+
+      function drawFrame() {
+        if (inRanges(blurRanges, video.currentTime)) {
+          sctx.drawImage(video, 0, 0, tw, th);
+          oCtx.drawImage(scratch, 0, 0, tw, th, 0, 0, ow, oh);
+        } else {
+          oCtx.drawImage(video, 0, 0, ow, oh);
+        }
+      }
+
+      function nextFrame(fn) {
+        if (video.requestVideoFrameCallback) video.requestVideoFrameCallback(function () { fn(); });
+        else requestAnimationFrame(fn);
+      }
+
+      function loop() {
+        if (!running) return;
+        drawFrame();
+        gainNode.gain.setValueAtTime(inRanges(muteRanges, video.currentTime) ? 0 : 1, audioCtx.currentTime);
+        var now = performance.now();
+        if (now - lastUI > 250) {
+          lastUI = now;
+          if (isFinite(video.duration) && video.duration > 0 && onProg) {
+            onProg(video.currentTime / video.duration * 100, Math.round(video.currentTime) + 's / ' + Math.round(video.duration) + 's');
+          }
+        }
+        nextFrame(loop);
+      }
+
+      function stopAll() { if (rec.state !== 'inactive') rec.stop(); }
+
+      function seekToStart() {
+        return new Promise(function (res) {
+          var done = false, go = function () { if (!done) { done = true; res(); } };
+          if (video.readyState >= 2 && video.currentTime < 0.05) { go(); return; }
+          video.addEventListener('seeked', go, { once: true });
+          video.currentTime = 0;
+          setTimeout(go, 1200);
+        });
+      }
+
+      if (onProg) onProg(0, t('warmup'));
+
+      seekToStart().then(function () {
+        return Promise.resolve(video.play());
+      }).then(function () {
+        if (audioCtx.state === 'suspended') return audioCtx.resume();
+      }).then(function () {
+        var primed = 0;
+        (function prime() {
+          drawFrame();
+          if (++primed < 4) { nextFrame(prime); return; }
+          video.onended = stopAll;
+          rec.start(1000);
+          loop();
+        })();
+      }).catch(function (err) {
+        running = false;
+        cleanupAudio();
+        reject(new Error(t('errPlayback') + (err && err.message ? err.message : err)));
+      });
+    });
+  }
+
+  // --- Τελική επεξεργασία ήχου ---
+  function processAudioLocal(file, mRanges) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error(t('errFileRead'))); };
+      reader.onload = async function (e) {
+        try {
+          var aCtx = new (window.AudioContext || window.webkitAudioContext)();
+          var aBuf = await new Promise(function (res, rej) { aCtx.decodeAudioData(e.target.result, res, rej); });
+          aCtx.close();
+
+          var oCtx = new OfflineAudioContext(aBuf.numberOfChannels, aBuf.length, aBuf.sampleRate);
+          var src = oCtx.createBufferSource(); src.buffer = aBuf;
+          var gain = oCtx.createGain(); gain.gain.setValueAtTime(1, 0);
+          mRanges.forEach(function (r) {
+            gain.gain.setValueAtTime(1, Math.max(0, r.s - 0.01));
+            gain.gain.setValueAtTime(0, r.s);
+            gain.gain.setValueAtTime(0, r.e);
+            gain.gain.setValueAtTime(1, r.e + 0.01);
+          });
+          src.connect(gain); gain.connect(oCtx.destination); src.start(0);
+
+          var renBuf = await oCtx.startRendering();
+          var numCh = renBuf.numberOfChannels, len = renBuf.length * numCh * 2 + 44;
+          var buf = new ArrayBuffer(len), view = new DataView(buf), pos = 0;
+          var set16 = function (d) { view.setUint16(pos, d, true); pos += 2; };
+          var set32 = function (d) { view.setUint32(pos, d, true); pos += 4; };
+
+          set32(0x46464952); set32(len - 8); set32(0x45564157); set32(0x20746d66); set32(16); set16(1); set16(numCh);
+          set32(renBuf.sampleRate); set32(renBuf.sampleRate * 2 * numCh); set16(numCh * 2); set16(16); set32(0x61746164); set32(len - pos - 4);
+
+          var chs = [];
+          for (var i = 0; i < numCh; i++) chs.push(renBuf.getChannelData(i));
+          for (var off = 0; off < renBuf.length; off++) {
+            for (var c = 0; c < numCh; c++) {
+              var smp = Math.max(-1, Math.min(1, chs[c][off]));
+              set16((smp < 0 ? smp * 32768 : smp * 32767) | 0);
+            }
+          }
+          resolve(new Blob([buf], { type: 'audio/wav' }));
+        } catch (err) { reject(err); }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  // ==========================================
+  // Εκκίνηση
+  // ==========================================
+  setLang(LANG);
+  updateMediaListUI();
+  renderLoc();
+})();
+</script>
+</body>
+</html>
