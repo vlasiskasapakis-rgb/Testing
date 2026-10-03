@@ -16,6 +16,8 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/three.js/build/ar-threex-location-only.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
@@ -177,6 +179,20 @@
   #addBtn.on { display: flex; }
   body.drawer-open #addBtn { bottom: calc(52% + var(--pad)); }
 
+  #authBtn {
+    position: absolute; top: calc(var(--pad) + env(safe-area-inset-top) + 54px); left: var(--pad); pointer-events: auto;
+    padding: 8px 16px; min-height: 44px; font-size: 15px; font-weight: 700;
+    background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); box-shadow: 0 4px 14px rgba(14,63,80,.25);
+  }
+  #authBtn[hidden] { display: none; }
+  .story-media { display: flex; flex-direction: column; gap: 12px; margin: 14px 0 6px; }
+  .story-media img, .story-media video { width: 100%; max-height: 300px; object-fit: contain; border-radius: 12px; background: #000; }
+  .story-media audio { width: 100%; }
+  .story-author { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+  .input-group input[type="email"], .input-group input[type="password"] { width: 100%; padding: 12px 14px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 16px; color: var(--ink); }
+  #authSheet { z-index: 70; }
+  .link-btn { background: none; color: var(--petrol); text-decoration: underline; font-weight: 600; padding: 8px 4px; min-height: 44px; border-radius: 8px; }
+
   /* ---------- Φύλλα / διάλογοι ---------- */
   .edit-sheet { position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; justify-content: flex-end; background: rgba(14,63,80,.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); pointer-events: auto; }
   .edit-sheet.on { display: flex; }
@@ -310,6 +326,7 @@
       <option value="it" lang="it">IT</option>
     </select>
   </div>
+  <button id="authBtn" hidden></button>
   <button id="nearest"><span class="dist"></span><span class="name"></span></button>
 </div>
 
@@ -329,7 +346,9 @@
   <div class="sheet-inner">
     <h2 id="sheetTitle"></h2>
     <p id="sheetSub" class="sheet-sub"></p>
+    <p id="sheetAuthor" class="story-author"></p>
     <p id="sheetBody"></p>
+    <div id="sheetMedia" class="story-media"></div>
     <button id="closeInfoBtn" data-i18n="close"></button>
   </div>
 </div>
@@ -471,14 +490,41 @@
 </div>
 
 <!-- 3. Τελικό αποτέλεσμα -->
+<div id="authSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="sheet-inner">
+    <h2 id="authTitle"></h2>
+    <form id="authForm" novalidate>
+      <div class="input-group" id="nameGroup">
+        <label for="authName" data-i18n="displayName"></label>
+        <input type="text" id="authName" autocomplete="nickname" maxlength="60">
+      </div>
+      <div class="input-group">
+        <label for="authEmail" data-i18n="email"></label>
+        <input type="email" id="authEmail" autocomplete="email" required>
+      </div>
+      <div class="input-group">
+        <label for="authPass" data-i18n="password"></label>
+        <input type="password" id="authPass" autocomplete="current-password" minlength="6" required>
+      </div>
+      <p id="authError" class="field-error" role="alert"></p>
+      <div class="btn-row">
+        <button type="button" class="btn-secondary" id="authCancelBtn" data-i18n="cancel"></button>
+        <button type="submit" class="btn-primary" id="authSubmitBtn"></button>
+      </div>
+      <button type="button" class="link-btn" id="authToggleBtn"></button>
+    </form>
+  </div>
+</div>
+
 <div id="previewSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
   <div class="sheet-inner">
     <h2 id="previewTitle" data-i18n="finalTitle"></h2>
     <p class="sheet-sub" data-i18n="finalNote"></p>
+    <p id="publishError" class="field-error" role="alert"></p>
     <div id="localPreviewContainer" style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;"></div>
     <div class="btn-row">
       <button class="btn-secondary" id="backToUploadBtn" data-i18n="backToFiles"></button>
-      <button class="btn-primary" id="closePreviewBtn" data-i18n="closePreview"></button>
+      <button class="btn-primary" id="closePreviewBtn" data-i18n="publish"></button>
     </div>
   </div>
 </div>
@@ -544,7 +590,26 @@
       backToFiles: "Πίσω στα αρχεία", closePreview: "Κλείσιμο προβολής", allSaved: "Όλα τα αρχεία αποθηκεύτηκαν.",
       errVideoTimeout: "Το βίντεο δεν φόρτωσε.", errVideoLoad: "Σφάλμα φόρτωσης βίντεο.",
       errNoRec: "Ο browser δεν υποστηρίζει εγγραφή βίντεο.", errPlayback: "Δεν ξεκίνησε η αναπαραγωγή: ",
-      errFileRead: "Αποτυχία ανάγνωσης αρχείου.", errImage: "Αποτυχία φόρτωσης εικόνας."
+      errFileRead: "Αποτυχία ανάγνωσης αρχείου.", errImage: "Αποτυχία φόρτωσης εικόνας.",
+      login: "Σύνδεση",
+      logout: "Αποσύνδεση",
+      signup: "Δημιουργία λογαριασμού",
+      email: "Email",
+      password: "Κωδικός",
+      displayName: "Όνομα που εμφανίζεται στις ιστορίες σου",
+      haveAccount: "Έχεις ήδη λογαριασμό; Σύνδεση",
+      noAccount: "Δεν έχεις λογαριασμό; Εγγραφή",
+      authFailed: "Η σύνδεση απέτυχε: {e}",
+      authNeedFields: "Συμπλήρωσε email και κωδικό (τουλάχιστον 6 χαρακτήρες).",
+      checkEmail: "Σου στείλαμε email επιβεβαίωσης. Επιβεβαίωσε τον λογαριασμό και μετά συνδέσου.",
+      signedInAs: "Συνδεδεμένος: {n}",
+      publish: "Δημοσίευση ιστορίας",
+      publishing: "Δημοσίευση… ({i}/{n})",
+      publishError: "Η δημοσίευση απέτυχε: {e}",
+      published: "Η ιστορία δημοσιεύτηκε.",
+      loginToAdd: "Συνδέσου για να προσθέσεις ιστορίες.",
+      loadStoriesError: "Δεν φορτώθηκαν οι ιστορίες των χρηστών.",
+      byAuthor: "Από {n}"
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -595,7 +660,26 @@
       backToFiles: "Back to files", closePreview: "Close preview", allSaved: "All files saved.",
       errVideoTimeout: "The video didn't load.", errVideoLoad: "Error loading video.",
       errNoRec: "This browser can't record video.", errPlayback: "Playback didn't start: ",
-      errFileRead: "Couldn't read the file.", errImage: "Couldn't load the image."
+      errFileRead: "Couldn't read the file.", errImage: "Couldn't load the image.",
+      login: "Log in",
+      logout: "Log out",
+      signup: "Create account",
+      email: "Email",
+      password: "Password",
+      displayName: "Name shown on your stories",
+      haveAccount: "Already have an account? Log in",
+      noAccount: "Don't have an account? Sign up",
+      authFailed: "Sign-in failed: {e}",
+      authNeedFields: "Enter an email and a password (at least 6 characters).",
+      checkEmail: "We sent you a confirmation email. Confirm your account, then log in.",
+      signedInAs: "Signed in: {n}",
+      publish: "Publish story",
+      publishing: "Publishing… ({i}/{n})",
+      publishError: "Publishing failed: {e}",
+      published: "Your story was published.",
+      loginToAdd: "Log in to add stories.",
+      loadStoriesError: "Couldn't load community stories.",
+      byAuthor: "By {n}"
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -646,7 +730,26 @@
       backToFiles: "Retour aux fichiers", closePreview: "Fermer l'aperçu", allSaved: "Tous les fichiers sont enregistrés.",
       errVideoTimeout: "La vidéo ne s'est pas chargée.", errVideoLoad: "Erreur de chargement de la vidéo.",
       errNoRec: "Ce navigateur ne peut pas enregistrer de vidéo.", errPlayback: "La lecture n'a pas démarré : ",
-      errFileRead: "Impossible de lire le fichier.", errImage: "Impossible de charger l'image."
+      errFileRead: "Impossible de lire le fichier.", errImage: "Impossible de charger l'image.",
+      login: "Connexion",
+      logout: "Déconnexion",
+      signup: "Créer un compte",
+      email: "E-mail",
+      password: "Mot de passe",
+      displayName: "Nom affiché sur vos histoires",
+      haveAccount: "Déjà un compte ? Connexion",
+      noAccount: "Pas de compte ? S'inscrire",
+      authFailed: "Échec de la connexion : {e}",
+      authNeedFields: "Saisissez un e-mail et un mot de passe (6 caractères minimum).",
+      checkEmail: "Nous vous avons envoyé un e-mail de confirmation. Confirmez votre compte, puis connectez-vous.",
+      signedInAs: "Connecté : {n}",
+      publish: "Publier l'histoire",
+      publishing: "Publication… ({i}/{n})",
+      publishError: "Échec de la publication : {e}",
+      published: "Votre histoire a été publiée.",
+      loginToAdd: "Connectez-vous pour ajouter des histoires.",
+      loadStoriesError: "Impossible de charger les histoires des utilisateurs.",
+      byAuthor: "Par {n}"
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -697,7 +800,26 @@
       backToFiles: "Torna ai file", closePreview: "Chiudi anteprima", allSaved: "Tutti i file sono stati salvati.",
       errVideoTimeout: "Il video non si è caricato.", errVideoLoad: "Errore di caricamento del video.",
       errNoRec: "Questo browser non può registrare video.", errPlayback: "La riproduzione non è partita: ",
-      errFileRead: "Impossibile leggere il file.", errImage: "Impossibile caricare l'immagine."
+      errFileRead: "Impossibile leggere il file.", errImage: "Impossibile caricare l'immagine.",
+      login: "Accedi",
+      logout: "Esci",
+      signup: "Crea account",
+      email: "Email",
+      password: "Password",
+      displayName: "Nome mostrato nelle tue storie",
+      haveAccount: "Hai già un account? Accedi",
+      noAccount: "Non hai un account? Registrati",
+      authFailed: "Accesso non riuscito: {e}",
+      authNeedFields: "Inserisci email e password (almeno 6 caratteri).",
+      checkEmail: "Ti abbiamo inviato un'email di conferma. Conferma l'account, poi accedi.",
+      signedInAs: "Connesso: {n}",
+      publish: "Pubblica la storia",
+      publishing: "Pubblicazione… ({i}/{n})",
+      publishError: "Pubblicazione non riuscita: {e}",
+      published: "La tua storia è stata pubblicata.",
+      loginToAdd: "Accedi per aggiungere storie.",
+      loadStoriesError: "Impossibile caricare le storie degli utenti.",
+      byAuthor: "Di {n}"
     }
   };
 
@@ -925,33 +1047,55 @@
     $('sheetTitle').textContent = tr.title;
     $('sheetSub').textContent = tr.sub;
     $('sheetBody').textContent = tr.text;
+    $('sheetAuthor').textContent = s.author ? t('byAuthor', { n: s.author }) : '';
+    renderSheetMedia(s);
     openDialog('infoSheet');
   }
-  $('closeInfoBtn').addEventListener('click', function () { closeDialog('infoSheet'); });
-  escHandlers.infoSheet = function () { closeDialog('infoSheet'); };
+  function clearSheetMedia() {
+    var box = $('sheetMedia');
+    box.querySelectorAll('video, audio').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); });
+    box.innerHTML = '';
+  }
+  function renderSheetMedia(s) {
+    clearSheetMedia();
+    (s.media || []).forEach(function (m, i) {
+      var el;
+      if (m.kind === 'image') { el = document.createElement('img'); el.alt = tr_(s) + ' ' + (i + 1); el.loading = 'lazy'; }
+      else if (m.kind === 'video') { el = document.createElement('video'); el.controls = true; el.playsInline = true; el.preload = 'metadata'; el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1)); }
+      else { el = document.createElement('audio'); el.controls = true; el.preload = 'metadata'; el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1)); }
+      el.src = m.url;
+      $('sheetMedia').appendChild(el);
+    });
+  }
+  function tr_(s) { return st(s).title; }
+  $('closeInfoBtn').addEventListener('click', function () { clearSheetMedia(); closeDialog('infoSheet'); });
+  escHandlers.infoSheet = function () { clearSheetMedia(); closeDialog('infoSheet'); };
+
+  function createMarkerEl(s) {
+    var container = $('ar-overlay-container');
+    var btn = document.createElement('button');
+    btn.className = 'ar-html-marker';
+    btn.id = 'html-marker-' + s.id;
+    btn.style.display = 'none';
+    btn.innerHTML =
+      '<span class="closest-badge" aria-hidden="true"></span>' +
+      '<span class="m-title"><span class="lock" aria-hidden="true">🔒 </span><span class="mt"></span></span>' +
+      '<span class="m-sub"></span>' +
+      '<span class="m-dist"></span>';
+    btn.onclick = function () {
+      if (me) {
+        var d = distanceMetres(me.lat, me.lon, s.lat, s.lon);
+        if (d > 100) { alert(t('lockedAlert', { m: Math.round(d) })); return; }
+      }
+      openStorySheet(s);
+    };
+    container.appendChild(btn);
+  }
 
   function buildScene() {
     var container = $('ar-overlay-container');
     container.innerHTML = '';
-    STORIES.forEach(function (s) {
-      var btn = document.createElement('button');
-      btn.className = 'ar-html-marker';
-      btn.id = 'html-marker-' + s.id;
-      btn.style.display = 'none';
-      btn.innerHTML =
-        '<span class="closest-badge" aria-hidden="true"></span>' +
-        '<span class="m-title"><span class="lock" aria-hidden="true">🔒 </span><span class="mt"></span></span>' +
-        '<span class="m-sub"></span>' +
-        '<span class="m-dist"></span>';
-      btn.onclick = function () {
-        if (me) {
-          var d = distanceMetres(me.lat, me.lon, s.lat, s.lon);
-          if (d > 100) { alert(t('lockedAlert', { m: Math.round(d) })); return; }
-        }
-        openStorySheet(s);
-      };
-      container.appendChild(btn);
-    });
+    STORIES.forEach(createMarkerEl);
     refreshMarkerTexts();
 
     var scene = document.createElement('a-scene');
@@ -1036,23 +1180,24 @@
     }
   }
 
-  var poiLayers = [];
+  var poiLayers = [], markerCluster = null;
+  function addPoiMarker(s) {
+    var m = L.marker([s.lat, s.lon], {
+      icon: L.divIcon({ html: '<div class="poi-dot"></div>', iconSize: [24, 24], iconAnchor: [12, 12], className: '' }),
+      title: st(s).title, alt: st(s).title, keyboard: true
+    }).on('click', function () { openStorySheet(s); });
+    poiLayers.push({ m: m, s: s });
+    markerCluster.addLayer(m);
+  }
   function initMap() {
     map = L.map('map', { zoomControl: true, attributionControl: true }).setView([STORIES[0].lat, STORIES[0].lon], 16);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-    var markers = L.markerClusterGroup({ maxClusterRadius: 40, iconCreateFunction: function (c) { return L.divIcon({ html: c.getChildCount(), className: 'map-cluster-dot', iconSize: [32, 32] }); } });
-    STORIES.forEach(function (s) {
-      var m = L.marker([s.lat, s.lon], {
-        icon: L.divIcon({ html: '<div class="poi-dot"></div>', iconSize: [24, 24], iconAnchor: [12, 12], className: '' }),
-        title: st(s).title, alt: st(s).title, keyboard: true
-      }).on('click', function () { openStorySheet(s); });
-      poiLayers.push({ m: m, s: s });
-      markers.addLayer(m);
-    });
-    map.addLayer(markers);
+    markerCluster = L.markerClusterGroup({ maxClusterRadius: 40, iconCreateFunction: function (c) { return L.divIcon({ html: c.getChildCount(), className: 'map-cluster-dot', iconSize: [32, 32] }); } });
+    STORIES.forEach(addPoiMarker);
+    map.addLayer(markerCluster);
     map.on('dragstart', function () { followMe = false; });
   }
 
@@ -1133,7 +1278,7 @@
     updateMap();
     renderStatus();
     renderLoc();
-    $('addBtn').classList.add('on');
+    updateAddBtn();
     renderNearest(true);
   }
 
@@ -1155,6 +1300,159 @@
       alert(e && e.message ? e.message : e);
     });
   });
+
+  // ==========================================
+  // 1b. ΛΟΓΑΡΙΑΣΜΟΙ ΚΑΙ ΑΠΟΘΗΚΕΥΣΗ (Supabase)
+  // ==========================================
+  var BUCKET = 'story-media';
+  var CFG = window.WM_CONFIG || {};
+  var sb = null, currentUser = null;
+  try {
+    if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) {
+      sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+    }
+  } catch (e) { sb = null; }
+
+  function userName(u) {
+    var m = (u && u.user_metadata) || {};
+    return (m.display_name || (u && u.email ? u.email.split('@')[0] : '')).slice(0, 60);
+  }
+
+  function updateAddBtn() {
+    $('addBtn').classList.toggle('on', !!(currentUser && me));
+  }
+
+  function renderAuth() {
+    var b = $('authBtn');
+    b.hidden = !sb;
+    b.textContent = currentUser ? t('logout') + ' · ' + userName(currentUser) : t('login');
+    updateAddBtn();
+  }
+  onLangChange(function () { renderAuth(); renderAuthSheet(); });
+
+  var authMode = 'login';
+  function renderAuthSheet() {
+    var signup = authMode === 'signup';
+    $('authTitle').textContent = t(signup ? 'signup' : 'login');
+    $('authSubmitBtn').textContent = t(signup ? 'signup' : 'login');
+    $('authToggleBtn').textContent = t(signup ? 'haveAccount' : 'noAccount');
+    $('nameGroup').style.display = signup ? '' : 'none';
+    $('authPass').setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
+  }
+
+  $('authBtn').onclick = async function () {
+    if (!sb) return;
+    if (currentUser) { await sb.auth.signOut(); return; }
+    authMode = 'login';
+    $('authError').textContent = '';
+    $('authPass').value = '';
+    renderAuthSheet();
+    openDialog('authSheet', $('authEmail'));
+  };
+  $('authToggleBtn').onclick = function () {
+    authMode = authMode === 'login' ? 'signup' : 'login';
+    $('authError').textContent = '';
+    renderAuthSheet();
+  };
+  $('authCancelBtn').onclick = function () { closeDialog('authSheet'); };
+  escHandlers.authSheet = function () { closeDialog('authSheet'); };
+
+  $('authForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    if (!sb) return;
+    var email = $('authEmail').value.trim(), pass = $('authPass').value;
+    $('authError').textContent = '';
+    if (!email || pass.length < 6) { $('authError').textContent = t('authNeedFields'); return; }
+    $('authSubmitBtn').disabled = true;
+    try {
+      var r;
+      if (authMode === 'signup') {
+        r = await sb.auth.signUp({ email: email, password: pass, options: { data: { display_name: $('authName').value.trim().slice(0, 60) } } });
+        if (r.error) throw r.error;
+        if (!r.data.session) { $('authError').textContent = t('checkEmail'); return; }
+      } else {
+        r = await sb.auth.signInWithPassword({ email: email, password: pass });
+        if (r.error) throw r.error;
+      }
+      closeDialog('authSheet');
+    } catch (e) {
+      $('authError').textContent = t('authFailed', { e: e.message || e });
+    } finally {
+      $('authSubmitBtn').disabled = false;
+    }
+  });
+
+  if (sb) {
+    sb.auth.onAuthStateChange(function (_event, session) {
+      currentUser = session ? session.user : null;
+      renderAuth();
+    });
+  }
+  renderAuth();
+
+  // Προσθήκη ιστορίας στον χάρτη/AR χωρίς επαναφόρτωση
+  function addStoryRuntime(s) {
+    if (STORIES.some(function (x) { return x.id === s.id; })) return;
+    STORIES.push(s);
+    if ($('ar-overlay-container').children.length) { createMarkerEl(s); refreshMarkerTexts(); }
+    if (map && markerCluster) addPoiMarker(s);
+  }
+
+  function storyFromRow(r) {
+    var tr = { title: r.title, sub: r.author_name || '', text: '' };
+    return {
+      id: 'u-' + r.id, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
+      t: { el: tr },
+      media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
+        return { kind: m.kind, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl };
+      })
+    };
+  }
+
+  async function loadRemoteStories() {
+    if (!sb) return;
+    try {
+      var r = await sb.from('stories').select('id,title,lat,lon,radius,author_name,story_media(kind,path,position)').order('created_at');
+      if (r.error) throw r.error;
+      r.data.forEach(function (row) { addStoryRuntime(storyFromRow(row)); });
+    } catch (e) {
+      announce(t('loadStoriesError'));
+    }
+  }
+
+  var EXT = { 'audio/mp4': 'm4a', 'audio/mpeg': 'mp3', 'image/jpeg': 'jpg', 'video/quicktime': 'mov' };
+  function extFor(type) { return EXT[type] || (type.split('/')[1] || 'bin').replace(/[^a-z0-9]/g, ''); }
+
+  window.WM = {
+    publish: async function (title, pos, files, onProgress) {
+      if (!sb || !currentUser) throw new Error(t('loginToAdd'));
+      var uid = currentUser.id, sid = crypto.randomUUID(), uploaded = [], rows = [];
+      try {
+        for (var i = 0; i < files.length; i++) {
+          onProgress(i + 1, files.length);
+          var f = files[i];
+          var type = String(f.outType || f.blob.type || 'application/octet-stream').split(';')[0];
+          var path = uid + '/' + sid + '/' + i + '.' + extFor(type);
+          var up = await sb.storage.from(BUCKET).upload(path, f.blob, { contentType: type, upsert: false });
+          if (up.error) throw up.error;
+          uploaded.push(path);
+          rows.push({ story_id: sid, kind: f.kind, path: path, position: i });
+        }
+        var author = userName(currentUser);
+        var ins = await sb.from('stories').insert({ id: sid, title: title, lat: pos.lat, lon: pos.lon, author_name: author });
+        if (ins.error) throw ins.error;
+        var mi = await sb.from('story_media').insert(rows);
+        if (mi.error) throw mi.error;
+      } catch (e) {
+        try { await sb.from('stories').delete().eq('id', sid); } catch (_) {}
+        if (uploaded.length) { try { await sb.storage.from(BUCKET).remove(uploaded); } catch (_) {} }
+        throw e;
+      }
+      return storyFromRow({ id: sid, title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
+        story_media: rows.map(function (r) { return { kind: r.kind, path: r.path, position: r.position }; }) });
+    }
+  };
+  loadRemoteStories();
 
   // ==========================================
   // 2. EDITOR (μη καταστροφικός)
@@ -2233,11 +2531,36 @@
   };
   escHandlers.previewSheet = function () { $('backToUploadBtn').click(); };
 
-  $('closePreviewBtn').onclick = function () {
+  function finishStoryFlow() {
     clearPreview();
+    $('publishError').textContent = '';
+    $('storyTitle').value = '';
+    processedFiles = [];
+    updateMediaListUI();
     closeDialog('previewSheet', true);
     setAR(true);
     if ($('addBtn').classList.contains('on')) $('addBtn').focus();
+  }
+
+  $('closePreviewBtn').onclick = async function () {
+    var btn = this;
+    $('publishError').textContent = '';
+    if (!currentUser) { $('publishError').textContent = t('loginToAdd'); return; }
+    if (!me) return;
+    btn.disabled = true;
+    try {
+      var story = await WM.publish($('storyTitle').value.trim(), me, processedFiles, function (i, n) {
+        btn.textContent = t('publishing', { i: i, n: n });
+      });
+      addStoryRuntime(story);
+      announce(t('published'));
+      finishStoryFlow();
+    } catch (e) {
+      $('publishError').textContent = t('publishError', { e: (e && e.message) ? e.message : e });
+    } finally {
+      btn.disabled = false;
+      btn.textContent = t('publish');
+    }
   };
 
   // --- Τελική επεξεργασία βίντεο ---
