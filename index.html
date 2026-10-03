@@ -312,6 +312,7 @@
     </select>
   </div>
   <button id="startBtn" data-i18n="start"></button>
+  <button id="authBtnGate" class="link-btn" hidden></button>
 </div>
 </main>
 
@@ -1323,9 +1324,8 @@
   }
 
   function renderAuth() {
-    var b = $('authBtn');
-    b.hidden = !sb;
-    b.textContent = currentUser ? t('logout') + ' · ' + userName(currentUser) : t('login');
+    var label = currentUser ? t('logout') + ' · ' + userName(currentUser) : t('login');
+    ['authBtn', 'authBtnGate'].forEach(function (id) { var b = $(id); b.hidden = !sb; b.textContent = label; });
     updateAddBtn();
   }
   onLangChange(function () { renderAuth(); renderAuthSheet(); });
@@ -1340,7 +1340,7 @@
     $('authPass').setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
   }
 
-  $('authBtn').onclick = async function () {
+  $('authBtn').onclick = $('authBtnGate').onclick = async function () {
     if (!sb) return;
     if (currentUser) { await sb.auth.signOut(); return; }
     authMode = 'login';
