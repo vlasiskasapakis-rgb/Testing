@@ -1,4 +1,4 @@
-// Supabase Edge Function: transcribe one of the caller's own recordings with Groq's
+// Supabase Edge Function: for annotators only, transcribe a story recording with Groq's
 // hosted Whisper (free tier) and return timestamped segments. Nothing is saved here;
 // the page puts the text in the transcript box for the owner to edit.
 //
@@ -39,9 +39,10 @@ Deno.serve(async (req: Request) => {
   if (!/^[0-9a-f-]{36}$/i.test(mediaId)) return json({ error: 'media_id required' }, 400);
 
   const admin = createClient(url, svc);
-  const { data: media } = await admin.from('story_media').select('id,kind,path,stories!inner(user_id)').eq('id', mediaId).single();
+  const { data: profile } = await admin.from('profiles').select('role').eq('user_id', u.user.id).single();
+  if (profile?.role !== 'annotator') return json({ error: 'Only annotators can transcribe' }, 403);
+  const { data: media } = await admin.from('story_media').select('id,kind,path').eq('id', mediaId).single();
   if (!media) return json({ error: 'Media not found' }, 404);
-  if (media.stories.user_id !== u.user.id) return json({ error: 'Not your story' }, 403);
   if (media.kind === 'image') return json({ error: 'Images have no audio to transcribe' }, 400);
 
   const dl = await admin.storage.from('story-media').download(media.path);

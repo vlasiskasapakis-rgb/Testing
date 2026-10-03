@@ -1,3 +1,46 @@
+# Roles, annotation and playback
+
+## Who can do what
+| | Not logged in | Facilitator (default) | Annotator |
+|---|---|---|---|
+| See published stories | yes | yes | yes |
+| Collect, redact and upload stories | no | yes (saved as **drafts**) | yes |
+| See their own drafts / delete their own stories | no | yes | own only |
+| See every story, drafts included | no | no | yes |
+| Transcribe, annotate, link images to moments, publish | no | **no** | yes |
+
+Every new account is a facilitator. This is enforced by the database rules, not only by hiding
+buttons. A story reaches the public only when an annotator presses **Publish for everyone**.
+
+## Setup (once, in this order)
+1. SQL editor: run `supabase/schema.sql`, then `supabase/annotations.sql`, then `supabase/roles.sql`
+   (each is safe to run again). `roles.sql` creates the roles, makes existing stories published, and
+   makes every existing account a facilitator.
+2. Make someone an annotator (they sign up first, then you run this in the SQL editor):
+   ```sql
+   update public.profiles set role = 'annotator'
+   where user_id = (select id from auth.users where email = 'person@example.com');
+   ```
+3. Optional fast transcription: see the Groq section below. Re-deploy `transcribe-media` after
+   updating it, because it now checks that the caller is an annotator.
+
+Note: uploaded files live in a public storage bucket under unguessable paths. Drafts are hidden from
+every list and query, but anyone who is given a draft file's exact URL could open it.
+
+## Annotator workflow
+1. **Stories** (top left) lists every story with its status; open one without having to be nearby.
+2. **Transcribe and annotate**: for each audio/video get a transcript, find or add terms, approve.
+3. For each image: tick the terms it shows, optionally mark an area, and use **Link this image to a
+   moment of the story**: choose the audio/video, pick a transcript line or set start/end (the small
+   player has "Start/End = current time"), then **Add link**. An image can have several links.
+4. **Publish for everyone**.
+
+## What the public sees
+- Image-only story: the image with its approved terms and marked areas.
+- Story with audio/video: while it plays, the image linked to the current moment appears under the
+  player (with its areas and terms). **Images tied to the story** lists each linked image with
+  **▶ from mm:ss**: tapping it jumps the playback there. Transcript lines are tappable too.
+
 # Transcription and vocabulary annotation
 
 Owners transcribe the audio/video of their own stories and attach vocabulary terms.
@@ -29,6 +72,16 @@ Log in → open one of your stories → **Transcribe and annotate** → per audi
    and add it.
 4. **Approve / Reject** automatic suggestions; fix the type if it was guessed wrong.
    Visitors see the transcript and approved terms; anyone can **Export JSON-LD**.
+
+## Images
+In **Transcribe and annotate**, each image of your story appears with the terms you have already
+approved from the audio/video. Tick the ones the image shows. Optionally **Mark area** and drag a
+box on the image (stored as fractions of its width/height, so it survives resizing).
+**Suggest matches (on this device)** runs CLIP in the browser (first use downloads ~150 MB) and
+pre-suggests up to 3 likely terms per image for you to approve or reject. It is experimental: it
+works best for clear objects/places and compares against English labels. Visitors see approved terms
+and boxes under the image; the JSON-LD export adds `HP9` / `P67 refers to` on the image and a
+`xywh=percent:` fragment for boxes.
 
 The automatic step is a simple name heuristic, not AI: it misses things and suggests wrong
 matches, so review it. Re-saving replaces earlier *unreviewed* automatic suggestions;
