@@ -213,6 +213,31 @@
   .term-row label { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; min-height: 40px; }
   .term-row input[type=checkbox] { width: 22px; height: 22px; }
   .badge-sug { font-size: 12px; font-weight: 700; color: var(--amber-text); }
+  #listBtn {
+    position: absolute; top: calc(var(--pad) + env(safe-area-inset-top) + 108px); left: var(--pad); pointer-events: auto;
+    padding: 8px 16px; min-height: 44px; font-size: 15px; font-weight: 700;
+    background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); box-shadow: 0 4px 14px rgba(14,63,80,.25);
+  }
+  #listBtn[hidden] { display: none; }
+  .story-status { font-size: 13px; font-weight: 700; color: var(--amber-text); margin: 0 0 6px; } .story-status:empty { display: none; }
+  .list-item { display: block; width: 100%; text-align: left; border-radius: 14px; background: var(--mist); color: var(--ink); padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--line); }
+  .list-item .t { display: block; font-weight: 700; color: var(--petrol); font-style: italic; }
+  .list-item .m { display: block; font-size: 13px; color: var(--muted); }
+  .chip-draft { color: var(--amber-text); font-weight: 700; } .chip-pub { color: var(--petrol); font-weight: 700; }
+  .sync-stage { border: 3px solid var(--amber); border-radius: 16px; padding: 10px; background: #fff; }
+  .sync-stage[hidden] { display: none; }
+  .sync-stage h3, .link-strip-h { margin: 0 0 6px; font-size: 15px; font-style: italic; color: var(--petrol); }
+  .link-strip { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .link-card { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--sky-soft); color: var(--petrol); font-weight: 700; font-size: 14px; border: 2px solid transparent; min-height: 48px; }
+  .link-card img { width: 44px; height: 36px; object-fit: cover; border-radius: 8px; }
+  .link-card.active { border-color: var(--amber); }
+  .tr-lines { list-style: none; margin: 6px 0 0; padding: 0; }
+  .tr-line { display: block; width: 100%; text-align: left; background: none; color: var(--ink); border-radius: 8px; padding: 6px 8px; font-size: 15px; border: 0; }
+  .tr-line .when { font-weight: 700; color: var(--amber-text); margin-right: 8px; font-size: 13px; }
+  .tr-line.now { background: var(--sky-soft); }
+  .lnk-box { border-top: 1px dashed var(--line-strong); margin-top: 10px; padding-top: 8px; }
+  .lnk-box .time-in { width: 90px; padding: 8px 10px; border: 2px solid var(--line-strong); border-radius: 10px; font-size: 15px; }
+  .lnk-box audio, .lnk-box video { width: 100%; max-height: 220px; margin: 6px 0; }
   .btn-danger { padding: 12px 22px; min-height: 48px; font-weight: 700; background: #fff; color: var(--danger); border: 2px solid var(--danger); }
   .ann-media { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 10px; }
   .ann-text { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 15px; font-family: inherit; color: var(--ink); }
@@ -362,6 +387,7 @@
     </select>
   </div>
   <button id="authBtn" hidden></button>
+  <button id="listBtn" hidden></button>
   <button id="nearest"><span class="dist"></span><span class="name"></span></button>
 </div>
 
@@ -382,10 +408,13 @@
     <h2 id="sheetTitle"></h2>
     <p id="sheetSub" class="sheet-sub"></p>
     <p id="sheetAuthor" class="story-author"></p>
+    <p id="sheetStatus" class="story-status"></p>
     <p id="sheetBody"></p>
     <div id="sheetMedia" class="story-media"></div>
+    <div id="sheetImages" class="story-media"></div>
     <div id="sheetKnow" class="story-know"></div>
     <div id="sheetTools" hidden>
+      <button id="publishBtn" class="btn-primary" hidden></button>
       <button id="annotateBtn" class="btn-secondary" hidden data-i18n="annotate"></button>
       <button id="exportBtn" class="btn-secondary" hidden data-i18n="annExport"></button>
       <button id="deleteBtn" class="btn-danger" hidden data-i18n="deleteStory"></button>
@@ -531,6 +560,18 @@
 </div>
 
 <!-- 3. Τελικό αποτέλεσμα -->
+<div id="listSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="listTitle">
+  <div class="sheet-inner">
+    <h2 id="listTitle"></h2>
+    <div class="input-group" id="listFilterWrap">
+      <label for="listFilter" data-i18n="listFilter"></label>
+      <select id="listFilter" class="lang-select"></select>
+    </div>
+    <div id="listBody"></div>
+    <button id="listCloseBtn" class="btn-primary" style="margin-top:14px" data-i18n="close"></button>
+  </div>
+</div>
+
 <div id="annSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="annTitle">
   <div class="sheet-inner">
     <h2 id="annTitle" data-i18n="annTitle"></h2>
@@ -653,10 +694,10 @@
       authNeedFields: "Συμπλήρωσε email και κωδικό (τουλάχιστον 6 χαρακτήρες).",
       checkEmail: "Σου στείλαμε email επιβεβαίωσης. Επιβεβαίωσε τον λογαριασμό και μετά συνδέσου.",
       signedInAs: "Συνδεδεμένος: {n}",
-      publish: "Δημοσίευση ιστορίας",
-      publishing: "Δημοσίευση… ({i}/{n})",
+      publish: "Ανέβασμα ιστορίας",
+      publishing: "Ανέβασμα… ({i}/{n})",
       publishError: "Η δημοσίευση απέτυχε: {e}",
-      published: "Η ιστορία δημοσιεύτηκε.",
+      published: "Η ιστορία ανέβηκε.",
       loginToAdd: "Συνδέσου για να προσθέσεις ιστορίες.",
       loadStoriesError: "Δεν φορτώθηκαν οι ιστορίες των χρηστών.",
       byAuthor: "Από {n}",
@@ -734,7 +775,41 @@
       imgClipDone: "Προστέθηκαν {n} προτάσεις. Έλεγξέ τις παραπάνω.",
       imgClipErr: "Οι προτάσεις απέτυχαν: {e}",
       imgSuggested: "πρόταση",
-      imgDepicts: "Στην εικόνα:"
+      imgDepicts: "Στην εικόνα:",
+      role_facilitator: "διευκολυντής",
+      role_annotator: "σχολιαστής",
+      statusDraft: "Πρόχειρη: δεν είναι δημόσια ακόμα",
+      statusPublished: "Δημοσιευμένη",
+      pubStory: "Δημοσίευση για όλους",
+      unpubStory: "Απόσυρση από τη δημοσίευση",
+      pubError: "Η αλλαγή κατάστασης απέτυχε: {e}",
+      listMy: "Οι ιστορίες μου",
+      listAll: "Όλες οι ιστορίες",
+      listTitle: "Ιστορίες",
+      listFilter: "Εμφάνιση",
+      listAllF: "Όλες",
+      listDraftF: "Πρόχειρες",
+      listPubF: "Δημοσιευμένες",
+      listEmpty: "Δεν υπάρχουν ιστορίες.",
+      imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
+      imgPlayPart: "▶ από {t}",
+      imgNow: "Τώρα εμφανίζεται",
+      trPlay: "Αναπαραγωγή από {t}",
+      lnkTitle: "Σύνδεση εικόνας με στιγμή της αφήγησης",
+      lnkMedia: "Ήχος ή βίντεο",
+      lnkLine: "Ή διάλεξε γραμμή απομαγνητοφώνησης",
+      lnkStart: "Αρχή (λλ:δδ)",
+      lnkEnd: "Τέλος (λλ:δδ)",
+      lnkSetStart: "Αρχή = τρέχων χρόνος",
+      lnkSetEnd: "Τέλος = τρέχων χρόνος",
+      lnkAdd: "Προσθήκη σύνδεσης",
+      lnkNone: "Καμία σύνδεση ακόμα.",
+      lnkPlay: "Αναπαραγωγή",
+      lnkDelete: "Διαγραφή σύνδεσης",
+      lnkBad: "Βάλε έγκυρη αρχή και τέλος· το τέλος πρέπει να είναι μετά την αρχή.",
+      lnkErr: "Η αποθήκευση της σύνδεσης απέτυχε: {e}",
+      lnkNoAV: "Πρόσθεσε ήχο ή βίντεο στην ιστορία για να συνδέσεις εικόνες.",
+      uploadDone: "Η ιστορία ανέβηκε. Θα τη δουν οι σχολιαστές και θα δημοσιευτεί μετά τον σχολιασμό."
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -798,10 +873,10 @@
       authNeedFields: "Enter an email and a password (at least 6 characters).",
       checkEmail: "We sent you a confirmation email. Confirm your account, then log in.",
       signedInAs: "Signed in: {n}",
-      publish: "Publish story",
-      publishing: "Publishing… ({i}/{n})",
+      publish: "Upload story",
+      publishing: "Uploading… ({i}/{n})",
       publishError: "Publishing failed: {e}",
-      published: "Your story was published.",
+      published: "Your story was uploaded.",
       loginToAdd: "Log in to add stories.",
       loadStoriesError: "Couldn't load community stories.",
       byAuthor: "By {n}",
@@ -879,7 +954,41 @@
       imgClipDone: "{n} suggestions added. Review them above.",
       imgClipErr: "Suggestions failed: {e}",
       imgSuggested: "suggested",
-      imgDepicts: "In this image:"
+      imgDepicts: "In this image:",
+      role_facilitator: "facilitator",
+      role_annotator: "annotator",
+      statusDraft: "Draft: not public yet",
+      statusPublished: "Published",
+      pubStory: "Publish for everyone",
+      unpubStory: "Unpublish",
+      pubError: "Changing the status failed: {e}",
+      listMy: "My stories",
+      listAll: "All stories",
+      listTitle: "Stories",
+      listFilter: "Show",
+      listAllF: "All",
+      listDraftF: "Drafts",
+      listPubF: "Published",
+      listEmpty: "No stories.",
+      imgTimeline: "Images tied to the story",
+      imgPlayPart: "▶ from {t}",
+      imgNow: "Now showing",
+      trPlay: "Play from {t}",
+      lnkTitle: "Link this image to a moment of the story",
+      lnkMedia: "Audio or video",
+      lnkLine: "Or pick a transcript line",
+      lnkStart: "Start (mm:ss)",
+      lnkEnd: "End (mm:ss)",
+      lnkSetStart: "Start = current time",
+      lnkSetEnd: "End = current time",
+      lnkAdd: "Add link",
+      lnkNone: "No links yet.",
+      lnkPlay: "Play",
+      lnkDelete: "Delete link",
+      lnkBad: "Enter a valid start and end; the end must be after the start.",
+      lnkErr: "Saving the link failed: {e}",
+      lnkNoAV: "Add an audio or video to this story to link images to it.",
+      uploadDone: "Story uploaded. Annotators will review it and it will be published after annotation."
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -943,10 +1052,10 @@
       authNeedFields: "Saisissez un e-mail et un mot de passe (6 caractères minimum).",
       checkEmail: "Nous vous avons envoyé un e-mail de confirmation. Confirmez votre compte, puis connectez-vous.",
       signedInAs: "Connecté : {n}",
-      publish: "Publier l'histoire",
-      publishing: "Publication… ({i}/{n})",
+      publish: "Envoyer l'histoire",
+      publishing: "Envoi… ({i}/{n})",
       publishError: "Échec de la publication : {e}",
-      published: "Votre histoire a été publiée.",
+      published: "Votre histoire a été envoyée.",
       loginToAdd: "Connectez-vous pour ajouter des histoires.",
       loadStoriesError: "Impossible de charger les histoires des utilisateurs.",
       byAuthor: "Par {n}",
@@ -1024,7 +1133,41 @@
       imgClipDone: "{n} suggestions ajoutées. Vérifiez-les ci-dessus.",
       imgClipErr: "Échec des suggestions : {e}",
       imgSuggested: "suggestion",
-      imgDepicts: "Dans cette image :"
+      imgDepicts: "Dans cette image :",
+      role_facilitator: "facilitateur",
+      role_annotator: "annotateur",
+      statusDraft: "Brouillon : pas encore public",
+      statusPublished: "Publiée",
+      pubStory: "Publier pour tous",
+      unpubStory: "Dépublier",
+      pubError: "Échec du changement de statut : {e}",
+      listMy: "Mes histoires",
+      listAll: "Toutes les histoires",
+      listTitle: "Histoires",
+      listFilter: "Afficher",
+      listAllF: "Toutes",
+      listDraftF: "Brouillons",
+      listPubF: "Publiées",
+      listEmpty: "Aucune histoire.",
+      imgTimeline: "Images liées au récit",
+      imgPlayPart: "▶ à partir de {t}",
+      imgNow: "En ce moment",
+      trPlay: "Lire à partir de {t}",
+      lnkTitle: "Lier cette image à un moment du récit",
+      lnkMedia: "Audio ou vidéo",
+      lnkLine: "Ou choisissez une ligne de transcription",
+      lnkStart: "Début (mm:ss)",
+      lnkEnd: "Fin (mm:ss)",
+      lnkSetStart: "Début = temps actuel",
+      lnkSetEnd: "Fin = temps actuel",
+      lnkAdd: "Ajouter le lien",
+      lnkNone: "Aucun lien pour le moment.",
+      lnkPlay: "Lire",
+      lnkDelete: "Supprimer le lien",
+      lnkBad: "Saisissez un début et une fin valides ; la fin doit suivre le début.",
+      lnkErr: "Échec de l'enregistrement du lien : {e}",
+      lnkNoAV: "Ajoutez un audio ou une vidéo à cette histoire pour y lier des images.",
+      uploadDone: "Histoire envoyée. Les annotateurs la reverront et elle sera publiée après annotation."
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -1088,10 +1231,10 @@
       authNeedFields: "Inserisci email e password (almeno 6 caratteri).",
       checkEmail: "Ti abbiamo inviato un'email di conferma. Conferma l'account, poi accedi.",
       signedInAs: "Connesso: {n}",
-      publish: "Pubblica la storia",
-      publishing: "Pubblicazione… ({i}/{n})",
+      publish: "Carica la storia",
+      publishing: "Caricamento… ({i}/{n})",
       publishError: "Pubblicazione non riuscita: {e}",
-      published: "La tua storia è stata pubblicata.",
+      published: "La tua storia è stata caricata.",
       loginToAdd: "Accedi per aggiungere storie.",
       loadStoriesError: "Impossibile caricare le storie degli utenti.",
       byAuthor: "Di {n}",
@@ -1169,7 +1312,41 @@
       imgClipDone: "Aggiunti {n} suggerimenti. Controllali sopra.",
       imgClipErr: "Suggerimenti non riusciti: {e}",
       imgSuggested: "suggerito",
-      imgDepicts: "In questa immagine:"
+      imgDepicts: "In questa immagine:",
+      role_facilitator: "facilitatore",
+      role_annotator: "annotatore",
+      statusDraft: "Bozza: non ancora pubblica",
+      statusPublished: "Pubblicata",
+      pubStory: "Pubblica per tutti",
+      unpubStory: "Ritira dalla pubblicazione",
+      pubError: "Cambio di stato non riuscito: {e}",
+      listMy: "Le mie storie",
+      listAll: "Tutte le storie",
+      listTitle: "Storie",
+      listFilter: "Mostra",
+      listAllF: "Tutte",
+      listDraftF: "Bozze",
+      listPubF: "Pubblicate",
+      listEmpty: "Nessuna storia.",
+      imgTimeline: "Immagini legate al racconto",
+      imgPlayPart: "▶ da {t}",
+      imgNow: "In questo momento",
+      trPlay: "Riproduci da {t}",
+      lnkTitle: "Collega questa immagine a un momento del racconto",
+      lnkMedia: "Audio o video",
+      lnkLine: "Oppure scegli una riga di trascrizione",
+      lnkStart: "Inizio (mm:ss)",
+      lnkEnd: "Fine (mm:ss)",
+      lnkSetStart: "Inizio = tempo attuale",
+      lnkSetEnd: "Fine = tempo attuale",
+      lnkAdd: "Aggiungi collegamento",
+      lnkNone: "Nessun collegamento.",
+      lnkPlay: "Riproduci",
+      lnkDelete: "Elimina collegamento",
+      lnkBad: "Inserisci un inizio e una fine validi; la fine deve seguire l'inizio.",
+      lnkErr: "Salvataggio del collegamento non riuscito: {e}",
+      lnkNoAV: "Aggiungi un audio o un video alla storia per collegarvi le immagini.",
+      uploadDone: "Storia caricata. Gli annotatori la esamineranno e sarà pubblicata dopo l'annotazione."
     }
   };
 
@@ -1371,21 +1548,27 @@
     var box = $('sheetMedia');
     box.querySelectorAll('video, audio').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); });
     box.innerHTML = '';
+    $('sheetImages').innerHTML = '';
+    sheetK = null; currentLinks = [];
   }
   function renderSheetMedia(s) {
     clearSheetMedia();
     (s.media || []).forEach(function (m, i) {
+      if (m.kind === 'image') return;
       var el;
-      if (m.kind === 'image') { el = document.createElement('img'); el.alt = tr_(s) + ' ' + (i + 1); el.loading = 'lazy'; }
-      else if (m.kind === 'video') { el = document.createElement('video'); el.controls = true; el.playsInline = true; el.preload = 'metadata'; el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1)); }
-      else { el = document.createElement('audio'); el.controls = true; el.preload = 'metadata'; el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1)); }
+      if (m.kind === 'video') { el = document.createElement('video'); el.controls = true; el.playsInline = true; el.preload = 'metadata'; }
+      else { el = document.createElement('audio'); el.controls = true; el.preload = 'metadata'; }
+      el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1));
+      el.dataset.mediaId = m.id || '';
       el.src = m.url;
-      if (m.kind === 'image') {
-        var wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.dataset.mediaId = m.id || '';
-        var frame = document.createElement('div'); frame.className = 'img-frame';
-        frame.appendChild(el); wrap.appendChild(frame); $('sheetMedia').appendChild(wrap);
-      } else { $('sheetMedia').appendChild(el); }
+      el.addEventListener('timeupdate', function () { updateStage(el); });
+      el.addEventListener('seeked', function () { updateStage(el); });
+      el.addEventListener('play', function () {
+        $('sheetMedia').querySelectorAll('audio, video').forEach(function (o) { if (o !== el) o.pause(); });
+      });
+      $('sheetMedia').appendChild(el);
     });
+    renderImages(s, null);
   }
   function tr_(s) { return st(s).title; }
   $('closeInfoBtn').addEventListener('click', function () { clearSheetMedia(); currentSheetStory = null; closeDialog('infoSheet'); });
@@ -1434,7 +1617,7 @@
       var tr = st(s);
       el.querySelector('.closest-badge').textContent = t('closest');
       el.querySelector('.mt').textContent = tr.title;
-      el.querySelector('.m-sub').textContent = tr.sub;
+      el.querySelector('.m-sub').textContent = tr.sub + (s.status === 'draft' ? ' · ' + t('statusDraft') : '');
       el.querySelector('.m-dist').textContent = s.d != null ? t('distance', { d: fmtDist(s.d) }) : t('calculating');
       el._label = null;
     });
@@ -1626,7 +1809,7 @@
   // ==========================================
   var BUCKET = 'story-media';
   var CFG = window.WM_CONFIG || {};
-  var sb = null, currentUser = null;
+  var sb = null, currentUser = null, currentRole = 'facilitator';
   try {
     if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) {
       sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
@@ -1642,9 +1825,23 @@
     $('addBtn').classList.toggle('on', !!(currentUser && me));
   }
 
+  function isAnnotator() { return !!(currentUser && currentRole === 'annotator'); }
+
+  async function loadRole() {
+    currentRole = 'facilitator';
+    if (!sb || !currentUser) return;
+    try {
+      var r = await sb.from('profiles').select('role').eq('user_id', currentUser.id).maybeSingle();
+      if (!r.error && r.data && r.data.role) currentRole = r.data.role;
+    } catch (e) { /* χωρίς πίνακα ρόλων: συμπεριφέρεται ως διευκολυντής */ }
+  }
+
   function renderAuth() {
-    var label = currentUser ? t('logout') + ' · ' + userName(currentUser) : t('login');
+    var label = currentUser ? t('logout') + ' · ' + userName(currentUser) + ' (' + t('role_' + currentRole) + ')' : t('login');
     ['authBtn', 'authBtnGate'].forEach(function (id) { var b = $(id); b.hidden = !sb; b.textContent = label; });
+    var lb = $('listBtn');
+    lb.hidden = !currentUser;
+    lb.textContent = t(isAnnotator() ? 'listAll' : 'listMy');
     updateAddBtn();
   }
   onLangChange(function () { renderAuth(); renderAuthSheet(); });
@@ -1703,8 +1900,12 @@
 
   if (sb) {
     sb.auth.onAuthStateChange(function (_event, session) {
+      var before = currentUser ? currentUser.id : null;
       currentUser = session ? session.user : null;
+      var changed = (currentUser ? currentUser.id : null) !== before;
       renderAuth();
+      // Η ορατότητα των ιστοριών εξαρτάται από τον χρήστη/ρόλο: ξαναφόρτωση όταν αλλάζει ο χρήστης.
+      loadRole().then(function () { renderAuth(); if (changed) reloadStories(); });
     });
   }
   renderAuth();
@@ -1754,7 +1955,7 @@
   function storyFromRow(r) {
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
-      id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
+      id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl };
@@ -1762,10 +1963,18 @@
     };
   }
 
+  function reloadStories() {
+    if (currentSheetStory) { clearSheetMedia(); currentSheetStory = null; closeDialog('infoSheet', true); closeDialog('annSheet', true); }
+    STORIES.filter(function (x) { return x.dbId; }).forEach(removeStoryRuntime);
+    return loadRemoteStories();
+  }
+
   async function loadRemoteStories() {
     if (!sb) return;
     try {
-      var r = await sb.from('stories').select('id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)').order('created_at');
+      var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
+      var r = await sb.from('stories').select(cols + ',status').order('created_at');
+      if (r.error) r = await sb.from('stories').select(cols).order('created_at');   // βάση χωρίς στήλη status
       if (r.error) throw r.error;
       r.data.forEach(function (row) { addStoryRuntime(storyFromRow(row)); });
     } catch (e) {
@@ -1802,7 +2011,7 @@
         if (uploaded.length) { try { await sb.storage.from(BUCKET).remove(uploaded); } catch (_) {} }
         throw e;
       }
-      return storyFromRow({ id: sid, user_id: uid, title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
+      return storyFromRow({ id: sid, user_id: uid, status: 'draft', title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
         story_media: rows.map(function (r) { return { id: r.id, kind: r.kind, path: r.path, position: r.position }; }) });
     }
   };
@@ -1826,12 +2035,13 @@
     if (!all) aq = aq.eq('status', 'approved');
     var res = await Promise.all([
       aq,
-      sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids)
+      sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids),
+      sb.from('media_links').select('id,story_id,image_media_id,av_media_id,start_s,end_s').eq('story_id', s.dbId).order('start_s')
     ]);
     if (res[0].error) throw res[0].error;
     if (res[1].error) throw res[1].error;
     res[1].data.forEach(function (tr) { tr.transcript_segments.sort(function (a, b) { return a.idx - b.idx; }); });
-    return { annotations: res[0].data, transcripts: res[1].data };
+    return { annotations: res[0].data, transcripts: res[1].data, links: res[2].error ? [] : res[2].data };
   }
 
   function termLink(a) {
@@ -1843,6 +2053,61 @@
     return [link, tag];
   }
 
+  function renderPublishUI(s) {
+    var visible = !!(s.dbId && (isOwner(s) || isAnnotator()));
+    $('sheetStatus').textContent = visible ? t(s.status === 'published' ? 'statusPublished' : 'statusDraft') : '';
+    var pb = $('publishBtn');
+    pb.hidden = !(isAnnotator() && s.dbId);
+    pb.textContent = t(s.status === 'published' ? 'unpubStory' : 'pubStory');
+  }
+
+  $('publishBtn').onclick = async function () {
+    var s = currentSheetStory;
+    if (!sb || !s || !isAnnotator()) return;
+    var next = s.status === 'published' ? 'draft' : 'published', b = this;
+    b.disabled = true;
+    try {
+      var r = await sb.from('stories').update({ status: next }).eq('id', s.dbId).select('id');
+      if (r.error) throw r.error;
+      if (!r.data || !r.data.length) throw new Error('not allowed');
+      s.status = next;
+      renderPublishUI(s); refreshMarkerTexts();
+      if ($('listSheet').classList.contains('on')) renderList();
+    } catch (e) { alert(t('pubError', { e: e.message || e })); }
+    finally { b.disabled = false; }
+  };
+
+  // ---- Λίστα ιστοριών: ο διευκολυντής βλέπει τις δικές του, ο σχολιαστής όλες (χωρίς περιορισμό απόστασης) ----
+  function renderList() {
+    var ann = isAnnotator();
+    $('listTitle').textContent = t(ann ? 'listAll' : 'listMy');
+    $('listFilterWrap').hidden = !ann;
+    var f = $('listFilter'), cur = f.value || 'all';
+    f.innerHTML = '';
+    [['all', 'listAllF'], ['draft', 'listDraftF'], ['published', 'listPubF']].forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = t(o[1]); f.appendChild(op); });
+    f.value = cur;
+    var body = $('listBody'); body.innerHTML = '';
+    var items = STORIES.filter(function (x) { return x.dbId && (ann || (currentUser && x.ownerId === currentUser.id)); })
+      .filter(function (x) { return !ann || f.value === 'all' || x.status === f.value; }).reverse();
+    if (!items.length) { var p = document.createElement('p'); p.textContent = t('listEmpty'); body.appendChild(p); return; }
+    items.forEach(function (x) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item';
+      var ti = document.createElement('span'); ti.className = 't'; ti.textContent = st(x).title;
+      var me_ = document.createElement('span'); me_.className = 'm';
+      var chip = document.createElement('span'); chip.className = x.status === 'published' ? 'chip-pub' : 'chip-draft'; chip.textContent = t(x.status === 'published' ? 'statusPublished' : 'statusDraft');
+      me_.appendChild(chip);
+      me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length));
+      b.appendChild(ti); b.appendChild(me_);
+      b.onclick = function () { closeDialog('listSheet', true); openStorySheet(x); };
+      body.appendChild(b);
+    });
+  }
+  $('listBtn').onclick = function () { renderList(); openDialog('listSheet'); };
+  $('listFilter').onchange = renderList;
+  $('listCloseBtn').onclick = function () { closeDialog('listSheet'); };
+  escHandlers.listSheet = function () { closeDialog('listSheet'); };
+  onLangChange(function () { if ($('listSheet').classList.contains('on')) renderList(); });
+
   function hasRegion(a) { return a.region_x != null && a.region_w > 0 && a.region_h > 0; }
   function regionBox(a, extraClass) {
     var d = document.createElement('div'); d.className = 'region-box' + (extraClass ? ' ' + extraClass : '');
@@ -1850,43 +2115,129 @@
     d.style.width = (a.region_w * 100) + '%'; d.style.height = (a.region_h * 100) + '%';
     d.title = a.label; return d;
   }
-  // Εμφάνιση εγκεκριμένων όρων και περιοχών κάτω από κάθε εικόνα στο φύλλο ιστορίας
-  function renderImageTerms(s, k) {
-    s.media.filter(function (m) { return m.kind === 'image' && m.id; }).forEach(function (m) {
-      var wrap = $('sheetMedia').querySelector('.img-wrap[data-media-id="' + m.id + '"]');
-      if (!wrap) return;
-      var mine = k.annotations.filter(function (a) { return a.media_id === m.id && a.status === 'approved'; });
-      if (!mine.length) return;
-      var frame = wrap.querySelector('.img-frame');
-      mine.filter(hasRegion).forEach(function (a) { frame.appendChild(regionBox(a)); });
+  // ---------- Εικόνες, σύνδεση με χρόνο αφήγησης και συγχρονισμός αναπαραγωγής ----------
+  var sheetK = null, currentLinks = [];
+
+  function annsForImage(mid) {
+    return sheetK ? sheetK.annotations.filter(function (a) { return a.media_id === mid && a.status === 'approved'; }) : [];
+  }
+
+  function figureFor(s, m, n) {
+    var wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.dataset.mediaId = m.id || '';
+    var frame = document.createElement('div'); frame.className = 'img-frame';
+    var img = document.createElement('img'); img.alt = tr_(s) + ' ' + n; img.loading = 'lazy'; img.src = m.url;
+    frame.appendChild(img);
+    var mine = annsForImage(m.id);
+    mine.filter(hasRegion).forEach(function (a) { frame.appendChild(regionBox(a)); });
+    wrap.appendChild(frame);
+    if (mine.length) {
       var info = document.createElement('div'); info.className = 'img-terms';
       info.appendChild(document.createTextNode(t('imgDepicts') + ' '));
       var ul = document.createElement('ul'); ul.className = 'term-list';
-      mine.forEach(function (a) { var li = document.createElement('li'); termLink(a).forEach(function (n) { li.appendChild(n); }); ul.appendChild(li); });
+      mine.forEach(function (a) { var li = document.createElement('li'); termLink(a).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
       info.appendChild(ul); wrap.appendChild(info);
+    }
+    return wrap;
+  }
+
+  function mediaById(s, id) { return s.media.filter(function (m) { return m.id === id; })[0]; }
+
+  function seekPlay(avId, sec) {
+    var el = $('sheetMedia').querySelector('[data-media-id="' + avId + '"]');
+    if (!el) return;
+    try { el.currentTime = sec; } catch (e) {}
+    var p = el.play(); if (p && p.catch) p.catch(function () {});
+    try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+    updateStage(el);
+  }
+
+  // Εμφανίζει στη σκηνή τις εικόνες που συνδέονται με την τρέχουσα στιγμή του ήχου/βίντεο
+  function updateStage(avEl) {
+    var stage = $('syncStage'), s = currentSheetStory;
+    if (!stage || !s) return;
+    var now = avEl.currentTime, avId = avEl.dataset.mediaId;
+    var active = currentLinks.filter(function (l) { return l.av_media_id === avId && now >= l.start_s && now < l.end_s; });
+    var key = active.map(function (l) { return l.id; }).join(',');
+    document.querySelectorAll('#sheetImages .link-card').forEach(function (c) { c.classList.toggle('active', active.some(function (l) { return l.id === c.dataset.linkId; })); });
+    document.querySelectorAll('#sheetKnow .tr-line').forEach(function (b) {
+      b.classList.toggle('now', b.dataset.mediaId === avId && now >= +b.dataset.start && now < +b.dataset.end);
     });
+    if (stage.dataset.key === key) return;
+    stage.dataset.key = key; stage.innerHTML = '';
+    if (!active.length) { stage.hidden = true; return; }
+    stage.hidden = false;
+    var h = document.createElement('h3'); h.textContent = t('imgNow'); stage.appendChild(h);
+    active.forEach(function (l) {
+      var im = mediaById(s, l.image_media_id);
+      if (im) stage.appendChild(figureFor(s, im, s.media.filter(function (x) { return x.kind === 'image'; }).indexOf(im) + 1));
+    });
+  }
+
+  function renderImages(s, k) {
+    var box = $('sheetImages');
+    box.innerHTML = '';
+    sheetK = k || null;
+    currentLinks = k ? k.links : [];
+    var stage = document.createElement('div'); stage.id = 'syncStage'; stage.className = 'sync-stage'; stage.hidden = true;
+    stage.setAttribute('aria-live', 'polite'); box.appendChild(stage);
+    var images = s.media.filter(function (m) { return m.kind === 'image'; });
+    var linked = {};
+    currentLinks.forEach(function (l) { linked[l.image_media_id] = true; });
+    if (currentLinks.length) {
+      var h = document.createElement('h3'); h.className = 'link-strip-h'; h.textContent = t('imgTimeline'); box.appendChild(h);
+      var ul = document.createElement('ul'); ul.className = 'link-strip';
+      currentLinks.slice().sort(function (a, b) { return a.start_s - b.start_s; }).forEach(function (l) {
+        var im = mediaById(s, l.image_media_id); if (!im) return;
+        var li = document.createElement('li');
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'link-card'; b.dataset.linkId = l.id;
+        b.setAttribute('aria-label', t('imgPlayPart', { t: mmss(l.start_s) }) + ' ' + tr_(s));
+        var th = document.createElement('img'); th.src = im.url; th.alt = ''; b.appendChild(th);
+        b.appendChild(document.createTextNode(t('imgPlayPart', { t: mmss(l.start_s) })));
+        b.onclick = function () { seekPlay(l.av_media_id, l.start_s); };
+        li.appendChild(b); ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+    images.forEach(function (m, i) { if (!linked[m.id]) box.appendChild(figureFor(s, m, i + 1)); });
   }
 
   function renderKnowledge(s) {
     var box = $('sheetKnow');
     box.innerHTML = '';
     currentSheetStory = s;
-    var owner = isOwner(s);
+    var owner = isOwner(s), ann = isAnnotator();
     var annotatable = !!(s.media && s.media.some(function (m) { return m.id; }));
-    $('annotateBtn').hidden = !(owner && annotatable);
+    $('annotateBtn').hidden = !(ann && annotatable);
     $('deleteBtn').hidden = !(owner && hasDbMedia(s));
     $('exportBtn').hidden = !hasDbMedia(s);
-    $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden && $('deleteBtn').hidden;
+    renderPublishUI(s);
+    $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden && $('deleteBtn').hidden && $('publishBtn').hidden;
     if (!hasDbMedia(s)) return;
     fetchKnowledge(s, false).then(function (k) {
       if (currentSheetStory !== s) return;
+      renderImages(s, k);
       k.transcripts.filter(function (tr) { return tr.status === 'done' && tr.text; }).forEach(function (tr) {
         var d = document.createElement('details');
-        var sm = document.createElement('summary'); sm.textContent = t('annTranscript');
-        var pre = document.createElement('pre'); pre.textContent = tr.text;
-        d.appendChild(sm); d.appendChild(pre); box.appendChild(d);
+        var sm = document.createElement('summary'); sm.textContent = t('annTranscript'); d.appendChild(sm);
+        var timed = tr.transcript_segments.filter(function (g) { return g.end_s > g.start_s; });
+        if (timed.length) {
+          var ul = document.createElement('ul'); ul.className = 'tr-lines';
+          tr.transcript_segments.forEach(function (g) {
+            var li = document.createElement('li');
+            if (g.end_s > g.start_s) {
+              var b = document.createElement('button'); b.type = 'button'; b.className = 'tr-line'; b.dataset.mediaId = tr.media_id; b.dataset.start = g.start_s; b.dataset.end = g.end_s;
+              b.setAttribute('aria-label', t('trPlay', { t: mmss(g.start_s) }) + ': ' + g.text);
+              var w = document.createElement('span'); w.className = 'when'; w.textContent = mmss(g.start_s);
+              b.appendChild(w); b.appendChild(document.createTextNode(g.text));
+              b.onclick = function () { seekPlay(tr.media_id, g.start_s); };
+              li.appendChild(b);
+            } else { li.textContent = g.text; }
+            ul.appendChild(li);
+          });
+          d.appendChild(ul);
+        } else { var pre = document.createElement('pre'); pre.textContent = tr.text; d.appendChild(pre); }
+        box.appendChild(d);
       });
-      renderImageTerms(s, k);
       if (k.annotations.length) {
         var h = document.createElement('h3'); h.textContent = t('annTerms'); box.appendChild(h);
         var ul = document.createElement('ul'); ul.className = 'term-list';
@@ -2320,6 +2671,7 @@
         }
         filled = false;
         await reload();
+        notifyAnn();
         status.textContent = msg;
       } catch (e) {
         status.textContent = t('annFailed', { e: e.message || e });
@@ -2401,7 +2753,7 @@
     var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
     var clipBtn = document.createElement('button'); clipBtn.type = 'button'; clipBtn.className = 'btn-secondary btn-wide'; clipBtn.textContent = t('imgClip'); sec.appendChild(clipBtn);
 
-    var terms = [], anns = [], drawFor = null;
+    var terms = [], anns = [], drawFor = null, links = [], transcripts = [], selAvId = null, lnkInit = false;
 
     function paint() {
       layer.innerHTML = '';
@@ -2498,9 +2850,109 @@
         seen[a.term_uri] = 1; return true;
       });
       anns = k.annotations.filter(function (a) { return a.media_id === m.id; });
+      links = k.links.filter(function (l) { return l.image_media_id === m.id; });
+      transcripts = k.transcripts;
       paint();
+      if (!lnkInit) { lnkInit = true; paintLinks(); } else refreshLines();
     }
     annListeners.push(function () { return reload(); });
+
+    // --- Σύνδεση της εικόνας με στιγμή ήχου/βίντεο (για τον χρήστη που βλέπει την ιστορία) ---
+    var lnkBox = document.createElement('div'); lnkBox.className = 'lnk-box'; sec.appendChild(lnkBox);
+    var avs = s.media.filter(function (x) { return x.kind !== 'image' && x.id; });
+    var lineSel = null, playerEl = null, startIn = null, endIn = null;
+
+    function fmtT(sec) { var mm = Math.floor(sec / 60), r = sec - mm * 60; return String(mm).padStart(2, '0') + ':' + (r < 10 ? '0' : '') + r.toFixed(1); }
+    function parseTime(x) {
+      x = String(x).trim().replace(',', '.');
+      if (/^\d+(\.\d+)?$/.test(x)) return parseFloat(x);
+      var a = x.match(/^(\d+):(\d{1,2}(?:\.\d+)?)$/); if (a) return +a[1] * 60 + parseFloat(a[2]);
+      var b = x.match(/^(\d+):(\d{1,2}):(\d{1,2}(?:\.\d+)?)$/); if (b) return +b[1] * 3600 + +b[2] * 60 + parseFloat(b[3]);
+      return NaN;
+    }
+    function avLabel(id) { var i = avs.findIndex(function (x) { return x.id === id; }); return i < 0 ? '' : t('type_' + avs[i].kind) + ' ' + (i + 1); }
+
+    function refreshLines() {
+      if (!lineSel) return;
+      var keep = lineSel.value; lineSel.innerHTML = '';
+      var none = document.createElement('option'); none.value = ''; none.textContent = '—'; lineSel.appendChild(none);
+      var tr = transcripts.filter(function (x) { return x.media_id === selAvId; })[0];
+      ((tr && tr.transcript_segments) || []).filter(function (g) { return g.end_s > g.start_s; }).forEach(function (g) {
+        var o = document.createElement('option'); o.value = g.idx + ''; o.dataset.start = g.start_s; o.dataset.end = g.end_s;
+        o.textContent = '[' + mmss(g.start_s) + '-' + mmss(g.end_s) + '] ' + g.text.slice(0, 60); lineSel.appendChild(o);
+      });
+      lineSel.value = keep;
+    }
+
+    function paintLinks() {
+      lnkBox.innerHTML = '';
+      var h3 = document.createElement('h3'); h3.textContent = t('lnkTitle'); lnkBox.appendChild(h3);
+      if (!avs.length) { var np = document.createElement('p'); np.textContent = t('lnkNoAV'); lnkBox.appendChild(np); return; }
+      if (!selAvId || !avs.some(function (x) { return x.id === selAvId; })) selAvId = avs[0].id;
+      var uid = 'lnk-' + m.id;
+      var grp = document.createElement('div'); grp.className = 'input-group';
+      var lb = document.createElement('label'); lb.htmlFor = uid + '-av'; lb.textContent = t('lnkMedia');
+      var avSel = document.createElement('select'); avSel.id = uid + '-av'; avSel.className = 'lang-select';
+      avs.forEach(function (x, i) { var o = document.createElement('option'); o.value = x.id; o.textContent = t('type_' + x.kind) + ' ' + (i + 1); avSel.appendChild(o); });
+      avSel.value = selAvId; grp.appendChild(lb); grp.appendChild(avSel); lnkBox.appendChild(grp);
+
+      var cur = avs.filter(function (x) { return x.id === selAvId; })[0];
+      playerEl = document.createElement(cur.kind === 'video' ? 'video' : 'audio');
+      playerEl.controls = true; playerEl.preload = 'metadata'; playerEl.src = cur.url; playerEl.setAttribute('aria-label', avLabel(selAvId));
+      lnkBox.appendChild(playerEl);
+      avSel.onchange = function () { selAvId = avSel.value; paintLinks(); };
+
+      var g2 = document.createElement('div'); g2.className = 'input-group';
+      var lb2 = document.createElement('label'); lb2.htmlFor = uid + '-line'; lb2.textContent = t('lnkLine');
+      lineSel = document.createElement('select'); lineSel.id = uid + '-line'; lineSel.className = 'lang-select';
+      g2.appendChild(lb2); g2.appendChild(lineSel); lnkBox.appendChild(g2); refreshLines();
+
+      var row = document.createElement('div'); row.className = 'ann-row';
+      var l1 = document.createElement('label'); l1.htmlFor = uid + '-s'; l1.textContent = t('lnkStart');
+      startIn = document.createElement('input'); startIn.type = 'text'; startIn.id = uid + '-s'; startIn.className = 'time-in'; startIn.inputMode = 'decimal';
+      var l2 = document.createElement('label'); l2.htmlFor = uid + '-e'; l2.textContent = t('lnkEnd');
+      endIn = document.createElement('input'); endIn.type = 'text'; endIn.id = uid + '-e'; endIn.className = 'time-in'; endIn.inputMode = 'decimal';
+      row.appendChild(l1); row.appendChild(startIn); row.appendChild(l2); row.appendChild(endIn); lnkBox.appendChild(row);
+      lineSel.onchange = function () {
+        var o = lineSel.selectedOptions[0];
+        if (o && o.dataset.start != null && o.value !== '') { startIn.value = fmtT(+o.dataset.start); endIn.value = fmtT(+o.dataset.end); playerEl.currentTime = +o.dataset.start; }
+      };
+
+      var row2 = document.createElement('div'); row2.className = 'ann-row';
+      function lb_(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.onclick = fn; row2.appendChild(b); return b; }
+      lb_(t('lnkSetStart'), function () { startIn.value = fmtT(playerEl.currentTime || 0); });
+      lb_(t('lnkSetEnd'), function () { endIn.value = fmtT(playerEl.currentTime || 0); });
+      var add = lb_(t('lnkAdd'), async function () {
+        var a = parseTime(startIn.value), z = parseTime(endIn.value);
+        if (!(a >= 0) || !(z > a)) { alert(t('lnkBad')); return; }
+        add.disabled = true;
+        try {
+          var r = await sb.from('media_links').insert({ story_id: s.dbId, image_media_id: m.id, av_media_id: selAvId, start_s: a, end_s: z })
+            .select('id,story_id,image_media_id,av_media_id,start_s,end_s').single();
+          if (r.error) throw r.error;
+          links.push(r.data); paintLinks();
+        } catch (e) { alert(t('lnkErr', { e: e.message || e })); add.disabled = false; }
+      });
+      lnkBox.appendChild(row2);
+
+      var ul = document.createElement('ul'); ul.className = 'tr-lines';
+      if (!links.length) { var nl = document.createElement('li'); nl.textContent = t('lnkNone'); ul.appendChild(nl); }
+      links.forEach(function (l) {
+        var li = document.createElement('li'); li.className = 'ann-row';
+        var tx = document.createElement('span'); tx.textContent = avLabel(l.av_media_id) + ' · ' + mmss(l.start_s) + '–' + mmss(l.end_s); li.appendChild(tx);
+        var pl = document.createElement('button'); pl.type = 'button'; pl.textContent = t('lnkPlay');
+        pl.onclick = function () { if (l.av_media_id !== selAvId) { selAvId = l.av_media_id; paintLinks(); } playerEl.currentTime = l.start_s; var pr = playerEl.play(); if (pr && pr.catch) pr.catch(function () {}); };
+        var dl = document.createElement('button'); dl.type = 'button'; dl.textContent = t('lnkDelete');
+        dl.onclick = async function () {
+          dl.disabled = true;
+          var r = await sb.from('media_links').delete().eq('id', l.id);
+          if (r.error) { alert(t('lnkErr', { e: r.error.message })); dl.disabled = false; return; }
+          links.splice(links.indexOf(l), 1); paintLinks();
+        };
+        li.appendChild(pl); li.appendChild(dl); ul.appendChild(li);
+      });
+      lnkBox.appendChild(ul);
+    }
 
     clipBtn.onclick = async function () {
       if (!terms.length) { status.textContent = t('imgNoTerms'); return; }
@@ -2518,7 +2970,7 @@
 
   $('annotateBtn').onclick = function () {
     var s = currentSheetStory;
-    if (!s || !isOwner(s)) return;
+    if (!s || !isAnnotator()) return;
     var body = $('annBody'); body.innerHTML = '';
     annListeners = [];
     var av = s.media.filter(function (m) { return m.kind !== 'image' && m.id; });
@@ -2593,6 +3045,16 @@
           'oa:hasSource': { '@id': m.url },
           'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + a.start_s + ',' + a.end_s }
         } : { 'oa:hasSource': { '@id': m.url } }
+      });
+    });
+    (k.links || []).forEach(function (l) {
+      var im = mediaById(s, l.image_media_id), av = mediaById(s, l.av_media_id);
+      if (!im || !av) return;
+      graph.push({
+        '@id': sid + '#link-' + l.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:linking' },
+        'oa:hasBody': { '@id': im.url },
+        'oa:hasTarget': { 'oa:hasSource': { '@id': av.url },
+          'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + l.start_s + ',' + l.end_s } }
       });
     });
     if (!narr['hdt:HP10_tells_about'].length) delete narr['hdt:HP10_tells_about'];
@@ -3724,6 +4186,7 @@
       });
       addStoryRuntime(story);
       announce(t('published'));
+      alert(t('uploadDone'));
       finishStoryFlow();
     } catch (e) {
       $('publishError').textContent = t('publishError', { e: (e && e.message) ? e.message : e });
