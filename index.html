@@ -255,6 +255,7 @@
   .tl-item.active { outline: 2px solid var(--petrol); opacity: 1; }
   .tl-head { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--petrol); pointer-events: none; }
   .now-terms { margin-top: 8px; }
+  .debug-box { white-space: pre-wrap; font-size: 12px; background: #fff7e0; border: 1px dashed var(--amber); border-radius: 10px; padding: 8px; color: var(--ink); }
   .tl-terms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .tl-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; min-height: 36px; border-radius: 999px; background: var(--sky-soft); color: var(--petrol); font-weight: 600; font-size: 14px; border: 2px solid transparent; }
   .tl-chip b { color: var(--amber-text); font-size: 12px; }
@@ -2790,6 +2791,18 @@
       if (k.problems && k.problems.length) { try { console.warn('Walking Memory:', k.problems); } catch (e) {} loadNotice(k.problems[0]); }
       renderImages(s, k);
       attachSubtitles(s, k);
+      // Διάγνωση: προσθέστε ?debug=1 στη διεύθυνση της σελίδας για να δείτε τι ακριβώς φόρτωσε η ιστορία
+      if (/[?&]debug=1/.test(location.search)) {
+        var av = {}; s.media.forEach(function (m) { av[m.id] = m.kind; });
+        var tm = k.annotations.filter(function (a) { return av[a.media_id] && av[a.media_id] !== 'image' && hasRange(a); }).length;
+        var dg = document.createElement('pre'); dg.className = 'debug-box';
+        dg.textContent = 'story ' + s.dbId + ' · status ' + s.status + ' · user ' + (currentUser ? currentUser.id.slice(0, 8) + ' (' + currentRole + ')' : 'not logged in') + '\n' +
+          'media: ' + s.media.map(function (m) { return m.kind + ' ' + String(m.id).slice(0, 8); }).join(', ') + '\n' +
+          'annotations received: ' + k.annotations.length + ' (approved, on audio/video, with a time range: ' + tm + ')\n' +
+          'by media: ' + JSON.stringify(k.annotations.reduce(function (o, a) { var key = (av[a.media_id] || '?') + ' ' + String(a.media_id).slice(0, 8); o[key] = (o[key] || 0) + 1; return o; }, {})) + '\n' +
+          'links: ' + k.links.length + ' · transcripts: ' + k.transcripts.length + ' · problems: ' + JSON.stringify(k.problems || []);
+        box.appendChild(dg);
+      }
       k.transcripts.filter(function (tr) { return tr.status === 'done' && tr.text; }).forEach(function (tr) {
         var d = document.createElement('details');
         var sm = document.createElement('summary'); sm.textContent = t('annTranscript'); d.appendChild(sm);
