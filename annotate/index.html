@@ -2,26 +2,15 @@
 <html lang="el">
 <head>
 <meta charset="utf-8" />
-<!-- WCAG 1.4.4: επιτρέπεται η μεγέθυνση (αφαιρέθηκαν user-scalable/maximum-scale) -->
 <meta name="theme-color" content="#186078" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Test</title>
-
+<meta name="robots" content="noindex" />
+<title>Walking Memory · Annotation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,600;1,700&display=swap" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
-<script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/three.js/build/ar-threex-location-only.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
-
+<script src="../config.js"></script>
 <style>
   :root {
     /* Χρώματα από το logo Walking Memory */
@@ -202,6 +191,7 @@
   .term-list a { color: var(--petrol); font-weight: 600; }
   .vocab-tag { font-size: 11px; font-weight: 700; color: var(--amber-text); margin-left: 6px; text-transform: uppercase; }
   #sheetTools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; } #sheetTools[hidden] { display: none; }
+  #annSheet { z-index: 65; }
   .img-frame { position: relative; line-height: 0; }
   .story-media .img-frame { display: inline-block; max-width: 100%; }
   .story-media .img-frame img { display: block; width: auto; max-width: 100%; max-height: 42vh; height: auto; border-radius: 12px; background: #000; cursor: zoom-in; }
@@ -401,280 +391,113 @@
 
   #procVideo { position: fixed; left: 0; top: 0; width: 2px; height: 2px; opacity: 0.01; pointer-events: none; z-index: -1; }
 </style>
+<style>
+  /* ---------- Διάταξη ιστοσελίδας ---------- */
+  html, body { height: auto; overflow: auto; background: var(--mist); }
+  #annotateBtn, #deleteBtn { display: none !important; }
+  .site-head { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 20px; background: var(--petrol); color: #fff; }
+  .site-head h1 { color: #fff; font-size: 22px; margin: 0; flex: 1 1 auto; }
+  .site-head .lang-select { min-height: 40px; }
+  #userBox { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+  #userBox[hidden] { display: none; }
+  #logoutBtn { background: #fff; color: var(--petrol); font-weight: 700; padding: 8px 16px; min-height: 40px; }
+  .site-main { max-width: 1500px; margin: 0 auto; padding: 18px 20px 60px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; max-width: 460px; margin: 40px auto; }
+  .card h2 { margin: 0 0 6px; }
+  [hidden] { display: none !important; }
+  .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start; }
+  .side { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow: auto; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+  .side h2 { font-size: 20px; margin: 0 0 10px; }
+  .list-item.current { outline: 3px solid var(--amber); }
+  .work { min-width: 0; }
+  .work-empty { background: #fff; border: 1px dashed var(--line-strong); border-radius: 16px; padding: 40px; text-align: center; color: var(--muted); }
+  #storyView { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  #storyView h2 { font-size: 26px; margin: 0 0 4px; }
+  #sheetTools { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 14px; }
+  #sheetTools[hidden] { display: none; }
+  #sheetTools button { padding: 10px 18px; min-height: 44px; font-weight: 700; }
+  .cols { display: grid; grid-template-columns: minmax(300px, 5fr) minmax(0, 7fr); gap: 24px; align-items: start; }
+  .col-media { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow: auto; }
+  .col-ann h2 { font-size: 20px; margin: 0 0 6px; }
+  .ann-media { border-top: 2px solid var(--line); padding-top: 8px; margin-top: 10px; }
+  .ann-media:first-child { border-top: 0; margin-top: 0; }
+  .story-media { margin: 0 0 10px; }
+  .story-media audio, .story-media video { width: 100%; }
+  .story-know { margin-top: 16px; }
+  #imgPopup { z-index: 80; }
+  @media (max-width: 1000px) {
+    .layout, .cols { grid-template-columns: minmax(0, 1fr); }
+    .side, .col-media { position: static; max-height: none; }
+    .side { max-height: 280px; }
+  }
+</style>
 </head>
 <body>
-
-<!-- Ανακοινώσεις για αναγνώστες οθόνης (WCAG 4.1.3) -->
 <div id="srLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-<main id="gate" aria-labelledby="gateTitle">
-  <svg class="gate-path" aria-hidden="true" focusable="false" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
-    <defs><linearGradient id="gatePathGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#E0904F"/><stop offset=".5" stop-color="#249CCC"/><stop offset="1" stop-color="#186078"/>
-    </linearGradient></defs>
-    <path d="M250 -30 C 110 80, 340 170, 205 280 S 80 460, 230 550 S 340 730, 160 850" fill="none" stroke="url(#gatePathGrad)" stroke-width="48" stroke-linecap="round"/>
-  </svg>
+<header class="site-head">
+  <h1 data-i18n="siteTitle"></h1>
+  <label for="langSel" class="sr-only" data-i18n="language"></label>
+  <select id="langSel" class="lang-select">
+    <option value="el" lang="el">EL</option><option value="en" lang="en">EN</option><option value="fr" lang="fr">FR</option><option value="it" lang="it">IT</option>
+  </select>
+  <div id="userBox" hidden><span id="userName"></span><button id="logoutBtn" type="button" data-i18n="logout"></button></div>
+</header>
 
-  <div class="gate-body">
-  <h1 id="gateTitle" data-i18n="gateTitle"></h1>
-  <div class="rule" aria-hidden="true"></div>
-  <p data-i18n="gateText"></p>
-  <div class="gate-lang">
-    <label for="langGate" data-i18n="language"></label>
-    <select id="langGate" class="lang-select">
-      <option value="el" lang="el">Ελληνικά</option>
-      <option value="en" lang="en">English</option>
-      <option value="fr" lang="fr">Français</option>
-      <option value="it" lang="it">Italiano</option>
-    </select>
-  </div>
-  <button id="startBtn" data-i18n="start"></button>
-  <button id="authBtnGate" class="link-btn" hidden></button>
-</div>
-</main>
+<main class="site-main">
+  <section id="loginView" class="card" aria-labelledby="loginTitle">
+    <h2 id="loginTitle" data-i18n="siteLoginTitle"></h2>
+    <p class="sheet-sub" data-i18n="siteLoginHint"></p>
+    <form id="loginForm" novalidate>
+      <div class="input-group"><label for="authEmail" data-i18n="email"></label><input type="email" id="authEmail" autocomplete="email" required></div>
+      <div class="input-group"><label for="authPass" data-i18n="password"></label><input type="password" id="authPass" autocomplete="current-password" minlength="6" required></div>
+      <p id="authError" class="field-error" role="alert"></p>
+      <button type="submit" class="btn-primary btn-wide" id="authSubmitBtn"></button>
+    </form>
+  </section>
 
-<div id="hud">
-  <div id="status" role="status" aria-live="off"></div>
-  <div id="langWrap">
-    <label for="langHud" class="sr-only" data-i18n="language"></label>
-    <select id="langHud" class="lang-select">
-      <option value="el" lang="el">EL</option>
-      <option value="en" lang="en">EN</option>
-      <option value="fr" lang="fr">FR</option>
-      <option value="it" lang="it">IT</option>
-    </select>
-  </div>
-  <button id="authBtn" hidden></button>
-  <button id="listBtn" hidden></button>
-  <button id="nearest"><span class="dist"></span><span class="name"></span></button>
-</div>
+  <section id="noAccess" class="card" hidden>
+    <p data-i18n="siteNoAccess"></p>
+    <button id="logoutBtn2" type="button" class="btn-secondary btn-wide" data-i18n="logout"></button>
+  </section>
 
-<div id="ar-overlay-container"></div>
-
-<button id="addBtn" data-i18n-aria="addStory"><span aria-hidden="true">+</span></button>
-
-<div id="drawer">
-  <button id="handle" aria-expanded="false" aria-controls="map"><span class="grip" aria-hidden="true"></span><span class="lbl" data-i18n="map"></span></button>
-  <div id="map" role="region" data-i18n-aria="map" inert>
-    <div id="compass" aria-hidden="true"><span class="needle"></span><span class="deg">—</span></div>
-  </div>
-</div>
-
-<!-- Προβολή ιστορίας -->
-<div id="infoSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-  <div class="sheet-inner">
-    <h2 id="sheetTitle"></h2>
-    <p id="sheetSub" class="sheet-sub"></p>
-    <p id="sheetAuthor" class="story-author"></p>
-    <p id="sheetStatus" class="story-status"></p>
-    <p id="sheetConsent" class="story-status" hidden></p>
-    <p id="sheetBody"></p>
-    <div id="sheetMedia" class="story-media"></div>
-    <div id="sheetImages" class="story-media"></div>
-    <div id="sheetKnow" class="story-know"></div>
-    <div id="sheetTools" hidden>
-      <button id="deleteBtn" class="btn-danger" hidden data-i18n="deleteStory"></button>
-    </div>
-    <button id="closeInfoBtn" data-i18n="close"></button>
-  </div>
-</div>
-
-<!-- 1. Νέα ιστορία -->
-<div id="consentSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
-  <div class="sheet-inner">
-    <h2 id="consentTitle" data-i18n="consentTitle"></h2>
-    <div class="input-group">
-      <label for="langConsent" data-i18n="language"></label>
-      <select id="langConsent" class="lang-select">
-        <option value="el" lang="el">Ελληνικά</option>
-        <option value="en" lang="en">English</option>
-        <option value="fr" lang="fr">Français</option>
-        <option value="it" lang="it">Italiano</option>
-      </select>
-    </div>
-    <div id="consentForm">
-      <p data-i18n="consentIntro"></p>
-      <div id="consentReuseWrap" class="input-group" hidden>
-        <label for="consentReuse" data-i18n="consentReuse"></label>
-        <select id="consentReuse" class="lang-select"></select>
-      </div>
-      <div id="consentChecks">
-        <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC1"></span></label>
-        <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC2"></span></label>
-        <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC3"></span></label>
-        <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC4"></span></label>
-      </div>
-      <p id="consentError" class="field-error" role="alert"></p>
-    </div>
-    <div id="consentCodeBox" hidden>
-      <span class="group-label" data-i18n="consentCodeLabel"></span>
-      <output id="consentCode" class="code-big" aria-live="polite"></output>
-      <button type="button" id="consentCopy" class="btn-secondary" data-i18n="consentCopy"></button>
-      <p class="sheet-sub" data-i18n="consentCodeHint"></p>
-    </div>
-    <div class="btn-row">
-      <button type="button" class="btn-secondary" id="consentCancel" data-i18n="cancel"></button>
-      <button type="button" class="btn-primary" id="consentCreate" data-i18n="consentCreate" disabled></button>
-      <button type="button" class="btn-primary" id="consentContinue" data-i18n="consentContinue" hidden></button>
-    </div>
-  </div>
-</div>
-
-<div id="uploadSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="uploadTitle">
-  <div class="sheet-inner">
-    <h2 id="uploadTitle" data-i18n="newStory"></h2>
-    <div class="input-group">
-      <span class="group-label" id="uploadConsentLabel" data-i18n="consentCodeLabel"></span>
-      <div class="loc-box"><strong id="uploadConsentCode"></strong> <button type="button" id="uploadConsentCopy" class="link-btn" data-i18n="consentCopy"></button></div>
-    </div>
-    <div class="input-group">
-      <span class="group-label" id="locLabel" data-i18n="locLabel"></span>
-      <div id="locDisplay" class="loc-box" aria-labelledby="locLabel"></div>
-    </div>
-    <div class="input-group">
-      <label for="storyTitle" data-i18n="storyTitle"></label>
-      <input type="text" id="storyTitle" data-i18n-ph="titlePh" autocomplete="off" aria-describedby="titleError" required>
-      <p id="titleError" class="field-error" role="alert"></p>
-    </div>
-
-    <div class="input-group">
-      <h3 class="group-label" id="mediaHeading" data-i18n="media" style="margin:0 0 4px;"></h3>
-      <ul id="mediaList" aria-labelledby="mediaHeading"></ul>
-      <p id="mediaError" class="field-error" role="alert"></p>
-      <input type="file" id="singleFileInput" accept="image/*,video/*,audio/*" hidden>
-      <button class="btn-wide btn-dashed" id="triggerFileBtn" data-i18n="addFile"></button>
-      <button class="btn-primary btn-wide" id="recordAudioBtn" data-i18n="recordAudio"></button>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn-secondary" id="cancelStoryBtn" data-i18n="cancel"></button>
-      <button class="btn-primary" id="finishStoryBtn" data-i18n="finish"></button>
-    </div>
-  </div>
-</div>
-
-<!-- Επιβεβαίωση -->
-<div id="confirmModal" class="edit-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText confirmSummary">
-  <div class="sheet-inner">
-    <h2 id="confirmTitle" data-i18n="confirmTitle"></h2>
-    <p id="confirmText" data-i18n="confirmText"></p>
-    <p id="confirmSummary" class="sheet-sub" style="margin-top:0;"></p>
-    <p style="font-size:14px; color:var(--muted);" data-i18n="confirmNote"></p>
-    <div class="btn-row">
-      <button class="btn-secondary" id="confirmBackBtn" data-i18n="backToCheck"></button>
-      <button class="btn-primary" id="confirmApplyBtn" data-autofocus data-i18n="saveAll"></button>
-    </div>
-  </div>
-</div>
-
-<!-- Ηχογράφηση -->
-<div id="recorderModal" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="recTitle">
-  <div class="sheet-inner" style="text-align: center;">
-    <h2 id="recTitle" data-i18n="recTitle"></h2>
-    <p id="recStatusTimer" role="timer" data-i18n-aria="recElapsed">00:00</p>
-    <div class="btn-row">
-      <button class="btn-secondary" id="cancelRecBtn" data-i18n="cancel"></button>
-      <button class="btn-primary" id="stopRecBtn" data-autofocus style="background: var(--danger);" data-i18n="recStop"></button>
-    </div>
-  </div>
-</div>
-
-<!-- 2. Editor -->
-<div id="editorSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
-  <div class="sheet-inner" style="position: relative;">
-    <h2 id="editorTitle" data-i18n="editTitle"></h2>
-    <p id="editorFilename" class="sheet-sub" style="word-break: break-all;"></p>
-    <p class="preview-note" data-i18n="previewNote"></p>
-
-    <!-- Εικόνα -->
-    <div id="imageEditor" class="editor-box">
-      <canvas id="imageCanvas" tabindex="0" role="img" data-i18n-aria="imageCanvas" aria-describedby="imgHint kbHint"></canvas>
-      <div id="kbCursor"></div>
-      <div class="img-hint" aria-hidden="true">
-        <span id="imgHint" data-i18n="blurHint"></span><br>
-        <span id="kbHint" data-i18n="kbHint"></span>
-      </div>
-      <div class="img-tools">
-        <button id="undoBlurBtn" style="background:var(--chalk); color:var(--ink);" data-i18n="undo"></button>
-        <button id="clearBlurBtn" style="background:var(--danger); color:#fff;" data-i18n="clear"></button>
-      </div>
-    </div>
-
-    <!-- Βίντεο -->
-    <div id="videoEditor" class="editor-box" style="background:transparent;">
-      <div id="videoContainer">
-        <video id="videoPreview" playsinline preload="metadata" style="width:100%; display:block; cursor:pointer; background:#000;"></video>
-        <span id="vidFxBadge" class="fx-badge"></span>
-        <button id="vidPlayBtn" data-i18n-aria="play"><span aria-hidden="true">▶</span></button>
-      </div>
-
-      <div id="videoTimelineContainer" class="timeline-wrap" style="height:60px; border-radius:0 0 14px 14px; margin-bottom:6px;">
-        <canvas id="videoGridCanvas" class="timeline-layer" aria-hidden="true"></canvas>
-        <div id="videoTimeline" class="timeline-layer" tabindex="0" role="slider" data-i18n-aria="videoTimeline" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"></div>
-        <div id="videoProgressFill" style="position:absolute; top:0; left:0; width:0%; height:100%; background:rgba(255,255,255,0.15); pointer-events:none; z-index:3;"></div>
-        <div id="videoPlayhead" style="position:absolute; top:0; left:0; width:2px; height:100%; background:#fff; pointer-events:none; box-shadow:0 0 4px rgba(0,0,0,0.8); display:none; z-index:4;"></div>
-      </div>
-
-      <div id="vTimeNow" class="time-now" style="margin-bottom:12px;" aria-hidden="true"></div>
-
-      <h3 class="group-label" data-i18n="editRanges" style="margin:0 0 6px;"></h3>
-      <div id="videoRangeList"></div>
-      <button id="addRangeBtn" class="add-row-btn" data-i18n="addRange"></button>
-    </div>
-
-    <!-- Ήχος -->
-    <div id="audioEditor" style="display:none; width:100%; margin-bottom:15px;">
-      <audio id="audioPreview" style="display:none;"></audio>
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-        <span id="aTimeNow" class="time-now" aria-hidden="true"></span>
-        <span id="audFxBadge" class="fx-badge"></span>
-      </div>
-      <div style="display:flex; align-items:stretch; gap:8px; margin-bottom:10px;">
-        <button id="wavePlayBtn" data-i18n-aria="play" style="flex:none; background:var(--petrol); color:#fff; border-radius:14px; width:50px; font-size:18px;"><span aria-hidden="true">▶</span></button>
-        <div id="waveContainer" class="timeline-wrap" style="flex:1; height:90px; border-radius:14px;">
-          <canvas id="audioWaveCanvas" class="timeline-layer" aria-hidden="true"></canvas>
-          <div id="audioTimeline" class="timeline-layer" tabindex="0" role="slider" data-i18n-aria="audioTimeline" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"></div>
-          <div id="audioProgressFill" style="position:absolute; top:0; left:0; width:0%; height:100%; background:rgba(255,255,255,0.15); pointer-events:none; z-index:3;"></div>
-          <div id="audioPlayhead" style="position:absolute; top:0; left:0; width:2px; height:100%; background:#fff; pointer-events:none; box-shadow:0 0 4px rgba(0,0,0,0.8); display:none; z-index:4;"></div>
+  <div id="appView" class="layout" hidden>
+    <aside class="side" aria-labelledby="sideTitle">
+      <h2 id="sideTitle" data-i18n="siteStories"></h2>
+      <div class="input-group"><label for="listSearch" data-i18n="listSearch"></label><input type="text" id="listSearch" autocomplete="off"></div>
+      <div class="input-group"><label for="listFilter" data-i18n="listFilter"></label><select id="listFilter" class="lang-select"></select></div>
+      <div id="listBody"></div>
+    </aside>
+    <section class="work" aria-live="polite">
+      <p id="workEmpty" class="work-empty" data-i18n="siteSelect"></p>
+      <div id="storyView" hidden>
+        <h2 id="sheetTitle"></h2>
+        <p id="sheetSub" class="sheet-sub"></p>
+        <p id="sheetAuthor" class="story-author"></p>
+        <p id="sheetStatus" class="story-status"></p>
+        <p id="sheetConsent" class="story-status" hidden></p>
+        <div id="sheetTools" hidden>
+          <button id="publishBtn" class="btn-primary" hidden></button>
+          <button id="exportBtn" class="btn-secondary" hidden data-i18n="annExport"></button>
+          <button id="annotateBtn" hidden></button>
+          <button id="deleteBtn" hidden></button>
         </div>
+        <div class="cols">
+          <div class="col-media">
+            <div id="sheetMedia" class="story-media"></div>
+            <div id="sheetImages" class="story-media"></div>
+          </div>
+          <div class="col-ann">
+            <h2 data-i18n="annTitle"></h2>
+            <p class="sheet-sub" data-i18n="annNote"></p>
+            <div id="annBody"></div>
+          </div>
+        </div>
+        <div id="sheetKnow" class="story-know"></div>
       </div>
-
-      <h3 class="group-label" data-i18n="muteStamps" style="margin:0 0 6px;"></h3>
-      <div id="audioMuteList"></div>
-      <button id="addAudioRangeBtn" class="add-row-btn" data-i18n="addMute"></button>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn-secondary" id="cancelSingleBtn" data-i18n="cancelShort"></button>
-      <button class="btn-primary" id="saveFileBtn" data-i18n="keep"></button>
-    </div>
+    </section>
   </div>
-</div>
-
-<!-- Επεξεργασία σε εξέλιξη -->
-<div id="processingOverlay" role="alertdialog" aria-modal="true" aria-labelledby="procTitle" aria-describedby="procMsg" tabindex="-1">
-  <h2 id="procTitle" style="margin:0 0 10px; font-size:20px;" data-i18n="processing"></h2>
-  <p id="procMsg" style="font-size:15px; margin:0;"></p>
-  <div id="procBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-aria="progress"><div id="procBarFill"></div></div>
-  <p style="font-size:14px; margin-top:14px;" data-i18n="procNote"></p>
-</div>
-
-<!-- 3. Τελικό αποτέλεσμα -->
-<div id="listSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="listTitle">
-  <div class="sheet-inner">
-    <h2 id="listTitle"></h2>
-    <div class="input-group">
-      <label for="listSearch" data-i18n="listSearch"></label>
-      <input type="text" id="listSearch" autocomplete="off">
-    </div>
-    <div class="input-group" id="listFilterWrap">
-      <label for="listFilter" data-i18n="listFilter"></label>
-      <select id="listFilter" class="lang-select"></select>
-    </div>
-    <div id="listBody"></div>
-    <button id="listCloseBtn" class="btn-primary" style="margin-top:14px" data-i18n="close"></button>
-  </div>
-</div>
+</main>
 
 <div id="imgPopup" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="imgPopupTitle">
   <div class="sheet-inner">
@@ -684,47 +507,6 @@
     <button id="imgPopupClose" class="btn-primary" style="margin-top:14px" data-i18n="close"></button>
   </div>
 </div>
-
-<div id="authSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-  <div class="sheet-inner">
-    <h2 id="authTitle"></h2>
-    <form id="authForm" novalidate>
-      <div class="input-group" id="nameGroup">
-        <label for="authName" data-i18n="displayName"></label>
-        <input type="text" id="authName" autocomplete="nickname" maxlength="60">
-      </div>
-      <div class="input-group">
-        <label for="authEmail" data-i18n="email"></label>
-        <input type="email" id="authEmail" autocomplete="email" required>
-      </div>
-      <div class="input-group">
-        <label for="authPass" data-i18n="password"></label>
-        <input type="password" id="authPass" autocomplete="current-password" minlength="6" required>
-      </div>
-      <p id="authError" class="field-error" role="alert"></p>
-      <div class="btn-row">
-        <button type="button" class="btn-secondary" id="authCancelBtn" data-i18n="cancel"></button>
-        <button type="submit" class="btn-primary" id="authSubmitBtn"></button>
-      </div>
-      <button type="button" class="link-btn" id="authToggleBtn"></button>
-    </form>
-  </div>
-</div>
-
-<div id="previewSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
-  <div class="sheet-inner">
-    <h2 id="previewTitle" data-i18n="finalTitle"></h2>
-    <p class="sheet-sub" data-i18n="finalNote"></p>
-    <p id="publishError" class="field-error" role="alert"></p>
-    <div id="localPreviewContainer" style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;"></div>
-    <div class="btn-row">
-      <button class="btn-secondary" id="backToUploadBtn" data-i18n="backToFiles"></button>
-      <button class="btn-primary" id="closePreviewBtn" data-i18n="publish"></button>
-    </div>
-  </div>
-</div>
-
-<video id="procVideo" playsinline preload="auto" aria-hidden="true" tabindex="-1"></video>
 
 <script>
 (function () {
@@ -898,8 +680,13 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
-      annSiteNote: "Ο σχολιασμός γίνεται πλέον στην ιστοσελίδα σχολιαστών.",
-      annSiteLink: "Άνοιγμα ιστοσελίδας σχολιασμού",
+      siteTitle: "Walking Memory · Σχολιασμός",
+      siteLoginTitle: "Είσοδος σχολιαστών",
+      siteLoginHint: "Η σελίδα αυτή είναι μόνο για σχολιαστές. Οι διευκολυντές χρησιμοποιούν την εφαρμογή.",
+      siteNoAccess: "Ο λογαριασμός σας δεν έχει ρόλο σχολιαστή. Ζητήστε από τον διαχειριστή να τον ορίσει.",
+      siteSelect: "Διάλεξε μια ιστορία από τη λίστα για να ξεκινήσεις.",
+      siteStories: "Ιστορίες",
+      siteLoading: "Φόρτωση…",
       stageIdle: "Εδώ θα εμφανίζονται οι εικόνες και οι όροι όσο παίζει η αφήγηση.",
       trPlay: "Αναπαραγωγή από {t}",
       lnkTitle: "Σύνδεση εικόνας με στιγμή της αφήγησης",
@@ -1170,8 +957,13 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
-      annSiteNote: "Annotation is now done on the annotation website.",
-      annSiteLink: "Open the annotation website",
+      siteTitle: "Walking Memory · Annotation",
+      siteLoginTitle: "Annotator login",
+      siteLoginHint: "This site is for annotators only. Facilitators use the app.",
+      siteNoAccess: "Your account does not have the annotator role. Ask the administrator to set it.",
+      siteSelect: "Choose a story from the list to start.",
+      siteStories: "Stories",
+      siteLoading: "Loading…",
       stageIdle: "Images and terms appear here as the recording plays.",
       trPlay: "Play from {t}",
       lnkTitle: "Link this image to a moment of the story",
@@ -1442,8 +1234,13 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
-      annSiteNote: "L'annotation se fait désormais sur le site d'annotation.",
-      annSiteLink: "Ouvrir le site d'annotation",
+      siteTitle: "Walking Memory · Annotation",
+      siteLoginTitle: "Connexion des annotateurs",
+      siteLoginHint: "Ce site est réservé aux annotateurs. Les facilitateurs utilisent l'application.",
+      siteNoAccess: "Votre compte n'a pas le rôle d'annotateur. Demandez à l'administrateur de le définir.",
+      siteSelect: "Choisissez une histoire dans la liste pour commencer.",
+      siteStories: "Histoires",
+      siteLoading: "Chargement…",
       stageIdle: "Les images et les termes apparaissent ici pendant la lecture.",
       trPlay: "Lire à partir de {t}",
       lnkTitle: "Lier cette image à un moment du récit",
@@ -1714,8 +1511,13 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
-      annSiteNote: "L'annotazione si fa ora sul sito di annotazione.",
-      annSiteLink: "Apri il sito di annotazione",
+      siteTitle: "Walking Memory · Annotazione",
+      siteLoginTitle: "Accesso annotatori",
+      siteLoginHint: "Questo sito è solo per gli annotatori. I facilitatori usano l'app.",
+      siteNoAccess: "Il tuo account non ha il ruolo di annotatore. Chiedi all'amministratore di impostarlo.",
+      siteSelect: "Scegli una storia dalla lista per iniziare.",
+      siteStories: "Storie",
+      siteLoading: "Caricamento…",
       stageIdle: "Immagini e termini compaiono qui durante la riproduzione.",
       trPlay: "Riproduci da {t}",
       lnkTitle: "Collega questa immagine a un momento del racconto",
@@ -1863,17 +1665,13 @@
     LANG = code;
     try { localStorage.setItem('dm_lang', code); } catch (e) {}
     document.documentElement.lang = code;       // WCAG 3.1.1
-    document.title = t('pageTitle');            // WCAG 2.4.2
-    $('langGate').value = code;
-    $('langHud').value = code;
-    if ($('langConsent')) $('langConsent').value = code;
+    document.title = t('siteTitle');            // WCAG 2.4.2
+    $('langSel').value = code;
     applyLang();
     langListeners.forEach(function (fn) { try { fn(); } catch (e) {} });
   }
 
-  $('langGate').addEventListener('change', function () { setLang(this.value); });
-  $('langHud').addEventListener('change', function () { setLang(this.value); });
-  $('langConsent').addEventListener('change', function () { setLang(this.value); });
+  $('langSel').addEventListener('change', function () { setLang(this.value); });
 
   function announce(msg) {
     var r = $('srLive');
@@ -1942,353 +1740,13 @@
     }
   });
 
+
   // ==========================================
-  // 1. AR & ΧΑΡΤΗΣ
+  // Ιστοσελίδα σχολιαστών: σύνδεση, λίστα ιστοριών και χώρος εργασίας
   // ==========================================
-  window.hardwareHeading = null;
-  window.currentEditIndex = -1;
-
-  window.addEventListener('deviceorientation', function(e) {
-    if (e.webkitCompassHeading !== undefined) window.hardwareHeading = e.webkitCompassHeading;
-  }, true);
-
-  window.addEventListener('deviceorientationabsolute', function(e) {
-    if (e.alpha !== null) {
-      var alpha = e.alpha ? e.alpha * Math.PI / 180 : 0;
-      var beta = e.beta ? e.beta * Math.PI / 180 : 0;
-      var gamma = e.gamma ? e.gamma * Math.PI / 180 : 0;
-      var cA = Math.cos(alpha), sA = Math.sin(alpha);
-      var cB = Math.cos(beta), sB = Math.sin(beta);
-      var cG = Math.cos(gamma), sG = Math.sin(gamma);
-      var vX = -cA * sG - sA * sB * cG;
-      var vY = -sA * sG + cA * sB * cG;
-      var heading = Math.atan2(vX, vY) * 180 / Math.PI;
-      if (heading < 0) heading += 360;
-      window.hardwareHeading = heading;
-    }
-  }, true);
-
-  var STORIES = [];   // φορτώνονται από τη βάση (Supabase)
-  var DEFAULT_CENTER = [39.106668, 26.557367];   // Μυτιλήνη
-
+  var STORIES = [];
   function st(s) { return s.t[LANG] || s.t.el; }
-  function fmtDist(d) { return d >= 1000 ? (d / 1000).toFixed(1) + ' km' : Math.round(d) + ' m'; }
-
-  var MIN_DIST = 2;
-  var me = null, map = null, meMarker = null, accCircle = null, followMe = true, gpsFailed = false;
-  window.currentHeading = null;
-
-  var arPaused = false;
-  function setAR(active) {
-    var sc = document.querySelector('a-scene');
-    if (!sc) return;
-    if (!active && !arPaused) { try { sc.pause(); } catch(e){} arPaused = true; document.body.classList.add('editing'); }
-    else if (active && arPaused) { try { sc.play(); } catch(e){} arPaused = false; document.body.classList.remove('editing'); }
-  }
-
-  function distanceMetres(lat1, lon1, lat2, lon2) {
-    var R = 6371000, rad = function(d) { return d * Math.PI / 180; };
-    var a = Math.sin(rad(lat2 - lat1)/2) * Math.sin(rad(lat2 - lat1)/2) + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lon2 - lon1)/2) * Math.sin(rad(lon2 - lon1)/2);
-    return 2 * R * Math.asin(Math.sqrt(a));
-  }
-
-  AFRAME.registerComponent('hud-compass', {
-    tick: function () {
-      if (window.hardwareHeading === null) return;
-      var h = window.hardwareHeading;
-      window.currentHeading = h;
-      if (this.displayHeading === undefined) this.displayHeading = h;
-      var diff = h - (this.displayHeading % 360);
-      if (diff > 180) diff -= 360; else if (diff < -180) diff += 360;
-      this.displayHeading += diff * 0.1;
-      var needle = document.querySelector('#compass .needle');
-      var degOut = document.querySelector('#compass .deg');
-      if (needle) {
-        needle.style.transform = 'rotate(' + (-this.displayHeading) + 'deg)';
-        degOut.textContent = Math.round(((this.displayHeading % 360) + 360) % 360) + '°';
-      }
-      applyHeadingToDot();
-      updateHTMLMarkersPosition();
-    }
-  });
-
-  function openStorySheet(s) {
-    var tr = st(s);
-    $('sheetTitle').textContent = tr.title;
-    $('sheetSub').textContent = tr.sub;
-    $('sheetBody').textContent = tr.text;
-    $('sheetAuthor').textContent = s.author ? t('byAuthor', { n: s.author }) : '';
-    renderSheetMedia(s);
-    renderKnowledge(s);
-    openDialog('infoSheet');
-  }
-  function clearSheetMedia() {
-    var box = $('sheetMedia');
-    box.querySelectorAll('video, audio').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); });
-    box.innerHTML = '';
-    $('sheetImages').innerHTML = '';
-    imagesFoldOpen = undefined; termsFoldOpen = undefined;
-    clearSubtitles();
-    sheetK = null; currentLinks = [];
-  }
-  function renderSheetMedia(s) {
-    clearSheetMedia();
-    (s.media || []).forEach(function (m, i) {
-      if (m.kind === 'image') return;
-      var el;
-      if (m.kind === 'video') { el = document.createElement('video'); el.controls = true; el.playsInline = true; el.preload = 'metadata'; }
-      else { el = document.createElement('audio'); el.controls = true; el.preload = 'metadata'; }
-      el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1));
-      el.dataset.mediaId = m.id || '';
-      el.src = m.url;
-      el.addEventListener('timeupdate', function () { updateStage(el); });
-      el.addEventListener('seeked', function () { updateStage(el); });
-      el.addEventListener('loadedmetadata', function () { if (sheetK) paintTimeline(s, el); });
-      el.addEventListener('durationchange', function () { if (sheetK) paintTimeline(s, el); });
-      el.addEventListener('play', function () {
-        $('sheetMedia').querySelectorAll('audio, video').forEach(function (o) { if (o !== el) o.pause(); });
-      });
-      $('sheetMedia').appendChild(el);
-    });
-    renderImages(s, null);
-  }
   function tr_(s) { return st(s).title; }
-  $('closeInfoBtn').addEventListener('click', function () { clearSheetMedia(); currentSheetStory = null; closeDialog('infoSheet'); });
-  escHandlers.infoSheet = function () { clearSheetMedia(); currentSheetStory = null; closeDialog('infoSheet'); };
-
-  function createMarkerEl(s) {
-    var container = $('ar-overlay-container');
-    var btn = document.createElement('button');
-    btn.className = 'ar-html-marker';
-    btn.id = 'html-marker-' + s.id;
-    btn.style.display = 'none';
-    btn.innerHTML =
-      '<span class="closest-badge" aria-hidden="true"></span>' +
-      '<span class="m-title"><span class="lock" aria-hidden="true">🔒 </span><span class="mt"></span></span>' +
-      '<span class="m-sub"></span>' +
-      '<span class="m-dist"></span>';
-    btn.onclick = function () {
-      if (me) {
-        var d = distanceMetres(me.lat, me.lon, s.lat, s.lon);
-        if (d > 100) { alert(t('lockedAlert', { m: Math.round(d) })); return; }
-      }
-      openStorySheet(s);
-    };
-    container.appendChild(btn);
-  }
-
-  function buildScene() {
-    var container = $('ar-overlay-container');
-    container.innerHTML = '';
-    STORIES.forEach(createMarkerEl);
-    refreshMarkerTexts();
-
-    var scene = document.createElement('a-scene');
-    scene.setAttribute('hud-compass', '');
-    scene.setAttribute('vr-mode-ui', 'enabled: false');
-    scene.setAttribute('arjs', 'sourceType: webcam; videoTexture: true; debugUIEnabled: false');
-    scene.setAttribute('aria-hidden', 'true');
-    scene.innerHTML = '<a-camera id="cam" gps-new-camera="gpsMinDistance: ' + MIN_DIST + '"></a-camera>';
-    document.body.appendChild(scene);
-  }
-
-  function refreshMarkerTexts() {
-    STORIES.forEach(function (s) {
-      var el = $('html-marker-' + s.id);
-      if (!el) return;
-      var tr = st(s);
-      el.querySelector('.closest-badge').textContent = t('closest');
-      el.querySelector('.mt').textContent = tr.title;
-      el.querySelector('.m-sub').textContent = tr.sub + (s.status === 'draft' ? ' · ' + t('statusDraft') : '');
-      el.querySelector('.m-dist').textContent = s.d != null ? t('distance', { d: fmtDist(s.d) }) : t('calculating');
-      el._label = null;
-    });
-  }
-  onLangChange(refreshMarkerTexts);
-
-  function updateHTMLMarkersPosition() {
-    if (!me || window.currentHeading === null) return;
-    if (!document.querySelector('#cam')) return;
-
-    var items = [], minDist = Infinity, closestId = null;
-
-    STORIES.forEach(function (s) {
-      s.d = distanceMetres(me.lat, me.lon, s.lat, s.lon);
-      if (s.d < minDist) { minDist = s.d; closestId = s.id; }
-    });
-
-    STORIES.forEach(function (s) {
-      var el = $('html-marker-' + s.id);
-      if (!el) return;
-
-      var distTxt = t('distance', { d: fmtDist(s.d) });
-      var distEl = el.querySelector('.m-dist');
-      if (distEl.textContent !== distTxt) distEl.textContent = distTxt;
-
-      var isClosest = s.id === closestId, isLocked = s.d > 100;
-      el.classList.toggle('closest', isClosest);
-      el.classList.toggle('locked', isLocked);
-      el.querySelector('.lock').style.display = isLocked ? 'inline' : 'none';
-
-      var label = st(s).title + ', ' + fmtDist(s.d) + (isLocked ? ', ' + t('locked') : '') + (isClosest ? ', ' + t('closest').replace('📍 ', '') : '');
-      if (el._label !== label) { el.setAttribute('aria-label', label); el._label = label; }
-
-      el.style.zIndex = Math.max(1, 90 - Math.floor(s.d / 10));
-
-      var rad = function(d) { return d * Math.PI / 180; };
-      var dLon = rad(s.lon - me.lon);
-      var y = Math.sin(dLon) * Math.cos(rad(s.lat));
-      var x = Math.cos(rad(me.lat)) * Math.sin(rad(s.lat)) - Math.sin(rad(me.lat)) * Math.cos(rad(s.lat)) * Math.cos(dLon);
-      var bearing = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-
-      var angleDiff = bearing - window.currentHeading;
-      while (angleDiff < -180) angleDiff += 360;
-      while (angleDiff > 180) angleDiff -= 360;
-
-      if (Math.abs(angleDiff) < 70) {
-        items.push({ el: el, x: window.innerWidth / 2 + (angleDiff / 70) * (window.innerWidth / 2) });
-      } else if (document.activeElement !== el) {
-        el.style.display = 'none';
-      }
-    });
-
-    items.sort(function (a, b) { return a.x - b.x; });
-    var baseY = window.innerHeight / 2, minSpacing = 130;
-
-    for (var i = 0; i < items.length; i++) {
-      var it = items[i];
-      it.el.style.display = 'block';
-      var ty = baseY;
-      if (i > 0 && Math.abs(items[i].x - items[i - 1].x) < minSpacing) ty = baseY + ((i % 2 === 0) ? -55 : 55);
-      it.el.style.left = it.x + 'px';
-      it.el.style.top = ty + 'px';
-    }
-  }
-
-  var poiLayers = [], markerCluster = null;
-  function addPoiMarker(s) {
-    var m = L.marker([s.lat, s.lon], {
-      icon: L.divIcon({ html: '<div class="poi-dot"></div>', iconSize: [24, 24], iconAnchor: [12, 12], className: '' }),
-      title: st(s).title, alt: st(s).title, keyboard: true
-    }).on('click', function () { openStorySheet(s); });
-    poiLayers.push({ m: m, s: s });
-    markerCluster.addLayer(m);
-  }
-  function initMap() {
-    map = L.map('map', { zoomControl: true, attributionControl: true }).setView(STORIES[0] ? [STORIES[0].lat, STORIES[0].lon] : DEFAULT_CENTER, 16);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-    markerCluster = L.markerClusterGroup({ maxClusterRadius: 40, iconCreateFunction: function (c) { return L.divIcon({ html: c.getChildCount(), className: 'map-cluster-dot', iconSize: [32, 32] }); } });
-    STORIES.forEach(addPoiMarker);
-    map.addLayer(markerCluster);
-    map.on('dragstart', function () { followMe = false; });
-  }
-
-  onLangChange(function () {
-    poiLayers.forEach(function (p) {
-      var el = p.m.getElement();
-      if (el) { el.title = st(p.s).title; el.setAttribute('aria-label', st(p.s).title); }
-    });
-  });
-
-  function updateMap() {
-    if (!map || !me) return;
-    var ll = [me.lat, me.lon];
-    if (!meMarker) {
-      meMarker = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="me-wrap" aria-hidden="true"><div class="me-rot unknown"><div class="me-cone"></div><div class="me-dot"></div></div></div>', iconSize: [56, 56], iconAnchor: [28, 28] }), zIndexOffset: 1000, keyboard: false, interactive: false }).addTo(map);
-      accCircle = L.circle(ll, { radius: me.accuracy || 0, color: '#249CCC', weight: 2, fillOpacity: 0.12, interactive: false }).addTo(map);
-    } else {
-      meMarker.setLatLng(ll); accCircle.setLatLng(ll).setRadius(me.accuracy || 0);
-    }
-    if (followMe) map.setView(ll, map.getZoom(), { animate: false });
-  }
-
-  var cachedRot = null, displayMapHeading = 0;
-  function applyHeadingToDot() {
-    if (!meMarker || window.currentHeading === null) return;
-    if (!cachedRot) { var elm = meMarker.getElement(); if (elm) cachedRot = elm.querySelector('.me-rot'); }
-    if (!cachedRot) return;
-    cachedRot.classList.remove('unknown');
-    var diff = window.currentHeading - (displayMapHeading % 360);
-    if (diff > 180) diff -= 360; else if (diff < -180) diff += 360;
-    displayMapHeading += diff;
-    cachedRot.style.transform = 'rotate(' + displayMapHeading + 'deg)';
-  }
-
-  $('handle').addEventListener('click', function () {
-    var open = $('drawer').classList.toggle('open');
-    document.body.classList.toggle('drawer-open', open);
-    this.setAttribute('aria-expanded', open ? 'true' : 'false');
-    $('map').inert = !open;   // WCAG 2.4.11: δεν εστιάζεται κάτι κρυμμένο εκτός οθόνης
-    if (map) setTimeout(function () { map.invalidateSize(); updateMap(); }, 300);
-  });
-
-  function renderStatus() {
-    if (gpsFailed && !me) { $('status').textContent = t('gpsError'); return; }
-    if (!me) { $('status').textContent = t('waitingFix'); return; }
-    $('status').textContent = t('accuracy', { m: Math.round(me.accuracy) }) +
-      (window.currentHeading === null ? '' : ' ' + t('compassDeg', { d: Math.round(window.currentHeading) }));
-  }
-
-  var lastNearestId = null;
-  function renderNearest(announceChange) {
-    if (!me) return;
-    var ranked = STORIES.map(function (s) { return { s: s, d: distanceMetres(me.lat, me.lon, s.lat, s.lon) }; })
-                        .sort(function (a, b) { return a.d - b.d; })[0];
-    if (!ranked) return;
-    var btn = $('nearest');
-    var here = ranked.d <= ranked.s.radius;
-    btn.querySelector('.dist').textContent = here ? t('youAreHere') : t('mAway', { m: Math.round(ranked.d) });
-    btn.querySelector('.name').textContent = st(ranked.s).title;
-    btn.classList.add('on');
-    btn.onclick = function () { openStorySheet(ranked.s); };
-
-    var key = ranked.s.id + (here ? ':here' : '');
-    if (announceChange && key !== lastNearestId) {
-      lastNearestId = key;
-      announce((here ? t('youAreHere') + ': ' : '') + st(ranked.s).title);
-    }
-  }
-
-  function renderLoc() {
-    $('locDisplay').textContent = me ? me.lat.toFixed(5) + ', ' + me.lon.toFixed(5) : t('waiting');
-  }
-
-  onLangChange(function () { renderStatus(); renderNearest(false); renderLoc(); });
-
-  function onPosition(pos) {
-    me = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy };
-    updateMap();
-    renderStatus();
-    renderLoc();
-    updateAddBtn();
-    renderNearest(true);
-  }
-
-  $('startBtn').addEventListener('click', function () {
-    var btn = this;
-    btn.disabled = true; btn.textContent = t('opening');
-    (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function' ? DeviceOrientationEvent.requestPermission() : Promise.resolve('granted'))
-    .then(function (state) {
-      if (state !== 'granted') throw new Error(t('permDenied'));
-      buildScene();
-      $('gate').style.display = 'none';
-      $('hud').classList.add('on');
-      initMap();
-      renderStatus();
-      $('langHud').focus();
-      navigator.geolocation.watchPosition(onPosition, function () { gpsFailed = true; renderStatus(); announce(t('gpsError')); }, { enableHighAccuracy: true, timeout: 10000 });
-    }).catch(function (e) {
-      btn.disabled = false; btn.textContent = t('retry');
-      alert(e && e.message ? e.message : e);
-    });
-  });
-
-  // ==========================================
-  // 1b. ΛΟΓΑΡΙΑΣΜΟΙ ΚΑΙ ΑΠΟΘΗΚΕΥΣΗ (Supabase)
-  // ==========================================
   var BUCKET = 'story-media';
   var CFG = window.WM_CONFIG || {};
   var sb = null, currentUser = null, currentRole = 'facilitator';
@@ -2303,10 +1761,6 @@
     return (m.display_name || (u && u.email ? u.email.split('@')[0] : '')).slice(0, 60);
   }
 
-  function updateAddBtn() {
-    $('addBtn').classList.toggle('on', !!(currentUser && me));
-  }
-
   function isAnnotator() { return !!(currentUser && currentRole === 'annotator'); }
 
   async function loadRole() {
@@ -2317,122 +1771,6 @@
       if (!r.error && r.data && r.data.role) currentRole = r.data.role;
     } catch (e) { /* χωρίς πίνακα ρόλων: συμπεριφέρεται ως διευκολυντής */ }
   }
-
-  function renderAuth() {
-    var label = currentUser ? t('logout') + ' · ' + userName(currentUser) + ' (' + t('role_' + currentRole) + ')' : t('login');
-    ['authBtn', 'authBtnGate'].forEach(function (id) { var b = $(id); b.hidden = !sb; b.textContent = label; });
-    var lb = $('listBtn');
-    lb.hidden = !currentUser;
-    lb.textContent = t(isAnnotator() ? 'listAll' : 'listMy');
-    updateAddBtn();
-  }
-  onLangChange(function () { renderAuth(); renderAuthSheet(); });
-
-  var authMode = 'login';
-  function renderAuthSheet() {
-    var signup = authMode === 'signup';
-    $('authTitle').textContent = t(signup ? 'signup' : 'login');
-    $('authSubmitBtn').textContent = t(signup ? 'signup' : 'login');
-    $('authToggleBtn').textContent = t(signup ? 'haveAccount' : 'noAccount');
-    $('nameGroup').style.display = signup ? '' : 'none';
-    $('authPass').setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
-  }
-
-  $('authBtn').onclick = $('authBtnGate').onclick = async function () {
-    if (!sb) return;
-    if (currentUser) { await sb.auth.signOut(); return; }
-    authMode = 'login';
-    $('authError').textContent = '';
-    $('authPass').value = '';
-    renderAuthSheet();
-    openDialog('authSheet', $('authEmail'));
-  };
-  $('authToggleBtn').onclick = function () {
-    authMode = authMode === 'login' ? 'signup' : 'login';
-    $('authError').textContent = '';
-    renderAuthSheet();
-  };
-  $('authCancelBtn').onclick = function () { closeDialog('authSheet'); };
-  escHandlers.authSheet = function () { closeDialog('authSheet'); };
-
-  $('authForm').addEventListener('submit', async function (ev) {
-    ev.preventDefault();
-    if (!sb) return;
-    var email = $('authEmail').value.trim(), pass = $('authPass').value;
-    $('authError').textContent = '';
-    if (!email || pass.length < 6) { $('authError').textContent = t('authNeedFields'); return; }
-    $('authSubmitBtn').disabled = true;
-    try {
-      var r;
-      if (authMode === 'signup') {
-        r = await sb.auth.signUp({ email: email, password: pass, options: { data: { display_name: $('authName').value.trim().slice(0, 60) } } });
-        if (r.error) throw r.error;
-        if (!r.data.session) { $('authError').textContent = t('checkEmail'); return; }
-      } else {
-        r = await sb.auth.signInWithPassword({ email: email, password: pass });
-        if (r.error) throw r.error;
-      }
-      closeDialog('authSheet');
-    } catch (e) {
-      $('authError').textContent = t('authFailed', { e: e.message || e });
-    } finally {
-      $('authSubmitBtn').disabled = false;
-    }
-  });
-
-  if (sb) {
-    sb.auth.onAuthStateChange(function (_event, session) {
-      var before = currentUser ? currentUser.id : null;
-      currentUser = session ? session.user : null;
-      var changed = (currentUser ? currentUser.id : null) !== before;
-      renderAuth();
-      // Η ορατότητα των ιστοριών εξαρτάται από τον χρήστη/ρόλο: ξαναφόρτωση όταν αλλάζει ο χρήστης.
-      loadRole().then(function () { renderAuth(); if (changed) reloadStories(); });
-    });
-  }
-  renderAuth();
-
-  // Προσθήκη ιστορίας στον χάρτη/AR χωρίς επαναφόρτωση
-  function addStoryRuntime(s) {
-    if (STORIES.some(function (x) { return x.id === s.id; })) return;
-    STORIES.push(s);
-    if ($('ar-overlay-container').children.length) { createMarkerEl(s); refreshMarkerTexts(); }
-    if (map && markerCluster) addPoiMarker(s);
-  }
-
-  function removeStoryRuntime(s) {
-    var i = STORIES.indexOf(s);
-    if (i >= 0) STORIES.splice(i, 1);
-    var el = $('html-marker-' + s.id);
-    if (el) el.remove();
-    for (var k = poiLayers.length - 1; k >= 0; k--) {
-      if (poiLayers[k].s === s) { if (markerCluster) markerCluster.removeLayer(poiLayers[k].m); poiLayers.splice(k, 1); }
-    }
-    lastNearestId = null;
-    if (me) renderNearest(false);
-    if (!STORIES.length) $('nearest').classList.remove('on');
-  }
-
-  $('deleteBtn').onclick = async function () {
-    var s = currentSheetStory;
-    if (!sb || !s || !isOwner(s)) return;
-    if (!window.confirm(t('deleteConfirm', { t: st(s).title }))) return;
-    var b = this; b.disabled = true;
-    try {
-      // Η γραμμή σβήνεται πρώτη (σβήνει και πολυμέσα, απομαγνητοφωνήσεις, όρους)· τα αρχεία μετά.
-      var r = await sb.from('stories').delete().eq('id', s.dbId);
-      if (r.error) throw r.error;
-      var paths = s.media.map(function (m) { return m.path; }).filter(Boolean);
-      if (paths.length) { try { await sb.storage.from(BUCKET).remove(paths); } catch (e) { /* ορφανά αρχεία δεν επηρεάζουν την εφαρμογή */ } }
-      clearSheetMedia();
-      currentSheetStory = null;
-      closeDialog('infoSheet');
-      removeStoryRuntime(s);
-      announce(t('deleted'));
-    } catch (e) {
-      alert(t('deleteError', { e: e.message || e }));
-    } finally { b.disabled = false; }
-  };
 
   function storyFromRow(r) {
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
@@ -2446,65 +1784,6 @@
     };
   }
 
-  function reloadStories() {
-    if (currentSheetStory) { clearSheetMedia(); currentSheetStory = null; closeDialog('infoSheet', true); }
-    STORIES.filter(function (x) { return x.dbId; }).forEach(removeStoryRuntime);
-    return loadRemoteStories();
-  }
-
-  async function loadRemoteStories() {
-    if (!sb) return;
-    try {
-      var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
-      var r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
-      if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');   // βάση χωρίς πίνακα συναινέσεων
-      if (r.error) r = await sb.from('stories').select(cols).order('created_at');              // βάση χωρίς στήλη status
-      if (r.error) throw r.error;
-      r.data.forEach(function (row) { addStoryRuntime(storyFromRow(row)); });
-    } catch (e) {
-      announce(t('loadStoriesError'));
-    }
-  }
-
-  var EXT = { 'audio/mp4': 'm4a', 'audio/mpeg': 'mp3', 'image/jpeg': 'jpg', 'video/quicktime': 'mov' };
-  function extFor(type) { return EXT[type] || (type.split('/')[1] || 'bin').replace(/[^a-z0-9]/g, ''); }
-
-  window.WM = {
-    publish: async function (title, pos, files, onProgress, consentId, consentCode) {
-      if (!sb || !currentUser) throw new Error(t('loginToAdd'));
-      if (!consentId) throw new Error(t('consentNeedAll'));
-      var uid = currentUser.id, sid = crypto.randomUUID(), uploaded = [], rows = [];
-      try {
-        for (var i = 0; i < files.length; i++) {
-          onProgress(i + 1, files.length);
-          var f = files[i];
-          var type = String(f.outType || f.blob.type || 'application/octet-stream').split(';')[0];
-          var path = uid + '/' + sid + '/' + i + '.' + extFor(type);
-          var up = await sb.storage.from(BUCKET).upload(path, f.blob, { contentType: type, upsert: false });
-          if (up.error) throw up.error;
-          uploaded.push(path);
-          rows.push({ story_id: sid, kind: f.kind, path: path, position: i });
-        }
-        var author = userName(currentUser);
-        var ins = await sb.from('stories').insert({ id: sid, title: title, lat: pos.lat, lon: pos.lon, author_name: author, consent_id: consentId });
-        if (ins.error) throw ins.error;
-        var mi = await sb.from('story_media').insert(rows).select('id,position');
-        if (mi.error) throw mi.error;
-        mi.data.forEach(function (d) { rows[d.position].id = d.id; });
-      } catch (e) {
-        try { await sb.from('stories').delete().eq('id', sid); } catch (_) {}
-        if (uploaded.length) { try { await sb.storage.from(BUCKET).remove(uploaded); } catch (_) {} }
-        throw e;
-      }
-      return storyFromRow({ id: sid, user_id: uid, status: 'draft', consent_id: consentId, consents: consentCode ? { code: consentCode } : null, title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
-        story_media: rows.map(function (r) { return { id: r.id, kind: r.kind, path: r.path, position: r.position }; }) });
-    }
-  };
-  loadRemoteStories();
-
-  // ==========================================
-  // 1c. ΣΧΟΛΙΑΣΜΟΣ (απομαγνητοφώνηση + ελεγχόμενα λεξιλόγια, HDT/CRM)
-  // ==========================================
   var VOCAB_LABEL = { aat: 'AAT', tgn: 'TGN', ulan: 'ULAN', wikidata: 'Wikidata', geonames: 'GeoNames' };
   var VOCAB_SCHEME = { aat: 'http://vocab.getty.edu/aat/', tgn: 'http://vocab.getty.edu/tgn/', ulan: 'http://vocab.getty.edu/ulan/', wikidata: 'https://www.wikidata.org/entity/', geonames: 'https://sws.geonames.org/' };
   var currentSheetStory = null;
@@ -2608,46 +1887,76 @@
   function renderPublishUI(s) {
     var visible = !!(s.dbId && (isOwner(s) || isAnnotator()));
     $('sheetStatus').textContent = visible ? t(s.status === 'published' ? 'statusPublished' : 'statusDraft') : '';
+    var pb = $('publishBtn');
+    pb.hidden = !(isAnnotator() && s.dbId);
+    pb.textContent = t(s.status === 'published' ? 'unpubStory' : 'pubStory');
   }
 
-  // ---- Λίστα ιστοριών: ο διευκολυντής βλέπει τις δικές του, ο σχολιαστής όλες (χωρίς περιορισμό απόστασης) ----
-  function renderList() {
-    var ann = isAnnotator();
-    $('listTitle').textContent = t(ann ? 'listAll' : 'listMy');
-    $('listFilterWrap').hidden = !ann;
-    var f = $('listFilter'), cur = f.value || 'all';
-    f.innerHTML = '';
-    [['all', 'listAllF'], ['draft', 'listDraftF'], ['published', 'listPubF']].forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = t(o[1]); f.appendChild(op); });
-    f.value = cur;
-    var body = $('listBody'); body.innerHTML = '';
-    if (ann) {      // η απομαγνητοφώνηση και ο σχολιασμός γίνονται πλέον στην ιστοσελίδα σχολιαστών
-      var np = document.createElement('p'); np.className = 'sheet-sub'; np.appendChild(document.createTextNode(t('annSiteNote') + ' '));
-      var na = document.createElement('a'); na.href = 'annotate/'; na.textContent = t('annSiteLink'); np.appendChild(na); body.appendChild(np);
+  $('publishBtn').onclick = async function () {
+    var s = currentSheetStory;
+    if (!sb || !s || !isAnnotator()) return;
+    var next = s.status === 'published' ? 'draft' : 'published', b = this;
+    b.disabled = true;
+    try {
+      var r = await sb.from('stories').update({ status: next }).eq('id', s.dbId).select('id');
+      if (r.error) throw r.error;
+      if (!r.data || !r.data.length) throw new Error('not allowed');
+      s.status = next;
+      renderPublishUI(s); renderList();
+    } catch (e) { alert(t('pubError', { e: errText(e) })); }
+    finally { b.disabled = false; }
+  };
+
+
+  function fmtT(sec) { var mm = Math.floor(sec / 60), r = sec - mm * 60; return String(mm).padStart(2, '0') + ':' + (r < 10 ? '0' : '') + r.toFixed(1); }
+  function parseTime(x) {
+    x = String(x).trim().replace(',', '.');
+    if (/^\d+(\.\d+)?$/.test(x)) return parseFloat(x);
+    var a = x.match(/^(\d+):(\d{1,2}(?:\.\d+)?)$/); if (a) return +a[1] * 60 + parseFloat(a[2]);
+    var b = x.match(/^(\d+):(\d{1,2}):(\d{1,2}(?:\.\d+)?)$/); if (b) return +b[1] * 3600 + +b[2] * 60 + parseFloat(b[3]);
+    return NaN;
+  }
+  // --- Ακριβής χρόνος μιας αναφοράς μέσα σε γραμμή απομαγνητοφώνησης ---
+  function normTok(w) { return String(w).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ''); }
+  function tokensOf(str) { return String(str).split(/\s+/).map(normTok).filter(Boolean); }
+  function sameTok(a, b) {
+    if (a === b) return true;
+    var n = Math.min(a.length, b.length); if (n < 4) return false;
+    var i = 0; while (i < n && a[i] === b[i]) i++;
+    return i >= Math.max(4, n - 2);   // ανεκτικό σε καταλήξεις (Μυτιλήνη / Μυτιλήνης)
+  }
+  function findSeq(hay, needle) {
+    for (var i = 0; i + needle.length <= hay.length; i++) {
+      var ok = true;
+      for (var j = 0; j < needle.length; j++) { if (!sameTok(hay[i + j], needle[j])) { ok = false; break; } }
+      if (ok) return i;
     }
-    var q = ($('listSearch').value || '').trim().toLowerCase();
-    var items = STORIES.filter(function (x) { return x.dbId && (ann || (currentUser && x.ownerId === currentUser.id)); })
-      .filter(function (x) { return !ann || f.value === 'all' || x.status === f.value; })
-      .filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.consentCode || '')).toLowerCase().indexOf(q) >= 0; }).reverse();
-    if (!items.length) { var p = document.createElement('p'); p.textContent = t('listEmpty'); body.appendChild(p); return; }
-    items.forEach(function (x) {
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item';
-      var ti = document.createElement('span'); ti.className = 't'; ti.textContent = st(x).title;
-      var me_ = document.createElement('span'); me_.className = 'm';
-      var chip = document.createElement('span'); chip.className = x.status === 'published' ? 'chip-pub' : 'chip-draft'; chip.textContent = t(x.status === 'published' ? 'statusPublished' : 'statusDraft');
-      me_.appendChild(chip);
-      me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length + (x.consentCode ? ' · ' + x.consentCode : '')));
-      b.appendChild(ti); b.appendChild(me_);
-      b.onclick = function () { closeDialog('listSheet', true); openStorySheet(x); };
-      body.appendChild(b);
-    });
+    return -1;
   }
-  $('listBtn').onclick = function () { renderList(); openDialog('listSheet'); };
-  $('listFilter').onchange = renderList;
-  $('listSearch').oninput = renderList;
-  $('listCloseBtn').onclick = function () { closeDialog('listSheet'); };
-  escHandlers.listSheet = function () { closeDialog('listSheet'); };
-  onLangChange(function () { if ($('listSheet').classList.contains('on')) renderList(); });
+  // Επιστρέφει {start, end, exact} ή null. exact=true όταν υπάρχουν χρονισμοί λέξεων· αλλιώς εκτίμηση βάσει θέσης στο κείμενο.
+  function locateMention(seg, mention) {
+    var mt = tokensOf(mention), segStart = +seg.start_s, segEnd = +seg.end_s, dur = segEnd - segStart;
+    if (!mt.length || !(dur > 0)) return null;
+    function fin(a, b, pad, minW, exact) {
+      a -= pad; b += pad;
+      if (b - a < minW) { var c = (a + b) / 2; a = c - minW / 2; b = c + minW / 2; }
+      a = Math.max(segStart, a); b = Math.min(segEnd, b);
+      return b - a > 0.2 ? { start: +a.toFixed(2), end: +b.toFixed(2), exact: exact } : null;
+    }
+    var words = seg.words;
+    if (words && words.length) {
+      var i = findSeq(words.map(function (w) { return normTok(w.w); }), mt);
+      if (i >= 0) return fin(words[i].s, words[i + mt.length - 1].e, 0.1, 0.5, true);
+    }
+    var toks = String(seg.text).split(/\s+/).filter(function (x) { return normTok(x); });
+    var j = findSeq(toks.map(normTok), mt);
+    if (j < 0) return null;
+    var total = 0, before = 0, len = 0;
+    toks.forEach(function (x, k) { var l = x.length + 1; total += l; if (k < j) before += l; else if (k < j + mt.length) len += l; });
+    return fin(segStart + dur * before / total, segStart + dur * (before + len) / total, 0.15, 1.2, false);
+  }
 
+  // Μήνυμα για σφάλμα δικαιωμάτων της βάσης (ο λογαριασμός δεν είναι σχολιαστής)
   function errText(e) {
     var m = (e && e.message) || String(e);
     return /row-level security/i.test(m) ? t('annNoRights') : m;
@@ -3013,10 +2322,13 @@
     box.innerHTML = '';
     currentSheetStory = s;
     var owner = isOwner(s), ann = isAnnotator();
+    var annotatable = !!(s.media && s.media.some(function (m) { return m.id; }));
+    $('annotateBtn').hidden = !(ann && annotatable);
     $('deleteBtn').hidden = !(owner && hasDbMedia(s));
+    $('exportBtn').hidden = !hasDbMedia(s);
     renderPublishUI(s);
     renderConsentUI(s);
-    $('sheetTools').hidden = $('deleteBtn').hidden;
+    $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden && $('deleteBtn').hidden && $('publishBtn').hidden;
     if (!hasDbMedia(s)) return;
     function loadNotice(msg) {
       var n = document.createElement('p'); n.className = 'field-error'; n.textContent = t('annLoadFail', { e: msg });
@@ -3101,546 +2413,932 @@
     });
   }
 
+  // --- Αναζήτηση όρων στον browser (Wikidata, Getty)· δεν χρειάζεται κλειδί ή server ---
   var WD_API = 'https://www.wikidata.org/w/api.php';
+  var KIND_NAMES = ['person', 'place', 'event', 'object', 'material', 'concept'];
+  var WD_EVENT_CLASSES = { Q1190554: 1, Q1656682: 1, Q198: 1, Q178561: 1, Q13418847: 1, Q350604: 1 };
+
+  async function wdSearch(q, lang, limit) {
+    var r = await fetch(WD_API + '?action=wbsearchentities&format=json&origin=*&limit=' + limit +
+      '&language=' + encodeURIComponent(lang) + '&uselang=' + encodeURIComponent(lang) + '&search=' + encodeURIComponent(q));
+    if (!r.ok) throw new Error('Wikidata ' + r.status);
+    var d = await r.json();
+    return (d.search || []).map(function (x) {
+      return { vocabulary: 'wikidata', id: x.id, uri: 'https://www.wikidata.org/entity/' + x.id, label: x.label || x.id, description: x.description || '',
+        matchText: x.match && x.match.text ? x.match.text : null };
+    });
+  }
+
+  // Εικάζει το είδος από τα δεδομένα του Wikidata: P31=Q5 πρόσωπο, P625 τόπος, γνωστές κλάσεις γεγονότος.
+  async function wdKinds(ids) {
+    var out = {};
+    for (var i = 0; i < ids.length; i += 50) {
+      try {
+        var r = await fetch(WD_API + '?action=wbgetentities&format=json&origin=*&props=claims&ids=' + ids.slice(i, i + 50).join('|'));
+        if (!r.ok) continue;
+        var d = await r.json();
+        Object.keys(d.entities || {}).forEach(function (id) {
+          var c = d.entities[id].claims || {};
+          var p31 = (c.P31 || []).map(function (x) { return x.mainsnak && x.mainsnak.datavalue && x.mainsnak.datavalue.value && x.mainsnak.datavalue.value.id; });
+          out[id] = p31.indexOf('Q5') >= 0 ? 'person' : c.P625 ? 'place' : p31.some(function (x) { return WD_EVENT_CLASSES[x]; }) ? 'event' : 'concept';
+        });
+      } catch (e) { /* χωρίς είδος -> 'concept' */ }
+    }
+    return out;
+  }
+
+  async function gettySearch(scheme, term) {
+    var clean = term.replace(/["'\\]/g, ' ').trim();
+    if (!clean) return [];
+    var q = 'SELECT ?s ?l WHERE { ?s luc:term "' + clean + '"; skos:inScheme ' + scheme + ': ; a gvp:Subject ; gvp:prefLabelGVP [xl:literalForm ?l] } LIMIT 3';
+    var r = await fetch('https://vocab.getty.edu/sparql.json?query=' + encodeURIComponent(q));
+    if (!r.ok) throw new Error('Getty ' + r.status);
+    var d = await r.json();
+    var kind = scheme === 'tgn' ? 'place' : scheme === 'ulan' ? 'person' : 'concept';
+    return ((d.results || {}).bindings || []).map(function (b) { return { vocabulary: scheme, uri: b.s.value, label: b.l.value, description: '', kind: kind }; });
+  }
+
+  async function searchTerms(q, lang) {
+    var quiet = function (p) { return p.catch(function () { return []; }); };
+    var jobs = [quiet(wdSearch(q, lang, 4))];
+    if (lang !== 'en') jobs.push(quiet(wdSearch(q, 'en', 3)));
+    ['aat', 'tgn', 'ulan'].forEach(function (sc) { jobs.push(quiet(gettySearch(sc, q))); });
+    var all = (await Promise.all(jobs)).reduce(function (a, b) { return a.concat(b); }, []);
+    var seen = {};
+    all = all.filter(function (c) { if (seen[c.uri]) return false; seen[c.uri] = 1; return true; });
+    var kinds = await wdKinds(all.filter(function (c) { return c.id; }).map(function (c) { return c.id; }));
+    all.forEach(function (c) { if (!c.kind) c.kind = kinds[c.id] || 'concept'; });
+    return all;
+  }
+
+  // Φράσεις που μοιάζουν με ονόματα (κεφαλαία)· μονές λέξεις στην αρχή πρότασης αγνοούνται.
+  function nameCandidates(text) {
+    var re = /\p{Lu}[\p{L}\u0300-\u036f'’-]*(?:\s+\p{Lu}[\p{L}\u0300-\u036f'’-]*)*/gu, out = [], m;
+    while ((m = re.exec(text))) {
+      var w = m[0];
+      if (w.length < 3) continue;
+      var atStart = /(^|[.!?;·]\s+)$/.test(text.slice(0, m.index)), multi = w.indexOf(' ') >= 0;
+      if (!multi && atStart) continue;
+      out.push(w);
+      // Η πρώτη λέξη μιας πρότασης είναι κεφαλαία χωρίς να είναι όνομα (π.χ. "Στη Μυτιλήνη")· δοκίμασε και χωρίς αυτήν.
+      if (multi && atStart && w.slice(w.indexOf(' ') + 1).length >= 3) out.push(w.slice(w.indexOf(' ') + 1));
+    }
+    return out;
+  }
+
+  async function saveTranscript(m, lang, segs) {
+    var up = await sb.from('media_transcripts').upsert(
+      { media_id: m.id, language: lang, status: 'done', error: null, text: segs.map(function (g) { return g.text; }).join(' ') },
+      { onConflict: 'media_id' }).select('id').single();
+    if (up.error) throw up.error;
+    var tid = up.data.id;
+    var del = await sb.from('transcript_segments').delete().eq('transcript_id', tid);
+    if (del.error) throw del.error;
+    var rows = segs.map(function (g, i) {
+      return { transcript_id: tid, idx: i, start_s: g.start_s, end_s: g.end_s, text: g.text.slice(0, 1000),
+        words: g.words && g.words.length ? g.words.slice(0, 300).map(function (w) { return { w: w.w, s: w.s, e: w.e }; }) : null };
+    });
+    var ins = await sb.from('transcript_segments').insert(rows);
+    if (ins.error && /words/i.test(ins.error.message || '')) {   // βάση χωρίς στήλη words: αποθήκευση χωρίς χρονισμούς λέξεων
+      ins = await sb.from('transcript_segments').insert(rows.map(function (r) { var c = Object.assign({}, r); delete c.words; return c; }));
+    }
+    if (ins.error) throw ins.error;
+    // Οι αυτόματες προτάσεις που δεν έχεις ελέγξει αντικαθίστανται· οι εγκεκριμένες/απορριφθείσες μένουν.
+    var da = await sb.from('annotations').delete().eq('media_id', m.id).eq('source', 'auto').eq('status', 'suggested');
+    if (da.error) throw da.error;
+    return rows;
+  }
+
+  async function autoSuggest(m, lang, segs, onProgress) {
+    var phrases = {}, order = [];
+    segs.forEach(function (g) {
+      nameCandidates(g.text).forEach(function (ph) {
+        if (!phrases[ph]) { phrases[ph] = []; order.push(ph); }
+        if (phrases[ph].indexOf(g) < 0) phrases[ph].push(g);
+      });
+    });
+    order = order.slice(0, 40);
+    var found = {}, done = 0;
+    for (var i = 0; i < order.length; i += 4) {
+      await Promise.all(order.slice(i, i + 4).map(function (ph) {
+        return wdSearch(ph, lang, 2).catch(function () { return []; }).then(function (r) { found[ph] = r; onProgress(++done, order.length); });
+      }));
+    }
+    // Μόνο αποτελέσματα που ταιριάζουν ολόκληρη τη φράση (το Wikidata ταιριάζει και με αρχή λέξης), και το καλύτερο ένα ανά φράση.
+    order.forEach(function (ph) {
+      var pt_ = tokensOf(ph);
+      found[ph] = found[ph].filter(function (c) {
+        if (!c.matchText) return true;
+        var ct = tokensOf(c.matchText);
+        return ct.length === pt_.length && pt_.every(function (x, i) { return sameTok(x, ct[i]); });
+      }).slice(0, 1);
+    });
+    // Ό,τι υπάρχει ήδη (εγκεκριμένο, απορριμμένο ή χειροκίνητο) για την ίδια γραμμή δεν προτείνεται ξανά.
+    var haveRes = await sb.from('annotations').select('term_uri,segment_idx').eq('media_id', m.id);
+    var have = {};
+    ((haveRes && haveRes.data) || []).forEach(function (a) { have[a.term_uri + '|' + a.segment_idx] = true; });
+    var ids = [];
+    order.forEach(function (ph) { found[ph].forEach(function (c) { ids.push(c.id); }); });
+    var kinds = await wdKinds(ids.filter(function (x, k) { return ids.indexOf(x) === k; }));
+    var rows = [], seen = {};
+    // Οι συντομότερες φράσεις πρώτες: ο "Μυτιλήνη" υπερισχύει του "Στη Μυτιλήνη" όταν δίνουν την ίδια οντότητα
+    order.slice().sort(function (a, b) { return tokensOf(a).length - tokensOf(b).length; }).forEach(function (ph) {
+      found[ph].forEach(function (c) {
+        phrases[ph].forEach(function (g) {
+          var key = c.uri + '|' + g.idx;
+          if (seen[key] || have[key]) return;
+          seen[key] = 1;
+          var loc = locateMention(g, ph);
+          rows.push({ media_id: m.id, segment_idx: g.idx, start_s: loc ? loc.start : g.start_s, end_s: loc ? loc.end : g.end_s, mention: ph, kind: kinds[c.id] || 'concept',
+            vocabulary: 'wikidata', term_uri: c.uri, label: c.label.slice(0, 200), description: c.description.slice(0, 300), status: 'suggested', source: 'auto' });
+        });
+      });
+    });
+    if (rows.length) { var ins = await sb.from('annotations').insert(rows); if (ins.error) throw ins.error; }
+    return rows.length;
+  }
+
+  function kindSelect(value, label, onChange) {
+    var sel = document.createElement('select'); sel.className = 'lang-select kind-select';
+    KIND_NAMES.forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = t('kind_' + k); sel.appendChild(o); });
+    sel.value = value; sel.setAttribute('aria-label', t('annKind') + ': ' + label);
+    sel.onchange = function () { onChange(sel.value); };
+    return sel;
+  }
+
+  var annListeners = [];
+  function notifyAnn() { annListeners.forEach(function (f) { try { f(); } catch (e) {} }); scheduleView(); }
+
+  function annRowEl(a, onChange, ctx) {
+    var row = document.createElement('div');
+    row.className = 'ann-row ' + a.status;
+    var links = termLink(a); row.appendChild(links[0]); row.appendChild(links[1]);
+    function btn(label, status) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = label;
+      b.setAttribute('aria-label', label + ': ' + a.label);
+      b.onclick = async function () {
+        b.disabled = true;
+        var patch = { status: status, approved_by: status === 'approved' ? currentUser.id : null, approved_at: status === 'approved' ? new Date().toISOString() : null };
+        var r = await sb.from('annotations').update(patch).eq('id', a.id);
+        if (r.error) { alert(t('annSaveError', { e: errText(r.error) })); b.disabled = false; return; }
+        a.status = status; onChange(); notifyAnn();
+      };
+      row.appendChild(b);
+    }
+    // Βασική γραμμή: όρος + έγκριση/απόρριψη
+    if (a.status === 'suggested') { btn(t('annApprove'), 'approved'); btn(t('annReject'), 'rejected'); }
+    else { var st_ = document.createElement('strong'); st_.textContent = t(a.status === 'approved' ? 'annApproved' : 'annRejected'); row.appendChild(st_); btn(t('annUndo'), 'suggested'); }
+
+    // Λεπτομέρειες (είδος, χρόνος): κλειστές από προεπιλογή
+    var more = document.createElement('div'); more.className = 'ann-more'; more.hidden = true;
+    var ment = document.createElement('span'); ment.textContent = t('annMention', { m: a.mention }); more.appendChild(ment);
+    if (a.description) { var ds = document.createElement('span'); ds.className = 'desc'; ds.textContent = a.description; more.appendChild(ds); }
+    more.appendChild(kindSelect(a.kind, a.label, async function (k) {
+      var r = await sb.from('annotations').update({ kind: k }).eq('id', a.id);
+      if (r.error) alert(t('annSaveError', { e: errText(r.error) })); else a.kind = k;
+    }));
+    if (ctx) {
+      var when = document.createElement('span'); when.className = 'ann-when';
+      when.textContent = hasRange(a) ? mmss(a.start_s) + '–' + mmss(a.end_s) : t('annTimeWhole');
+      more.appendChild(when);
+      var panel = document.createElement('div'); panel.className = 'ann-time-panel';
+      var si = document.createElement('input'); si.type = 'text'; si.className = 'time-in'; si.inputMode = 'decimal'; si.setAttribute('aria-label', t('lnkStart'));
+      var ei = document.createElement('input'); ei.type = 'text'; ei.className = 'time-in'; ei.inputMode = 'decimal'; ei.setAttribute('aria-label', t('lnkEnd'));
+      if (hasRange(a)) { si.value = fmtT(a.start_s); ei.value = fmtT(a.end_s); }
+      function tb(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.onclick = fn; panel.appendChild(b); return b; }
+      panel.insertBefore(ei, panel.firstChild); panel.insertBefore(si, panel.firstChild);
+      tb(t('annTimeStartNow'), function () { si.value = fmtT(ctx.getTime()); });
+      tb(t('annTimeEndNow'), function () { ei.value = fmtT(ctx.getTime()); });
+      async function saveTime(st2, en2) {
+        var r = await sb.from('annotations').update({ start_s: st2, end_s: en2 }).eq('id', a.id);
+        if (r.error) { alert(t('annSaveError', { e: errText(r.error) })); return; }
+        a.start_s = st2; a.end_s = en2; onChange(); notifyAnn();
+      }
+      tb(t('annTimeFind'), function () {
+        var loc = ctx.locate ? ctx.locate(a) : null;
+        if (!loc) { alert(t('annTimeNotFound')); return; }
+        si.value = fmtT(loc.start); ei.value = fmtT(loc.end); ctx.seek(loc.start);
+      });
+      tb(t('annTimeSave'), function () {
+        var x = parseTime(si.value), y = parseTime(ei.value);
+        if (!(x >= 0) || !(y > x)) { alert(t('lnkBad')); return; }
+        saveTime(x, y);
+      });
+      tb(t('annTimeClear'), function () { saveTime(null, null); });
+      more.appendChild(panel);
+    }
+    var mb = document.createElement('button'); mb.type = 'button'; mb.className = 'link-btn'; mb.textContent = t('annMore'); mb.setAttribute('aria-expanded', 'false');
+    mb.onclick = function () {
+      more.hidden = !more.hidden; mb.setAttribute('aria-expanded', more.hidden ? 'false' : 'true');
+      if (!more.hidden && ctx && hasRange(a)) ctx.seek(a.start_s);
+    };
+    row.appendChild(mb); row.appendChild(more);
+    return row;
+  }
+
+  // --- Μορφή απομαγνητοφώνησης: μία γραμμή ανά τμήμα, προαιρετικά "[λλ:δδ-λλ:δδ] κείμενο" ---
+  function fmtStamp(sec) { return mmss(sec); }
+  function segmentsToText(segs) {
+    return segs.map(function (g) { return '[' + fmtStamp(g.start_s) + '-' + fmtStamp(g.end_s) + '] ' + g.text; }).join('\n');
+  }
+  function stampToSec(x) { var p = x.split(':').map(Number); return p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p[0] * 60 + p[1]; }
+  function textToSegments(text) {
+    var out = [];
+    text.split(/\r?\n/).forEach(function (line) {
+      line = line.trim();
+      if (!line) return;
+      var m = line.match(/^\[(\d+(?::\d{2}){1,2})(?:\s*-\s*(\d+(?::\d{2}){1,2}))?\]\s*(.*)$/);
+      if (m) out.push({ start_s: stampToSec(m[1]), end_s: m[2] ? stampToSec(m[2]) : null, text: m[3].trim() });
+      else out.push({ start_s: null, end_s: null, text: line });
+    });
+    var t0 = 0;
+    out.forEach(function (g, i) {
+      if (g.start_s === null) g.start_s = t0;
+      if (g.end_s === null) { var nx = out[i + 1]; g.end_s = nx && nx.start_s !== null && nx.start_s >= g.start_s ? nx.start_s : g.start_s; }
+      t0 = g.end_s;
+    });
+    return out.filter(function (g) { return g.text; });
+  }
+  // .srt / .vtt -> γραμμές "[λλ:δδ-λλ:δδ] κείμενο"· σκέτο κείμενο μένει όπως είναι
+  function parseSubtitleFile(raw) {
+    var blocks = raw.replace(/\r/g, '').replace(/^WEBVTT[^\n]*\n/, '').split(/\n{2,}/), lines = [];
+    blocks.forEach(function (b) {
+      var m = b.match(/(\d+:)?(\d{2}):(\d{2})[.,]\d+\s*-->\s*(\d+:)?(\d{2}):(\d{2})[.,]\d+[^\n]*\n([\s\S]*)/);
+      if (!m) { if (b.trim() && !/^\d+$/.test(b.trim())) lines.push(b.trim().replace(/\n/g, ' ')); return; }
+      var a = (parseInt(m[1] || '0', 10) * 3600) + parseInt(m[2], 10) * 60 + parseInt(m[3], 10);
+      var z = (parseInt(m[4] || '0', 10) * 3600) + parseInt(m[5], 10) * 60 + parseInt(m[6], 10);
+      var txt = m[7].replace(/<[^>]+>/g, '').replace(/\n/g, ' ').trim();
+      if (txt) lines.push('[' + fmtStamp(a) + '-' + fmtStamp(z) + '] ' + txt);
+    });
+    return lines.join('\n');
+  }
+
+  // --- Whisper στη συσκευή (transformers.js)· το αρχείο δεν φεύγει από τον browser ---
+  // Ταχύτητα/ποιότητα: tiny (γρήγορο), base, small (καλύτερο). Με WebGPU τρέχει στην κάρτα γραφικών.
+  var WHISPER_MODELS = { fast: 'Xenova/whisper-tiny', balanced: 'Xenova/whisper-base', best: 'Xenova/whisper-small' };
+  var QUALITY_KEY = 'wm_whisper_quality';
+  var whisperPipes = {}, tfModule = null;
+  function loadTf() {
+    if (!tfModule) tfModule = import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3').catch(function (e) { tfModule = null; throw e; });
+    return tfModule;
+  }
+  var WHISPER_LANG = { el: 'greek', en: 'english', fr: 'french', it: 'italian' };
+
+  function savedQuality() {
+    try { var q = localStorage.getItem(QUALITY_KEY); if (WHISPER_MODELS[q]) return q; } catch (e) {}
+    return 'balanced';
+  }
+  async function hasWebGPU() {
+    try { return !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch (e) { return false; }
+  }
+
+  async function loadWhisper(quality, device, onProgress) {
+    var key = quality + ':' + device;
+    if (whisperPipes[key]) return whisperPipes[key];
+    var tf = await loadTf();
+    var opts = device === 'webgpu'
+      ? { device: 'webgpu', dtype: { encoder_model: 'fp32', decoder_model_merged: 'q4' } }
+      : { dtype: 'q8' };
+    opts.progress_callback = function (e) { if (e && e.status === 'progress' && typeof e.progress === 'number') onProgress(Math.round(e.progress)); };
+    var pipe = await tf.pipeline('automatic-speech-recognition', WHISPER_MODELS[quality], opts);
+    whisperPipes[key] = pipe;
+    return pipe;
+  }
+
+  async function decodeAudio16k(url) {
+    var buf = await (await fetch(url)).arrayBuffer();
+    var AC = window.AudioContext || window.webkitAudioContext, ac = new AC({ sampleRate: 16000 }), ab;
+    try { ab = await ac.decodeAudioData(buf); } catch (e) { throw new Error(t('annDecodeErr')); } finally { try { ac.close(); } catch (e) {} }
+    var a = ab.getChannelData(0);
+    if (ab.numberOfChannels < 2) return a;
+    var b = ab.getChannelData(1), mono = new Float32Array(a.length);
+    for (var i = 0; i < a.length; i++) mono[i] = (a[i] + b[i]) / 2;
+    return mono;
+  }
+
+  async function fnErrorMessage(err) {
+    try { if (err && err.context && err.context.json) { var j = await err.context.json(); if (j && j.error) return j.error; } } catch (e) {}
+    if (err && /FunctionsFetchError|Failed to send/i.test((err.name || '') + ' ' + (err.message || ''))) return t('annServerMissing');
+    return (err && err.message) || String(err);
+  }
+
+  async function serverTranscribe(mediaId, lang) {
+    var r = await sb.functions.invoke('transcribe-media', { body: { media_id: mediaId, language: lang } });
+    if (r.error) throw new Error(await fnErrorMessage(r.error));
+    var segs = (r.data && r.data.segments) || [];
+    if (!segs.length) throw new Error(t('annServerEmpty'));
+    return segs;
+  }
+
+  async function whisperTranscribe(url, lang, quality, onStatus) {
+    var audio = await decodeAudio16k(url);
+    async function run(device) {
+      var pipe = await loadWhisper(quality, device, function (p) { onStatus(t('annWhisperLoad', { p: p })); });
+      onStatus(t(device === 'webgpu' ? 'annWhisperRunGpu' : 'annWhisperRun'));
+      var opts = { language: WHISPER_LANG[lang] || 'english', task: 'transcribe', chunk_length_s: 30, stride_length_s: 5 };
+      try { opts.return_timestamps = 'word'; return { res: await pipe(audio, opts), word: true }; }   // χρονισμοί λέξεων
+      catch (e) { opts.return_timestamps = true; return { res: await pipe(audio, opts), word: false }; }
+    }
+    var out;
+    if (await hasWebGPU()) {
+      try { out = await run('webgpu'); }
+      catch (e) { onStatus(t('annWhisperFallback')); out = await run('wasm'); }
+    } else { out = await run('wasm'); }
+    var res = out.res;
+    var chunks = (res.chunks || []).filter(function (c) { return c.text && c.text.trim(); });
+    if (!chunks.length && res.text && res.text.trim()) return [{ start_s: 0, end_s: 0, text: res.text.trim() }];
+    if (out.word) return groupWords(chunks);
+    return chunks.map(function (c) { return { start_s: c.timestamp[0] || 0, end_s: c.timestamp[1] == null ? (c.timestamp[0] || 0) : c.timestamp[1], text: c.text.trim() }; });
+  }
+
+  // Ομαδοποίηση λέξεων με χρονισμούς σε γραμμές (τέλος πρότασης, παύση ή μέγιστο μήκος)
+  function groupWords(chunks) {
+    var segs = [], cur = null;
+    function flush() {
+      if (!cur) return;
+      cur.text = cur.words.map(function (w) { return w.w; }).join(' ');
+      cur.start_s = cur.words[0].s; cur.end_s = cur.words[cur.words.length - 1].e;
+      segs.push(cur); cur = null;
+    }
+    chunks.forEach(function (c) {
+      var w = c.text.trim(), st_ = c.timestamp[0] || 0, en_ = c.timestamp[1] == null ? st_ : c.timestamp[1];
+      if (cur && st_ - cur.words[cur.words.length - 1].e > 0.9) flush();
+      if (!cur) cur = { words: [] };
+      cur.words.push({ w: w, s: +st_.toFixed(2), e: +Math.max(en_, st_).toFixed(2) });
+      if (/[.!?;·]$/.test(w) || cur.words.length >= 18) flush();
+    });
+    flush();
+    return segs;
+  }
+
+  function addTermForm(seg, m, lang, onAdded, hasTerm) {
+    var wrap = document.createElement('div'); wrap.className = 'ann-add';
+    var open = document.createElement('button'); open.type = 'button'; open.className = 'link-btn'; open.textContent = t('annAddTerm');
+    var form = document.createElement('div'); form.hidden = true;
+    var inp = document.createElement('input'); inp.type = 'text'; inp.className = 'ann-term-in'; inp.placeholder = t('annSearchPh'); inp.setAttribute('aria-label', t('annSearchPh'));
+    var go = document.createElement('button'); go.type = 'button'; go.className = 'btn-secondary'; go.textContent = t('annSearch');
+    var out = document.createElement('div'); out.setAttribute('role', 'status');
+    form.appendChild(inp); form.appendChild(go); form.appendChild(out);
+    open.onclick = function () { form.hidden = !form.hidden; if (!form.hidden) inp.focus(); };
+
+    async function search() {
+      var q = inp.value.trim();
+      if (!q) return;
+      go.disabled = true; out.innerHTML = ''; out.textContent = t('annRunning');
+      try {
+        var res = await searchTerms(q, lang);
+        out.textContent = '';
+        if (!res.length) { out.textContent = t('annNoResults'); return; }
+        res.forEach(function (c) {
+          var row = document.createElement('div'); row.className = 'ann-row';
+          var links = termLink({ term_uri: c.uri, label: c.label, vocabulary: c.vocabulary }); row.appendChild(links[0]); row.appendChild(links[1]);
+          if (c.description) { var d = document.createElement('span'); d.className = 'desc'; d.textContent = c.description; row.appendChild(d); }
+          var kind = c.kind;
+          row.appendChild(kindSelect(kind, c.label, function (k) { kind = k; }));
+          var add = document.createElement('button'); add.type = 'button'; add.textContent = t('annAdd'); add.setAttribute('aria-label', t('annAdd') + ': ' + c.label);
+          if (hasTerm && hasTerm(c.uri)) { add.disabled = true; add.textContent = t('annAdded'); }
+          add.onclick = async function () {
+            add.disabled = true;
+            var loc = locateMention(seg, q);
+            var r = await sb.from('annotations').insert({
+              media_id: m.id, segment_idx: seg.idx, start_s: loc ? loc.start : seg.start_s, end_s: loc ? loc.end : seg.end_s, mention: q, kind: kind, vocabulary: c.vocabulary,
+              term_uri: c.uri, label: c.label.slice(0, 200), description: (c.description || '').slice(0, 300),
+              status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString()
+            }).select('id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source').single();
+            if (r.error) { alert(t('annSaveError', { e: errText(r.error) })); add.disabled = false; return; }
+            onAdded(r.data);
+          };
+          row.appendChild(add);
+          out.appendChild(row);
+        });
+      } catch (e) { out.textContent = t('annSearchErr', { e: e.message || e }); }
+      finally { go.disabled = false; }
+    }
+    go.onclick = search;
+    inp.onkeydown = function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); search(); } };
+    wrap.appendChild(open); wrap.appendChild(form);
+    return wrap;
+  }
+
+  function annSection(s, m, n) {
+    var sec = document.createElement('section'); sec.className = 'ann-media';
+    var uid = 'ann-' + m.id;
+    var h = document.createElement('h3'); h.textContent = t('type_' + m.kind) + ' ' + n; sec.appendChild(h);
+    var playerEl = document.createElement(m.kind === 'video' ? 'video' : 'audio');
+    playerEl.className = 'ann-player'; playerEl.controls = true; playerEl.preload = 'metadata'; playerEl.src = m.url;
+    playerEl.setAttribute('aria-label', t('type_' + m.kind) + ' ' + n); sec.appendChild(playerEl);
+    var ctx = { getTime: function () { return playerEl.currentTime || 0; }, seek: function (x) { try { playerEl.currentTime = x; } catch (e) {} },
+      locate: function (a) { var g = segByIdx[a.segment_idx]; return g ? locateMention(g, a.mention) : null; } };
+    var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
+    var stepInit = false;
+
+    // Βήμα 1: απομαγνητοφώνηση
+    var step1 = document.createElement('details'); step1.className = 'ann-step';
+    var sm1 = document.createElement('summary'); sm1.textContent = t('annStep1'); step1.appendChild(sm1);
+    var serverBtn = document.createElement('button'); serverBtn.type = 'button'; serverBtn.className = 'btn-primary btn-wide'; serverBtn.textContent = t('annServer'); step1.appendChild(serverBtn);
+    var whisperBtn = document.createElement('button'); whisperBtn.type = 'button'; whisperBtn.className = 'btn-secondary btn-wide'; whisperBtn.textContent = t('annWhisper'); step1.appendChild(whisperBtn);
+    var fileBtn = document.createElement('button'); fileBtn.type = 'button'; fileBtn.className = 'btn-secondary btn-wide'; fileBtn.textContent = t('annUpload'); step1.appendChild(fileBtn);
+    var fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.srt,.vtt,.txt,text/plain,text/vtt'; fileIn.hidden = true; step1.appendChild(fileIn);
+    var opts = document.createElement('details'); opts.className = 'ann-step';
+    var smo = document.createElement('summary'); smo.textContent = t('annOptions'); opts.appendChild(smo);
+    var langWrap = document.createElement('div'); langWrap.className = 'input-group';
+    var langLbl = document.createElement('label'); langLbl.htmlFor = uid + '-lang'; langLbl.textContent = t('annLangLabel');
+    var langSel = document.createElement('select'); langSel.id = uid + '-lang'; langSel.className = 'lang-select';
+    ['el', 'en', 'fr', 'it'].forEach(function (c) { var o = document.createElement('option'); o.value = c; o.textContent = c.toUpperCase(); langSel.appendChild(o); });
+    langSel.value = LANG; langWrap.appendChild(langLbl); langWrap.appendChild(langSel); opts.appendChild(langWrap);
+    var qWrap = document.createElement('div'); qWrap.className = 'input-group';
+    var qLbl = document.createElement('label'); qLbl.htmlFor = uid + '-q'; qLbl.textContent = t('annQuality');
+    var qSel = document.createElement('select'); qSel.id = uid + '-q'; qSel.className = 'lang-select';
+    ['fast', 'balanced', 'best'].forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = t('annQ_' + k); qSel.appendChild(o); });
+    qSel.value = savedQuality();
+    qSel.onchange = function () { try { localStorage.setItem(QUALITY_KEY, qSel.value); } catch (e) {} };
+    qWrap.appendChild(qLbl); qWrap.appendChild(qSel); opts.appendChild(qWrap);
+    step1.appendChild(opts);
+    var taWrap = document.createElement('div'); taWrap.className = 'input-group';
+    var taLbl = document.createElement('label'); taLbl.htmlFor = uid + '-text'; taLbl.textContent = t('annTextLabel');
+    var ta = document.createElement('textarea'); ta.id = uid + '-text'; ta.rows = 7; ta.className = 'ann-text';
+    taWrap.appendChild(taLbl); taWrap.appendChild(ta); step1.appendChild(taWrap);
+    var save = document.createElement('button'); save.type = 'button'; save.className = 'btn-secondary btn-wide'; save.textContent = t('annRun'); step1.appendChild(save);
+
+    // Βήμα 2: όροι
+    var step2 = document.createElement('details'); step2.className = 'ann-step';
+    var sm2 = document.createElement('summary'); sm2.textContent = t('annStep2'); step2.appendChild(sm2);
+    var auto = document.createElement('button'); auto.type = 'button'; auto.className = 'btn-primary btn-wide'; auto.textContent = t('annAuto'); step2.appendChild(auto);
+    var list = document.createElement('div'); step2.appendChild(list);
+    var adv = document.createElement('details'); adv.className = 'ann-step';
+    var sma = document.createElement('summary'); sma.textContent = t('annAdvanced'); adv.appendChild(sma);
+    var refine = document.createElement('button'); refine.type = 'button'; refine.className = 'btn-secondary btn-wide'; refine.textContent = t('annRefine'); adv.appendChild(refine);
+    step2.appendChild(adv);
+    sec.appendChild(step1); sec.appendChild(step2);
+    var data = null, filled = false, lastWords = [], segByIdx = {};
+
+    function attachWords(segs) {
+      var pool = lastWords.slice();
+      return segs.map(function (g) {
+        var i = pool.findIndex(function (x) { return x && x.words && x.words.length && x.text === g.text; });
+        if (i >= 0) { g.words = pool[i].words.slice(0, 300); pool[i] = null; }
+        return g;
+      });
+    }
+
+    function busy(on) { [serverBtn, whisperBtn, fileBtn, save, auto, refine, langSel, qSel, ta].forEach(function (el) { el.disabled = on; }); }
+
+    function paint() {
+      var tr = data && data.transcripts.filter(function (x) { return x.media_id === m.id; })[0];
+      var anns = data ? data.annotations.filter(function (a) { return a.media_id === m.id; }) : [];
+      list.innerHTML = '';
+      if (tr && !filled) { ta.value = segmentsToText(tr.transcript_segments); lastWords = tr.transcript_segments.map(function (g) { return { text: g.text, words: g.words || null }; }); if (tr.language) langSel.value = tr.language; filled = true; }
+      segByIdx = {}; if (tr) tr.transcript_segments.forEach(function (g) { segByIdx[g.idx] = g; });
+      if (!stepInit && data) { stepInit = true; step1.open = !tr; step2.open = !!tr; }
+      if (!tr) return;
+      tr.transcript_segments.forEach(function (seg) {
+        var mine = anns.filter(function (a) { return a.segment_idx === seg.idx; });
+        var box = document.createElement('div'); box.className = 'ann-seg';
+        var when = document.createElement('div'); when.className = 'when'; when.textContent = mmss(seg.start_s) + '–' + mmss(seg.end_s);
+        var tx = document.createElement('div'); tx.textContent = seg.text;
+        box.appendChild(when); box.appendChild(tx);
+        mine.forEach(function (a) { box.appendChild(annRowEl(a, paint, ctx)); });
+        box.appendChild(addTermForm(seg, m, tr.language || langSel.value, function (row) { data.annotations.push(row); paint(); notifyAnn(); },
+          function (uri) { return data.annotations.some(function (a) { return a.media_id === m.id && a.segment_idx === seg.idx && a.term_uri === uri && a.status !== 'rejected'; }); }));
+        list.appendChild(box);
+      });
+    }
+
+    async function reload() { data = await fetchKnowledge(s, true); paint(); }
+
+    whisperBtn.onclick = async function () {
+      busy(true);
+      try {
+        var segs = await whisperTranscribe(m.url, langSel.value, qSel.value, function (msg) { status.textContent = msg; });
+        ta.value = segmentsToText(segs); filled = true; lastWords = segs.map(function (g) { return { text: g.text, words: g.words || null }; });
+        status.textContent = '';
+      } catch (e) { status.textContent = t('annWhisperErr', { e: e.message || e }); }
+      finally { busy(false); }
+    };
+    serverBtn.onclick = async function () {
+      busy(true); status.textContent = t('annServerRun');
+      try {
+        var segs = await serverTranscribe(m.id, langSel.value);
+        ta.value = segmentsToText(segs); filled = true; lastWords = segs.map(function (g) { return { text: g.text, words: g.words || null }; });
+        status.textContent = '';
+      } catch (e) { status.textContent = t('annServerErr', { e: e.message || e }); }
+      finally { busy(false); }
+    };
+    fileBtn.onclick = function () { fileIn.click(); };
+    fileIn.onchange = function () {
+      var f = fileIn.files && fileIn.files[0];
+      if (!f) return;
+      var rd = new FileReader();
+      rd.onload = function () { ta.value = parseSubtitleFile(String(rd.result || '')); filled = true; lastWords = []; };
+      rd.readAsText(f);
+      fileIn.value = '';
+    };
+
+    async function saveFlow(withAuto) {
+      var segs = attachWords(textToSegments(ta.value).slice(0, 400));
+      if (!segs.length) { status.textContent = t('annEmpty'); ta.focus(); return; }
+      busy(true); status.textContent = t('annRunning');
+      try {
+        var rows = await saveTranscript(m, langSel.value, segs);
+        var msg = t('annSaved', { s: rows.length });
+        if (withAuto) {
+          var count = await autoSuggest(m, langSel.value, rows.map(function (r) { return { idx: r.idx, start_s: r.start_s, end_s: r.end_s, text: r.text, words: r.words || null }; }),
+            function (i, total) { status.textContent = t('annAutoProgress', { i: i, n: total }); });
+          msg = t('annAutoDone', { n: count });
+        }
+        filled = false;
+        await reload();
+        notifyAnn();
+        status.textContent = msg;
+      } catch (e) {
+        status.textContent = t('annFailed', { e: errText(e) });
+      } finally { busy(false); }
+    }
+    // Ακριβείς χρόνοι για προτάσεις που ακόμα καλύπτουν ολόκληρη τη γραμμή (όσες έχεις ήδη διορθώσει μένουν ως έχουν)
+    refine.onclick = async function () {
+      if (!data) return;
+      busy(true); status.textContent = t('annRunning');
+      var n = 0;
+      try {
+        var mine = data.annotations.filter(function (a) { return a.media_id === m.id && a.segment_idx != null && a.status !== 'rejected'; });
+        for (var i = 0; i < mine.length; i++) {
+          var a = mine[i], g = segByIdx[a.segment_idx];
+          if (!g || a.start_s !== g.start_s || a.end_s !== g.end_s) continue;
+          var loc = locateMention(g, a.mention);
+          if (!loc) continue;
+          var r = await sb.from('annotations').update({ start_s: loc.start, end_s: loc.end }).eq('id', a.id);
+          if (r.error) throw r.error;
+          a.start_s = loc.start; a.end_s = loc.end; n++;
+        }
+        paint(); notifyAnn();
+        status.textContent = n ? t('annRefined', { n: n }) : t('annRefineNone');
+      } catch (e) { status.textContent = t('annFailed', { e: errText(e) }); }
+      finally { busy(false); }
+    };
+    save.onclick = function () { saveFlow(false); };
+    auto.onclick = function () { saveFlow(true); };
+    reload().catch(function (e) { status.textContent = t('annFailed', { e: errText(e) }); });
+    return sec;
+  }
+
+  // --- Εικόνες: σύνδεση με όρους της ιστορίας, προαιρετική περιοχή, προτάσεις CLIP στη συσκευή ---
+  var clipPipe = null;
+
+  async function enLabels(terms) {
+    var out = {}, ids = [];
+    terms.forEach(function (tm) {
+      if (tm.vocabulary === 'wikidata') ids.push(tm.term_uri.split('/').pop()); else out[tm.term_uri] = tm.label;
+    });
+    for (var i = 0; i < ids.length; i += 50) {
+      try {
+        var r = await fetch(WD_API + '?action=wbgetentities&format=json&origin=*&props=labels&languages=en&ids=' + ids.slice(i, i + 50).join('|'));
+        if (!r.ok) continue;
+        var d = await r.json();
+        Object.keys(d.entities || {}).forEach(function (id) {
+          var l = d.entities[id].labels && d.entities[id].labels.en;
+          if (l) out['https://www.wikidata.org/entity/' + id] = l.value;
+        });
+      } catch (e) { /* θα χρησιμοποιηθεί η υπάρχουσα ετικέτα */ }
+    }
+    return out;
+  }
+
+  // Συγκρίνει την εικόνα με τους όρους (CLIP, zero-shot) και προτείνει όσους ταιριάζουν πιθανότατα.
+  async function clipSuggest(m, terms, existing, onStatus) {
+    var cands = terms.filter(function (tm) { return !existing.some(function (a) { return a.term_uri === tm.term_uri; }); });
+    if (!cands.length) return 0;
+    var tf = await loadTf();
+    if (!clipPipe) {
+      clipPipe = await tf.pipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32', {
+        progress_callback: function (e) { if (e && e.status === 'progress' && typeof e.progress === 'number') onStatus(t('imgClipLoad', { p: Math.round(e.progress) })); }
+      });
+    }
+    onStatus(t('imgClipRun'));
+    var en = await enLabels(cands);
+    var labels = cands.map(function (tm) { return en[tm.term_uri] || tm.label; });
+    var distract = ['something unrelated', 'a blurry or dark photo'];
+    var out = await clipPipe(m.url, labels.concat(distract));
+    var score = {};
+    out.forEach(function (o) { if (!(o.label in score)) score[o.label] = o.score; });
+    var bestDistract = Math.max.apply(null, distract.map(function (d) { return score[d] || 0; }));
+    var picks = cands.map(function (tm, i) { return { tm: tm, score: score[labels[i]] || 0 }; })
+      .filter(function (x) { return x.score >= 0.3 && x.score > bestDistract; })
+      .sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+    if (!picks.length) return 0;
+    var rows = picks.map(function (x) {
+      return { media_id: m.id, mention: x.tm.label, kind: x.tm.kind, vocabulary: x.tm.vocabulary, term_uri: x.tm.term_uri, label: x.tm.label,
+        description: x.tm.description || '', status: 'suggested', source: 'clip' };
+    });
+    var ins = await sb.from('annotations').insert(rows);
+    if (ins.error) throw ins.error;
+    return rows.length;
+  }
+
   var ANN_BASE = 'id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source,region_x,region_y,region_w,region_h';
   var ANN_COLS = ANN_BASE + ',av_media_id';
 
-  onLangChange(function () { if (currentSheetStory) renderKnowledge(currentSheetStory); });
+  // Εικόνα: τρία βήματα — 1) όρος, 2) περιοχή στην εικόνα, 3) μέρος της απομαγνητοφώνησης (οι χρόνοι προκύπτουν από τις γραμμές).
+  function imageSection(s, m, n) {
+    var sec = document.createElement('section'); sec.className = 'ann-media';
+    var h = document.createElement('h3'); h.textContent = t('type_image') + ' ' + n; sec.appendChild(h);
 
-  // ==========================================
-  // 2. EDITOR (μη καταστροφικός)
-  // ==========================================
-  var MAX_IMAGE_W = 1600, MAX_VIDEO_W = 640, VIDEO_BITRATE = 1000000;
-  var BRUSH_FRAC = 0.05, BRUSH_MIN = 24;
+    var imgAlt = t('type_image') + ' ' + n;
+    var thumb = document.createElement('button'); thumb.type = 'button'; thumb.className = 'img-thumb'; thumb.setAttribute('aria-label', t('imgEnlarge') + ': ' + imgAlt);
+    var timg = document.createElement('img'); timg.src = m.url; timg.alt = ''; thumb.appendChild(timg); sec.appendChild(thumb);
+    thumb.onclick = function () {
+      openImagePopup({ url: m.url, alt: imgAlt, title: imgAlt, regions: anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }) });
+    };
 
-  var processedFiles = [];   // { originalFile, name, num, kind, meta, blob, outType }
-  var currentFile = null, currentObjectURL = null, previewURLs = [];
-
-  var canvas = $('imageCanvas'), ctx = canvas.getContext('2d', { alpha: false });
-  var imgObj = null, isDrawing = false;
-  var blurSrc = document.createElement('canvas');
-  var imgStrokes = [], curStroke = null;
-  var kbPos = { x: 0.5, y: 0.5 };
-
-  var cachedVideoRanges = [], cachedAudioRanges = [];
-  var vidLoading = false, audLoading = false;
-
-  function getKind(file) {
-    var ty = file.type || '';
-    if (ty.startsWith('image/')) return 'image';
-    if (ty.startsWith('video/')) return 'video';
-    return 'audio';
-  }
-  function nameOf(f) { return t('type_' + f.kind) + ' ' + f.num; }
-
-  var progressOn = false, lastPctAnnounce = -1;
-  function showProgress(on, msg, pct, title) {
-    if (on && !progressOn) { progressOn = true; openDialog('processingOverlay', $('processingOverlay')); }
-    if (!on && progressOn) { progressOn = false; closeDialog('processingOverlay', true); }
-    if (title != null) $('procTitle').textContent = title;
-    if (msg != null) $('procMsg').textContent = msg;
-    if (pct != null) {
-      var p = Math.max(0, Math.min(100, pct));
-      $('procBarFill').style.width = p + '%';
-      $('procBar').setAttribute('aria-valuenow', Math.round(p));
-      // Ανακοίνωση ανά 25% για να μην "φλυαρεί"
-      var bucket = Math.floor(p / 25);
-      if (on && bucket !== lastPctAnnounce) { lastPctAnnounce = bucket; if (bucket > 0 && bucket < 4) announce(Math.round(p) + '%'); }
+    var terms = [], anns = [], links = [], transcripts = [];
+    var avs = s.media.filter(function (x) { return x.kind !== 'image' && x.id; });
+    var pick = { term: null, area: null, av: avs.length ? avs[0].id : null };
+    function avLabel(id) { var i = avs.findIndex(function (x) { return x.id === id; }); return i < 0 ? '' : t('type_' + avs[i].kind) + ' ' + (i + 1); }
+    function fail(e) { alert(t('annSaveError', { e: errText(e) })); }
+    function segsOf(avId) {
+      var tr = transcripts.filter(function (x) { return x.media_id === avId; })[0];
+      return ((tr && tr.transcript_segments) || []).filter(function (g) { return g.end_s > g.start_s; });
     }
-  }
 
-  function waitForFiniteDuration(media) {
-    return new Promise(function (resolve) {
-      if (isFinite(media.duration) && media.duration > 0) { resolve(); return; }
-      var done = false;
-      function finish(force) {
-        if (done) return;
-        if (!force && !isFinite(media.duration)) return;
-        done = true;
-        media.removeEventListener('durationchange', onEv);
-        media.removeEventListener('timeupdate', onEv);
-        try { media.currentTime = 0; } catch (e) {}
-        resolve();
+    // ---- φόρμα νέας σημείωσης ----
+    var form = document.createElement('div'); form.className = 'note-form'; sec.appendChild(form);
+    var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
+    var listHead = document.createElement('h3'); listHead.textContent = t('noteListTitle'); sec.appendChild(listHead);
+    var list = document.createElement('div'); sec.appendChild(list);
+
+    function step(num, label) { var p = document.createElement('p'); p.className = 'note-step'; p.textContent = num + '. ' + label; form.appendChild(p); return p; }
+    var checkedIdx = {};
+    function paintForm() {
+      form.innerHTML = '';
+      if (!terms.length) { var p0 = document.createElement('p'); p0.textContent = t('imgNoTerms'); form.appendChild(p0); return; }
+      if (!avs.length) { var p1 = document.createElement('p'); p1.textContent = t('lnkNoAV'); form.appendChild(p1); return; }
+      // 1. όρος
+      step(1, t('noteStepTerm'));
+      var sel = document.createElement('select'); sel.className = 'lang-select'; sel.setAttribute('aria-label', t('noteStepTerm'));
+      var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+      terms.forEach(function (tm) { var o = document.createElement('option'); o.value = tm.term_uri; o.textContent = tm.label; sel.appendChild(o); });
+      sel.value = pick.term ? pick.term.term_uri : '';
+      sel.onchange = function () {
+        pick.term = terms.filter(function (x) { return x.term_uri === sel.value; })[0] || null;
+        checkedIdx = {};
+        if (pick.term) {                                       // προτείνει τις γραμμές όπου ειπώθηκε ο όρος
+          allAnnsFor(pick.term).forEach(function (a) { if (a.media_id === pick.av && a.segment_idx != null) checkedIdx[a.segment_idx] = true; });
+        }
+        paintForm();
+      };
+      form.appendChild(sel);
+      // 2. περιοχή
+      step(2, t('noteStepArea'));
+      var ab = document.createElement('button'); ab.type = 'button'; ab.className = 'btn-secondary';
+      ab.textContent = pick.area ? t('imgAreaSet') : t('imgMark');
+      ab.onclick = function () {
+        openImagePopup({
+          url: m.url, alt: imgAlt, title: imgAlt + (pick.term ? ' — ' + pick.term.label : ''), draw: true,
+          regions: anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }),
+          onRect: function (r) { pick.area = r; paintForm(); }
+        });
+      };
+      form.appendChild(ab);
+      if (pick.area) { var ok = document.createElement('span'); ok.className = 'ann-when'; ok.textContent = ' ✓'; form.appendChild(ok); }
+      // 3. μέρος της απομαγνητοφώνησης
+      step(3, t('noteStepPart'));
+      if (avs.length > 1) {
+        var avSel = document.createElement('select'); avSel.className = 'lang-select'; avSel.setAttribute('aria-label', t('lnkMedia'));
+        avs.forEach(function (x, i) { var o = document.createElement('option'); o.value = x.id; o.textContent = t('type_' + x.kind) + ' ' + (i + 1); avSel.appendChild(o); });
+        avSel.value = pick.av; avSel.onchange = function () { pick.av = avSel.value; checkedIdx = {}; paintForm(); };
+        form.appendChild(avSel);
       }
-      function onEv() { finish(false); }
-      media.addEventListener('durationchange', onEv);
-      media.addEventListener('timeupdate', onEv);
-      try { media.currentTime = 1e7; } catch (e) {}
-      setTimeout(function () { finish(true); }, 3000);
+      var segs = segsOf(pick.av);
+      if (!segs.length) { var nt = document.createElement('p'); nt.textContent = t('imgNoTranscript'); form.appendChild(nt); return; }
+      var box = document.createElement('div'); box.className = 'ann-lines';
+      segs.forEach(function (g) {
+        var lb = document.createElement('label'); var cb = document.createElement('input'); cb.type = 'checkbox'; cb.dataset.idx = g.idx; cb.checked = !!checkedIdx[g.idx];
+        cb.onchange = function () { if (cb.checked) checkedIdx[g.idx] = true; else delete checkedIdx[g.idx]; };
+        lb.appendChild(cb); lb.appendChild(document.createTextNode('[' + mmss(g.start_s) + '] ' + g.text)); box.appendChild(lb);
+      });
+      form.appendChild(box);
+      var add = document.createElement('button'); add.type = 'button'; add.className = 'btn-primary btn-wide'; add.id = 'noteAdd'; add.textContent = t('noteAdd');
+      add.onclick = async function () {
+        if (!pick.term) { status.textContent = t('noteNeedTerm'); return; }
+        if (!pick.area) { status.textContent = t('noteNeedArea'); return; }
+        var groups = [], cur = null;
+        segs.forEach(function (g, i) {                          // διαδοχικές γραμμές γίνονται ένα διάστημα
+          if (!checkedIdx[g.idx]) { cur = null; return; }
+          if (cur && cur.lastI === i - 1) { cur.end = g.end_s; cur.lastI = i; } else { cur = { start: g.start_s, end: g.end_s, lastI: i }; groups.push(cur); }
+        });
+        if (!groups.length) { status.textContent = t('noteNeedPart'); return; }
+        add.disabled = true; status.textContent = '';
+        try {
+          for (var q = 0; q < groups.length; q++) {
+            var gp = groups[q], tm = pick.term;
+            var row = { media_id: m.id, mention: tm.label, kind: tm.kind, vocabulary: tm.vocabulary, term_uri: tm.term_uri, label: tm.label,
+              description: tm.description || '', status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString(),
+              start_s: gp.start, end_s: gp.end, av_media_id: pick.av,
+              region_x: pick.area.x, region_y: pick.area.y, region_w: pick.area.w, region_h: pick.area.h };
+            var r = await sb.from('annotations').insert(row).select(ANN_COLS).single();
+            if (r.error) throw r.error; anns.push(r.data); scheduleView();
+            await ensureLink({ av: pick.av, start: gp.start, end: gp.end });
+          }
+          pick.term = null; pick.area = null; checkedIdx = {};
+          status.textContent = t('noteAdded');
+        } catch (e) { fail(e); }
+        paintForm(); paintList();
+      };
+      form.appendChild(add);
+    }
+    function allAnnsFor(tm) { return allAnns.filter(function (a) { return a.term_uri === tm.term_uri && a.status === 'approved' && a.media_id !== m.id; }); }
+    var allAnns = [];
+
+    function linkInsert(row) {
+      return sb.from('media_links').insert(row).select('id,story_id,image_media_id,av_media_id,start_s,end_s').single()
+        .then(function (r) { if (r.error) throw r.error; links.push(r.data); });
+    }
+    async function ensureLink(mn) {
+      if (links.some(function (l) { return l.av_media_id === mn.av && l.start_s <= mn.start + 0.05 && l.end_s >= mn.end - 0.05; })) return;
+      await linkInsert({ story_id: s.dbId, image_media_id: m.id, av_media_id: mn.av, start_s: mn.start, end_s: mn.end });
+    }
+    function lineText(avId, start) {
+      var g = segsOf(avId).filter(function (x) { return start >= x.start_s - 0.05 && start < x.end_s; })[0];
+      return g ? g.text.slice(0, 50) : '';
+    }
+
+    // ---- υπάρχουσες σημειώσεις: όρος · περιοχή · μέρος της απομαγνητοφώνησης ----
+    function paintList() {
+      list.innerHTML = '';
+      var notes = anns.filter(function (a) { return a.status !== 'rejected'; });
+      if (!notes.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('noteNone'); list.appendChild(p); return; }
+      notes.sort(function (a, b) { return (a.start_s || 0) - (b.start_s || 0); }).forEach(function (a) {
+        var row = document.createElement('div'); row.className = 'ann-row';
+        var tx = document.createElement('span');
+        var when = isTimedNote(a) ? (avs.length > 1 ? avLabel(a.av_media_id) + ' · ' : '') + mmss(a.start_s) + '–' + mmss(a.end_s) + (lineText(a.av_media_id, a.start_s) ? ' “' + lineText(a.av_media_id, a.start_s) + '”' : '') : t('imgAlways');
+        tx.textContent = a.label + ' · ' + (hasRegion(a) ? t('noteArea') : t('noteNoArea')) + ' · ' + when;
+        row.appendChild(tx);
+        var dl = document.createElement('button'); dl.type = 'button'; dl.textContent = t('noteDelete'); dl.setAttribute('aria-label', t('noteDelete') + ': ' + a.label);
+        dl.onclick = async function () {
+          dl.disabled = true;
+          var d = await sb.from('annotations').delete().eq('id', a.id);
+          if (d.error) { fail(d.error); dl.disabled = false; return; }
+          anns.splice(anns.indexOf(a), 1); paintList(); scheduleView();
+        };
+        row.appendChild(dl); list.appendChild(row);
+      });
+    }
+
+    async function reload() {
+      var k = await fetchKnowledge(s, true);
+      var imageIds = {};
+      s.media.forEach(function (x) { if (x.kind === 'image') imageIds[x.id] = true; });
+      var seen = {};
+      terms = k.annotations.filter(function (a) {
+        if (a.status !== 'approved' || imageIds[a.media_id] || seen[a.term_uri]) return false;
+        seen[a.term_uri] = 1; return true;
+      });
+      allAnns = k.annotations;
+      anns = k.annotations.filter(function (a) { return a.media_id === m.id; });
+      links = k.links.filter(function (l) { return l.image_media_id === m.id; });
+      transcripts = k.transcripts;
+      if (pick.term && !terms.some(function (x) { return x.term_uri === pick.term.term_uri; })) pick.term = null;
+      paintForm(); paintList();
+    }
+    annListeners.push(function () { return reload(); });
+    reload().catch(function (e) { status.textContent = t('annFailed', { e: errText(e) }); });
+    return sec;
+  }
+
+  function buildAnnotate() {
+    var s = currentSheetStory;
+    if (!s || !isAnnotator()) return;
+    var body = $('annBody'); body.innerHTML = '';
+    annListeners = [];
+    var av = s.media.filter(function (m) { return m.kind !== 'image' && m.id; });
+    var imgs = s.media.filter(function (m) { return m.kind === 'image' && m.id; });
+    if (!av.length && !imgs.length) { var p = document.createElement('p'); p.textContent = t('annNoMedia'); body.appendChild(p); }
+    av.forEach(function (m, i) { body.appendChild(annSection(s, m, i + 1)); });
+    if (imgs.length) {
+      // Όλες οι εικόνες σε μία αναδιπλούμενη ενότητα, και μέσα σε αυτήν κάθε εικόνα χωριστά (ανοίγει μία κάθε φορά)
+      var all = document.createElement('details'); all.className = 'ann-step'; all.open = !av.length;
+      var allSm = document.createElement('summary'); allSm.textContent = t('imgSection') + ' (' + imgs.length + ')'; all.appendChild(allSm);
+      var each = [];
+      imgs.forEach(function (m, i) {
+        var d = document.createElement('details'); d.className = 'ann-step'; each.push(d);
+        var sm = document.createElement('summary'); sm.textContent = t('type_image') + ' ' + (i + 1); d.appendChild(sm);
+        d.appendChild(imageSection(s, m, i + 1));
+        d.addEventListener('toggle', function () { if (d.open) each.forEach(function (o) { if (o !== d) o.open = false; }); });
+        all.appendChild(d);
+      });
+      if (each.length === 1) each[0].open = true;
+      body.appendChild(all);
+    }
+  }
+
+  // --- Εξαγωγή JSON-LD (HDT ontology + CIDOC-CRM + Web Annotation) ---
+  // Το HDTO v0.1 δεν δημοσιεύει ακόμη επίσημο namespace· ορίστε WM_CONFIG.HDT_NS όταν υπάρξει.
+  var KIND_CLASS = { person: 'crm:E21_Person', place: 'crm:E53_Place', event: 'crm:E5_Event', object: 'crm:E70_Thing', material: 'crm:E57_Materials', concept: 'crm:E55_Type' };
+
+  function buildJsonLd(s, k) {
+    var sid = 'urn:walkingmemory:story:' + s.dbId;
+    var entity = sid + '#heritage-entity', twin = sid + '#digital-twin', narrative = sid + '#narrative';
+    var graph = [];
+    var narr = { '@id': narrative, '@type': 'nont:Narrative', 'hdt:HP10_tells_about': [], 'crm:P67_refers_to': [] };
+    var ent = {
+      '@id': entity, '@type': 'hdt:HC1_Heritage_Entity', 'rdfs:label': st(s).title,
+      'crm:P168_place_is_defined_by': { '@type': 'crm:E94_Space_Primitive', '@value': 'POINT(' + s.lon + ' ' + s.lat + ')' },
+      'hdt:HP1_has_digital_twin': { '@id': twin }, 'hdt:HP2_has_story': { '@id': narrative }
+    };
+    graph.push(ent, { '@id': twin, '@type': 'hdt:HC2_Heritage_Digital_Twin', 'crm:P67_refers_to': { '@id': entity } }, narr);
+
+    var repById = {};
+    s.media.forEach(function (m) {
+      if (!m.id) return;
+      var rep = { '@id': m.url, '@type': m.kind === 'audio' ? 'hdt:HC5_Digital_Representation' : 'hdt:HC7_Digital_Visual_Object', 'hdt:HP22_represents': { '@id': entity } };
+      if (m.kind === 'image') rep['hdt:HP9_is_visual_representation_of'] = { '@id': entity };
+      repById[m.id] = rep;
+      graph.push(rep);
+      if (m.kind === 'image') return;
+      var tr = k.transcripts.filter(function (x) { return x.media_id === m.id && x.status === 'done'; })[0];
+      var narration = { '@id': sid + '#narration-' + m.id, '@type': 'nont:Narration', 'hdt:HP4_narrates': { '@id': narrative }, 'crm:P165_incorporates': { '@id': m.url } };
+      if (tr) {
+        var doc = sid + '#transcript-' + m.id;
+        narration['hdt:HP8_is_narrated_in_document'] = { '@id': doc };
+        graph.push({ '@id': doc, '@type': ['hdt:HC6_Digital_Document', 'crm:E31_Document'], 'hdt:HP11_documents': { '@id': entity }, 'dcterms:language': tr.language, 'rdf:value': tr.text });
+      }
+      graph.push(narration);
     });
-  }
 
-  function inRanges(ranges, tm, key) {
-    for (var i = 0; i < ranges.length; i++) {
-      var r = ranges[i];
-      if ((!key || r[key]) && tm >= r.s && tm < r.e) return true;
-    }
-    return false;
-  }
-
-  function pickInterval(d) {
-    if (d > 120) return 30;
-    if (d > 60) return 15;
-    if (d > 20) return 5;
-    if (d > 10) return 2;
-    return 1;
-  }
-
-  // --- Θόλωμα (με υποστήριξη iOS) ---
-  var _filterSupported = null;
-  function supportsCanvasFilter() {
-    if (_filterSupported !== null) return _filterSupported;
-    try {
-      var c = document.createElement('canvas'); c.width = 5; c.height = 5;
-      var x = c.getContext('2d');
-      if (!('filter' in x)) return (_filterSupported = false);
-      x.fillStyle = '#000'; x.fillRect(0, 0, 5, 5);
-      x.filter = 'blur(2px)';
-      x.fillStyle = '#fff'; x.fillRect(2, 2, 1, 1);
-      _filterSupported = x.getImageData(1, 2, 1, 1).data[0] > 0;
-    } catch (e) { _filterSupported = false; }
-    return _filterSupported;
-  }
-
-  function buildBlurSource(src, dst) {
-    var w = src.width, h = src.height;
-    dst.width = w; dst.height = h;
-    var dctx = dst.getContext('2d');
-    if (supportsCanvasFilter()) {
-      dctx.filter = 'blur(16px)'; dctx.drawImage(src, 0, 0); dctx.filter = 'none';
-      return;
-    }
-    var target = Math.max(8, Math.round(w / 20));
-    var steps = [], cur = src, cw = w, ch = h;
-    while (cw / 2 >= target) {
-      var c = document.createElement('canvas');
-      c.width = Math.max(1, Math.round(cw / 2)); c.height = Math.max(1, Math.round(ch / 2));
-      var cc = c.getContext('2d');
-      cc.imageSmoothingEnabled = true; cc.imageSmoothingQuality = 'high';
-      cc.drawImage(cur, 0, 0, c.width, c.height);
-      steps.push(c); cur = c; cw = c.width; ch = c.height;
-    }
-    for (var i = steps.length - 2; i >= 0; i--) {
-      var up = steps[i], uc = up.getContext('2d');
-      uc.imageSmoothingEnabled = true; uc.imageSmoothingQuality = 'high';
-      uc.clearRect(0, 0, up.width, up.height);
-      uc.drawImage(cur, 0, 0, up.width, up.height);
-      cur = up;
-    }
-    dctx.imageSmoothingEnabled = true; dctx.imageSmoothingQuality = 'high';
-    dctx.drawImage(cur, 0, 0, w, h);
-  }
-
-  function blurDot(tctx, src, x, y, r) {
-    tctx.save();
-    tctx.beginPath(); tctx.arc(x, y, r, 0, Math.PI * 2); tctx.clip();
-    tctx.drawImage(src, 0, 0);
-    tctx.restore();
-  }
-
-  function paintStrokes(tctx, src, strokes, w, h) {
-    strokes.forEach(function (g) { g.forEach(function (p) { blurDot(tctx, src, p.x * w, p.y * h, p.r * w); }); });
-  }
-
-  function redrawImage() {
-    if (!imgObj) return;
-    ctx.drawImage(imgObj, 0, 0, canvas.width, canvas.height);
-    paintStrokes(ctx, blurSrc, imgStrokes, canvas.width, canvas.height);
-  }
-
-  function loadImage(file) {
-    return new Promise(function (resolve, reject) {
-      var url = URL.createObjectURL(file);
-      var im = new Image();
-      im.onload = function () { URL.revokeObjectURL(url); resolve(im); };
-      im.onerror = function () { URL.revokeObjectURL(url); reject(new Error(t('errImage'))); };
-      im.src = url;
-    });
-  }
-
-  async function renderImageFinal(file, strokes) {
-    var im = await loadImage(file);
-    var k = Math.min(1, MAX_IMAGE_W / im.width);
-    var c = document.createElement('canvas');
-    c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
-    var cctx = c.getContext('2d', { alpha: false });
-    cctx.drawImage(im, 0, 0, c.width, c.height);
-    if (strokes && strokes.length) {
-      var bs = document.createElement('canvas');
-      buildBlurSource(c, bs);
-      paintStrokes(cctx, bs, strokes, c.width, c.height);
-    }
-    return await new Promise(function (res) { c.toBlob(res, 'image/jpeg', 0.82); });
-  }
-
-  // --- Χρόνος / sliders ---
-  function fmtSec(v) { return (isFinite(v) ? v : 0).toFixed(1); }
-
-  function renderVideoTime() {
-    var v = $('videoPreview');
-    $('vTimeNow').textContent = vidLoading ? t('loadingVideo') : t('timeNow', { c: fmtSec(v.currentTime), d: isFinite(v.duration) ? fmtSec(v.duration) : '?' });
-    updateSliderAria($('videoTimeline'), v);
-  }
-  function renderAudioTime() {
-    var a = $('audioPreview');
-    $('aTimeNow').textContent = audLoading ? t('loadingAudio') : t('timeNow', { c: fmtSec(a.currentTime), d: isFinite(a.duration) ? fmtSec(a.duration) : '?' });
-    updateSliderAria($('audioTimeline'), a);
-  }
-  onLangChange(function () { renderVideoTime(); renderAudioTime(); applyVideoFx(); applyAudioFx(); updatePlayButtons(); });
-
-  function updateSliderAria(el, media) {
-    var d = isFinite(media.duration) ? media.duration : 0;
-    el.setAttribute('aria-valuemax', d.toFixed(1));
-    el.setAttribute('aria-valuenow', fmtSec(media.currentTime));
-    el.setAttribute('aria-valuetext', t('seconds', { s: fmtSec(media.currentTime), d: d.toFixed(1) }));
-  }
-
-  function sliderKeys(media, e) {
-    var d = media.duration;
-    if (!isFinite(d) || d <= 0) return;
-    var step = e.shiftKey ? 5 : 1, nt = null;
-    switch (e.key) {
-      case 'ArrowRight': case 'ArrowUp': nt = media.currentTime + step; break;
-      case 'ArrowLeft': case 'ArrowDown': nt = media.currentTime - step; break;
-      case 'PageUp': nt = media.currentTime + 10; break;
-      case 'PageDown': nt = media.currentTime - 10; break;
-      case 'Home': nt = 0; break;
-      case 'End': nt = d; break;
-      case ' ': case 'Enter':
-        e.preventDefault();
-        if (media.paused) media.play(); else media.pause();
+    k.annotations.forEach(function (a) {
+      var m = s.media.filter(function (x) { return x.id === a.media_id; })[0];
+      if (!m) return;
+      var term = { '@id': a.term_uri, '@type': KIND_CLASS[a.kind] || 'crm:E1_CRM_Entity', 'skos:prefLabel': a.label, 'skos:inScheme': { '@id': VOCAB_SCHEME[a.vocabulary] } };
+      graph.push(term);
+      if (m.kind === 'image') {
+        var irep = repById[m.id];
+        (irep['crm:P67_refers_to'] = irep['crm:P67_refers_to'] || []).push({ '@id': a.term_uri });
+        var pct = function (v) { return +(v * 100).toFixed(2); };
+        graph.push({
+          '@id': sid + '#annotation-' + a.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:tagging' },
+          'oa:hasBody': { '@id': a.term_uri },
+          'oa:hasTarget': hasRegion(a) ? {
+            'oa:hasSource': { '@id': m.url },
+            'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' },
+              'rdf:value': 'xywh=percent:' + pct(a.region_x) + ',' + pct(a.region_y) + ',' + pct(a.region_w) + ',' + pct(a.region_h) }
+          } : { 'oa:hasSource': { '@id': m.url } }
+        });
+        var avm = a.av_media_id && mediaById(s, a.av_media_id);
+        if (avm && hasRange(a)) {
+          // Η σημείωση ισχύει μόνο για ένα διάστημα της αφήγησης: το συγκείμενο (oa:hasScope) είναι το αρχείο ήχου/βίντεο με χρονικό τμήμα
+          graph[graph.length - 1]['oa:hasScope'] = { 'oa:hasSource': { '@id': avm.url },
+            'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + a.start_s + ',' + a.end_s } };
+        }
         return;
-      default: return;
-    }
-    e.preventDefault();
-    media.currentTime = Math.max(0, Math.min(d, nt));
-  }
-  $('videoTimeline').addEventListener('keydown', function (e) { sliderKeys($('videoPreview'), e); });
-  $('audioTimeline').addEventListener('keydown', function (e) { sliderKeys($('audioPreview'), e); });
-
-  // --- Timeline βίντεο ---
-  function drawTicks(gctx, width, height, duration, topOffset, labelY) {
-    var interval = pickInterval(duration);
-    gctx.fillStyle = 'rgba(242, 237, 228, 0.9)';
-    gctx.font = '11px monospace';
-    gctx.textBaseline = 'top';
-    for (var tt = 0; tt <= duration; tt += interval) {
-      var x = (tt / duration) * width;
-      gctx.textAlign = x < 10 ? 'left' : (x > width - 15 ? 'right' : 'center');
-      gctx.fillText(tt + 's', x, labelY);
-      gctx.fillStyle = 'rgba(242, 237, 228, 0.15)';
-      gctx.fillRect(x, topOffset, 1, height - topOffset);
-      gctx.fillStyle = 'rgba(242, 237, 228, 0.9)';
-    }
-  }
-
-  function updateVideoTimeline() {
-    cachedVideoRanges = readVideoRanges();
-    applyVideoFx();
-
-    var timeline = $('videoTimeline');
-    timeline.innerHTML = '';
-    var duration = $('videoPreview').duration;
-    if (!isFinite(duration) || duration <= 0) return;
-
-    var gc = $('videoGridCanvas'), gctx = gc.getContext('2d');
-    var dpr = window.devicePixelRatio || 1;
-    var rect = gc.getBoundingClientRect();
-    var width = rect.width || gc.parentElement.clientWidth || 300, height = rect.height || 60;
-    gc.width = width * dpr; gc.height = height * dpr;
-    gctx.scale(dpr, dpr);
-    gctx.clearRect(0, 0, width, height);
-    var topOffset = 18;
-    drawTicks(gctx, width, height, duration, topOffset, 4);
-
-    cachedVideoRanges.forEach(function (r) {
-      var leftPct = Math.max(0, Math.min(100, (r.s / duration) * 100));
-      var widthPct = Math.max(0, Math.min(100 - leftPct, ((r.e - r.s) / duration) * 100));
-      ['blur', 'mute'].forEach(function (kind) {
-        if (!r[kind]) return;
-        var b = document.createElement('div');
-        b.className = 'timeline-block ' + kind;
-        b.style.left = leftPct + '%'; b.style.width = widthPct + '%'; b.style.top = topOffset + 'px';
-        timeline.appendChild(b);
+      }
+      narr[a.kind === 'event' ? 'hdt:HP10_tells_about' : 'crm:P67_refers_to'].push({ '@id': a.term_uri });
+      graph.push({
+        '@id': sid + '#annotation-' + a.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:tagging' },
+        'oa:hasBody': { '@id': a.term_uri },
+        'oa:hasTarget': a.end_s > a.start_s ? {
+          'oa:hasSource': { '@id': m.url },
+          'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + a.start_s + ',' + a.end_s }
+        } : { 'oa:hasSource': { '@id': m.url } }
       });
     });
-  }
-
-  // --- Timeline ήχου ---
-  function readAudioRanges() {
-    var out = [];
-    document.querySelectorAll('#audioMuteList .mute-item').forEach(function (el) {
-      var s = parseFloat(el.querySelector('.r-start').value), e = parseFloat(el.querySelector('.r-end').value);
-      if (!isNaN(s) && !isNaN(e) && e > s) out.push({ s: s, e: e, mute: true });
+    (k.links || []).forEach(function (l) {
+      var im = mediaById(s, l.image_media_id), av = mediaById(s, l.av_media_id);
+      if (!im || !av) return;
+      graph.push({
+        '@id': sid + '#link-' + l.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:linking' },
+        'oa:hasBody': { '@id': im.url },
+        'oa:hasTarget': { 'oa:hasSource': { '@id': av.url },
+          'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + l.start_s + ',' + l.end_s } }
+      });
     });
-    return out;
+    if (!narr['hdt:HP10_tells_about'].length) delete narr['hdt:HP10_tells_about'];
+    if (!narr['crm:P67_refers_to'].length) delete narr['crm:P67_refers_to'];
+
+    return {
+      '@context': {
+        crm: 'http://www.cidoc-crm.org/cidoc-crm/', hdt: CFG.HDT_NS || 'urn:echoes:hdto:', nont: 'https://dlnarratives.eu/ontology/',
+        oa: 'http://www.w3.org/ns/oa#', skos: 'http://www.w3.org/2004/02/skos/core#', dcterms: 'http://purl.org/dc/terms/',
+        rdfs: 'http://www.w3.org/2000/01/rdf-schema#', rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+      },
+      '@graph': graph
+    };
   }
 
-  function updateAudioTimeline() {
-    cachedAudioRanges = readAudioRanges();
-    applyAudioFx();
-    var timeline = $('audioTimeline');
-    timeline.innerHTML = '';
-    var duration = $('audioPreview').duration;
-    if (!isFinite(duration) || duration <= 0) return;
-    cachedAudioRanges.forEach(function (r) {
-      var leftPct = Math.max(0, Math.min(100, (r.s / duration) * 100));
-      var widthPct = Math.max(0, Math.min(100 - leftPct, ((r.e - r.s) / duration) * 100));
-      var b = document.createElement('div');
-      b.className = 'timeline-block mute';
-      b.style.left = leftPct + '%'; b.style.width = widthPct + '%'; b.style.top = '16px';
-      timeline.appendChild(b);
-    });
-  }
-
-  function drawWaveform(buffer) {
-    var wc = $('audioWaveCanvas'), wctx = wc.getContext('2d');
-    var dpr = window.devicePixelRatio || 1;
-    var rect = wc.getBoundingClientRect();
-    var width = rect.width || wc.parentElement.clientWidth || 300, height = rect.height || 90;
-    wc.width = width * dpr; wc.height = height * dpr;
-    wctx.scale(dpr, dpr);
-    wctx.clearRect(0, 0, width, height);
-
-    var topOffset = 16, waveH = height - topOffset;
-    wctx.fillStyle = 'rgba(124, 202, 235, 0.25)';
-    wctx.fillRect(0, topOffset + waveH / 2 - 1, width, 2);
-    wctx.fillStyle = '#7CCAEB';
-
-    var data = buffer.getChannelData(0);
-    var step = Math.ceil(data.length / width), amp = waveH / 2;
-    for (var i = 0; i < width; i++) {
-      var min = 1, max = -1, start = i * step, end = Math.min(start + step, data.length);
-      for (var j = start; j < end; j++) { var d = data[j]; if (d < min) min = d; if (d > max) max = d; }
-      var y1 = topOffset + (1 + min) * amp, y2 = topOffset + (1 + max) * amp;
-      wctx.fillRect(i, y1, 1, Math.max(1, y2 - y1));
-    }
-    if (isFinite(buffer.duration) && buffer.duration > 0) drawTicks(wctx, width, height, buffer.duration, topOffset - 2, 2);
-  }
-
-  // --- Ζωντανή προεπισκόπηση εφέ ---
-  function applyVideoFx() {
-    if ($('videoEditor').style.display === 'none') return;
-    var vid = $('videoPreview'), tm = vid.currentTime || 0;
-    var blur = inRanges(cachedVideoRanges, tm, 'blur'), mute = inRanges(cachedVideoRanges, tm, 'mute');
-    var f = blur ? 'blur(18px)' : 'none';
-    if (vid.style.filter !== f) { vid.style.filter = f; vid.style.webkitFilter = f; }
-    if (vid.muted !== mute) vid.muted = mute;
-    var parts = [];
-    if (blur) parts.push(t('blur'));
-    if (mute) parts.push(t('mute'));
-    var badge = $('vidFxBadge');
-    var txt = parts.length ? t('previewFx', { fx: parts.join(' + ') }) : '';
-    if (badge.textContent !== txt) badge.textContent = txt;
-    badge.classList.toggle('on', parts.length > 0);
-  }
-
-  function applyAudioFx() {
-    if ($('audioEditor').style.display === 'none') return;
-    var aud = $('audioPreview');
-    var mute = inRanges(cachedAudioRanges, aud.currentTime || 0);
-    if (aud.muted !== mute) aud.muted = mute;
-    var badge = $('audFxBadge');
-    badge.textContent = t('previewFx', { fx: t('mute') });
-    badge.classList.toggle('on', mute);
-  }
-
-  function resetPreviewFx() {
-    var vid = $('videoPreview'), aud = $('audioPreview');
-    vid.style.filter = 'none'; vid.style.webkitFilter = 'none'; vid.muted = false;
-    aud.muted = false;
-    $('vidFxBadge').classList.remove('on');
-    $('audFxBadge').classList.remove('on');
-    cachedVideoRanges = []; cachedAudioRanges = [];
-  }
-
-  var fxRaf = null;
-  function fxLoop() {
-    applyVideoFx(); applyAudioFx();
-    if (!$('videoPreview').paused || !$('audioPreview').paused) fxRaf = requestAnimationFrame(fxLoop);
-    else fxRaf = null;
-  }
-  function startFxLoop() { if (!fxRaf) fxRaf = requestAnimationFrame(fxLoop); }
-
-  function setPlayBtn(btn, playing) {
-    btn.querySelector('span').textContent = playing ? '⏸' : '▶';
-    btn.setAttribute('aria-label', t(playing ? 'pause' : 'play'));
-  }
-  function updatePlayButtons() {
-    setPlayBtn($('vidPlayBtn'), !$('videoPreview').paused);
-    setPlayBtn($('wavePlayBtn'), !$('audioPreview').paused);
-  }
-
-  // --- Audio player ---
-  function toggleAudio() {
-    var aud = $('audioPreview');
-    if (aud.paused) { applyAudioFx(); aud.play(); } else aud.pause();
-  }
-  $('wavePlayBtn').onclick = toggleAudio;
-
-  $('waveContainer').onclick = function (e) {
-    var aud = $('audioPreview');
-    if (!isFinite(aud.duration) || aud.duration <= 0) return;
-    var rect = this.getBoundingClientRect();
-    aud.currentTime = ((e.clientX - rect.left) / rect.width) * aud.duration;
-    applyAudioFx();
+  $('exportBtn').onclick = async function () {
+    var s = currentSheetStory;
+    if (!s || !hasDbMedia(s)) return;
+    var b = this; b.disabled = true;
+    try {
+      var k = await fetchKnowledge(s, false);
+      var blob = new Blob([JSON.stringify(buildJsonLd(s, k), null, 2)], { type: 'application/ld+json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'story-' + s.dbId + '.jsonld';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+    } catch (e) { alert(t('annSaveError', { e: errText(e) })); }
+    finally { b.disabled = false; }
   };
+  onLangChange(function () { if (currentSheetStory) renderKnowledge(currentSheetStory); });
 
-  $('audioPreview').addEventListener('play', function () { $('waveContainer').classList.add('playing'); updatePlayButtons(); startFxLoop(); });
-  $('audioPreview').addEventListener('pause', updatePlayButtons);
-  $('audioPreview').addEventListener('seeked', function () { applyAudioFx(); renderAudioTime(); });
-  $('audioPreview').addEventListener('timeupdate', function () {
-    if (isFinite(this.duration) && this.duration > 0) {
-      var pct = (this.currentTime / this.duration) * 100;
-      $('audioPlayhead').style.display = 'block';
-      $('audioPlayhead').style.left = pct + '%';
-      $('audioProgressFill').style.width = pct + '%';
-    }
-    renderAudioTime();
-  });
-
-  // --- Video player ---
-  function toggleVideo() {
-    var v = $('videoPreview');
-    if (v.paused) { applyVideoFx(); v.play(); } else v.pause();
-  }
-  $('videoPreview').onclick = toggleVideo;
-  $('vidPlayBtn').onclick = function (e) { e.stopPropagation(); toggleVideo(); };
-
-  $('videoPreview').addEventListener('play', function () {
-    $('vidPlayBtn').classList.add('playing');
-    updatePlayButtons();
-    startFxLoop();
-  });
-  $('videoPreview').addEventListener('pause', function () {
-    $('vidPlayBtn').classList.remove('playing');
-    updatePlayButtons();
-  });
-  $('videoPreview').addEventListener('seeked', function () { applyVideoFx(); renderVideoTime(); });
-
-  $('videoTimelineContainer').onclick = function (e) {
-    var vid = $('videoPreview');
-    if (!isFinite(vid.duration) || vid.duration <= 0) return;
-    var rect = this.getBoundingClientRect();
-    vid.currentTime = ((e.clientX - rect.left) / rect.width) * vid.duration;
-    applyVideoFx();
-  };
-
-  $('videoPreview').addEventListener('timeupdate', function () {
-    if (isFinite(this.duration) && this.duration > 0) {
-      var pct = (this.currentTime / this.duration) * 100;
-      $('videoPlayhead').style.display = 'block';
-      $('videoPlayhead').style.left = pct + '%';
-      $('videoProgressFill').style.width = pct + '%';
-    }
-    renderVideoTime();
-  });
-
-  // --- Γραμμές stamps (κοινό μοτίβο για βίντεο και ήχο) ---
-  function rowTimesHTML(start, end) {
-    return '<div class="rr">' +
-      '<label><span data-i18n="from"></span> <input type="number" step="0.1" min="0" inputmode="decimal" class="r-start" data-i18n-aria="startSec" value="' + (start != null ? start : '') + '"> s</label>' +
-      '<button type="button" class="nowbtn" data-field="r-start" data-i18n="now" data-i18n-aria="nowStart"></button>' +
-      '<label><span data-i18n="to"></span> <input type="number" step="0.1" min="0" inputmode="decimal" class="r-end" data-i18n-aria="endSec" value="' + (end != null ? end : '') + '"> s</label>' +
-      '<button type="button" class="nowbtn" data-field="r-end" data-i18n="now" data-i18n-aria="nowEnd"></button>' +
-      '<button type="button" class="delrow" data-i18n-aria="deleteRange"><span aria-hidden="true">✕</span></button>' +
-      '</div>';
-  }
-
-  function addAudioMuteRow(start, end) {
-    var div = document.createElement('div');
-    div.className = 'mute-item';
-    div.setAttribute('role', 'group');
-    div.innerHTML = rowTimesHTML(start, end);
-    applyLang(div);
-    $('audioMuteList').appendChild(div);
-    updateAudioTimeline();
-    return div;
-  }
-
-  function addVideoRangeRow(start, end, mute, blur) {
-    var div = document.createElement('div');
-    div.className = 'range-item';
-    div.setAttribute('role', 'group');
-    div.innerHTML = rowTimesHTML(start, end) +
-      '<div class="rr">' +
-        '<label><input type="checkbox" class="r-mute"' + (mute !== false ? ' checked' : '') + '> <span data-i18n="mute"></span></label>' +
-        '<label><input type="checkbox" class="r-blur"' + (blur ? ' checked' : '') + '> <span data-i18n="blur"></span></label>' +
-      '</div>';
-    applyLang(div);
-    $('videoRangeList').appendChild(div);
-    updateVideoTimeline();
-    return div;
-  }
-
-  function focusNewRow(row) { var inp = row.querySelector('.r-start'); if (inp) inp.focus(); }
-
-  $('addAudioRangeBtn').onclick = function () { focusNewRow(addAudioMuteRow()); };
-  $('addRangeBtn').onclick = function () { focusNewRow(addVideoRangeRow()); };
-
-  function wireRowList(listId, itemClass, media, update, addBtnId) {
-    var list = $(listId);
-    list.addEventListener('click', function (e) {
-      var b = e.target.closest('button'); if (!b) return;
-      var row = b.closest('.' + itemClass);
-      if (b.classList.contains('delrow')) {
-        var next = row.nextElementSibling || row.previousElementSibling;
-        row.remove();
-        update();
-        (next ? next.querySelector('.r-start') : $(addBtnId)).focus();
-        return;
-      }
-      if (b.classList.contains('nowbtn')) {
-        row.querySelector('.' + b.dataset.field).value = fmtSec(media().currentTime || 0);
-        update();
-      }
-    });
-    list.addEventListener('input', update);
-    list.addEventListener('change', update);
-  }
-  wireRowList('audioMuteList', 'mute-item', function () { return $('audioPreview'); }, updateAudioTimeline, 'addAudioRangeBtn');
-  wireRowList('videoRangeList', 'range-item', function () { return $('videoPreview'); }, updateVideoTimeline, 'addRangeBtn');
-
-  function readVideoRanges() {
-    var out = [];
-    document.querySelectorAll('#videoRangeList .range-item').forEach(function (row) {
-      var s = parseFloat(row.querySelector('.r-start').value);
-      var e = parseFloat(row.querySelector('.r-end').value);
-      if (isNaN(s) || isNaN(e) || e <= s) return;
-      var mute = row.querySelector('.r-mute').checked, blur = row.querySelector('.r-blur').checked;
-      if (!mute && !blur) return;
-      out.push({ s: s, e: e, mute: mute, blur: blur });
-    });
-    return out;
-  }
-
-  // --- Νέα ιστορία ---
-  function clearErrors() {
-    $('titleError').textContent = '';
-    $('mediaError').textContent = '';
-    $('storyTitle').removeAttribute('aria-invalid');
-  }
-
-  // ---- Συναίνεση πριν από κάθε καταγραφή: δημιουργεί κωδικό (από το id της εγγραφής) που γράφεται στο έντυπο ----
-  var activeConsent = null;                       // { id, code } της συναίνεσης που ισχύει για το ανέβασμα που ετοιμάζεται
-  var CONSENT_VERSION = 'v1';
-  var CODE_ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';   // χωρίς 0/O, 1/I/L για να διαβάζεται εύκολα
-
-  function consentCodeFor(uuid) {
-    var n = BigInt('0x' + uuid.replace(/-/g, '').slice(0, 10)), out = '', base = BigInt(CODE_ALPHA.length);
-    for (var i = 0; i < 8; i++) { out = CODE_ALPHA[Number(n % base)] + out; n = n / base; }
-    return 'WM-' + out.slice(0, 4) + '-' + out.slice(4);
-  }
-
-  async function createConsent(accepted) {
-    for (var tries = 0; tries < 4; tries++) {
-      var id = crypto.randomUUID(), code = consentCodeFor(id);
-      var r = await sb.from('consents').insert({ id: id, code: code, statement_version: CONSENT_VERSION, lang: LANG, accepted: accepted }).select('id,code').single();
-      if (!r.error) return r.data;
-      if (r.error.code !== '23505') throw r.error;     // μόνο σύγκρουση κωδικού ξαναδοκιμάζεται
-    }
-    throw new Error('code collision');
-  }
 
   async function copyText(text, btn) {
     var ok = false;
@@ -3658,864 +3356,142 @@
     return ok;
   }
 
-  function consentBoxes() { return Array.prototype.slice.call(document.querySelectorAll('.consent-cb')); }
-  function consentShowCode(c) {
-    activeConsent = c;
-    $('consentCode').textContent = c.code;
-    $('consentCodeBox').hidden = false;
-    $('consentChecks').hidden = true; $('consentCreate').hidden = true; $('consentContinue').hidden = false;
-    $('consentError').textContent = '';
+
+  function clearSheetMedia() {
+    var box = $('sheetMedia');
+    box.querySelectorAll('video, audio').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); });
+    box.innerHTML = '';
+    $('sheetImages').innerHTML = '';
+    imagesFoldOpen = undefined; termsFoldOpen = undefined;
+    clearSubtitles();
+    sheetK = null; currentLinks = [];
   }
-  function consentResetForm() {
-    activeConsent = null;
-    consentBoxes().forEach(function (b) { b.checked = false; });
-    $('consentChecks').hidden = false; $('consentCreate').hidden = false; $('consentCreate').disabled = true;
-    $('consentContinue').hidden = true; $('consentCodeBox').hidden = true; $('consentError').textContent = '';
-  }
-
-  async function openConsent() {
-    consentResetForm();
-    $('consentReuseWrap').hidden = true;
-    setAR(false);
-    openDialog('consentSheet');
-    // Προηγούμενοι κωδικοί του ίδιου χρήστη (π.χ. το ίδιο άτομο λέει δεύτερη ιστορία με την ίδια υπογεγραμμένη φόρμα)
-    try {
-      var r = await sb.from('consents').select('id,code,created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(20);
-      if (!r.error && r.data && r.data.length) {
-        var sel = $('consentReuse'); sel.innerHTML = '';
-        var o0 = document.createElement('option'); o0.value = ''; o0.textContent = t('consentNewOpt'); sel.appendChild(o0);
-        r.data.forEach(function (c) { var o = document.createElement('option'); o.value = c.id; o.dataset.code = c.code; o.textContent = c.code + ' · ' + String(c.created_at).slice(0, 10); sel.appendChild(o); });
-        $('consentReuseWrap').hidden = false;
-      }
-    } catch (e) {}
-  }
-
-  consentBoxes().forEach(function (b) {
-    b.addEventListener('change', function () { $('consentCreate').disabled = !consentBoxes().every(function (x) { return x.checked; }); });
-  });
-  $('consentReuse').onchange = function () {
-    var o = this.selectedOptions[0];
-    if (o && o.value) consentShowCode({ id: o.value, code: o.dataset.code });
-    else consentResetForm();
-  };
-  $('consentCreate').onclick = async function () {
-    if (!consentBoxes().every(function (x) { return x.checked; })) { $('consentError').textContent = t('consentNeedAll'); return; }
-    var b = this; b.disabled = true;
-    try {
-      var c = await createConsent({ record: true, annotate: true, publish: true, voluntary: true });
-      consentShowCode(c);
-      $('consentCopy').focus();
-    } catch (e) { $('consentError').textContent = t('consentError', { e: e.message || e }); b.disabled = false; }
-  };
-  $('consentCopy').onclick = function () { if (activeConsent) copyText(activeConsent.code, this); };
-  $('uploadConsentCopy').onclick = function () { if (activeConsent) copyText(activeConsent.code, this); };
-  $('consentCancel').onclick = function () { activeConsent = null; closeDialog('consentSheet'); setAR(true); };
-  escHandlers.consentSheet = function () { $('consentCancel').click(); };
-  $('consentContinue').onclick = function () {
-    if (!activeConsent) return;
-    closeDialog('consentSheet', true);
-    $('uploadConsentCode').textContent = activeConsent.code;
-    renderLoc();
-    openDialog('uploadSheet');
-  };
-
-  $('addBtn').onclick = function () {
-    if (!me || !currentUser) return;
-    openConsent();
-  };
-
-  $('cancelStoryBtn').onclick = function () {
-    activeConsent = null;
-    $('storyTitle').value = '';
-    processedFiles = [];
-    clearErrors();
-    updateMediaListUI();
-    closeDialog('uploadSheet');
-    setAR(true);
-  };
-  escHandlers.uploadSheet = function () { $('cancelStoryBtn').click(); };
-
-  $('storyTitle').addEventListener('input', function () {
-    if (this.value.trim()) { $('titleError').textContent = ''; this.removeAttribute('aria-invalid'); }
-  });
-
-  $('triggerFileBtn').onclick = function () { $('singleFileInput').click(); };
-
-  // --- Ηχογράφηση ---
-  var mediaRecorder = null, audioChunks = [], recTimerInterval = null, recSeconds = 0, recordingStream = null, recCancelled = false;
-
-  $('recordAudioBtn').onclick = async function () {
-    try {
-      recordingStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-      audioChunks = []; recCancelled = false;
-
-      var mimeType = '';
-      ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].some(function (ty) {
-        if (MediaRecorder.isTypeSupported(ty)) { mimeType = ty; return true; }
-        return false;
-      });
-
-      mediaRecorder = new MediaRecorder(recordingStream, mimeType ? { mimeType: mimeType } : {});
-      mediaRecorder.ondataavailable = function (e) { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
-      mediaRecorder.onstop = function () {
-        if (recordingStream) { recordingStream.getTracks().forEach(function (tr) { tr.stop(); }); recordingStream = null; }
-        if (recCancelled) return;
-        var finalMime = mediaRecorder.mimeType || 'audio/mp4';
-        var ext = finalMime.includes('webm') ? 'webm' : (finalMime.includes('ogg') ? 'ogg' : 'm4a');
-        var fileName = t('recordingFile') + '_' + new Date().toISOString().slice(0, 10) + '.' + ext;
-        var recordedFile = new File([new Blob(audioChunks, { type: finalMime })], fileName, { type: finalMime });
-        closeDialog('recorderModal', true);
-        window.currentEditIndex = -1;
-        loadFileIntoEditor(recordedFile, null);
-      };
-
-      mediaRecorder.start(250);
-      recSeconds = 0;
-      $('recStatusTimer').textContent = '00:00';
-      openDialog('recorderModal');
-      recTimerInterval = setInterval(function () {
-        recSeconds++;
-        $('recStatusTimer').textContent = String(Math.floor(recSeconds / 60)).padStart(2, '0') + ':' + String(recSeconds % 60).padStart(2, '0');
-      }, 1000);
-    } catch (err) {
-      alert(t('micError') + (err.message || err));
-    }
-  };
-
-  $('stopRecBtn').onclick = function () {
-    clearInterval(recTimerInterval);
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-  };
-
-  $('cancelRecBtn').onclick = function () {
-    clearInterval(recTimerInterval);
-    recCancelled = true;
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    if (recordingStream) { recordingStream.getTracks().forEach(function (tr) { tr.stop(); }); recordingStream = null; }
-    closeDialog('recorderModal');
-  };
-  escHandlers.recorderModal = function () { $('cancelRecBtn').click(); };
-
-  // --- Άνοιγμα αρχείου στον editor ---
-  function loadFileIntoEditor(file, savedMeta) {
-    currentFile = file;
-    setAR(false);
-    closeDialog('uploadSheet', true);
-    $('editorFilename').textContent = file.name;
-
-    try { $('videoPreview').pause(); $('audioPreview').pause(); } catch (e) {}
-
-    $('imageEditor').style.display = 'none';
-    $('videoEditor').style.display = 'none';
-    $('audioEditor').style.display = 'none';
-    $('audioMuteList').innerHTML = '';
-    $('videoRangeList').innerHTML = '';
-    $('videoTimeline').innerHTML = '';
-    $('audioTimeline').innerHTML = '';
-    $('videoPlayhead').style.display = 'none';
-    $('videoProgressFill').style.width = '0%';
-    $('audioPlayhead').style.display = 'none';
-    $('audioProgressFill').style.width = '0%';
-    $('vidPlayBtn').classList.remove('playing');
-    resetPreviewFx();
-
-    if (currentObjectURL) URL.revokeObjectURL(currentObjectURL);
-    currentObjectURL = URL.createObjectURL(file);
-
-    var kind = getKind(file);
-
-    if (kind === 'image') {
-      $('imageEditor').style.display = 'block';
-      imgStrokes = (savedMeta && savedMeta.strokes) ? JSON.parse(JSON.stringify(savedMeta.strokes)) : [];
-      imgObj = null;
-      kbPos = { x: 0.5, y: 0.5 };
-      var im = new Image();
-      im.onload = function () {
-        imgObj = im;
-        var k = Math.min(1, MAX_IMAGE_W / im.width);
-        canvas.width = Math.round(im.width * k);
-        canvas.height = Math.round(im.height * k);
-        ctx.drawImage(im, 0, 0, canvas.width, canvas.height);
-        buildBlurSource(canvas, blurSrc);
-        redrawImage();
-      };
-      im.src = currentObjectURL;
-      openDialog('editorSheet', canvas);
-    }
-    else if (kind === 'video') {
-      $('videoEditor').style.display = 'block';
-      vidLoading = true;
-      renderVideoTime();
-      var vid = $('videoPreview');
-      vid.onloadedmetadata = function () {
-        vid.onloadedmetadata = null;
-        waitForFiniteDuration(vid).then(function () {
-          vidLoading = false;
-          renderVideoTime();
-          if (savedMeta && savedMeta.ranges && savedMeta.ranges.length) {
-            savedMeta.ranges.forEach(function (r) { addVideoRangeRow(r.s, r.e, r.mute, r.blur); });
-          } else {
-            addVideoRangeRow();
-          }
-          updateVideoTimeline();
-        });
-      };
-      vid.src = currentObjectURL;
-      vid.load();
-      updatePlayButtons();
-      openDialog('editorSheet', $('vidPlayBtn'));
-    }
-    else {
-      $('audioEditor').style.display = 'block';
-      audLoading = true;
-      renderAudioTime();
-      var aud = $('audioPreview');
-      aud.onloadedmetadata = function () {
-        aud.onloadedmetadata = null;
-        waitForFiniteDuration(aud).then(function () {
-          audLoading = false;
-          renderAudioTime();
-          if (savedMeta && savedMeta.ranges && savedMeta.ranges.length) {
-            savedMeta.ranges.forEach(function (r) { addAudioMuteRow(r.s, r.e); });
-          } else {
-            addAudioMuteRow();
-          }
-          updateAudioTimeline();
-        });
-      };
-      aud.src = currentObjectURL;
-      aud.load();
-      updatePlayButtons();
-
-      var wc = $('audioWaveCanvas');
-      wc.getContext('2d').clearRect(0, 0, wc.width, wc.height);
-      var reader = new FileReader();
-      reader.onload = function (e) {
-        var aCtx = new (window.AudioContext || window.webkitAudioContext)();
-        aCtx.decodeAudioData(e.target.result, function (buffer) {
-          drawWaveform(buffer);
-          try { aCtx.close(); } catch (err) {}
-        }, function () { try { aCtx.close(); } catch (err) {} });
-      };
-      reader.readAsArrayBuffer(file);
-      openDialog('editorSheet', $('wavePlayBtn'));
-    }
-  }
-
-  $('singleFileInput').onchange = function () {
-    if (this.files.length === 0) return;
-    var f = this.files[0];
-    this.value = '';
-    window.currentEditIndex = -1;
-    $('mediaError').textContent = '';
-    loadFileIntoEditor(f, null);
-  };
-
-  // --- Πινέλο θολώματος (αφή/ποντίκι) ---
-  function getCanvasPos(e) {
-    var rect = canvas.getBoundingClientRect();
-    var cX = (e.touches && e.touches.length) ? e.touches[0].clientX : e.clientX;
-    var cY = (e.touches && e.touches.length) ? e.touches[0].clientY : e.clientY;
-    return { x: (cX - rect.left) * canvas.width / rect.width, y: (cY - rect.top) * canvas.height / rect.height };
-  }
-
-  function brushR() { return Math.max(BRUSH_MIN, canvas.width * BRUSH_FRAC); }
-
-  function addStrokePoint(pos) {
-    var w = canvas.width, h = canvas.height, r = brushR();
-    var last = curStroke.length ? curStroke[curStroke.length - 1] : null;
-    var pts = [];
-    if (last) {
-      var lx = last.x * w, ly = last.y * h;
-      var n = Math.floor(Math.hypot(pos.x - lx, pos.y - ly) / (r / 2));
-      for (var i = 1; i <= n; i++) pts.push({ x: lx + (pos.x - lx) * i / (n + 1), y: ly + (pos.y - ly) * i / (n + 1) });
-    }
-    pts.push(pos);
-    pts.forEach(function (p) {
-      curStroke.push({ x: p.x / w, y: p.y / h, r: r / w });
-      blurDot(ctx, blurSrc, p.x, p.y, r);
-    });
-  }
-
-  function handleDrawStart(e) {
-    if (!imgObj) return;
-    e.preventDefault();
-    isDrawing = true;
-    curStroke = [];
-    imgStrokes.push(curStroke);
-    addStrokePoint(getCanvasPos(e));
-  }
-  function handleDrawMove(e) { if (!isDrawing) return; e.preventDefault(); addStrokePoint(getCanvasPos(e)); }
-  function handleDrawEnd() { isDrawing = false; curStroke = null; }
-
-  canvas.addEventListener('touchstart', handleDrawStart, { passive: false });
-  canvas.addEventListener('touchmove', handleDrawMove, { passive: false });
-  canvas.addEventListener('touchend', handleDrawEnd);
-  canvas.addEventListener('touchcancel', handleDrawEnd);
-  canvas.addEventListener('mousedown', handleDrawStart);
-  canvas.addEventListener('mousemove', handleDrawMove);
-  canvas.addEventListener('mouseup', handleDrawEnd);
-  canvas.addEventListener('mouseleave', handleDrawEnd);
-
-  // --- Πινέλο με πληκτρολόγιο (WCAG 2.1.1) ---
-  function placeKbCursor() {
-    var cur = $('kbCursor');
-    var cw = canvas.clientWidth, chh = canvas.clientHeight;
-    if (!cw || !canvas.width) return;
-    var d = (brushR() / canvas.width) * cw * 2;
-    cur.style.width = d + 'px';
-    cur.style.height = d + 'px';
-    cur.style.left = (canvas.offsetLeft + kbPos.x * cw) + 'px';
-    cur.style.top = (canvas.offsetTop + kbPos.y * chh) + 'px';
-  }
-
-  canvas.addEventListener('focus', function () {
-    if (canvas.matches(':focus-visible')) { $('kbCursor').style.display = 'block'; placeKbCursor(); }
-  });
-  canvas.addEventListener('blur', function () { $('kbCursor').style.display = 'none'; });
-
-  canvas.addEventListener('keydown', function (e) {
-    if (!imgObj) return;
-    var step = e.shiftKey ? 0.1 : 0.02, handled = true;
-    switch (e.key) {
-      case 'ArrowLeft': kbPos.x = Math.max(0, kbPos.x - step); break;
-      case 'ArrowRight': kbPos.x = Math.min(1, kbPos.x + step); break;
-      case 'ArrowUp': kbPos.y = Math.max(0, kbPos.y - step); break;
-      case 'ArrowDown': kbPos.y = Math.min(1, kbPos.y + step); break;
-      case 'Enter': case ' ':
-        curStroke = [];
-        imgStrokes.push(curStroke);
-        addStrokePoint({ x: kbPos.x * canvas.width, y: kbPos.y * canvas.height });
-        curStroke = null;
-        break;
-      default: handled = false;
-    }
-    if (handled) {
-      e.preventDefault();
-      $('kbCursor').style.display = 'block';
-      placeKbCursor();
-    }
-  });
-
-  $('undoBlurBtn').onclick = function () { if (imgStrokes.length) { imgStrokes.pop(); redrawImage(); } };
-  $('clearBlurBtn').onclick = function () { if (imgStrokes.length) { imgStrokes = []; redrawImage(); } };
-
-  function leaveEditor(focusEl) {
-    try { $('videoPreview').pause(); $('audioPreview').pause(); } catch (e) {}
-    resetPreviewFx();
-    currentFile = null;
-    window.currentEditIndex = -1;
-    closeDialog('editorSheet', true);
-    openDialog('uploadSheet', focusEl);
-  }
-
-  $('cancelSingleBtn').onclick = function () { leaveEditor($('triggerFileBtn')); };
-  escHandlers.editorSheet = function () { $('cancelSingleBtn').click(); };
-
-  // --- Κράτημα ρυθμίσεων ---
-  $('saveFileBtn').onclick = function () {
-    if (!currentFile) return;
-    var kind = getKind(currentFile);
-    var meta = {};
-    if (kind === 'image') meta.strokes = JSON.parse(JSON.stringify(imgStrokes));
-    else if (kind === 'video') meta.ranges = readVideoRanges();
-    else meta.ranges = readAudioRanges();
-
-    var idx = window.currentEditIndex;
-    var item = idx !== -1 ? processedFiles[idx] : null;
-    if (item) {
-      item.meta = meta; item.blob = null; item.outType = null;
-    } else {
-      var count = processedFiles.filter(function (x) { return x.kind === kind; }).length + 1;
-      item = { originalFile: currentFile, name: currentFile.name, num: count, kind: kind, meta: meta, blob: null, outType: null };
-      processedFiles.push(item);
-      idx = processedFiles.length - 1;
-    }
-
-    updateMediaListUI();
-    announce(t('kept', { name: nameOf(item) }));
-    leaveEditor(document.querySelector('#mediaList [data-act="edit"][data-i="' + idx + '"]'));
-  };
-
-  function describeChanges(f) {
-    if (f.kind === 'image') {
-      var n = (f.meta.strokes || []).length;
-      return n === 0 ? t('noChanges') : (n === 1 ? t('blur1') : t('blurN', { n: n }));
-    }
-    var r = (f.meta.ranges || []).length;
-    return r === 0 ? t('noChanges') : (r === 1 ? t('pts1') : t('ptsN', { n: r }));
-  }
-
-  function countEdits(f) {
-    return f.kind === 'image' ? (f.meta.strokes || []).length : (f.meta.ranges || []).length;
-  }
-
-  function escHTML(s) {
-    return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
-  }
-
-  function updateMediaListUI() {
-    var list = $('mediaList');
-    if (!processedFiles.length) {
-      list.innerHTML = '<li class="empty-note">' + escHTML(t('noFiles')) + '</li>';
-      return;
-    }
-    var html = '';
-    processedFiles.forEach(function (f, i) {
-      var nm = nameOf(f);
-      html += '<li class="media-list-item">' +
-                '<div class="mi-text">' +
-                  '<span class="mi-name" title="' + escHTML(f.name) + '">' + escHTML(nm) + ' <small>(' + Math.round(f.originalFile.size / 1024) + ' KB)</small></span>' +
-                  '<span class="mi-changes">' + escHTML(describeChanges(f)) + ' · ' + escHTML(f.blob ? t('saved') : t('pending')) + '</span>' +
-                '</div>' +
-                '<div style="flex-shrink:0;">' +
-                  '<button type="button" class="icon-btn edit" data-act="edit" data-i="' + i + '" aria-label="' + escHTML(t('editItem', { name: nm })) + '"><span aria-hidden="true">✏️</span></button>' +
-                  '<button type="button" class="icon-btn del" data-act="del" data-i="' + i + '" aria-label="' + escHTML(t('deleteItem', { name: nm })) + '"><span aria-hidden="true">✕</span></button>' +
-                '</div>' +
-              '</li>';
-    });
-    list.innerHTML = html;
-  }
-  onLangChange(updateMediaListUI);
-
-  $('mediaList').addEventListener('click', function (e) {
-    var b = e.target.closest('button[data-act]'); if (!b) return;
-    var i = parseInt(b.dataset.i, 10), f = processedFiles[i];
-    if (!f) return;
-    if (b.dataset.act === 'edit') {
-      window.currentEditIndex = i;
-      loadFileIntoEditor(f.originalFile, f.meta);
-    } else {
-      var nm = nameOf(f);
-      processedFiles.splice(i, 1);
-      updateMediaListUI();
-      announce(t('removed', { name: nm }));
-      var next = document.querySelector('#mediaList [data-act="edit"][data-i="' + Math.min(i, processedFiles.length - 1) + '"]');
-      (next || $('triggerFileBtn')).focus();
-    }
-  });
-
-  // --- Ολοκλήρωση ιστορίας (WCAG 3.3.1: ενσωματωμένα μηνύματα λάθους) ---
-  function renderConfirmSummary() {
-    var pending = processedFiles.filter(function (f) { return !f.blob; }).length;
-    var withEdits = processedFiles.filter(function (f) { return countEdits(f) > 0; }).length;
-    $('confirmSummary').textContent = t('confirmSummary', { n: processedFiles.length, e: withEdits, p: pending });
-  }
-  onLangChange(renderConfirmSummary);
-
-  $('finishStoryBtn').onclick = function () {
-    clearErrors();
-    if (!$('storyTitle').value.trim()) {
-      $('titleError').textContent = t('titleRequired');
-      $('storyTitle').setAttribute('aria-invalid', 'true');
-      $('storyTitle').focus();
-      return;
-    }
-    if (!processedFiles.length) {
-      $('mediaError').textContent = t('fileRequired');
-      $('triggerFileBtn').focus();
-      return;
-    }
-    renderConfirmSummary();
-    closeDialog('uploadSheet', true);
-    openDialog('confirmModal');
-  };
-
-  $('confirmBackBtn').onclick = function () {
-    closeDialog('confirmModal', true);
-    openDialog('uploadSheet', $('finishStoryBtn'));
-  };
-  escHandlers.confirmModal = function () { $('confirmBackBtn').click(); };
-
-  var procAudio = null;
-  function getProcAudio() {
-    if (procAudio) return procAudio;
-    var actx = new (window.AudioContext || window.webkitAudioContext)();
-    var src = actx.createMediaElementSource($('procVideo'));
-    var gain = actx.createGain();
-    src.connect(gain);
-    gain.connect(actx.destination);
-    procAudio = { ctx: actx, src: src, gain: gain };
-    return procAudio;
-  }
-
-  $('confirmApplyBtn').onclick = function () {
-    closeDialog('confirmModal', true);
-
-    // Ξεκλείδωμα ήχου/βίντεο μέσα στο πάτημα (iOS)
-    var firstVid = processedFiles.find(function (f) { return !f.blob && f.kind === 'video' && (f.meta.ranges || []).length; });
-    if (firstVid) {
-      try {
-        var pa = getProcAudio();
-        if (pa.ctx.state === 'suspended') pa.ctx.resume();
-        var pv = $('procVideo');
-        var unlockUrl = URL.createObjectURL(firstVid.originalFile);
-        pv.src = unlockUrl;
-        var p = pv.play();
-        if (p && p.then) p.then(function () { pv.pause(); }).catch(function () {});
-        setTimeout(function () { URL.revokeObjectURL(unlockUrl); }, 5000);
-      } catch (e) {}
-    }
-    applyAllEdits();
-  };
-
-  async function applyAllEdits() {
-    var todo = processedFiles.filter(function (f) { return !f.blob; });
-    var total = todo.length;
-    lastPctAnnounce = -1;
-
-    try {
-      for (var k = 0; k < todo.length; k++) {
-        var f = todo[k];
-        var head = t('fileOf', { i: k + 1, n: total, name: nameOf(f) });
-        var base = (k / total) * 100, span = 100 / total;
-        showProgress(true, head, base, t('savingChanges'));
-        announce(head);
-
-        if (f.kind === 'image') {
-          f.blob = await renderImageFinal(f.originalFile, f.meta.strokes);
-          f.outType = 'image/jpeg';
-        } else if (f.kind === 'video') {
-          var vr = f.meta.ranges || [];
-          if (vr.length) {
-            f.blob = await processVideoFile(f.originalFile, vr, function (pct, txt) {
-              showProgress(true, head + ' · ' + txt, base + span * pct / 100);
-            });
-            f.outType = f.blob.type || 'video/webm';
-          } else {
-            f.blob = f.originalFile; f.outType = f.originalFile.type;
-          }
-        } else {
-          var ar = f.meta.ranges || [];
-          if (ar.length) {
-            f.blob = await processAudioLocal(f.originalFile, ar);
-            f.outType = 'audio/wav';
-          } else {
-            f.blob = f.originalFile; f.outType = f.originalFile.type || 'audio/mp4';
-          }
-        }
-        showProgress(true, head, base + span);
-      }
-    } catch (e) {
-      showProgress(false);
-      updateMediaListUI();
-      alert(t('saveError', { e: (e && e.message ? e.message : e) }));
-      openDialog('uploadSheet', $('finishStoryBtn'));
-      return;
-    }
-
-    showProgress(false);
-    updateMediaListUI();
-    announce(t('allSaved'));
-    showLocalPreview();
-  }
-
-  function showLocalPreview() {
-    var container = $('localPreviewContainer');
-    clearPreview();
-
-    processedFiles.forEach(function (f, i) {
-      var box = document.createElement('section');
-      box.style.cssText = 'background:#F2F7F9; border:1px solid #D3E3EA; padding:12px; border-radius:14px; color:#12303B;';
-      var h = document.createElement('h3');
-      h.className = 'pv-name';
-      h.dataset.i = i;
-      h.style.cssText = 'margin:0 0 8px; font-size:16px; font-style:italic; color:#186078;';
-      h.textContent = nameOf(f);
-      box.appendChild(h);
-
-      var url = URL.createObjectURL(f.blob);
-      previewURLs.push(url);
+  function renderSheetMedia(s) {
+    clearSheetMedia();
+    (s.media || []).forEach(function (m, i) {
+      if (m.kind === 'image') return;
       var el;
-      if (f.kind === 'image') {
-        el = document.createElement('img');
-        el.alt = nameOf(f);
-        el.style.cssText = 'width:100%; max-height:180px; object-fit:contain; border-radius:10px; background:#fff;';
-      } else if (f.kind === 'video') {
-        el = document.createElement('video');
-        el.controls = true; el.playsInline = true; el.preload = 'metadata';
-        el.setAttribute('aria-label', nameOf(f));
-        el.style.cssText = 'width:100%; max-height:220px; border-radius:10px; background:#000;';
-      } else {
-        el = document.createElement('audio');
-        el.controls = true; el.preload = 'metadata';
-        el.setAttribute('aria-label', nameOf(f));
-        el.style.width = '100%';
-      }
-      el.src = url;
-      box.appendChild(el);
-      container.appendChild(box);
+      if (m.kind === 'video') { el = document.createElement('video'); el.controls = true; el.playsInline = true; el.preload = 'metadata'; }
+      else { el = document.createElement('audio'); el.controls = true; el.preload = 'metadata'; }
+      el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1));
+      el.dataset.mediaId = m.id || '';
+      el.src = m.url;
+      el.addEventListener('timeupdate', function () { updateStage(el); });
+      el.addEventListener('seeked', function () { updateStage(el); });
+      el.addEventListener('loadedmetadata', function () { if (sheetK) paintTimeline(s, el); });
+      el.addEventListener('durationchange', function () { if (sheetK) paintTimeline(s, el); });
+      el.addEventListener('play', function () {
+        $('sheetMedia').querySelectorAll('audio, video').forEach(function (o) { if (o !== el) o.pause(); });
+      });
+      $('sheetMedia').appendChild(el);
     });
-
-    container.querySelectorAll('video, audio').forEach(fixDuration);
-    setAR(false);
-    openDialog('previewSheet', $('previewTitle'));
-    $('previewTitle').setAttribute('tabindex', '-1');
+    renderImages(s, null);
   }
 
-  onLangChange(function () {
-    document.querySelectorAll('#localPreviewContainer .pv-name').forEach(function (h) {
-      var f = processedFiles[+h.dataset.i];
-      if (f) h.textContent = nameOf(f);
+  var viewTimer = null;
+  function scheduleView() {          // η δημόσια προβολή (σκηνή, γραμμή χρόνου, υπότιτλοι) ανανεώνεται μετά από κάθε αλλαγή
+    clearTimeout(viewTimer);
+    viewTimer = setTimeout(function () { if (currentSheetStory) renderKnowledge(currentSheetStory); }, 700);
+  }
+
+  function openStory(s) {
+    var tr = st(s);
+    $('storyView').hidden = false; $('workEmpty').hidden = true;
+    $('sheetTitle').textContent = tr.title;
+    $('sheetSub').textContent = '';
+    $('sheetAuthor').textContent = s.author ? t('byAuthor', { n: s.author }) : '';
+    renderSheetMedia(s);
+    renderKnowledge(s);
+    annListeners = [];
+    buildAnnotate();
+    renderList();
+    try { $('storyView').scrollIntoView({ block: 'start' }); } catch (e) {}
+  }
+  function closeStory() {
+    clearSheetMedia(); currentSheetStory = null; annListeners = [];
+    $('storyView').hidden = true; $('workEmpty').hidden = false; $('annBody').innerHTML = '';
+  }
+
+  function renderList() {
+    var f = $('listFilter'), cur = f.value || 'all';
+    f.innerHTML = '';
+    [['all', 'listAllF'], ['draft', 'listDraftF'], ['published', 'listPubF']].forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = t(o[1]); f.appendChild(op); });
+    f.value = cur;
+    var body = $('listBody'); body.innerHTML = '';
+    var q = ($('listSearch').value || '').trim().toLowerCase();
+    var items = STORIES.filter(function (x) { return f.value === 'all' || x.status === f.value; })
+      .filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.consentCode || '')).toLowerCase().indexOf(q) >= 0; }).reverse();
+    if (!items.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('listEmpty'); body.appendChild(p); return; }
+    items.forEach(function (x) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item' + (currentSheetStory === x ? ' current' : '');
+      var ti = document.createElement('span'); ti.className = 't'; ti.textContent = st(x).title;
+      var me_ = document.createElement('span'); me_.className = 'm';
+      var chip = document.createElement('span'); chip.className = x.status === 'published' ? 'chip-pub' : 'chip-draft'; chip.textContent = t(x.status === 'published' ? 'statusPublished' : 'statusDraft');
+      me_.appendChild(chip);
+      me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length + (x.consentCode ? ' · ' + x.consentCode : '')));
+      b.appendChild(ti); b.appendChild(me_);
+      b.onclick = function () { openStory(x); };
+      body.appendChild(b);
     });
+  }
+  $('listFilter').onchange = renderList;
+  $('listSearch').oninput = renderList;
+
+  async function loadStories() {
+    $('listBody').innerHTML = ''; var lp = document.createElement('p'); lp.className = 'sheet-sub'; lp.textContent = t('siteLoading'); $('listBody').appendChild(lp);
+    var keep = currentSheetStory ? currentSheetStory.dbId : null;
+    STORIES = [];
+    try {
+      var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
+      var r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
+      if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
+      if (r.error) throw r.error;
+      STORIES = r.data.map(storyFromRow);
+    } catch (e) { $('listBody').innerHTML = ''; var ep = document.createElement('p'); ep.className = 'field-error'; ep.textContent = t('loadStoriesError') + ' ' + errText(e); $('listBody').appendChild(ep); return; }
+    var again = keep && STORIES.filter(function (x) { return x.dbId === keep; })[0];
+    if (!again && currentSheetStory) closeStory();
+    renderList();
+  }
+
+  // ---- Σύνδεση ----
+  function showView() {
+    var annot = isAnnotator();
+    $('loginView').hidden = !!currentUser;
+    $('noAccess').hidden = !(currentUser && !annot);
+    $('appView').hidden = !annot;
+    $('userBox').hidden = !currentUser;
+    $('userName').textContent = currentUser ? userName(currentUser) : '';
+  }
+  $('loginForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    if (!sb) return;
+    var email = $('authEmail').value.trim(), pass = $('authPass').value;
+    $('authError').textContent = '';
+    if (!email || pass.length < 6) { $('authError').textContent = t('authNeedFields'); return; }
+    $('authSubmitBtn').disabled = true;
+    try {
+      var r = await sb.auth.signInWithPassword({ email: email, password: pass });
+      if (r.error) throw r.error;
+    } catch (e) { $('authError').textContent = t('authFailed', { e: e.message || e }); }
+    finally { $('authSubmitBtn').disabled = false; }
   });
+  $('logoutBtn').onclick = $('logoutBtn2').onclick = function () { if (sb) sb.auth.signOut(); };
 
-  function fixDuration(v) {
-    v.addEventListener('loadedmetadata', function () {
-      if (!isFinite(v.duration)) waitForFiniteDuration(v);
-    }, { once: true });
-  }
-
-  function clearPreview() {
-    var c = $('localPreviewContainer');
-    c.querySelectorAll('video, audio').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); });
-    c.innerHTML = '';
-    previewURLs.forEach(function (u) { URL.revokeObjectURL(u); });
-    previewURLs = [];
-  }
-
-  $('backToUploadBtn').onclick = function () {
-    clearPreview();
-    closeDialog('previewSheet', true);
-    openDialog('uploadSheet', $('finishStoryBtn'));
-  };
-  escHandlers.previewSheet = function () { $('backToUploadBtn').click(); };
-
-  function finishStoryFlow() {
-    activeConsent = null;
-    clearPreview();
-    $('publishError').textContent = '';
-    $('storyTitle').value = '';
-    processedFiles = [];
-    updateMediaListUI();
-    closeDialog('previewSheet', true);
-    setAR(true);
-    if ($('addBtn').classList.contains('on')) $('addBtn').focus();
-  }
-
-  $('closePreviewBtn').onclick = async function () {
-    var btn = this;
-    $('publishError').textContent = '';
-    if (!currentUser) { $('publishError').textContent = t('loginToAdd'); return; }
-    if (!me) return;
-    btn.disabled = true;
-    try {
-      if (!activeConsent) { $('publishError').textContent = t('consentNeedAll'); return; }
-      var story = await WM.publish($('storyTitle').value.trim(), me, processedFiles, function (i, n) {
-        btn.textContent = t('publishing', { i: i, n: n });
-      }, activeConsent.id, activeConsent.code);
-      addStoryRuntime(story);
-      announce(t('published'));
-      alert(t('uploadDone'));
-      finishStoryFlow();
-    } catch (e) {
-      $('publishError').textContent = t('publishError', { e: (e && e.message) ? e.message : e });
-    } finally {
-      btn.disabled = false;
-      btn.textContent = t('publish');
-    }
-  };
-
-  // --- Τελική επεξεργασία βίντεο ---
-  function loadProcVideo(video, url) {
-    return new Promise(function (resolve, reject) {
-      var tmo = setTimeout(function () { reject(new Error(t('errVideoTimeout'))); }, 15000);
-      video.onloadedmetadata = function () { clearTimeout(tmo); video.onloadedmetadata = null; video.onerror = null; resolve(); };
-      video.onerror = function () { clearTimeout(tmo); video.onerror = null; reject(new Error(t('errVideoLoad'))); };
-      video.src = url;
-      video.load();
-    });
-  }
-
-  async function processVideoFile(file, ranges, onProg) {
-    if (!window.MediaRecorder) throw new Error(t('errNoRec'));
-    var video = $('procVideo');
-    video.muted = false;
-    var url = URL.createObjectURL(file);
-    try {
-      await loadProcVideo(video, url);
-      await waitForFiniteDuration(video);
-      return await recordProcessedVideo(video, ranges, onProg);
-    } finally {
-      try { video.pause(); } catch (e) {}
-      video.removeAttribute('src');
-      video.load();
-      URL.revokeObjectURL(url);
-    }
-  }
-
-  function recordProcessedVideo(video, ranges, onProg) {
-    return new Promise(function (resolve, reject) {
-      var mime = [
-        'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus',
-        'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm'
-      ].filter(function (ty) { try { return MediaRecorder.isTypeSupported(ty); } catch (e) { return false; } })[0];
-      if (!mime) { reject(new Error(t('errNoRec'))); return; }
-
-      var blurRanges = ranges.filter(function (r) { return r.blur; });
-      var muteRanges = ranges.filter(function (r) { return r.mute; });
-
-      var vw = video.videoWidth || 640, vh = video.videoHeight || 480;
-      var k = Math.min(1, MAX_VIDEO_W / vw);
-      var ow = Math.max(2, Math.round(vw * k / 2) * 2), oh = Math.max(2, Math.round(vh * k / 2) * 2);
-
-      var oCanvas = document.createElement('canvas');
-      oCanvas.width = ow; oCanvas.height = oh;
-      var oCtx = oCanvas.getContext('2d', { alpha: false });
-      oCtx.imageSmoothingEnabled = true;
-
-      var scratch = document.createElement('canvas');
-      var tw = 24, th = Math.max(1, Math.round(tw * vh / vw));
-      scratch.width = tw; scratch.height = th;
-      var sctx = scratch.getContext('2d', { alpha: false });
-      sctx.imageSmoothingEnabled = true;
-
-      var pa;
-      try { pa = getProcAudio(); } catch (e) { reject(new Error('Audio: ' + e.message)); return; }
-      var audioCtx = pa.ctx, gainNode = pa.gain;
-      var destNode = audioCtx.createMediaStreamDestination();
-      gainNode.connect(destNode);
-      gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-
-      function cleanupAudio() {
-        try { gainNode.disconnect(destNode); } catch (e) {}
-        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-      }
-
-      var vTracks = oCanvas.captureStream(30).getVideoTracks();
-      var stream = new MediaStream(vTracks.concat(destNode.stream.getAudioTracks()));
-
-      var rec;
-      try { rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: VIDEO_BITRATE }); }
-      catch (e) { cleanupAudio(); reject(new Error('MediaRecorder: ' + e.message)); return; }
-
-      var chunks = [], running = true, finished = false, lastUI = 0;
-      rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
-      rec.onstop = function () {
-        if (finished) return; finished = true;
-        running = false;
-        try { video.pause(); } catch (e) {}
-        video.onended = null;
-        vTracks.forEach(function (tr) { try { tr.stop(); } catch (e) {} });
-        cleanupAudio();
-        resolve(new Blob(chunks, { type: mime.split(';')[0] }));
-      };
-
-      function drawFrame() {
-        if (inRanges(blurRanges, video.currentTime)) {
-          sctx.drawImage(video, 0, 0, tw, th);
-          oCtx.drawImage(scratch, 0, 0, tw, th, 0, 0, ow, oh);
-        } else {
-          oCtx.drawImage(video, 0, 0, ow, oh);
-        }
-      }
-
-      function nextFrame(fn) {
-        if (video.requestVideoFrameCallback) video.requestVideoFrameCallback(function () { fn(); });
-        else requestAnimationFrame(fn);
-      }
-
-      function loop() {
-        if (!running) return;
-        drawFrame();
-        gainNode.gain.setValueAtTime(inRanges(muteRanges, video.currentTime) ? 0 : 1, audioCtx.currentTime);
-        var now = performance.now();
-        if (now - lastUI > 250) {
-          lastUI = now;
-          if (isFinite(video.duration) && video.duration > 0 && onProg) {
-            onProg(video.currentTime / video.duration * 100, Math.round(video.currentTime) + 's / ' + Math.round(video.duration) + 's');
-          }
-        }
-        nextFrame(loop);
-      }
-
-      function stopAll() { if (rec.state !== 'inactive') rec.stop(); }
-
-      function seekToStart() {
-        return new Promise(function (res) {
-          var done = false, go = function () { if (!done) { done = true; res(); } };
-          if (video.readyState >= 2 && video.currentTime < 0.05) { go(); return; }
-          video.addEventListener('seeked', go, { once: true });
-          video.currentTime = 0;
-          setTimeout(go, 1200);
-        });
-      }
-
-      if (onProg) onProg(0, t('warmup'));
-
-      seekToStart().then(function () {
-        return Promise.resolve(video.play());
-      }).then(function () {
-        if (audioCtx.state === 'suspended') return audioCtx.resume();
-      }).then(function () {
-        var primed = 0;
-        (function prime() {
-          drawFrame();
-          if (++primed < 4) { nextFrame(prime); return; }
-          video.onended = stopAll;
-          rec.start(1000);
-          loop();
-        })();
-      }).catch(function (err) {
-        running = false;
-        cleanupAudio();
-        reject(new Error(t('errPlayback') + (err && err.message ? err.message : err)));
+  if (sb) {
+    sb.auth.onAuthStateChange(function (_event, session) {
+      currentUser = session ? session.user : null;
+      showView();
+      loadRole().then(function () {
+        showView();
+        if (isAnnotator()) loadStories(); else { STORIES = []; closeStory(); }
       });
     });
-  }
+  } else { $('authError').textContent = 'Supabase is not configured (config.js).'; }
+  onLangChange(function () { showView(); if (isAnnotator()) renderList(); $('authSubmitBtn').textContent = t('login'); });
 
-  // --- Τελική επεξεργασία ήχου ---
-  function processAudioLocal(file, mRanges) {
-    return new Promise(function (resolve, reject) {
-      var reader = new FileReader();
-      reader.onerror = function () { reject(new Error(t('errFileRead'))); };
-      reader.onload = async function (e) {
-        try {
-          var aCtx = new (window.AudioContext || window.webkitAudioContext)();
-          var aBuf = await new Promise(function (res, rej) { aCtx.decodeAudioData(e.target.result, res, rej); });
-          aCtx.close();
-
-          var oCtx = new OfflineAudioContext(aBuf.numberOfChannels, aBuf.length, aBuf.sampleRate);
-          var src = oCtx.createBufferSource(); src.buffer = aBuf;
-          var gain = oCtx.createGain(); gain.gain.setValueAtTime(1, 0);
-          mRanges.forEach(function (r) {
-            gain.gain.setValueAtTime(1, Math.max(0, r.s - 0.01));
-            gain.gain.setValueAtTime(0, r.s);
-            gain.gain.setValueAtTime(0, r.e);
-            gain.gain.setValueAtTime(1, r.e + 0.01);
-          });
-          src.connect(gain); gain.connect(oCtx.destination); src.start(0);
-
-          var renBuf = await oCtx.startRendering();
-          var numCh = renBuf.numberOfChannels, len = renBuf.length * numCh * 2 + 44;
-          var buf = new ArrayBuffer(len), view = new DataView(buf), pos = 0;
-          var set16 = function (d) { view.setUint16(pos, d, true); pos += 2; };
-          var set32 = function (d) { view.setUint32(pos, d, true); pos += 4; };
-
-          set32(0x46464952); set32(len - 8); set32(0x45564157); set32(0x20746d66); set32(16); set16(1); set16(numCh);
-          set32(renBuf.sampleRate); set32(renBuf.sampleRate * 2 * numCh); set16(numCh * 2); set16(16); set32(0x61746164); set32(len - pos - 4);
-
-          var chs = [];
-          for (var i = 0; i < numCh; i++) chs.push(renBuf.getChannelData(i));
-          for (var off = 0; off < renBuf.length; off++) {
-            for (var c = 0; c < numCh; c++) {
-              var smp = Math.max(-1, Math.min(1, chs[c][off]));
-              set16((smp < 0 ? smp * 32768 : smp * 32767) | 0);
-            }
-          }
-          resolve(new Blob([buf], { type: 'audio/wav' }));
-        } catch (err) { reject(err); }
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  }
-
-  // ==========================================
-  // Εκκίνηση
-  // ==========================================
   setLang(LANG);
-  updateMediaListUI();
-  renderLoc();
+  showView();
+  $('authSubmitBtn').textContent = t('login');
 })();
 </script>
 </body>

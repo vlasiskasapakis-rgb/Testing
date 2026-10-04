@@ -7,10 +7,17 @@
 | Collect, redact and upload stories | no | yes (saved as **drafts**) | yes |
 | See their own drafts / delete their own stories | no | yes | own only |
 | See every story, drafts included | no | no | yes |
-| Transcribe, annotate, link images to moments, publish | no | **no** | yes |
+| Transcribe, annotate, link images to moments, publish (on the **annotation website**) | no | **no** | yes |
 
 Every new account is a facilitator. This is enforced by the database rules, not only by hiding
 buttons. A story reaches the public only when an annotator presses **Publish for everyone**.
+
+## Two places to work
+- **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
+- **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account
+  (the same Supabase accounts and the same `config.js`), see all stories, and on a wide screen work with the player, timeline and
+  public preview on the left and the transcription / terms / image notes on the right. Publishing and the JSON-LD export are there too.
+  Accounts without the annotator role see a message instead. Everything below about annotating happens on this website.
 
 ## Setup (once, in this order)
 1. SQL editor: run `supabase/schema.sql`, then `supabase/annotations.sql`, then `supabase/roles.sql` (re-run `roles.sql` after pulling updates: it also creates the consent tables)
