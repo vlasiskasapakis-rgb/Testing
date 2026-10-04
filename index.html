@@ -234,6 +234,16 @@
   .chip-draft { color: var(--amber-text); font-weight: 700; } .chip-pub { color: var(--petrol); font-weight: 700; }
   .sync-stage { border: 3px solid var(--amber); border-radius: 16px; padding: 10px; background: #fff; }
   .sync-stage[hidden] { display: none; }
+  .stage-view { height: 38vh; min-height: 200px; display: flex; gap: 8px; align-items: center; justify-content: center; background: var(--mist); border-radius: 12px; overflow: hidden; }
+  .stage-view .img-wrap { height: 100%; display: flex; align-items: center; min-width: 0; animation: stageIn .35s ease; }
+  .stage-view .img-frame { display: inline-block; max-width: 100%; }
+  .stage-view .img-frame img { max-height: 36vh; max-width: 100%; width: auto; height: auto; border-radius: 10px; cursor: zoom-in; }
+  .stage-view .img-terms { display: none; }
+  .stage-idle { color: var(--muted); font-size: 15px; text-align: center; padding: 0 16px; }
+  .stage-terms { min-height: 44px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
+  .stage-terms .term-list { margin: 0; }
+  @keyframes stageIn { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .stage-view .img-wrap { animation: none; } }
   .sync-stage h3, .link-strip-h { margin: 0 0 6px; font-size: 15px; font-style: italic; color: var(--petrol); }
   .link-strip { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
   .link-card { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--sky-soft); color: var(--petrol); font-weight: 700; font-size: 14px; border: 2px solid transparent; min-height: 48px; }
@@ -900,6 +910,7 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      stageIdle: "Εδώ θα εμφανίζονται οι εικόνες και οι όροι όσο παίζει η αφήγηση.",
       trPlay: "Αναπαραγωγή από {t}",
       lnkTitle: "Σύνδεση εικόνας με στιγμή της αφήγησης",
       lnkMedia: "Ήχος ή βίντεο",
@@ -1169,6 +1180,7 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      stageIdle: "Images and terms appear here as the recording plays.",
       trPlay: "Play from {t}",
       lnkTitle: "Link this image to a moment of the story",
       lnkMedia: "Audio or video",
@@ -1438,6 +1450,7 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      stageIdle: "Les images et les termes apparaissent ici pendant la lecture.",
       trPlay: "Lire à partir de {t}",
       lnkTitle: "Lier cette image à un moment du récit",
       lnkMedia: "Audio ou vidéo",
@@ -1707,6 +1720,7 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      stageIdle: "Immagini e termini compaiono qui durante la riproduzione.",
       trPlay: "Riproduci da {t}",
       lnkTitle: "Collega questa immagine a un momento del racconto",
       lnkMedia: "Audio o video",
@@ -2917,20 +2931,23 @@
     }
     if (stage.dataset.key === key) return;
     stage.dataset.key = key; stage.innerHTML = '';
-    if (!active.length && !terms.length) { stage.hidden = true; return; }
+    // Η σκηνή μένει σταθερή (ίδιο ύψος) όσο η ιστορία έχει εικόνες/όρους με χρόνο· αλλάζει μόνο το περιεχόμενό της
+    var used = currentLinks.length || (sheetK && sheetK.annotations.some(function (a) { return a.status === 'approved' && hasRange(a); }));
+    if (!used) { stage.hidden = true; return; }
     stage.hidden = false;
-    var h = document.createElement('h3'); h.textContent = t('imgNow'); stage.appendChild(h);
+    var view = document.createElement('div'); view.className = 'stage-view';
+    if (!active.length) { var idle = document.createElement('div'); idle.className = 'stage-idle'; idle.textContent = t('stageIdle'); view.appendChild(idle); }
     active.forEach(function (l) {
       var im = mediaById(s, l.image_media_id);
-      if (im) stage.appendChild(figureFor(s, im, s.media.filter(function (x) { return x.kind === 'image'; }).indexOf(im) + 1, ctx));
+      if (im) view.appendChild(figureFor(s, im, s.media.filter(function (x) { return x.kind === 'image'; }).indexOf(im) + 1, ctx));
     });
-    if (terms.length) {
-      var nt = document.createElement('div'); nt.className = 'now-terms';
-      var th = document.createElement('div'); th.className = 'img-terms'; th.textContent = t('tlNowTerms'); nt.appendChild(th);
-      var ul = document.createElement('ul'); ul.className = 'term-list';
-      terms.forEach(function (a) { var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
-      nt.appendChild(ul); stage.appendChild(nt);
-    }
+    stage.appendChild(view);
+    var all = terms.slice(), seen = {};
+    active.forEach(function (l) { annsForImage(l.image_media_id).forEach(function (a) { if (isTimedNote(a) && noteActive(a, ctx)) all.push(a); }); });
+    var row = document.createElement('div'); row.className = 'stage-terms'; row.setAttribute('aria-label', t('tlNowTerms'));
+    var ul = document.createElement('ul'); ul.className = 'term-list';
+    all.forEach(function (a) { if (seen[a.term_uri]) return; seen[a.term_uri] = 1; var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
+    row.appendChild(ul); stage.appendChild(row);
   }
 
   // Γραμμή χρόνου κάτω από κάθε ήχο/βίντεο: ποια μέρη αφορούν εικόνες και ποια όρους
