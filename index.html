@@ -291,7 +291,7 @@
   .check { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 12px; font-weight: 400; color: var(--ink); line-height: 1.4; }
   .check input { flex: none; width: 24px; height: 24px; margin-top: 2px; }
   .code-big { display: block; margin: 6px 0 10px; padding: 12px; text-align: center; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 30px; font-weight: 700; letter-spacing: .08em; color: var(--petrol); background: var(--mist); border: 2px dashed var(--line-strong); border-radius: 12px; user-select: all; -webkit-user-select: all; }
-  .subtitle-bar { min-height: 2.8em; margin: 4px 0 8px; padding: 8px 12px; border-radius: 10px; background: rgba(14,63,80,.94); color: #fff; font-size: 17px; line-height: 1.35; text-align: center; }
+  .subtitle-bar { box-sizing: border-box; height: calc(3 * 1.35em + 16px); margin: 4px 0 8px; padding: 8px 12px; border-radius: 10px; background: rgba(14,63,80,.94); color: #fff; font-size: 17px; line-height: 1.35; text-align: center; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .subtitle-bar[hidden] { display: none; }
   .sub-toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--petrol); min-height: 40px; }
   .sub-toggle input { width: 22px; height: 22px; }
