@@ -73,19 +73,22 @@ the story, and is shown (with a copy button) to the story's owner and to annotat
   reviewers approve or replace it, and bump `CONSENT_VERSION` when it changes. No participant name is stored digitally; identity lives
   on the paper form. Withdrawal today = the facilitator who uploaded the story deletes it.
 
-## Image notes tied to time
-A note on an image (a term, with an optional area) can apply only to part of the story. In the annotate sheet, each image's term has one
-row per note: **Mark area**, **Time** (start/end on the audio/video selected under "Link this image to a moment of the story", with
-Start/End = current time from that player), and **+ Add another time or area** for a second note of the same term. Example: the same
-photo shows area A for seconds 0-3 and area B for seconds 10-12. Notes without a time are shown whenever the image is shown.
-Viewers see only the notes that apply to the current second (area box plus term) in the box under the player; the timeline gets a dark
-"Image notes" lane (tap a bar to jump there and pause); outside the story player (image list, enlarged image) all notes are shown with
-their times. The JSON-LD export gives each timed image note an `oa:hasScope` with the audio/video and its time fragment.
-To avoid typing times: **Link to mentions in the transcript** (per note) uses the whole transcript line where the term was approved on
-the audio/video: the first mention goes to this note (if it has no time yet), every other mention becomes a new note with the same
-area; mentions that already have a note are skipped. In the **Time** panel you can instead pick a **From transcript line** (and an optional **To line**),
-or press **Use the period the image is shown** (the image's linked range). Typing times is still possible.
-Needs `roles.sql` re-run once (adds `annotations.av_media_id` and a check that a timed note has a valid range).
+## Annotating (simplified)
+For each audio/video the sheet has two steps: **1 · Transcript** (get or edit the text; options such as language and speed are tucked
+under "Options") and **2 · Terms** (find terms automatically, approve or reject). Extra details of a term (type, exact times) are under
+**More** and are rarely needed.
+
+For each image you only **pick terms from the transcript**; you never type times:
+- **What is in this image?** lists the terms already approved on the audio/video. Tick the ones the image shows. Each ticked term gets a
+  note for every transcript line where it is mentioned, and the image is linked to those lines automatically, so viewers see the image
+  and the term exactly while it is spoken. A term with no timed mention yet is shown whenever the image is shown.
+- **Mark area** draws one area for the term; it applies to all its mentions. Unticking removes the term's notes from the image.
+- If more mentions are approved later, **Update from the transcript (N new)** appears: one tap adds them.
+- **When is this image shown?** (collapsed) lists the periods the image is linked to (with the transcript line) and lets you delete one, or
+  tick extra transcript lines to show the image during them as well.
+Behind the scenes a timed note uses `annotations.av_media_id` + `start_s`/`end_s` (re-run `roles.sql` once). Viewers see only the notes
+that apply to the current second next to the image; the timeline has a dark "Image notes" lane (tap to jump and pause); outside playback
+all notes are listed with their times. The JSON-LD export gives each timed image note an `oa:hasScope` with the audio/video and time fragment.
 
 ## Term names follow the selected language
 Viewers see each term's name in the language they picked (Greek, English, French, Italian), taken from the vocabulary the term came
