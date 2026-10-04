@@ -58,7 +58,7 @@ select u.email, p.role from auth.users u left join public.profiles p on p.user_i
 
 ## Exact seconds for suggestions
 A term points at the seconds where its word is spoken, not at its whole transcript line:
-- **Word timings** (Whisper on this device, or the Groq server option) are saved with each line
+- **Word timings** (from the Groq server option) are saved with each line
   (`transcript_segments.words`; run `roles.sql` once to add the column). Terms found in such a line get the exact
   range of the word, with a little padding.
 - **No word timings** (typed text, `.srt`/`.vtt`, or a line you edited): the range is *estimated* from where the word sits
@@ -132,13 +132,11 @@ run again; it replaces its own policies, so run it again after pulling updates.
 3. Edge Functions -> Deploy a new function -> Via Editor, name it exactly `transcribe-media`,
    paste `supabase/functions/transcribe-media/index.ts`, deploy (leave Verify JWT on).
 The button **Transcribe on the server (free, fast)** then works. Files over 25 MB are
-refused and the shared free quota can run out; the on-device and file options still work.
+refused and the shared free quota can run out; the file option (.srt / .vtt / .txt) still works.
 
 ## Flow
 Log in → open one of your stories → **Transcribe and annotate** → per audio/video:
-1. Get a transcript: **Transcribe on the server** (if set up), or **Transcribe on this device (free)** runs Whisper in the browser
-   (first use downloads ~250 MB, cached afterwards; slow on phones; nothing is uploaded),
-   or **Load a .srt / .vtt / .txt file**, or type it. Edit freely. Format: one line per
+1. Get a transcript: **Transcribe on the server** (if set up), or **Load a .srt / .vtt / .txt file**, or type it. Edit freely. Format: one line per
    segment, optionally `[mm:ss-mm:ss] text`.
 2. **Save transcript**, or **Save and find terms automatically**: capitalised words/names
    in each line are searched on Wikidata (the kind is guessed: person, place, event, concept).
@@ -152,9 +150,7 @@ Log in → open one of your stories → **Transcribe and annotate** → per audi
 In **Transcribe and annotate**, each image of your story appears with the terms you have already
 approved from the audio/video. Tick the ones the image shows. Optionally **Mark area** and drag a
 box on the image (stored as fractions of its width/height, so it survives resizing).
-**Suggest matches (on this device)** runs CLIP in the browser (first use downloads ~150 MB) and
-pre-suggests up to 3 likely terms per image for you to approve or reject. It is experimental: it
-works best for clear objects/places and compares against English labels. Visitors see approved terms
+Visitors see approved terms
 and boxes under the image; the JSON-LD export adds `HP9` / `P67 refers to` on the image and a
 `xywh=percent:` fragment for boxes.
 
