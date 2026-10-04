@@ -78,14 +78,12 @@ For each audio/video the sheet has two steps: **1 · Transcript** (get or edit t
 under "Options") and **2 · Terms** (find terms automatically, approve or reject). Extra details of a term (type, exact times) are under
 **More** and are rarely needed.
 
-For each image you only **pick terms from the transcript**; you never type times:
-- **What is in this image?** lists the terms already approved on the audio/video. Tick the ones the image shows. Each ticked term gets a
-  note for every transcript line where it is mentioned, and the image is linked to those lines automatically, so viewers see the image
-  and the term exactly while it is spoken. A term with no timed mention yet is shown whenever the image is shown.
-- **Mark area** draws one area for the term; it applies to all its mentions. Unticking removes the term's notes from the image.
-- If more mentions are approved later, **Update from the transcript (N new)** appears: one tap adds them.
-- **When is this image shown?** (collapsed) lists the periods the image is linked to (with the transcript line) and lets you delete one, or
-  tick extra transcript lines to show the image during them as well.
+Image notes are three steps; you never type times:
+1. **Choose a term** (from the terms already approved on the audio/video).
+2. **Mark an area** on the image (opens the popup; drag on the image).
+3. **Choose a part of the transcription**: tick one or more lines (lines where the term is spoken are pre-ticked). The note's start/end come
+   from those lines and the image is linked to them automatically.
+Press **Add note**. The list below shows every note as term · area · transcript part, each with **Delete**.
 Behind the scenes a timed note uses `annotations.av_media_id` + `start_s`/`end_s` (re-run `roles.sql` once). Viewers see only the notes
 that apply to the current second next to the image; the timeline has a dark "Image notes" lane (tap to jump and pause); outside playback
 all notes are listed with their times. The JSON-LD export gives each timed image note an `oa:hasScope` with the audio/video and time fragment.
