@@ -73,6 +73,16 @@ the story, and is shown (with a copy button) to the story's owner and to annotat
   reviewers approve or replace it, and bump `CONSENT_VERSION` when it changes. No participant name is stored digitally; identity lives
   on the paper form. Withdrawal today = the facilitator who uploaded the story deletes it.
 
+## Image notes tied to time
+A note on an image (a term, with an optional area) can apply only to part of the story. In the annotate sheet, each image's term has one
+row per note: **Mark area**, **Time** (start/end on the audio/video selected under "Link this image to a moment of the story", with
+Start/End = current time from that player), and **+ Add another time or area** for a second note of the same term. Example: the same
+photo shows area A for seconds 0-3 and area B for seconds 10-12. Notes without a time are shown whenever the image is shown.
+Viewers see only the notes that apply to the current second (area box plus term) in the box under the player; the timeline gets a dark
+"Image notes" lane (tap a bar to jump there and pause); outside the story player (image list, enlarged image) all notes are shown with
+their times. The JSON-LD export gives each timed image note an `oa:hasScope` with the audio/video and its time fragment.
+Needs `roles.sql` re-run once (adds `annotations.av_media_id` and a check that a timed note has a valid range).
+
 ## Term names follow the selected language
 Viewers see each term's name in the language they picked (Greek, English, French, Italian), taken from the vocabulary the term came
 from: Wikidata labels directly, and Getty AAT/TGN/ULAN terms through the matching Wikidata item. If the vocabulary has no name in that
