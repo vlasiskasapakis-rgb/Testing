@@ -21,16 +21,18 @@ each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` onc
 
 ## One combined suggestion for the whole story (annotation website)
 **✨ Suggest terms for the whole story** (above the tabs; **Save and find terms automatically** does the same after saving a
-transcript) combines everything known about the story in one pass, for recordings **and** images together:
-- the **transcript** (names and places that are spoken),
-- the **title and identity** of every file, the **years/decades** in its **period**, and the **places near its location**.
+transcript) combines everything known about the story in one pass. The details are used **inside the transcript**, not as a
+separate list:
+- Names spoken in the transcript are looked up in Wikidata. The **title, identity, period and location** of the file decide which
+  match is right and how confident the suggestion is.
+- Places **near the file's location** (and terms from its identity or period) are matched to the transcript lines, even partially:
+  "των Αγίων Θεοδώρων" is recognised as "Ναός Αγίων Θεοδώρων, Μυτιλήνη" when that church is near the location. The suggestion is
+  placed on that line, at the seconds where the words are said. Nearby places that nobody mentions are **not** suggested for recordings.
+- Images (which have no transcript) get the terms spoken while they are shown (through their time links), terms from their own
+  identity, title or period, and up to three places within 300 m of their own location.
 
-Each candidate Wikidata term collects evidence: where it is mentioned in the transcript, whether it matches the identity or title,
-the period, how close it is to the file's location, and whether its description fits the details. The evidence becomes a
-**confidence** (high / medium / low) and a visible **Why:** line on the suggestion, for example
-"High confidence: mentioned at 00:20 · 120 m from the file's location". When the text and the details agree (a nearby place that is
-also spoken), the term is attached to the exact seconds where it is said and ranked higher. Images receive terms too: those that are
-spoken while the image is shown (through its time links), those near its own location, and those from its own details.
+Each suggestion carries a **confidence** (high / medium / low) and a visible **Why:** line, for example
+"High confidence: mentioned at 00:00 · 90 m from the file's location". Text and details that agree rank highest.
 Among several Wikidata matches for a name, the one nearest the location (or whose description fits the details) is chosen.
 Unreviewed automatic suggestions are replaced on each run; approved, rejected and hand-made terms are kept.
 Re-run `supabase/roles.sql` once (it adds `annotations.reason`; suggestions work without it, but the "Why" text is then not saved).
