@@ -17,7 +17,7 @@ buttons. A story reaches the public only when an annotator presses **Publish for
 - **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account
   (the same Supabase accounts and the same `config.js`), see all stories, and on a wide screen work with the player, timeline and
   public preview on the left and the transcription / terms / image notes on the right. Publishing and the JSON-LD export are there too.
-  Accounts without the annotator role see a message instead. Everything below about annotating happens on this website.
+  Accounts without the annotator role see a message instead. The right side has two tabs, **Transcript & terms** and **Images**; click a line's time to play from there, and the current line is highlighted (and followed while playing, unless you untick **Follow playback**). Everything below about annotating happens on this website.
 
 ## Setup (once, in this order)
 1. SQL editor: run `supabase/schema.sql`, then `supabase/annotations.sql`, then `supabase/roles.sql` (re-run `roles.sql` after pulling updates: it also creates the consent tables)
