@@ -241,9 +241,13 @@
   .stage-view { height: 38vh; min-height: 200px; display: flex; gap: 8px; align-items: center; justify-content: center; background: var(--mist); border-radius: 12px; overflow: hidden; }
   .stage-view .img-wrap { height: 100%; display: flex; align-items: center; min-width: 0; animation: stageIn .35s ease; }
   .stage-view .img-frame { display: inline-block; max-width: 100%; }
-  .stage-view .img-frame img { max-height: 36vh; max-width: 100%; width: auto; height: auto; border-radius: 10px; cursor: zoom-in; }
+  .stage-view .img-frame img { max-height: 32vh; max-width: 100%; width: auto; height: auto; border-radius: 10px; cursor: zoom-in; }
   .stage-view .img-terms { display: none; }
   .stage-view .img-wrap.keep { animation: none; }
+  .media-cap { font-size: 14px; color: var(--muted); margin: 6px 0 4px; line-height: 1.35; }
+  .media-cap strong { display: block; color: var(--petrol); font-size: 15px; }
+  .media-cap a { color: var(--petrol); font-weight: 600; }
+  .stage-view .img-wrap { flex-direction: column; justify-content: center; }
   .stage-idle { color: var(--muted); font-size: 15px; text-align: center; padding: 0 16px; }
   .stage-terms { min-height: 44px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
   .stage-terms .term-list { margin: 0; }
@@ -703,6 +707,8 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      miRecorded: "Καταγράφηκε",
+      miOpenMap: "Άνοιγμα στον χάρτη",
       siteTitle: "Walking Memory · Σχολιασμός",
       tabRec: "Απομαγνητοφώνηση και όροι",
       tabImg: "Εικόνες",
@@ -983,6 +989,8 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      miRecorded: "Recorded",
+      miOpenMap: "Open in map",
       siteTitle: "Walking Memory · Annotation",
       tabRec: "Transcription et termes",
       tabImg: "Images",
@@ -1266,6 +1274,8 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      miRecorded: "Enregistré",
+      miOpenMap: "Ouvrir dans la carte",
       siteTitle: "Walking Memory · Annotation",
       siteLoginTitle: "Connexion des annotateurs",
       siteLoginHint: "Ce site est réservé aux annotateurs. Les facilitateurs utilisent l'application.",
@@ -1543,6 +1553,8 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      miRecorded: "Registrato",
+      miOpenMap: "Apri nella mappa",
       siteTitle: "Walking Memory · Annotazione",
       tabRec: "Trascrizione e termini",
       tabImg: "Immagini",
@@ -1814,7 +1826,8 @@
       consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
-        return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl };
+        return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
+          title: m.title || '', about: m.about || '', recorded: m.recorded_at || '', period: m.period || '', lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
   }
@@ -2141,6 +2154,26 @@
   function noteActive(a, ctx) { return a.av_media_id === ctx.avId && ctx.now >= a.start_s && ctx.now < a.end_s; }
 
   // ctx = { avId, now }: στη σκηνή δείχνει μόνο τις σημειώσεις που ισχύουν τώρα· χωρίς ctx (λίστα, μεγέθυνση) δείχνει όλες
+  function osmLink(lat, lon) { return 'https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lon + '#map=17/' + lat + '/' + lon; }
+  // Λεζάντα αρχείου: τίτλος, ταυτότητα, ημερομηνία/περίοδος, τοποθεσία (titleOnly: μόνο ο τίτλος, για τη σκηνή)
+  function mediaCaption(m, titleOnly) {
+    var box = document.createElement('div'); box.className = 'media-cap';
+    if (m.title) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
+    if (!titleOnly) {
+      var bits = [];
+      if (m.about) bits.push(m.about);
+      if (m.recorded) bits.push(t('miRecorded') + ' ' + m.recorded);
+      if (m.period) bits.push(m.period);
+      if (bits.length) { var p = document.createElement('div'); p.textContent = bits.join(' · '); box.appendChild(p); }
+      if (m.lat != null && m.lon != null) {
+        var a = document.createElement('a'); a.href = osmLink(m.lat, m.lon); a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = '📍 ' + (+m.lat).toFixed(5) + ', ' + (+m.lon).toFixed(5); a.setAttribute('aria-label', t('miOpenMap') + ': ' + (m.title || ''));
+        box.appendChild(a);
+      }
+    }
+    return box.children.length ? box : null;
+  }
+
   function figureFor(s, m, n, ctx) {
     var wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.dataset.mediaId = m.id || '';
     var frame = document.createElement('div'); frame.className = 'img-frame';
@@ -2154,6 +2187,7 @@
     img.onclick = enlarge;
     img.onkeydown = function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); enlarge(); } };
     wrap.appendChild(frame);
+    var cap = mediaCaption(m, !!ctx); if (cap) wrap.appendChild(cap);
     if (mine.length) {
       var info = document.createElement('div'); info.className = 'img-terms';
       info.appendChild(document.createTextNode(t('imgDepicts') + ' '));
@@ -3290,6 +3324,7 @@
       el.addEventListener('play', function () {
         $('sheetMedia').querySelectorAll('audio, video').forEach(function (o) { if (o !== el) o.pause(); });
       });
+      var mcap = mediaCaption(m); if (mcap) $('sheetMedia').appendChild(mcap);
       $('sheetMedia').appendChild(el);
     });
     renderImages(s, null);
@@ -3350,7 +3385,9 @@
     STORIES = [];
     try {
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
-      var r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
+      var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
+      var r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
+      if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
       if (r.error) throw r.error;
       STORIES = r.data.map(storyFromRow);

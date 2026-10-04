@@ -12,6 +12,13 @@
 Every new account is a facilitator. This is enforced by the database rules, not only by hiding
 buttons. A story reaches the public only when an annotator presses **Publish for everyone**.
 
+## Details for each file (facilitators)
+In the upload form each image, audio or video has a 📍 button for its details: **title**, **identity** (who or what it is about),
+**date recorded** (starts as the file's date), **period it refers to** (free text, e.g. "summer 1965") and **location**. The location
+starts as your GPS position; you can press **Pick on the map** and tap a place instead. Visitors and annotators see these under
+each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` once: it adds the columns to `story_media`
+(an upload still works without them, but the details are then not saved).
+
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
 - **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account
