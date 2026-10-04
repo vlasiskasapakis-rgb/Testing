@@ -250,11 +250,15 @@
   .tl-legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin: 2px 0 4px; }
   .tl-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -2px; }
   .tl-track { position: relative; background: var(--mist); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 4px; cursor: pointer; }
-  .tl-item { position: absolute; height: 16px; min-width: 8px; border: 0; padding: 0; border-radius: 4px; opacity: .9; box-shadow: 0 0 0 1px rgba(255,255,255,.8) inset; }
+  .tl-item { position: absolute; height: 16px; min-width: 12px; border: 0; padding: 0; border-radius: 4px; opacity: .9; box-shadow: 0 0 0 1px rgba(255,255,255,.8) inset; }
   .tl-item.img { background: var(--amber); } .tl-item.term { background: var(--sky); }
   .tl-item.active { outline: 2px solid var(--petrol); opacity: 1; }
   .tl-head { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--petrol); pointer-events: none; }
   .now-terms { margin-top: 8px; }
+  .tl-terms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .tl-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; min-height: 36px; border-radius: 999px; background: var(--sky-soft); color: var(--petrol); font-weight: 600; font-size: 14px; border: 2px solid transparent; }
+  .tl-chip b { color: var(--amber-text); font-size: 12px; }
+  .tl-chip.active { border-color: var(--amber); background: #fff; }
   .term-times { margin-left: 4px; } .term-times button { background: none; color: var(--petrol); font-weight: 700; font-size: 12px; padding: 2px 6px; min-height: 28px; border-radius: 6px; border: 1px solid var(--line-strong); margin-left: 4px; }
   .ann-when { font-size: 13px; font-weight: 700; color: var(--amber-text); }
   .ann-time-panel { flex-basis: 100%; }
@@ -2635,7 +2639,7 @@
     if (tl) {
       var dur = +tl.dataset.dur || 1;
       tl.querySelectorAll('.tl-head').forEach(function (hd) { hd.style.left = Math.min(100, now / dur * 100) + '%'; });
-      tl.querySelectorAll('.tl-item').forEach(function (it) { it.classList.toggle('active', now >= +it.dataset.start && now < +it.dataset.end); });
+      tl.querySelectorAll('.tl-item, .tl-chip').forEach(function (it) { it.classList.toggle('active', now >= +it.dataset.start && now < +it.dataset.end); });
     }
     if (stage.dataset.key === key) return;
     stage.dataset.key = key; stage.innerHTML = '';
@@ -2716,6 +2720,20 @@
       track.onclick = function (ev) { if (ev.target !== track) return; var r = track.getBoundingClientRect(); seekPlay(id, (ev.clientX - r.left) / r.width * dur); };
       box.appendChild(track);
     });
+    // Οι όροι με ετικέτα και χρόνο, με τη σειρά: πατώντας έναν παίζει από εκείνη τη στιγμή
+    var termItems = items.filter(function (i) { return i.type === 'term'; }).sort(function (a, b) { return a.start - b.start; });
+    if (termItems.length) {
+      var chips = document.createElement('div'); chips.className = 'tl-terms';
+      termItems.forEach(function (i) {
+        var c = document.createElement('button'); c.type = 'button'; c.className = 'tl-chip'; c.dataset.start = i.start; c.dataset.end = i.end;
+        var tm = document.createElement('b'); tm.textContent = mmss(i.start);
+        c.appendChild(tm); c.appendChild(document.createTextNode(i.label));
+        c.setAttribute('aria-label', t('tlAria', { l: i.label, a: mmss(i.start), b: mmss(i.end) }));
+        c.onclick = function () { seekPlay(id, i.start); };
+        chips.appendChild(c);
+      });
+      box.appendChild(chips);
+    }
     var cap = avEl.nextElementSibling;
     (cap && cap.classList.contains('subtitle-bar') ? cap : avEl).insertAdjacentElement('afterend', box);
     updateStage(avEl);
