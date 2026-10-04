@@ -255,6 +255,9 @@
   .tl-item.active { outline: 2px solid var(--petrol); opacity: 1; }
   .tl-head { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--petrol); pointer-events: none; }
   .now-terms { margin-top: 8px; }
+  .fold { margin: 8px 0; border: 1px solid var(--line); border-radius: 12px; padding: 0 12px 6px; background: #fff; }
+  .fold > summary { cursor: pointer; font-weight: 700; color: var(--petrol); min-height: 44px; display: flex; align-items: center; }
+  .fold > .img-wrap, .fold > .link-strip, .fold > .term-list { margin-top: 6px; }
   .debug-box { white-space: pre-wrap; font-size: 12px; background: #fff7e0; border: 1px dashed var(--amber); border-radius: 10px; padding: 8px; color: var(--ink); }
   .term-times { margin-left: 4px; } .term-times button { background: none; color: var(--petrol); font-weight: 700; font-size: 12px; padding: 2px 6px; min-height: 28px; border-radius: 6px; border: 1px solid var(--line-strong); margin-left: 4px; }
   .ann-when { font-size: 13px; font-weight: 700; color: var(--amber-text); }
@@ -939,6 +942,7 @@
       consentLabel: "Κωδικός συναίνεσης: {c}",
       annNoRights: "Ο λογαριασμός σου δεν είναι σχολιαστής, οπότε δεν μπορείς να αλλάξεις σχόλια. Ζήτα από τον υπεύθυνο του έργου να σου δώσει τον ρόλο του σχολιαστή και βεβαιώσου ότι είσαι συνδεδεμένος με αυτόν τον λογαριασμό.",
       annLoadFail: "Δεν φορτώθηκαν όλα τα σχόλια της ιστορίας: {e}",
+      imgSection: "Εικόνες",
       listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
     },
     en: {
@@ -1159,6 +1163,7 @@
       consentLabel: "Consent code: {c}",
       annNoRights: "Your account is not an annotator, so you cannot change annotations. Ask the project owner to give you the annotator role, and make sure you are logged in with that account.",
       annLoadFail: "Some of this story's annotations could not be loaded: {e}",
+      imgSection: "Images",
       listSearch: "Search by title, name or consent code"
     },
     fr: {
@@ -1379,6 +1384,7 @@
       consentLabel: "Code de consentement : {c}",
       annNoRights: "Votre compte n'est pas annotateur, vous ne pouvez donc pas modifier les annotations. Demandez au responsable du projet de vous donner le rôle d'annotateur et vérifiez que vous êtes connecté avec ce compte.",
       annLoadFail: "Certaines annotations de cette histoire n'ont pas pu être chargées : {e}",
+      imgSection: "Images",
       listSearch: "Rechercher par titre, nom ou code de consentement"
     },
     it: {
@@ -1599,6 +1605,7 @@
       consentLabel: "Codice di consenso: {c}",
       annNoRights: "Il tuo account non è un annotatore, quindi non puoi modificare le annotazioni. Chiedi al responsabile del progetto di assegnarti il ruolo di annotatore e verifica di aver effettuato l'accesso con quell'account.",
       annLoadFail: "Alcune annotazioni di questa storia non sono state caricate: {e}",
+      imgSection: "Immagini",
       listSearch: "Cerca per titolo, nome o codice di consenso"
     }
   };
@@ -1804,6 +1811,7 @@
     box.querySelectorAll('video, audio').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); });
     box.innerHTML = '';
     $('sheetImages').innerHTML = '';
+    imagesFoldOpen = undefined; termsFoldOpen = undefined;
     clearSubtitles();
     sheetK = null; currentLinks = [];
   }
@@ -2620,7 +2628,7 @@
   }
 
   // ---------- Εικόνες, σύνδεση με χρόνο αφήγησης και συγχρονισμός αναπαραγωγής ----------
-  var sheetK = null, currentLinks = [];
+  var sheetK = null, currentLinks = [], imagesFoldOpen, termsFoldOpen;
 
   function annsForImage(mid) {
     return sheetK ? sheetK.annotations.filter(function (a) { return a.media_id === mid && a.status === 'approved'; }) : [];
@@ -2650,11 +2658,13 @@
 
   function mediaById(s, id) { return s.media.filter(function (m) { return m.id === id; })[0]; }
 
-  function seekPlay(avId, sec) {
+  // mode: 'play' (προεπιλογή), 'pause' (πήγαινε εκεί και σταμάτα, για να δεις με την ησυχία σου) ή 'keep' (άφησε ως έχει)
+  function seekPlay(avId, sec, mode) {
     var el = $('sheetMedia').querySelector('[data-media-id="' + avId + '"]');
     if (!el) return;
     try { el.currentTime = sec; } catch (e) {}
-    var p = el.play(); if (p && p.catch) p.catch(function () {});
+    if (mode === 'pause') el.pause();
+    else if (mode !== 'keep') { var p = el.play(); if (p && p.catch) p.catch(function () {}); }
     try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
     updateStage(el);
   }
@@ -2753,11 +2763,11 @@
         b.dataset.start = i.start; b.dataset.end = i.end;
         b.title = i.label + ' · ' + mmss(i.start) + '–' + mmss(i.end);
         b.setAttribute('aria-label', t('tlAria', { l: i.label, a: mmss(i.start), b: mmss(i.end) }));
-        b.onclick = function (ev) { ev.stopPropagation(); seekPlay(id, i.start); };
+        b.onclick = function (ev) { ev.stopPropagation(); seekPlay(id, i.start, 'pause'); };
         track.appendChild(b);
       });
       var head = document.createElement('div'); head.className = 'tl-head'; track.appendChild(head);
-      track.onclick = function (ev) { if (ev.target !== track) return; var r = track.getBoundingClientRect(); seekPlay(id, (ev.clientX - r.left) / r.width * dur); };
+      track.onclick = function (ev) { if (ev.target !== track) return; var r = track.getBoundingClientRect(); seekPlay(id, (ev.clientX - r.left) / r.width * dur, 'keep'); };
       box.appendChild(track);
     });
     var cap = avEl.nextElementSibling;
@@ -2776,8 +2786,15 @@
     var images = s.media.filter(function (m) { return m.kind === 'image'; });
     var linked = {};
     currentLinks.forEach(function (l) { linked[l.image_media_id] = true; });
+    if (!images.length) return;
+    // Οι εικόνες σε αναδιπλούμενη ενότητα: κλειστή όταν υπάρχει ήχος/βίντεο (η σκηνή δείχνει την εικόνα της στιγμής), ανοιχτή όταν η ιστορία έχει μόνο εικόνες
+    var hasAV = s.media.some(function (m) { return m.kind !== 'image'; });
+    var fold = document.createElement('details'); fold.className = 'fold';
+    fold.open = imagesFoldOpen === undefined ? !hasAV : imagesFoldOpen;
+    var sm = document.createElement('summary'); sm.textContent = t('imgSection') + ' (' + images.length + ')'; fold.appendChild(sm);
+    fold.addEventListener('toggle', function () { imagesFoldOpen = fold.open; });
     if (currentLinks.length) {
-      var h = document.createElement('h3'); h.className = 'link-strip-h'; h.textContent = t('imgTimeline'); box.appendChild(h);
+      var h = document.createElement('h3'); h.className = 'link-strip-h'; h.textContent = t('imgTimeline'); fold.appendChild(h);
       var ul = document.createElement('ul'); ul.className = 'link-strip';
       currentLinks.slice().sort(function (a, b) { return a.start_s - b.start_s; }).forEach(function (l) {
         var im = mediaById(s, l.image_media_id); if (!im) return;
@@ -2789,9 +2806,10 @@
         b.onclick = function () { seekPlay(l.av_media_id, l.start_s); };
         li.appendChild(b); ul.appendChild(li);
       });
-      box.appendChild(ul);
+      fold.appendChild(ul);
     }
-    images.forEach(function (m, i) { if (!linked[m.id]) box.appendChild(figureFor(s, m, i + 1)); });
+    images.forEach(function (m, i) { if (!linked[m.id]) fold.appendChild(figureFor(s, m, i + 1)); });
+    box.appendChild(fold);
   }
 
   function renderKnowledge(s) {
@@ -2854,7 +2872,6 @@
         box.appendChild(d);
       });
       if (k.annotations.length) {
-        var h = document.createElement('h3'); h.textContent = t('annTerms'); box.appendChild(h);
         var ul = document.createElement('ul'); ul.className = 'term-list';
         var byUri = {}, order = [];
         k.annotations.forEach(function (a) {
@@ -2876,7 +2893,12 @@
           }
           ul.appendChild(li);
         });
-        box.appendChild(ul);
+        var tf = document.createElement('details'); tf.className = 'fold';
+        tf.open = termsFoldOpen === true;
+        var tsm = document.createElement('summary'); tsm.textContent = t('annTerms') + ' (' + order.length + ')'; tf.appendChild(tsm);
+        tf.addEventListener('toggle', function () { termsFoldOpen = tf.open; });
+        tf.appendChild(ul);
+        box.appendChild(tf);
       }
     }).catch(function (e) {
       if (currentSheetStory !== s) return;
