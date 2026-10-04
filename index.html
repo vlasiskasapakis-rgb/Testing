@@ -990,6 +990,19 @@
       imgWhenHint: "Εμφανίζεται όσο παίζουν οι γραμμές της απομαγνητοφώνησης στις οποίες συνδέεται. Όταν τσεκάρεις όρο, συνδέεται αυτόματα με τις γραμμές όπου ο όρος αναφέρεται.",
       imgLinkLines: "Εμφάνιση και σε άλλες γραμμές",
       imgLinkAdd: "Εμφάνιση της εικόνας στις επιλεγμένες γραμμές",
+      noteListTitle: "Σημειώσεις στην εικόνα",
+      noteStepTerm: "Διάλεξε όρο",
+      noteStepArea: "Σημάδεψε περιοχή στην εικόνα",
+      noteStepPart: "Διάλεξε μέρος της απομαγνητοφώνησης",
+      noteAdd: "Προσθήκη σημείωσης",
+      noteNeedTerm: "Διάλεξε πρώτα όρο.",
+      noteNeedArea: "Σημάδεψε πρώτα περιοχή στην εικόνα.",
+      noteNeedPart: "Διάλεξε τουλάχιστον μία γραμμή.",
+      noteAdded: "Η σημείωση προστέθηκε.",
+      noteNone: "Δεν υπάρχουν ακόμη σημειώσεις.",
+      noteArea: "περιοχή",
+      noteNoArea: "χωρίς περιοχή",
+      noteDelete: "Διαγραφή",
       imgNoTranscript: "Πρόσθεσε πρώτα απομαγνητοφώνηση σε αυτή την καταγραφή.",
       imgLinkNone: "Δεν εμφανίζεται ακόμα κατά την αναπαραγωγή.",
       listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
@@ -1246,6 +1259,19 @@
       imgWhenHint: "It appears while the transcript lines it is linked to are playing. Ticking a term links it automatically to the lines where that term is mentioned.",
       imgLinkLines: "Show it during other lines",
       imgLinkAdd: "Show the image during the ticked lines",
+      noteListTitle: "Notes on this image",
+      noteStepTerm: "Choose a term",
+      noteStepArea: "Mark an area on the image",
+      noteStepPart: "Choose a part of the transcription",
+      noteAdd: "Add note",
+      noteNeedTerm: "Choose a term first.",
+      noteNeedArea: "Mark an area on the image first.",
+      noteNeedPart: "Choose at least one line.",
+      noteAdded: "Note added.",
+      noteNone: "No notes yet.",
+      noteArea: "area",
+      noteNoArea: "no area",
+      noteDelete: "Delete",
       imgNoTranscript: "Add a transcript to this recording first.",
       imgLinkNone: "Not shown during playback yet.",
       listSearch: "Search by title, name or consent code"
@@ -1502,6 +1528,19 @@
       imgWhenHint: "Elle apparaît pendant les lignes de transcription auxquelles elle est liée. Cocher un terme la lie automatiquement aux lignes où il est mentionné.",
       imgLinkLines: "L'afficher pendant d'autres lignes",
       imgLinkAdd: "Afficher l'image pendant les lignes cochées",
+      noteListTitle: "Notes sur cette image",
+      noteStepTerm: "Choisissez un terme",
+      noteStepArea: "Marquez une zone sur l'image",
+      noteStepPart: "Choisissez une partie de la transcription",
+      noteAdd: "Ajouter la note",
+      noteNeedTerm: "Choisissez d'abord un terme.",
+      noteNeedArea: "Marquez d'abord une zone sur l'image.",
+      noteNeedPart: "Choisissez au moins une ligne.",
+      noteAdded: "Note ajoutée.",
+      noteNone: "Aucune note pour l'instant.",
+      noteArea: "zone",
+      noteNoArea: "sans zone",
+      noteDelete: "Supprimer",
       imgNoTranscript: "Ajoutez d'abord une transcription à cet enregistrement.",
       imgLinkNone: "Pas encore affichée pendant la lecture.",
       listSearch: "Rechercher par titre, nom ou code de consentement"
@@ -1758,6 +1797,19 @@
       imgWhenHint: "Appare mentre scorrono le righe di trascrizione a cui è collegata. Spuntando un termine viene collegata automaticamente alle righe in cui è menzionato.",
       imgLinkLines: "Mostrala durante altre righe",
       imgLinkAdd: "Mostra l'immagine durante le righe spuntate",
+      noteListTitle: "Note su questa immagine",
+      noteStepTerm: "Scegli un termine",
+      noteStepArea: "Segna un'area sull'immagine",
+      noteStepPart: "Scegli una parte della trascrizione",
+      noteAdd: "Aggiungi nota",
+      noteNeedTerm: "Scegli prima un termine.",
+      noteNeedArea: "Segna prima un'area sull'immagine.",
+      noteNeedPart: "Scegli almeno una riga.",
+      noteAdded: "Nota aggiunta.",
+      noteNone: "Ancora nessuna nota.",
+      noteArea: "area",
+      noteNoArea: "senza area",
+      noteDelete: "Elimina",
       imgNoTranscript: "Aggiungi prima una trascrizione a questa registrazione.",
       imgLinkNone: "Non ancora mostrata durante la riproduzione.",
       listSearch: "Cerca per titolo, nome o codice di consenso"
@@ -3708,8 +3760,7 @@
   var ANN_BASE = 'id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source,region_x,region_y,region_w,region_h';
   var ANN_COLS = ANN_BASE + ',av_media_id';
 
-  // Εικόνα: ο σχολιαστής διαλέγει μόνο ΟΡΟΥΣ από την απομαγνητοφώνηση. Οι χρόνοι και το πότε φαίνεται η εικόνα προκύπτουν αυτόματα
-  // από τις γραμμές όπου αναφέρεται ο κάθε όρος. Δεν υπάρχουν χειροκίνητοι χρόνοι.
+  // Εικόνα: τρία βήματα — 1) όρος, 2) περιοχή στην εικόνα, 3) μέρος της απομαγνητοφώνησης (οι χρόνοι προκύπτουν από τις γραμμές).
   function imageSection(s, m, n) {
     var sec = document.createElement('section'); sec.className = 'ann-media';
     var h = document.createElement('h3'); h.textContent = t('type_image') + ' ' + n; sec.appendChild(h);
@@ -3717,230 +3768,142 @@
     var imgAlt = t('type_image') + ' ' + n;
     var thumb = document.createElement('button'); thumb.type = 'button'; thumb.className = 'img-thumb'; thumb.setAttribute('aria-label', t('imgEnlarge') + ': ' + imgAlt);
     var timg = document.createElement('img'); timg.src = m.url; timg.alt = ''; thumb.appendChild(timg); sec.appendChild(thumb);
-    var areaNote = document.createElement('p'); areaNote.className = 'sheet-sub'; sec.appendChild(areaNote);
     thumb.onclick = function () {
       openImagePopup({ url: m.url, alt: imgAlt, title: imgAlt, regions: anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }) });
     };
 
-    var head = document.createElement('h3'); head.textContent = t('imgWhatTitle'); sec.appendChild(head);
-    var hint = document.createElement('p'); hint.className = 'sheet-sub'; hint.textContent = t('imgWhatHint'); sec.appendChild(hint);
-    var list = document.createElement('div'); sec.appendChild(list);
-    var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
-    var refreshBtn = document.createElement('button'); refreshBtn.type = 'button'; refreshBtn.className = 'btn-primary btn-wide'; refreshBtn.hidden = true; sec.appendChild(refreshBtn);
-    var clipBtn = document.createElement('button'); clipBtn.type = 'button'; clipBtn.className = 'btn-secondary btn-wide'; clipBtn.textContent = t('imgClip'); sec.appendChild(clipBtn);
-
-    var whenBox = document.createElement('details'); whenBox.className = 'ann-step';
-    var smw = document.createElement('summary'); smw.textContent = t('imgWhenTitle'); whenBox.appendChild(smw);
-    var whenIn = document.createElement('div'); whenBox.appendChild(whenIn); sec.appendChild(whenBox);
-
-    var terms = [], anns = [], allAnns = [], links = [], transcripts = [], selAvId = null;
+    var terms = [], anns = [], links = [], transcripts = [];
     var avs = s.media.filter(function (x) { return x.kind !== 'image' && x.id; });
+    var pick = { term: null, area: null, av: avs.length ? avs[0].id : null };
     function avLabel(id) { var i = avs.findIndex(function (x) { return x.id === id; }); return i < 0 ? '' : t('type_' + avs[i].kind) + ' ' + (i + 1); }
     function fail(e) { alert(t('annSaveError', { e: errText(e) })); }
-
-    // ---- δεδομένα ----
-    function instsOf(tm) { return anns.filter(function (a) { return a.term_uri === tm.term_uri && a.status !== 'rejected'; }); }
-    function setStatus(a, status2) {
-      return sb.from('annotations').update({ status: status2, approved_by: status2 === 'approved' ? currentUser.id : null, approved_at: status2 === 'approved' ? new Date().toISOString() : null }).eq('id', a.id)
-        .then(function (r) { if (r.error) throw r.error; a.status = status2; });
-    }
-    async function addInstance(tm, extra) {
-      var row = { media_id: m.id, mention: tm.label, kind: tm.kind, vocabulary: tm.vocabulary, term_uri: tm.term_uri, label: tm.label,
-        description: tm.description || '', status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString() };
-      if (extra) Object.assign(row, extra);
-      var r = await sb.from('annotations').insert(row).select(ANN_COLS).single();
-      if (r.error) throw r.error; anns.push(r.data); return r.data;
-    }
-    async function updateMany(list2, patch) {
-      if (!list2.length) return;
-      var r = await sb.from('annotations').update(patch).in('id', list2.map(function (a) { return a.id; }));
-      if (r.error) throw r.error; list2.forEach(function (a) { Object.assign(a, patch); });
-    }
-    async function deleteMany(list2) {
-      if (!list2.length) return;
-      var d = await sb.from('annotations').delete().in('id', list2.map(function (a) { return a.id; }));
-      if (d.error) throw d.error; list2.forEach(function (a) { anns.splice(anns.indexOf(a), 1); });
+    function segsOf(avId) {
+      var tr = transcripts.filter(function (x) { return x.media_id === avId; })[0];
+      return ((tr && tr.transcript_segments) || []).filter(function (g) { return g.end_s > g.start_s; });
     }
 
-    // Οι στιγμές όπου ο όρος αναφέρεται στην απομαγνητοφώνηση: το διάστημα ολόκληρης της γραμμής όπου ειπώθηκε
-    function mentionsFor(tm) {
-      var out = [], seen = {};
-      allAnns.forEach(function (a) {
-        if (a.term_uri !== tm.term_uri || a.status !== 'approved' || a.media_id === m.id) return;
-        var mk = mediaById(s, a.media_id);
-        if (!mk || mk.kind === 'image') return;
-        var tr = transcripts.filter(function (x) { return x.media_id === a.media_id; })[0];
-        var seg = tr && a.segment_idx != null ? tr.transcript_segments.filter(function (g) { return g.idx === a.segment_idx; })[0] : null;
-        var st_ = seg && seg.end_s > seg.start_s ? seg.start_s : (hasRange(a) ? a.start_s : null);
-        var en_ = seg && seg.end_s > seg.start_s ? seg.end_s : (hasRange(a) ? a.end_s : null);
-        if (st_ == null) return;
-        var key = a.media_id + '|' + st_ + '|' + en_;
-        if (!seen[key]) { seen[key] = 1; out.push({ av: a.media_id, start: st_, end: en_ }); }
+    // ---- φόρμα νέας σημείωσης ----
+    var form = document.createElement('div'); form.className = 'note-form'; sec.appendChild(form);
+    var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
+    var listHead = document.createElement('h3'); listHead.textContent = t('noteListTitle'); sec.appendChild(listHead);
+    var list = document.createElement('div'); sec.appendChild(list);
+
+    function step(num, label) { var p = document.createElement('p'); p.className = 'note-step'; p.textContent = num + '. ' + label; form.appendChild(p); return p; }
+    var checkedIdx = {};
+    function paintForm() {
+      form.innerHTML = '';
+      if (!terms.length) { var p0 = document.createElement('p'); p0.textContent = t('imgNoTerms'); form.appendChild(p0); return; }
+      if (!avs.length) { var p1 = document.createElement('p'); p1.textContent = t('lnkNoAV'); form.appendChild(p1); return; }
+      // 1. όρος
+      step(1, t('noteStepTerm'));
+      var sel = document.createElement('select'); sel.className = 'lang-select'; sel.setAttribute('aria-label', t('noteStepTerm'));
+      var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+      terms.forEach(function (tm) { var o = document.createElement('option'); o.value = tm.term_uri; o.textContent = tm.label; sel.appendChild(o); });
+      sel.value = pick.term ? pick.term.term_uri : '';
+      sel.onchange = function () {
+        pick.term = terms.filter(function (x) { return x.term_uri === sel.value; })[0] || null;
+        checkedIdx = {};
+        if (pick.term) {                                       // προτείνει τις γραμμές όπου ειπώθηκε ο όρος
+          allAnnsFor(pick.term).forEach(function (a) { if (a.media_id === pick.av && a.segment_idx != null) checkedIdx[a.segment_idx] = true; });
+        }
+        paintForm();
+      };
+      form.appendChild(sel);
+      // 2. περιοχή
+      step(2, t('noteStepArea'));
+      var ab = document.createElement('button'); ab.type = 'button'; ab.className = 'btn-secondary';
+      ab.textContent = pick.area ? t('imgAreaSet') : t('imgMark');
+      ab.onclick = function () {
+        openImagePopup({
+          url: m.url, alt: imgAlt, title: imgAlt + (pick.term ? ' — ' + pick.term.label : ''), draw: true,
+          regions: anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }),
+          onRect: function (r) { pick.area = r; paintForm(); }
+        });
+      };
+      form.appendChild(ab);
+      if (pick.area) { var ok = document.createElement('span'); ok.className = 'ann-when'; ok.textContent = ' ✓'; form.appendChild(ok); }
+      // 3. μέρος της απομαγνητοφώνησης
+      step(3, t('noteStepPart'));
+      if (avs.length > 1) {
+        var avSel = document.createElement('select'); avSel.className = 'lang-select'; avSel.setAttribute('aria-label', t('lnkMedia'));
+        avs.forEach(function (x, i) { var o = document.createElement('option'); o.value = x.id; o.textContent = t('type_' + x.kind) + ' ' + (i + 1); avSel.appendChild(o); });
+        avSel.value = pick.av; avSel.onchange = function () { pick.av = avSel.value; checkedIdx = {}; paintForm(); };
+        form.appendChild(avSel);
+      }
+      var segs = segsOf(pick.av);
+      if (!segs.length) { var nt = document.createElement('p'); nt.textContent = t('imgNoTranscript'); form.appendChild(nt); return; }
+      var box = document.createElement('div'); box.className = 'ann-lines';
+      segs.forEach(function (g) {
+        var lb = document.createElement('label'); var cb = document.createElement('input'); cb.type = 'checkbox'; cb.dataset.idx = g.idx; cb.checked = !!checkedIdx[g.idx];
+        cb.onchange = function () { if (cb.checked) checkedIdx[g.idx] = true; else delete checkedIdx[g.idx]; };
+        lb.appendChild(cb); lb.appendChild(document.createTextNode('[' + mmss(g.start_s) + '] ' + g.text)); box.appendChild(lb);
       });
-      return out.sort(function (x, y) { return x.av === y.av ? x.start - y.start : (x.av < y.av ? -1 : 1); });
+      form.appendChild(box);
+      var add = document.createElement('button'); add.type = 'button'; add.className = 'btn-primary btn-wide'; add.id = 'noteAdd'; add.textContent = t('noteAdd');
+      add.onclick = async function () {
+        if (!pick.term) { status.textContent = t('noteNeedTerm'); return; }
+        if (!pick.area) { status.textContent = t('noteNeedArea'); return; }
+        var groups = [], cur = null;
+        segs.forEach(function (g, i) {                          // διαδοχικές γραμμές γίνονται ένα διάστημα
+          if (!checkedIdx[g.idx]) { cur = null; return; }
+          if (cur && cur.lastI === i - 1) { cur.end = g.end_s; cur.lastI = i; } else { cur = { start: g.start_s, end: g.end_s, lastI: i }; groups.push(cur); }
+        });
+        if (!groups.length) { status.textContent = t('noteNeedPart'); return; }
+        add.disabled = true; status.textContent = '';
+        try {
+          for (var q = 0; q < groups.length; q++) {
+            var gp = groups[q], tm = pick.term;
+            var row = { media_id: m.id, mention: tm.label, kind: tm.kind, vocabulary: tm.vocabulary, term_uri: tm.term_uri, label: tm.label,
+              description: tm.description || '', status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString(),
+              start_s: gp.start, end_s: gp.end, av_media_id: pick.av,
+              region_x: pick.area.x, region_y: pick.area.y, region_w: pick.area.w, region_h: pick.area.h };
+            var r = await sb.from('annotations').insert(row).select(ANN_COLS).single();
+            if (r.error) throw r.error; anns.push(r.data);
+            await ensureLink({ av: pick.av, start: gp.start, end: gp.end });
+          }
+          pick.term = null; pick.area = null; checkedIdx = {};
+          status.textContent = t('noteAdded');
+        } catch (e) { fail(e); }
+        paintForm(); paintList();
+      };
+      form.appendChild(add);
     }
-    function sameSpan(a, mn) { return a.av_media_id === mn.av && Math.abs(a.start_s - mn.start) < 0.05 && Math.abs(a.end_s - mn.end) < 0.05; }
-    function missingFor(tm) {
-      var insts = instsOf(tm).filter(function (a) { return a.status === 'approved'; });
-      if (!insts.length) return [];
-      return mentionsFor(tm).filter(function (mn) { return !insts.some(function (i) { return isTimedNote(i) && sameSpan(i, mn); }); });
-    }
+    function allAnnsFor(tm) { return allAnns.filter(function (a) { return a.term_uri === tm.term_uri && a.status === 'approved' && a.media_id !== m.id; }); }
+    var allAnns = [];
+
     function linkInsert(row) {
       return sb.from('media_links').insert(row).select('id,story_id,image_media_id,av_media_id,start_s,end_s').single()
         .then(function (r) { if (r.error) throw r.error; links.push(r.data); });
     }
-    // Η εικόνα εμφανίζεται όσο ισχύει η σημείωση: φρόντισε να υπάρχει σύνδεση που καλύπτει το διάστημα
     async function ensureLink(mn) {
       if (links.some(function (l) { return l.av_media_id === mn.av && l.start_s <= mn.start + 0.05 && l.end_s >= mn.end - 0.05; })) return;
       await linkInsert({ story_id: s.dbId, image_media_id: m.id, av_media_id: mn.av, start_s: mn.start, end_s: mn.end });
     }
-    // Τσεκάρισμα όρου: μία σημείωση σε κάθε αναφορά του (ή μία «πάντα ορατή» αν δεν αναφέρεται ακόμα με χρόνο)
-    async function tickTerm(tm) {
-      var ms = mentionsFor(tm);
-      if (!ms.length) { await addInstance(tm); return; }
-      for (var i = 0; i < ms.length; i++) { await addInstance(tm, { start_s: ms[i].start, end_s: ms[i].end, av_media_id: ms[i].av }); await ensureLink(ms[i]); }
-    }
-    // Ενημέρωση όρου με νέες αναφορές (η περιοχή αντιγράφεται)
-    async function syncTerm(tm) {
-      var insts = instsOf(tm).filter(function (a) { return a.status === 'approved'; });
-      var todo = missingFor(tm), statics = insts.filter(function (a) { return !isTimedNote(a); });
-      var withRegion = insts.filter(hasRegion)[0];
-      for (var i = 0; i < todo.length; i++) {
-        var mn = todo[i], patch = { start_s: mn.start, end_s: mn.end, av_media_id: mn.av };
-        if (statics.length) await updateMany([statics.shift()], patch);
-        else {
-          var extra = Object.assign({}, patch);
-          if (withRegion) { extra.region_x = withRegion.region_x; extra.region_y = withRegion.region_y; extra.region_w = withRegion.region_w; extra.region_h = withRegion.region_h; }
-          await addInstance(tm, extra);
-        }
-        await ensureLink(mn);
-      }
-      return todo.length;
-    }
-
-    // ---- εμφάνιση ----
-    function paint() {
-      var nAreas = anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }).length;
-      areaNote.textContent = nAreas ? t('imgAreasCount', { n: nAreas }) : '';
-      list.innerHTML = '';
-      var pending = 0;
-      if (!terms.length) { var p = document.createElement('p'); p.textContent = t('imgNoTerms'); list.appendChild(p); }
-      terms.forEach(function (tm) {
-        var insts = instsOf(tm), approved = insts.filter(function (a) { return a.status === 'approved'; }), sug = insts.filter(function (a) { return a.status === 'suggested'; });
-        pending += missingFor(tm).length;
-        var row = document.createElement('div'); row.className = 'ann-row term-row';
-        var lab = document.createElement('label');
-        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = approved.length > 0;
-        lab.appendChild(cb); lab.appendChild(document.createTextNode(tm.label));
-        var tag = document.createElement('span'); tag.className = 'vocab-tag'; tag.textContent = VOCAB_LABEL[tm.vocabulary] || tm.vocabulary; lab.appendChild(tag);
-        row.appendChild(lab);
-        function ib(label, fn) {
-          var b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.setAttribute('aria-label', label + ': ' + tm.label);
-          b.onclick = async function () { b.disabled = true; try { await fn(); } catch (e) { fail(e); } paint(); paintWhen(); };
-          row.appendChild(b); return b;
-        }
-        cb.onchange = async function () {
-          cb.disabled = true;
-          try {
-            if (cb.checked) {
-              if (sug.length) { for (var q = 0; q < sug.length; q++) await setStatus(sug[q], 'approved'); await syncTerm(tm); }
-              else await tickTerm(tm);
-            } else await deleteMany(insts);
-          } catch (e) { fail(e); }
-          paint(); paintWhen();
-        };
-        if (approved.length) {
-          var times = approved.filter(isTimedNote).map(function (a) { return mmss(a.start_s); });
-          var info = document.createElement('span'); info.className = 'ann-when';
-          info.textContent = times.length ? t('imgMentioned', { t: Array.from(new Set(times)).join(', ') }) : t('imgAlways');
-          row.appendChild(info);
-          var hasArea = approved.some(hasRegion);
-          ib(t(hasArea ? 'imgAreaSet' : 'imgMark'), async function () {
-            openImagePopup({
-              url: m.url, alt: imgAlt, title: imgAlt + ' — ' + tm.label, draw: true,
-              regions: anns.filter(function (a) { return a.term_uri !== tm.term_uri && a.status !== 'rejected' && hasRegion(a); }),
-              onRect: async function (r) {
-                try { await updateMany(approved, { region_x: r.x, region_y: r.y, region_w: r.w, region_h: r.h }); } catch (e) { fail(e); }
-                paint();
-              }
-            });
-          });
-          if (hasArea) ib(t('imgClear'), function () { return updateMany(approved, { region_x: null, region_y: null, region_w: null, region_h: null }); });
-        } else if (sug.length) {
-          var sg = document.createElement('span'); sg.className = 'badge-sug'; sg.textContent = t('imgSuggested'); row.appendChild(sg);
-          ib(t('annApprove'), async function () { for (var q = 0; q < sug.length; q++) await setStatus(sug[q], 'approved'); await syncTerm(tm); });
-          ib(t('annReject'), async function () { for (var q = 0; q < sug.length; q++) await setStatus(sug[q], 'rejected'); });
-        }
-        list.appendChild(row);
-      });
-      refreshBtn.hidden = !pending;
-      refreshBtn.textContent = t('imgRefresh', { n: pending });
-    }
-
-    // «Πότε εμφανίζεται η εικόνα»: οι συνδέσεις (αυτόματες από τους όρους) και προαιρετικά επιπλέον γραμμές της απομαγνητοφώνησης
     function lineText(avId, start) {
-      var tr = transcripts.filter(function (x) { return x.media_id === avId; })[0];
-      var g = tr && tr.transcript_segments.filter(function (x) { return start >= x.start_s - 0.05 && start < x.end_s; })[0];
+      var g = segsOf(avId).filter(function (x) { return start >= x.start_s - 0.05 && start < x.end_s; })[0];
       return g ? g.text.slice(0, 50) : '';
     }
-    function paintWhen() {
-      whenIn.innerHTML = '';
-      var p0 = document.createElement('p'); p0.className = 'sheet-sub'; p0.textContent = t('imgWhenHint'); whenIn.appendChild(p0);
-      if (!avs.length) { var np = document.createElement('p'); np.textContent = t('lnkNoAV'); whenIn.appendChild(np); return; }
-      if (!selAvId || !avs.some(function (x) { return x.id === selAvId; })) selAvId = avs[0].id;
-      var ul = document.createElement('ul'); ul.className = 'tr-lines';
-      if (!links.length) { var li0 = document.createElement('li'); li0.textContent = t('imgLinkNone'); ul.appendChild(li0); }
-      links.slice().sort(function (a, b) { return a.start_s - b.start_s; }).forEach(function (l) {
-        var li = document.createElement('li'); li.className = 'ann-row';
+
+    // ---- υπάρχουσες σημειώσεις: όρος · περιοχή · μέρος της απομαγνητοφώνησης ----
+    function paintList() {
+      list.innerHTML = '';
+      var notes = anns.filter(function (a) { return a.status !== 'rejected'; });
+      if (!notes.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('noteNone'); list.appendChild(p); return; }
+      notes.sort(function (a, b) { return (a.start_s || 0) - (b.start_s || 0); }).forEach(function (a) {
+        var row = document.createElement('div'); row.className = 'ann-row';
         var tx = document.createElement('span');
-        tx.textContent = (avs.length > 1 ? avLabel(l.av_media_id) + ' · ' : '') + mmss(l.start_s) + '–' + mmss(l.end_s) + (lineText(l.av_media_id, l.start_s) ? ' · ' + lineText(l.av_media_id, l.start_s) : '');
-        li.appendChild(tx);
-        var dl = document.createElement('button'); dl.type = 'button'; dl.textContent = t('lnkDelete');
+        var when = isTimedNote(a) ? (avs.length > 1 ? avLabel(a.av_media_id) + ' · ' : '') + mmss(a.start_s) + '–' + mmss(a.end_s) + (lineText(a.av_media_id, a.start_s) ? ' “' + lineText(a.av_media_id, a.start_s) + '”' : '') : t('imgAlways');
+        tx.textContent = a.label + ' · ' + (hasRegion(a) ? t('noteArea') : t('noteNoArea')) + ' · ' + when;
+        row.appendChild(tx);
+        var dl = document.createElement('button'); dl.type = 'button'; dl.textContent = t('noteDelete'); dl.setAttribute('aria-label', t('noteDelete') + ': ' + a.label);
         dl.onclick = async function () {
           dl.disabled = true;
-          var r = await sb.from('media_links').delete().eq('id', l.id);
-          if (r.error) { alert(t('lnkErr', { e: errText(r.error) })); dl.disabled = false; return; }
-          links.splice(links.indexOf(l), 1); paintWhen();
+          var d = await sb.from('annotations').delete().eq('id', a.id);
+          if (d.error) { fail(d.error); dl.disabled = false; return; }
+          anns.splice(anns.indexOf(a), 1); paintList();
         };
-        li.appendChild(dl); ul.appendChild(li);
+        row.appendChild(dl); list.appendChild(row);
       });
-      whenIn.appendChild(ul);
-
-      var more = document.createElement('details'); more.className = 'ann-step';
-      var smm = document.createElement('summary'); smm.textContent = t('imgLinkLines'); more.appendChild(smm);
-      if (avs.length > 1) {
-        var avSel = document.createElement('select'); avSel.className = 'lang-select'; avSel.setAttribute('aria-label', t('lnkMedia'));
-        avs.forEach(function (x, i) { var o = document.createElement('option'); o.value = x.id; o.textContent = t('type_' + x.kind) + ' ' + (i + 1); avSel.appendChild(o); });
-        avSel.value = selAvId; avSel.onchange = function () { selAvId = avSel.value; paintWhen(); more.open = true; }; more.appendChild(avSel);
-      }
-      var tr = transcripts.filter(function (x) { return x.media_id === selAvId; })[0];
-      var segs = ((tr && tr.transcript_segments) || []).filter(function (g) { return g.end_s > g.start_s; });
-      if (!segs.length) { var nt = document.createElement('p'); nt.textContent = t('imgNoTranscript'); more.appendChild(nt); }
-      else {
-        var box = document.createElement('div'); box.className = 'ann-lines';
-        segs.forEach(function (g) {
-          var lb = document.createElement('label'); var cb = document.createElement('input'); cb.type = 'checkbox'; cb.dataset.idx = g.idx;
-          lb.appendChild(cb); lb.appendChild(document.createTextNode('[' + mmss(g.start_s) + '] ' + g.text)); box.appendChild(lb);
-        });
-        more.appendChild(box);
-        var add = document.createElement('button'); add.type = 'button'; add.className = 'btn-secondary btn-wide'; add.textContent = t('imgLinkAdd');
-        add.onclick = async function () {
-          var ticked = [].slice.call(box.querySelectorAll('input:checked')).map(function (c) { return +c.dataset.idx; });
-          if (!ticked.length) return;
-          add.disabled = true;
-          try {
-            var groups = [], cur = null;
-            segs.forEach(function (g, i) {                      // διαδοχικές επιλεγμένες γραμμές γίνονται μία σύνδεση
-              if (ticked.indexOf(g.idx) < 0) { cur = null; return; }
-              if (cur && cur.lastI === i - 1) { cur.end = g.end_s; cur.lastI = i; } else { cur = { start: g.start_s, end: g.end_s, lastI: i }; groups.push(cur); }
-            });
-            for (var q = 0; q < groups.length; q++) await ensureLink({ av: selAvId, start: groups[q].start, end: groups[q].end });
-          } catch (e) { alert(t('lnkErr', { e: errText(e) })); }
-          paintWhen();
-        };
-        more.appendChild(add);
-      }
-      whenIn.appendChild(more);
     }
 
     async function reload() {
@@ -3956,29 +3919,10 @@
       anns = k.annotations.filter(function (a) { return a.media_id === m.id; });
       links = k.links.filter(function (l) { return l.image_media_id === m.id; });
       transcripts = k.transcripts;
-      paint(); paintWhen();
+      if (pick.term && !terms.some(function (x) { return x.term_uri === pick.term.term_uri; })) pick.term = null;
+      paintForm(); paintList();
     }
     annListeners.push(function () { return reload(); });
-
-    refreshBtn.onclick = async function () {
-      refreshBtn.disabled = true;
-      try {
-        var total = 0;
-        for (var i = 0; i < terms.length; i++) total += await syncTerm(terms[i]);
-        status.textContent = t('imgSyncDone', { n: total });
-      } catch (e) { fail(e); }
-      refreshBtn.disabled = false; paint(); paintWhen();
-    };
-    clipBtn.onclick = async function () {
-      if (!terms.length) { status.textContent = t('imgNoTerms'); return; }
-      clipBtn.disabled = true;
-      try {
-        var added = await clipSuggest(m, terms, anns, function (msg) { status.textContent = msg; });
-        await reload();
-        status.textContent = added ? t('imgClipDone', { n: added }) : t('imgClipNone');
-      } catch (e) { status.textContent = t('imgClipErr', { e: errText(e) }); }
-      finally { clipBtn.disabled = false; }
-    };
     reload().catch(function (e) { status.textContent = t('annFailed', { e: errText(e) }); });
     return sec;
   }
