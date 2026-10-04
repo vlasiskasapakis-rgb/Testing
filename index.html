@@ -259,6 +259,15 @@
   .ann-when { font-size: 13px; font-weight: 700; color: var(--amber-text); }
   .ann-time-panel { flex-basis: 100%; }
   .ann-player { width: 100%; max-height: 220px; margin: 6px 0; }
+  #consentSheet { z-index: 66; }
+  .check { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 12px; font-weight: 400; color: var(--ink); line-height: 1.4; }
+  .check input { flex: none; width: 24px; height: 24px; margin-top: 2px; }
+  .code-big { display: block; margin: 6px 0 10px; padding: 12px; text-align: center; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 30px; font-weight: 700; letter-spacing: .08em; color: var(--petrol); background: var(--mist); border: 2px dashed var(--line-strong); border-radius: 12px; user-select: all; -webkit-user-select: all; }
+  .subtitle-bar { min-height: 2.8em; margin: 4px 0 8px; padding: 8px 12px; border-radius: 10px; background: rgba(14,63,80,.94); color: #fff; font-size: 17px; line-height: 1.35; text-align: center; }
+  .subtitle-bar[hidden] { display: none; }
+  .sub-toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--petrol); min-height: 40px; }
+  .sub-toggle input { width: 22px; height: 22px; }
+  #sheetConsent button { margin-left: 8px; }
   .btn-danger { padding: 12px 22px; min-height: 48px; font-weight: 700; background: #fff; color: var(--danger); border: 2px solid var(--danger); }
   .ann-media { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 10px; }
   .ann-text { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 15px; font-family: inherit; color: var(--ink); }
@@ -430,6 +439,7 @@
     <p id="sheetSub" class="sheet-sub"></p>
     <p id="sheetAuthor" class="story-author"></p>
     <p id="sheetStatus" class="story-status"></p>
+    <p id="sheetConsent" class="story-status" hidden></p>
     <p id="sheetBody"></p>
     <div id="sheetMedia" class="story-media"></div>
     <div id="sheetImages" class="story-media"></div>
@@ -445,9 +455,53 @@
 </div>
 
 <!-- 1. Νέα ιστορία -->
+<div id="consentSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
+  <div class="sheet-inner">
+    <h2 id="consentTitle" data-i18n="consentTitle"></h2>
+    <div class="input-group">
+      <label for="langConsent" data-i18n="language"></label>
+      <select id="langConsent" class="lang-select">
+        <option value="el" lang="el">Ελληνικά</option>
+        <option value="en" lang="en">English</option>
+        <option value="fr" lang="fr">Français</option>
+        <option value="it" lang="it">Italiano</option>
+      </select>
+    </div>
+    <div id="consentForm">
+      <p data-i18n="consentIntro"></p>
+      <div id="consentReuseWrap" class="input-group" hidden>
+        <label for="consentReuse" data-i18n="consentReuse"></label>
+        <select id="consentReuse" class="lang-select"></select>
+      </div>
+      <div id="consentChecks">
+        <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC1"></span></label>
+        <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC2"></span></label>
+        <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC3"></span></label>
+        <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC4"></span></label>
+      </div>
+      <p id="consentError" class="field-error" role="alert"></p>
+    </div>
+    <div id="consentCodeBox" hidden>
+      <span class="group-label" data-i18n="consentCodeLabel"></span>
+      <output id="consentCode" class="code-big" aria-live="polite"></output>
+      <button type="button" id="consentCopy" class="btn-secondary" data-i18n="consentCopy"></button>
+      <p class="sheet-sub" data-i18n="consentCodeHint"></p>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn-secondary" id="consentCancel" data-i18n="cancel"></button>
+      <button type="button" class="btn-primary" id="consentCreate" data-i18n="consentCreate" disabled></button>
+      <button type="button" class="btn-primary" id="consentContinue" data-i18n="consentContinue" hidden></button>
+    </div>
+  </div>
+</div>
+
 <div id="uploadSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="uploadTitle">
   <div class="sheet-inner">
     <h2 id="uploadTitle" data-i18n="newStory"></h2>
+    <div class="input-group">
+      <span class="group-label" id="uploadConsentLabel" data-i18n="consentCodeLabel"></span>
+      <div class="loc-box"><strong id="uploadConsentCode"></strong> <button type="button" id="uploadConsentCopy" class="link-btn" data-i18n="consentCopy"></button></div>
+    </div>
     <div class="input-group">
       <span class="group-label" id="locLabel" data-i18n="locLabel"></span>
       <div id="locDisplay" class="loc-box" aria-labelledby="locLabel"></div>
@@ -584,6 +638,10 @@
 <div id="listSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="listTitle">
   <div class="sheet-inner">
     <h2 id="listTitle"></h2>
+    <div class="input-group">
+      <label for="listSearch" data-i18n="listSearch"></label>
+      <input type="text" id="listSearch" autocomplete="off">
+    </div>
     <div class="input-group" id="listFilterWrap">
       <label for="listFilter" data-i18n="listFilter"></label>
       <select id="listFilter" class="lang-select"></select>
@@ -859,7 +917,26 @@
       annRefineNone: "Δεν υπάρχει τίποτα προς βελτίωση.",
       imgEnlarge: "Μεγέθυνση εικόνας",
       imgAreasCount: "Σημαδεμένες περιοχές: {n}",
-      annAdded: "Ήδη προστέθηκε"
+      annAdded: "Ήδη προστέθηκε",
+      subOn: "Υπότιτλοι",
+      consentTitle: "Συναίνεση συμμετοχής",
+      consentIntro: "Παρακαλούμε διαβάστε το κείμενο μαζί με το άτομο που συμμετέχει πριν ξεκινήσει η καταγραφή.",
+      consentC1: "Κατανοώ ότι η ιστορία μου (ηχογραφήσεις, φωτογραφίες ή βίντεο που επιλέγω να μοιραστώ) θα συλλεχθεί και θα ανέβει από τον διευκολυντή του έργου.",
+      consentC2: "Συμφωνώ ότι εκπαιδευμένοι σχολιαστές μπορούν να την ακούσουν, να γράψουν απομαγνητοφώνηση και να προσθέσουν περιγραφικές ετικέτες, μαζί με συνδέσμους σε τόπους, πρόσωπα και πράγματα.",
+      consentC3: "Συμφωνώ ότι, μετά από έλεγχο, η ιστορία μου μπορεί να δημοσιευτεί ώστε να τη βλέπει και να την ακούει οποιοσδήποτε.",
+      consentC4: "Κατανοώ ότι η συμμετοχή είναι εθελοντική και ότι μπορώ να αποσύρω την ιστορία μου οποτεδήποτε δίνοντας στον διευκολυντή τον κωδικό συναίνεσής μου.",
+      consentReuse: "Χρήση κωδικού που έχεις ήδη δημιουργήσει",
+      consentNewOpt: "Νέα συναίνεση",
+      consentCreate: "Συναινώ: δημιουργία κωδικού",
+      consentContinue: "Συνέχεια στο ανέβασμα",
+      consentCodeLabel: "Κωδικός συναίνεσης",
+      consentCodeHint: "Γράψε αυτόν τον κωδικό στο έντυπο που υπογράφει το άτομο που συμμετέχει. Συνδέει το έντυπο με αυτή την ιστορία.",
+      consentCopy: "Αντιγραφή κωδικού",
+      consentCopied: "Αντιγράφηκε",
+      consentError: "Δεν δημιουργήθηκε η καταγραφή συναίνεσης: {e}",
+      consentNeedAll: "Τσέκαρε όλα τα πλαίσια για να συνεχίσεις.",
+      consentLabel: "Κωδικός συναίνεσης: {c}",
+      listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -1058,7 +1135,26 @@
       annRefineNone: "Nothing to refine.",
       imgEnlarge: "Enlarge image",
       imgAreasCount: "Marked areas: {n}",
-      annAdded: "Already added"
+      annAdded: "Already added",
+      subOn: "Subtitles",
+      consentTitle: "Consent to take part",
+      consentIntro: "Please read this together with the participant before recording starts.",
+      consentC1: "I understand that my story (recordings, photos or video I choose to share) will be collected and uploaded by the project facilitator.",
+      consentC2: "I agree that trained annotators may listen to it, write a transcript and add descriptive tags, including links to places, people and things.",
+      consentC3: "I agree that, after review, my story may be published so that anyone can see and hear it.",
+      consentC4: "I understand that taking part is voluntary and that I can withdraw my story at any time by giving the facilitator my consent code.",
+      consentReuse: "Use a code you already created",
+      consentNewOpt: "New consent",
+      consentCreate: "I consent: generate my code",
+      consentContinue: "Continue to upload",
+      consentCodeLabel: "Consent code",
+      consentCodeHint: "Write this code on the paper form the participant signs. It links the form to this story.",
+      consentCopy: "Copy code",
+      consentCopied: "Copied",
+      consentError: "Could not create the consent record: {e}",
+      consentNeedAll: "Tick every box to continue.",
+      consentLabel: "Consent code: {c}",
+      listSearch: "Search by title, name or consent code"
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -1257,7 +1353,26 @@
       annRefineNone: "Rien à affiner.",
       imgEnlarge: "Agrandir l'image",
       imgAreasCount: "Zones marquées : {n}",
-      annAdded: "Déjà ajouté"
+      annAdded: "Déjà ajouté",
+      subOn: "Sous-titres",
+      consentTitle: "Consentement de participation",
+      consentIntro: "Veuillez lire ce texte avec la personne qui participe avant de commencer l'enregistrement.",
+      consentC1: "Je comprends que mon histoire (enregistrements, photos ou vidéos que je choisis de partager) sera recueillie et envoyée par le facilitateur du projet.",
+      consentC2: "J'accepte que des annotateurs formés l'écoutent, rédigent une transcription et ajoutent des étiquettes descriptives, avec des liens vers des lieux, des personnes et des choses.",
+      consentC3: "J'accepte qu'après relecture mon histoire puisse être publiée afin que chacun puisse la voir et l'entendre.",
+      consentC4: "Je comprends que la participation est volontaire et que je peux retirer mon histoire à tout moment en donnant mon code de consentement au facilitateur.",
+      consentReuse: "Utiliser un code déjà créé",
+      consentNewOpt: "Nouveau consentement",
+      consentCreate: "Je consens : générer mon code",
+      consentContinue: "Continuer vers l'envoi",
+      consentCodeLabel: "Code de consentement",
+      consentCodeHint: "Écrivez ce code sur le formulaire papier que signe la personne. Il relie le formulaire à cette histoire.",
+      consentCopy: "Copier le code",
+      consentCopied: "Copié",
+      consentError: "Impossible de créer l'enregistrement du consentement : {e}",
+      consentNeedAll: "Cochez toutes les cases pour continuer.",
+      consentLabel: "Code de consentement : {c}",
+      listSearch: "Rechercher par titre, nom ou code de consentement"
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -1456,7 +1571,26 @@
       annRefineNone: "Niente da precisare.",
       imgEnlarge: "Ingrandisci l'immagine",
       imgAreasCount: "Aree segnate: {n}",
-      annAdded: "Già aggiunto"
+      annAdded: "Già aggiunto",
+      subOn: "Sottotitoli",
+      consentTitle: "Consenso a partecipare",
+      consentIntro: "Leggete questo testo insieme alla persona che partecipa prima di iniziare la registrazione.",
+      consentC1: "Capisco che la mia storia (registrazioni, foto o video che scelgo di condividere) sarà raccolta e caricata dal facilitatore del progetto.",
+      consentC2: "Accetto che annotatori formati possano ascoltarla, scrivere una trascrizione e aggiungere etichette descrittive, compresi collegamenti a luoghi, persone e cose.",
+      consentC3: "Accetto che, dopo la revisione, la mia storia possa essere pubblicata affinché chiunque possa vederla e ascoltarla.",
+      consentC4: "Capisco che la partecipazione è volontaria e che posso ritirare la mia storia in qualsiasi momento dando al facilitatore il mio codice di consenso.",
+      consentReuse: "Usa un codice già creato",
+      consentNewOpt: "Nuovo consenso",
+      consentCreate: "Acconsento: genera il mio codice",
+      consentContinue: "Continua con il caricamento",
+      consentCodeLabel: "Codice di consenso",
+      consentCodeHint: "Scrivi questo codice sul modulo cartaceo firmato dalla persona. Collega il modulo a questa storia.",
+      consentCopy: "Copia il codice",
+      consentCopied: "Copiato",
+      consentError: "Impossibile creare il record di consenso: {e}",
+      consentNeedAll: "Spunta tutte le caselle per continuare.",
+      consentLabel: "Codice di consenso: {c}",
+      listSearch: "Cerca per titolo, nome o codice di consenso"
     }
   };
 
@@ -1500,12 +1634,14 @@
     document.title = t('pageTitle');            // WCAG 2.4.2
     $('langGate').value = code;
     $('langHud').value = code;
+    if ($('langConsent')) $('langConsent').value = code;
     applyLang();
     langListeners.forEach(function (fn) { try { fn(); } catch (e) {} });
   }
 
   $('langGate').addEventListener('change', function () { setLang(this.value); });
   $('langHud').addEventListener('change', function () { setLang(this.value); });
+  $('langConsent').addEventListener('change', function () { setLang(this.value); });
 
   function announce(msg) {
     var r = $('srLive');
@@ -1659,6 +1795,7 @@
     box.querySelectorAll('video, audio').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); });
     box.innerHTML = '';
     $('sheetImages').innerHTML = '';
+    clearSubtitles();
     sheetK = null; currentLinks = [];
   }
   function renderSheetMedia(s) {
@@ -2067,7 +2204,8 @@
   function storyFromRow(r) {
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
-      id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
+      id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published',
+      consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl };
@@ -2085,8 +2223,9 @@
     if (!sb) return;
     try {
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
-      var r = await sb.from('stories').select(cols + ',status').order('created_at');
-      if (r.error) r = await sb.from('stories').select(cols).order('created_at');   // βάση χωρίς στήλη status
+      var r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
+      if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');   // βάση χωρίς πίνακα συναινέσεων
+      if (r.error) r = await sb.from('stories').select(cols).order('created_at');              // βάση χωρίς στήλη status
       if (r.error) throw r.error;
       r.data.forEach(function (row) { addStoryRuntime(storyFromRow(row)); });
     } catch (e) {
@@ -2098,8 +2237,9 @@
   function extFor(type) { return EXT[type] || (type.split('/')[1] || 'bin').replace(/[^a-z0-9]/g, ''); }
 
   window.WM = {
-    publish: async function (title, pos, files, onProgress) {
+    publish: async function (title, pos, files, onProgress, consentId, consentCode) {
       if (!sb || !currentUser) throw new Error(t('loginToAdd'));
+      if (!consentId) throw new Error(t('consentNeedAll'));
       var uid = currentUser.id, sid = crypto.randomUUID(), uploaded = [], rows = [];
       try {
         for (var i = 0; i < files.length; i++) {
@@ -2113,7 +2253,7 @@
           rows.push({ story_id: sid, kind: f.kind, path: path, position: i });
         }
         var author = userName(currentUser);
-        var ins = await sb.from('stories').insert({ id: sid, title: title, lat: pos.lat, lon: pos.lon, author_name: author });
+        var ins = await sb.from('stories').insert({ id: sid, title: title, lat: pos.lat, lon: pos.lon, author_name: author, consent_id: consentId });
         if (ins.error) throw ins.error;
         var mi = await sb.from('story_media').insert(rows).select('id,position');
         if (mi.error) throw mi.error;
@@ -2123,7 +2263,7 @@
         if (uploaded.length) { try { await sb.storage.from(BUCKET).remove(uploaded); } catch (_) {} }
         throw e;
       }
-      return storyFromRow({ id: sid, user_id: uid, status: 'draft', title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
+      return storyFromRow({ id: sid, user_id: uid, status: 'draft', consent_id: consentId, consents: consentCode ? { code: consentCode } : null, title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
         story_media: rows.map(function (r) { return { id: r.id, kind: r.kind, path: r.path, position: r.position }; }) });
     }
   };
@@ -2168,6 +2308,18 @@
     return [link, tag];
   }
 
+  function renderConsentUI(s) {
+    var el = $('sheetConsent');
+    el.innerHTML = '';
+    var show = !!(s.consentCode && (isOwner(s) || isAnnotator()));
+    el.hidden = !show;
+    if (!show) return;
+    var txt = document.createElement('span'); txt.textContent = t('consentLabel', { c: s.consentCode });
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'link-btn'; b.textContent = t('consentCopy');
+    b.onclick = function () { copyText(s.consentCode, b); };
+    el.appendChild(txt); el.appendChild(b);
+  }
+
   function renderPublishUI(s) {
     var visible = !!(s.dbId && (isOwner(s) || isAnnotator()));
     $('sheetStatus').textContent = visible ? t(s.status === 'published' ? 'statusPublished' : 'statusDraft') : '';
@@ -2202,8 +2354,10 @@
     [['all', 'listAllF'], ['draft', 'listDraftF'], ['published', 'listPubF']].forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = t(o[1]); f.appendChild(op); });
     f.value = cur;
     var body = $('listBody'); body.innerHTML = '';
+    var q = ($('listSearch').value || '').trim().toLowerCase();
     var items = STORIES.filter(function (x) { return x.dbId && (ann || (currentUser && x.ownerId === currentUser.id)); })
-      .filter(function (x) { return !ann || f.value === 'all' || x.status === f.value; }).reverse();
+      .filter(function (x) { return !ann || f.value === 'all' || x.status === f.value; })
+      .filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.consentCode || '')).toLowerCase().indexOf(q) >= 0; }).reverse();
     if (!items.length) { var p = document.createElement('p'); p.textContent = t('listEmpty'); body.appendChild(p); return; }
     items.forEach(function (x) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item';
@@ -2211,7 +2365,7 @@
       var me_ = document.createElement('span'); me_.className = 'm';
       var chip = document.createElement('span'); chip.className = x.status === 'published' ? 'chip-pub' : 'chip-draft'; chip.textContent = t(x.status === 'published' ? 'statusPublished' : 'statusDraft');
       me_.appendChild(chip);
-      me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length));
+      me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length + (x.consentCode ? ' · ' + x.consentCode : '')));
       b.appendChild(ti); b.appendChild(me_);
       b.onclick = function () { closeDialog('listSheet', true); openStorySheet(x); };
       body.appendChild(b);
@@ -2219,6 +2373,7 @@
   }
   $('listBtn').onclick = function () { renderList(); openDialog('listSheet'); };
   $('listFilter').onchange = renderList;
+  $('listSearch').oninput = renderList;
   $('listCloseBtn').onclick = function () { closeDialog('listSheet'); };
   escHandlers.listSheet = function () { closeDialog('listSheet'); };
   onLangChange(function () { if ($('listSheet').classList.contains('on')) renderList(); });
@@ -2322,6 +2477,87 @@
     };
   })();
 
+  // ---------- Υπότιτλοι από την απομαγνητοφώνηση ----------
+  var SUB_KEY = 'wm_subtitles', subtitleCues = {}, subtitleUrls = [];
+  function subsOn() { try { return localStorage.getItem(SUB_KEY) !== 'off'; } catch (e) { return true; } }
+
+  // Κόβει μεγάλες γραμμές σε υπότιτλους ≤ 8 λέξεων (με χρονισμούς λέξεων αν υπάρχουν, αλλιώς αναλογικά)
+  function segCues(segs) {
+    var out = [];
+    segs.filter(function (g) { return g.end_s > g.start_s; }).forEach(function (g) {
+      var toks = String(g.text).split(/\s+/).filter(Boolean), dur = g.end_s - g.start_s;
+      if (toks.length <= 10 && g.text.length <= 90 && dur <= 8) { out.push({ start: g.start_s, end: g.end_s, text: g.text }); return; }
+      var words = g.words && g.words.length === toks.length ? g.words : null, total = toks.join(' ').length, pos = 0;
+      for (var i = 0; i < toks.length; i += 8) {
+        var part = toks.slice(i, i + 8), text = part.join(' '), a, b;
+        if (words) { a = words[i].s; b = words[Math.min(toks.length, i + part.length) - 1].e; }
+        else { a = g.start_s + dur * pos / total; pos += text.length + 1; b = g.start_s + dur * Math.min(pos, total) / total; }
+        out.push({ start: a, end: b, text: text });
+      }
+    });
+    out.sort(function (x, y) { return x.start - y.start; });
+    out.forEach(function (c, i) {
+      if (c.end - c.start < 0.8) c.end = c.start + 0.8;
+      var nx = out[i + 1];
+      if (nx && c.end > nx.start) c.end = Math.max(c.start + 0.3, nx.start);
+    });
+    return out;
+  }
+  function vttTime(x) {
+    var h = Math.floor(x / 3600), m = Math.floor(x % 3600 / 60), sec = x % 60;
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + (sec < 10 ? '0' : '') + sec.toFixed(3);
+  }
+  function toVtt(cues) {
+    return 'WEBVTT\n\n' + cues.map(function (c, i) { return (i + 1) + '\n' + vttTime(c.start) + ' --> ' + vttTime(c.end) + '\n' + c.text.replace(/-->/g, '->').replace(/[<&]/g, ' '); }).join('\n\n');
+  }
+
+  function clearSubtitles() {
+    subtitleUrls.forEach(function (u) { URL.revokeObjectURL(u); });
+    subtitleUrls = []; subtitleCues = {};
+  }
+
+  // Βίντεο: εγγενής διαδρομή υποτίτλων (δουλεύει και σε πλήρη οθόνη). Ήχος: γραμμή υποτίτλων κάτω από τον αναπαραγωγέα.
+  function attachSubtitles(s, k) {
+    var sm = $('sheetMedia');
+    clearSubtitles();
+    sm.querySelectorAll('.subtitle-bar, .sub-toggle').forEach(function (n) { n.remove(); });
+    sm.querySelectorAll('video track').forEach(function (n) { n.remove(); });
+    var any = false, on = subsOn();
+    k.transcripts.filter(function (tr) { return tr.status === 'done'; }).forEach(function (tr) {
+      var el = sm.querySelector('[data-media-id="' + tr.media_id + '"]');
+      if (!el) return;
+      var cues = segCues(tr.transcript_segments);
+      if (!cues.length) return;
+      any = true; subtitleCues[tr.media_id] = cues;
+      if (el.tagName === 'VIDEO') {
+        var url = URL.createObjectURL(new Blob([toVtt(cues)], { type: 'text/vtt' })); subtitleUrls.push(url);
+        var tk = document.createElement('track'); tk.kind = 'subtitles'; tk.label = t('subOn'); tk.srclang = tr.language || 'und'; tk.src = url; tk.default = on;
+        el.appendChild(tk); try { tk.track.mode = on ? 'showing' : 'hidden'; } catch (e) {}
+      } else {
+        var bar = document.createElement('div'); bar.className = 'subtitle-bar'; bar.dataset.mediaId = tr.media_id; bar.hidden = !on;
+        el.insertAdjacentElement('afterend', bar);
+      }
+    });
+    if (!any) return;
+    var lab = document.createElement('label'); lab.className = 'sub-toggle';
+    var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = on;
+    lab.appendChild(cb); lab.appendChild(document.createTextNode(t('subOn')));
+    cb.onchange = function () {
+      try { localStorage.setItem(SUB_KEY, cb.checked ? 'on' : 'off'); } catch (e) {}
+      sm.querySelectorAll('video').forEach(function (v) { for (var i = 0; i < v.textTracks.length; i++) if (v.textTracks[i].kind === 'subtitles') v.textTracks[i].mode = cb.checked ? 'showing' : 'hidden'; });
+      sm.querySelectorAll('.subtitle-bar').forEach(function (b) { b.hidden = !cb.checked; });
+    };
+    sm.insertBefore(lab, sm.firstChild);
+  }
+
+  function updateSubtitle(avEl) {
+    var bar = $('sheetMedia').querySelector('.subtitle-bar[data-media-id="' + avEl.dataset.mediaId + '"]');
+    if (!bar || bar.hidden) return;
+    var now = avEl.currentTime, cues = subtitleCues[avEl.dataset.mediaId] || [], text = '';
+    for (var i = 0; i < cues.length; i++) { if (now >= cues[i].start && now < cues[i].end) { text = cues[i].text; break; } }
+    if (bar.textContent !== text) bar.textContent = text;
+  }
+
   // ---------- Εικόνες, σύνδεση με χρόνο αφήγησης και συγχρονισμός αναπαραγωγής ----------
   var sheetK = null, currentLinks = [];
 
@@ -2365,6 +2601,7 @@
   // Εμφανίζει στη σκηνή τις εικόνες και τους όρους που αφορούν την τρέχουσα στιγμή του ήχου/βίντεο
   function updateStage(avEl) {
     var stage = $('syncStage'), s = currentSheetStory;
+    updateSubtitle(avEl);
     if (!stage || !s) return;
     var now = avEl.currentTime, avId = avEl.dataset.mediaId;
     var active = currentLinks.filter(function (l) { return l.av_media_id === avId && now >= l.start_s && now < l.end_s; });
@@ -2462,7 +2699,8 @@
       track.onclick = function (ev) { if (ev.target !== track) return; var r = track.getBoundingClientRect(); seekPlay(id, (ev.clientX - r.left) / r.width * dur); };
       box.appendChild(track);
     });
-    avEl.insertAdjacentElement('afterend', box);
+    var cap = avEl.nextElementSibling;
+    (cap && cap.classList.contains('subtitle-bar') ? cap : avEl).insertAdjacentElement('afterend', box);
     updateStage(avEl);
   }
 
@@ -2505,11 +2743,13 @@
     $('deleteBtn').hidden = !(owner && hasDbMedia(s));
     $('exportBtn').hidden = !hasDbMedia(s);
     renderPublishUI(s);
+    renderConsentUI(s);
     $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden && $('deleteBtn').hidden && $('publishBtn').hidden;
     if (!hasDbMedia(s)) return;
     fetchKnowledge(s, false).then(function (k) {
       if (currentSheetStory !== s) return;
       renderImages(s, k);
+      attachSubtitles(s, k);
       k.transcripts.filter(function (tr) { return tr.status === 'done' && tr.text; }).forEach(function (tr) {
         var d = document.createElement('details');
         var sm = document.createElement('summary'); sm.textContent = t('annTranscript'); d.appendChild(sm);
@@ -4000,14 +4240,111 @@
     $('storyTitle').removeAttribute('aria-invalid');
   }
 
-  $('addBtn').onclick = function () {
-    if (!me) return;
-    renderLoc();
+  // ---- Συναίνεση πριν από κάθε καταγραφή: δημιουργεί κωδικό (από το id της εγγραφής) που γράφεται στο έντυπο ----
+  var activeConsent = null;                       // { id, code } της συναίνεσης που ισχύει για το ανέβασμα που ετοιμάζεται
+  var CONSENT_VERSION = 'v1';
+  var CODE_ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';   // χωρίς 0/O, 1/I/L για να διαβάζεται εύκολα
+
+  function consentCodeFor(uuid) {
+    var n = BigInt('0x' + uuid.replace(/-/g, '').slice(0, 10)), out = '', base = BigInt(CODE_ALPHA.length);
+    for (var i = 0; i < 8; i++) { out = CODE_ALPHA[Number(n % base)] + out; n = n / base; }
+    return 'WM-' + out.slice(0, 4) + '-' + out.slice(4);
+  }
+
+  async function createConsent(accepted) {
+    for (var tries = 0; tries < 4; tries++) {
+      var id = crypto.randomUUID(), code = consentCodeFor(id);
+      var r = await sb.from('consents').insert({ id: id, code: code, statement_version: CONSENT_VERSION, lang: LANG, accepted: accepted }).select('id,code').single();
+      if (!r.error) return r.data;
+      if (r.error.code !== '23505') throw r.error;     // μόνο σύγκρουση κωδικού ξαναδοκιμάζεται
+    }
+    throw new Error('code collision');
+  }
+
+  async function copyText(text, btn) {
+    var ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+    if (!ok) {
+      var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+    }
+    if (btn) {
+      var old = btn.textContent; btn.textContent = ok ? t('consentCopied') : old;
+      setTimeout(function () { btn.textContent = t('consentCopy'); }, 1800);
+    }
+    return ok;
+  }
+
+  function consentBoxes() { return Array.prototype.slice.call(document.querySelectorAll('.consent-cb')); }
+  function consentShowCode(c) {
+    activeConsent = c;
+    $('consentCode').textContent = c.code;
+    $('consentCodeBox').hidden = false;
+    $('consentChecks').hidden = true; $('consentCreate').hidden = true; $('consentContinue').hidden = false;
+    $('consentError').textContent = '';
+  }
+  function consentResetForm() {
+    activeConsent = null;
+    consentBoxes().forEach(function (b) { b.checked = false; });
+    $('consentChecks').hidden = false; $('consentCreate').hidden = false; $('consentCreate').disabled = true;
+    $('consentContinue').hidden = true; $('consentCodeBox').hidden = true; $('consentError').textContent = '';
+  }
+
+  async function openConsent() {
+    consentResetForm();
+    $('consentReuseWrap').hidden = true;
     setAR(false);
+    openDialog('consentSheet');
+    // Προηγούμενοι κωδικοί του ίδιου χρήστη (π.χ. το ίδιο άτομο λέει δεύτερη ιστορία με την ίδια υπογεγραμμένη φόρμα)
+    try {
+      var r = await sb.from('consents').select('id,code,created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(20);
+      if (!r.error && r.data && r.data.length) {
+        var sel = $('consentReuse'); sel.innerHTML = '';
+        var o0 = document.createElement('option'); o0.value = ''; o0.textContent = t('consentNewOpt'); sel.appendChild(o0);
+        r.data.forEach(function (c) { var o = document.createElement('option'); o.value = c.id; o.dataset.code = c.code; o.textContent = c.code + ' · ' + String(c.created_at).slice(0, 10); sel.appendChild(o); });
+        $('consentReuseWrap').hidden = false;
+      }
+    } catch (e) {}
+  }
+
+  consentBoxes().forEach(function (b) {
+    b.addEventListener('change', function () { $('consentCreate').disabled = !consentBoxes().every(function (x) { return x.checked; }); });
+  });
+  $('consentReuse').onchange = function () {
+    var o = this.selectedOptions[0];
+    if (o && o.value) consentShowCode({ id: o.value, code: o.dataset.code });
+    else consentResetForm();
+  };
+  $('consentCreate').onclick = async function () {
+    if (!consentBoxes().every(function (x) { return x.checked; })) { $('consentError').textContent = t('consentNeedAll'); return; }
+    var b = this; b.disabled = true;
+    try {
+      var c = await createConsent({ record: true, annotate: true, publish: true, voluntary: true });
+      consentShowCode(c);
+      $('consentCopy').focus();
+    } catch (e) { $('consentError').textContent = t('consentError', { e: e.message || e }); b.disabled = false; }
+  };
+  $('consentCopy').onclick = function () { if (activeConsent) copyText(activeConsent.code, this); };
+  $('uploadConsentCopy').onclick = function () { if (activeConsent) copyText(activeConsent.code, this); };
+  $('consentCancel').onclick = function () { activeConsent = null; closeDialog('consentSheet'); setAR(true); };
+  escHandlers.consentSheet = function () { $('consentCancel').click(); };
+  $('consentContinue').onclick = function () {
+    if (!activeConsent) return;
+    closeDialog('consentSheet', true);
+    $('uploadConsentCode').textContent = activeConsent.code;
+    renderLoc();
     openDialog('uploadSheet');
   };
 
+  $('addBtn').onclick = function () {
+    if (!me || !currentUser) return;
+    openConsent();
+  };
+
   $('cancelStoryBtn').onclick = function () {
+    activeConsent = null;
     $('storyTitle').value = '';
     processedFiles = [];
     clearErrors();
@@ -4564,6 +4901,7 @@
   escHandlers.previewSheet = function () { $('backToUploadBtn').click(); };
 
   function finishStoryFlow() {
+    activeConsent = null;
     clearPreview();
     $('publishError').textContent = '';
     $('storyTitle').value = '';
@@ -4581,9 +4919,10 @@
     if (!me) return;
     btn.disabled = true;
     try {
+      if (!activeConsent) { $('publishError').textContent = t('consentNeedAll'); return; }
       var story = await WM.publish($('storyTitle').value.trim(), me, processedFiles, function (i, n) {
         btn.textContent = t('publishing', { i: i, n: n });
-      });
+      }, activeConsent.id, activeConsent.code);
       addStoryRuntime(story);
       announce(t('published'));
       alert(t('uploadDone'));
