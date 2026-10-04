@@ -2054,7 +2054,9 @@
   // Μήνυμα για σφάλμα δικαιωμάτων της βάσης (ο λογαριασμός δεν είναι σχολιαστής)
   function errText(e) {
     var m = (e && e.message) || String(e);
-    return /row-level security/i.test(m) ? t('annNoRights') : m;
+    if (!/row-level security/i.test(m)) return m;
+    var tb = m.match(/table \"?([\w.]+)\"?/i);          // ποιος πίνακας απέρριψε την αλλαγή (βοηθά στη διάγνωση)
+    return t('annNoRights') + (tb ? ' [' + tb[1] + ']' : '');
   }
 
   function hasRange(a) { return a.end_s != null && a.start_s != null && a.end_s > a.start_s; }
