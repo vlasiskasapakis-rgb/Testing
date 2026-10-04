@@ -19,6 +19,11 @@ starts as your GPS position; you can press **Pick on the map** and tap a place i
 each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` once: it adds the columns to `story_media`
 (an upload still works without them, but the details are then not saved).
 
+## One dropdown per recording in the player area
+In the story view (the app and the annotation website) each audio or video is its own dropdown ("Audio 2 · Second tape") holding its
+details, player, subtitles and timeline. One is open at a time (the first by default); playing a recording, or pressing one of its
+timeline bars or ▶ buttons, opens its dropdown.
+
 ## One dropdown per recording (annotation website)
 In the **Transcript & terms** tab every recording is its own dropdown, labelled with its title and a summary
 ("Audio 1 · Kitchen story — 12 lines · 3 approved · 5 to review"). Opening it shows its details (title, identity, date, period, location),

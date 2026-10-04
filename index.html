@@ -239,6 +239,8 @@
   .stage-view .img-frame img { max-height: 32vh; max-width: 100%; width: auto; height: auto; border-radius: 10px; cursor: zoom-in; }
   .stage-view .img-terms { display: none; }
   .stage-view .img-wrap.keep { animation: none; }
+  .av-wrap > summary { font-size: 16px; }
+  .av-wrap > .media-cap { margin: 4px 0 6px; }
   .media-cap { font-size: 14px; color: var(--muted); margin: 6px 0 4px; line-height: 1.35; }
   .media-cap strong { display: block; color: var(--petrol); font-size: 15px; }
   .media-cap a { color: var(--petrol); font-weight: 600; }
@@ -2152,8 +2154,10 @@
   }
   function renderSheetMedia(s) {
     clearSheetMedia();
+    var avWraps = [], avN = 0;
     (s.media || []).forEach(function (m, i) {
       if (m.kind === 'image') return;
+      avN++;
       var el;
       if (m.kind === 'video') { el = document.createElement('video'); el.controls = true; el.playsInline = true; el.preload = 'metadata'; }
       else { el = document.createElement('audio'); el.controls = true; el.preload = 'metadata'; }
@@ -2166,10 +2170,16 @@
       el.addEventListener('durationchange', function () { if (sheetK) paintTimeline(s, el); });
       el.addEventListener('play', function () {
         $('sheetMedia').querySelectorAll('audio, video').forEach(function (o) { if (o !== el) o.pause(); });
+        var w = el.closest('.av-wrap'); if (w && !w.open) w.open = true;          // ανοίγει το πλαίσιο της ηχογράφησης που παίζει
       });
-      var mcap = mediaCaption(m); if (mcap) $('sheetMedia').appendChild(mcap);
-      $('sheetMedia').appendChild(el);
+      var wrap = document.createElement('details'); wrap.className = 'fold av-wrap'; wrap.dataset.avWrap = m.id || ''; avWraps.push(wrap);
+      var wsm = document.createElement('summary'); wsm.textContent = t('type_' + m.kind) + ' ' + avN + (m.title ? ' · ' + m.title : ''); wrap.appendChild(wsm);
+      var mcap = mediaCaption(m); if (mcap) wrap.appendChild(mcap);
+      wrap.appendChild(el);
+      wrap.addEventListener('toggle', function () { if (wrap.open) avWraps.forEach(function (o) { if (o !== wrap) o.open = false; }); });   // ένα ανοιχτό κάθε φορά
+      $('sheetMedia').appendChild(wrap);
     });
+    if (avWraps.length) avWraps[0].open = true;
     renderImages(s, null);
   }
   function tr_(s) { return st(s).title; }
@@ -2978,6 +2988,7 @@
   function seekPlay(avId, sec, mode) {
     var el = $('sheetMedia').querySelector('[data-media-id="' + avId + '"]');
     if (!el) return;
+    var avw = el.closest('.av-wrap'); if (avw && !avw.open) avw.open = true;
     try { el.currentTime = sec; } catch (e) {}
     if (mode === 'pause') el.pause();
     else if (mode !== 'keep') { var p = el.play(); if (p && p.catch) p.catch(function () {}); }
