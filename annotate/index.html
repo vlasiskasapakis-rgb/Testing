@@ -2783,6 +2783,23 @@
     return res;
   }
   var DATE_RE = /\b(1[0-9]{3}|20[0-2][0-9])('?s)?\b/g;
+  // Ταίριασμα ονόματος τόπου/οντότητας (π.χ. «Ναός Αγίων Θεοδώρων, Μυτιλήνη») με φράση μιας γραμμής («των Αγίων Θεοδώρων στην Μυτιλήνη»).
+  // Αγνοεί γενικές λέξεις (ναός, εκκλησία…) και το τοπικό προσδιοριστικό μετά το κόμμα. Επιστρέφει τη φράση της γραμμής ή null.
+  var GENERIC_TOK = {}; ['ναος','ναου','εκκλησια','εκκλησιας','ιερος','ιερου','ιερα','μονη','μονης','παρεκκλησι','παρεκκλησιο','church','chapel','monastery','temple','cathedral','of','the','de','la','le','di','du','des'].forEach(function (x) { GENERIC_TOK[normTok(x)] = 1; });
+  var SAINT_TOK = {}; ['αγιος','αγιου','αγιων','αγια','αγιας','αγιοι','saint','san','santa','st'].forEach(function (x) { SAINT_TOK[normTok(x)] = 1; });
+  function labelInLine(label, seg) {
+    var words = String(seg.text).split(/\s+/).filter(function (w) { return normTok(w); }), lt = words.map(normTok);
+    function phraseAt(i, n) { return words.slice(i, i + n).join(' ').replace(/[\s,.;:·!?]+$/, ''); }
+    var full = tokensOf(label);
+    if (full.length && label.length >= 4) { var i0 = findSeq(lt, full); if (i0 >= 0) return phraseAt(i0, full.length); }
+    var core = tokensOf(String(label).split(',')[0]).filter(function (x) { return x.length >= 3 && !GENERIC_TOK[x]; });
+    var strong = core.filter(function (x) { return !SAINT_TOK[x]; });
+    if (!strong.length || (strong.length < 2 && strong[0].length < 6)) return null;
+    var i1 = findSeq(lt, core); if (i1 >= 0) return phraseAt(i1, core.length);
+    var i2 = findSeq(lt, strong); if (i2 >= 0) return phraseAt(i2, strong.length);
+    return null;
+  }
+
   // ---- Ενιαίες προτάσεις όρων για όλη την ιστορία ----
   // Συνδυάζει την απομαγνητοφώνηση με τον τίτλο, την ταυτότητα, την περίοδο και την τοποθεσία κάθε αρχείου, για ηχογραφήσεις ΚΑΙ εικόνες.
   // Κάθε οντότητα (term) συγκεντρώνει ενδείξεις: πού αναφέρεται στο κείμενο, αν ταιριάζει με ταυτότητα/τίτλο/περίοδο, πόσο κοντά είναι στην
@@ -2859,16 +2876,16 @@
       detPhr[m.id].forEach(function (ph) { if (foundDet[ph] && foundDet[ph].length) { var b = pickBest(foundDet[ph], ctxFor(m.id)); ent(b).det.push({ mid: m.id, via: 'identity', phrase: ph }); } });
       years[m.id].forEach(function (y) { (foundYear[y] || []).forEach(function (c) { ent(c, 'concept').det.push({ mid: m.id, via: 'period', p: y }); }); });
       if (cx.lat != null) (nearOf[cx.lat.toFixed(4) + ',' + cx.lon.toFixed(4)] || []).forEach(function (n) {
-        var e = ent({ id: n.id, uri: n.uri, label: n.label, description: n.description }, 'place'); e.det.push({ mid: m.id, via: 'near', dist: n.dist });
+        var e = ent({ id: n.id, uri: n.uri, label: n.label, description: n.description }, 'place'); e.det.push({ mid: m.id, via: 'near', dist: n.dist, own: m.lat != null });
       });
     });
-    // Διασταύρωση: όροι από τα στοιχεία που λέγονται και στην αφήγηση παίρνουν χρόνο στη γραμμή όπου ακούγονται
+    // Διασταύρωση: όροι από τα στοιχεία (κοντινά μέρη, ταυτότητα, περίοδος) που λέγονται και στην απομαγνητοφώνηση (ακόμα και μερικώς,
+    // π.χ. «των Αγίων Θεοδώρων» ↔ «Ναός Αγίων Θεοδώρων, Μυτιλήνη») τοποθετούνται στη γραμμή όπου ακούγονται, με τον ακριβή χρόνο τους.
     Object.keys(pool).forEach(function (uri) {
       var e = pool[uri]; if (e.lines.length || !e.det.length) return;
-      var toks = tokensOf(e.label); if (!toks.length || e.label.length < 4) return;
       avs.forEach(function (m) {
         var tr = trOf[m.id]; if (!tr) return;
-        tr.transcript_segments.forEach(function (g) { if (findSeq(tokensOf(g.text), toks) >= 0) e.lines.push({ mid: m.id, seg: g, phrase: e.label }); });
+        tr.transcript_segments.forEach(function (g) { var ph = labelInLine(e.label, g); if (ph) e.lines.push({ mid: m.id, seg: g, phrase: ph }); });
       });
     });
 
@@ -2902,6 +2919,7 @@
         label: e.label.slice(0, 200), description: (e.description || '').slice(0, 300), status: 'suggested', source: 'auto', reason: why });
       if (e.conf === 'confHigh') high++;
     }
+    var imgNear = [];
     Object.keys(pool).forEach(function (uri) {
       var e = pool[uri]; if (e.score < 2) return;
       var timedOn = {};
@@ -2920,11 +2938,20 @@
         var loc = locateMention(o.seg, o.phrase); timedOn[o.mid] = true;
         addRow(o.mid, e, o.seg.idx, loc ? loc.start : o.seg.start_s, loc ? loc.end : o.seg.end_s, o.phrase, reason(e));
       });
+      // Τα στοιχεία δεν δημιουργούν ξεχωριστή λίστα στις ηχογραφήσεις: βοηθούν μόνο στις προτάσεις πάνω στις γραμμές. Στις εικόνες (που δεν έχουν
+      // κείμενο) κρατάμε τους όρους από την ταυτότητα/τίτλο/περίοδο και τα πολύ κοντινά μέρη της δικής τους τοποθεσίας.
       e.det.forEach(function (d) {
-        if (timedOn[d.mid]) return;
         var isImg = imgs.some(function (im) { return im.id === d.mid; });
-        addRow(d.mid, e, null, null, null, d.phrase || d.p || e.label, reason(e, null, isImg));
+        if (!isImg) return;
+        if (d.via === 'near') { if (d.own && d.dist < 0.3) imgNear.push({ mid: d.mid, e: e, d: d }); return; }
+        addRow(d.mid, e, null, null, null, d.phrase || d.p || e.label, reason(e, null, true));
       });
+    });
+
+    var perImg = {};
+    imgNear.sort(function (x, y) { return x.d.dist - y.d.dist; }).forEach(function (x) {      // το πολύ 3 πολύ κοντινά μέρη ανά εικόνα
+      perImg[x.mid] = (perImg[x.mid] || 0) + 1;
+      if (perImg[x.mid] <= 3) addRow(x.mid, x.e, null, null, null, x.e.label, reason(x.e, null, true));
     });
 
     // 6. Αντικατάσταση των παλιών αυτόματων προτάσεων που δεν έχουν ελεγχθεί· ό,τι έχει εγκριθεί/απορριφθεί/γραφτεί χειροκίνητα μένει
