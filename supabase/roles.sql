@@ -119,6 +119,20 @@ alter table public.transcript_segments add column if not exists words jsonb;
 alter table public.transcript_segments drop constraint if exists transcript_segments_words_check;
 alter table public.transcript_segments add  constraint transcript_segments_words_check check (words is null or jsonb_typeof(words) = 'array');
 
+-- Annotation columns added after the first release (so this file alone brings an older database up to date).
+alter table public.annotations drop constraint if exists annotations_source_check;
+alter table public.annotations add  constraint annotations_source_check check (source in ('ai', 'user', 'auto', 'clip'));
+alter table public.annotations add column if not exists region_x real;
+alter table public.annotations add column if not exists region_y real;
+alter table public.annotations add column if not exists region_w real;
+alter table public.annotations add column if not exists region_h real;
+alter table public.annotations drop constraint if exists annotations_region_check;
+alter table public.annotations add  constraint annotations_region_check check (
+  (region_x is null and region_y is null and region_w is null and region_h is null)
+  or (region_x between 0 and 1 and region_y between 0 and 1 and region_w > 0 and region_h > 0
+      and region_x + region_w <= 1.0001 and region_y + region_h <= 1.0001)
+);
+
 -- ---------- transcripts, segments, annotations: annotators write ----------
 drop policy if exists "transcripts are public"    on public.media_transcripts;
 drop policy if exists "owners write transcripts"  on public.media_transcripts;

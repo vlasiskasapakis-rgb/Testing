@@ -14,7 +14,7 @@ buttons. A story reaches the public only when an annotator presses **Publish for
 
 ## Setup (once, in this order)
 1. SQL editor: run `supabase/schema.sql`, then `supabase/annotations.sql`, then `supabase/roles.sql` (re-run `roles.sql` after pulling updates: it also creates the consent tables)
-   (each is safe to run again). `roles.sql` creates the roles, makes existing stories published, and
+   (afterwards, only `roles.sql` is meant to be re-run). `roles.sql` creates the roles, makes existing stories published, and
    makes every existing account a facilitator.
 2. Make someone an annotator (they sign up first, then you run this in the SQL editor):
    ```sql
@@ -26,6 +26,17 @@ buttons. A story reaches the public only when an annotator presses **Publish for
 
 Note: uploaded files live in a public storage bucket under unguessable paths. Drafts are hidden from
 every list and query, but anyone who is given a draft file's exact URL could open it.
+
+## Troubleshooting: "new row violates row-level security policy"
+That means the signed-in account is not an annotator in the database. Check in the SQL editor:
+```sql
+select u.email, p.role from auth.users u left join public.profiles p on p.user_id = u.id order by u.email;
+```
+- The account you annotate with must show `annotator`. Promote it with the `update public.profiles ...` statement above.
+- The top-left button shows who the app thinks you are, e.g. `Log out · Nikos (annotator)`. If it says `(facilitator)`, log out and in again, or
+  hard-refresh to drop an old cached copy of the page.
+- If the roles look right, re-run `roles.sql` (it recreates every policy). `schema.sql` and `annotations.sql` now refuse to run once roles are
+  installed, because re-running them would weaken the security rules; `roles.sql` is the only file to re-run for updates.
 
 ## Annotator workflow
 1. **Stories** (top left) lists every story with its status; open one without having to be nearby.
