@@ -211,3 +211,6 @@ create policy "annotators write links" on public.media_links for all to authenti
     and exists (select 1 from public.story_media i where i.id = image_media_id and i.story_id = media_links.story_id and i.kind = 'image')
     and exists (select 1 from public.story_media a where a.id = av_media_id and a.story_id = media_links.story_id and a.kind in ('audio', 'video'))
   );
+
+-- Make the API pick up new columns immediately (avoids "could not find the column ... in the schema cache")
+notify pgrst, 'reload schema';
