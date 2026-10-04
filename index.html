@@ -3973,7 +3973,21 @@
     var imgs = s.media.filter(function (m) { return m.kind === 'image' && m.id; });
     if (!av.length && !imgs.length) { var p = document.createElement('p'); p.textContent = t('annNoMedia'); body.appendChild(p); }
     av.forEach(function (m, i) { body.appendChild(annSection(s, m, i + 1)); });
-    imgs.forEach(function (m, i) { body.appendChild(imageSection(s, m, i + 1)); });
+    if (imgs.length) {
+      // Όλες οι εικόνες σε μία αναδιπλούμενη ενότητα, και μέσα σε αυτήν κάθε εικόνα χωριστά (ανοίγει μία κάθε φορά)
+      var all = document.createElement('details'); all.className = 'ann-step'; all.open = !av.length;
+      var allSm = document.createElement('summary'); allSm.textContent = t('imgSection') + ' (' + imgs.length + ')'; all.appendChild(allSm);
+      var each = [];
+      imgs.forEach(function (m, i) {
+        var d = document.createElement('details'); d.className = 'ann-step'; each.push(d);
+        var sm = document.createElement('summary'); sm.textContent = t('type_image') + ' ' + (i + 1); d.appendChild(sm);
+        d.appendChild(imageSection(s, m, i + 1));
+        d.addEventListener('toggle', function () { if (d.open) each.forEach(function (o) { if (o !== d) o.open = false; }); });
+        all.appendChild(d);
+      });
+      if (each.length === 1) each[0].open = true;
+      body.appendChild(all);
+    }
     openDialog('annSheet');
   };
   $('annCloseBtn').onclick = function () { closeDialog('annSheet'); if (currentSheetStory) renderKnowledge(currentSheetStory); };
