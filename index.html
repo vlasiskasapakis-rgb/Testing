@@ -239,6 +239,7 @@
   .stage-view .img-frame { display: inline-block; max-width: 100%; }
   .stage-view .img-frame img { max-height: 36vh; max-width: 100%; width: auto; height: auto; border-radius: 10px; cursor: zoom-in; }
   .stage-view .img-terms { display: none; }
+  .stage-view .img-wrap.keep { animation: none; }
   .stage-idle { color: var(--muted); font-size: 15px; text-align: center; padding: 0 16px; }
   .stage-terms { min-height: 44px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
   .stage-terms .term-list { margin: 0; }
@@ -291,7 +292,7 @@
   .check { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 12px; font-weight: 400; color: var(--ink); line-height: 1.4; }
   .check input { flex: none; width: 24px; height: 24px; margin-top: 2px; }
   .code-big { display: block; margin: 6px 0 10px; padding: 12px; text-align: center; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 30px; font-weight: 700; letter-spacing: .08em; color: var(--petrol); background: var(--mist); border: 2px dashed var(--line-strong); border-radius: 12px; user-select: all; -webkit-user-select: all; }
-  .subtitle-bar { min-height: 2.8em; margin: 4px 0 8px; padding: 8px 12px; border-radius: 10px; background: rgba(14,63,80,.94); color: #fff; font-size: 17px; line-height: 1.35; text-align: center; }
+  .subtitle-bar { box-sizing: border-box; height: calc(3 * 1.35em + 16px); margin: 4px 0 8px; padding: 8px 12px; border-radius: 10px; background: rgba(14,63,80,.94); color: #fff; font-size: 17px; line-height: 1.35; text-align: center; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .subtitle-bar[hidden] { display: none; }
   .sub-toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--petrol); min-height: 40px; }
   .sub-toggle input { width: 22px; height: 22px; }
@@ -2868,7 +2869,7 @@
   function figureFor(s, m, n, ctx) {
     var wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.dataset.mediaId = m.id || '';
     var frame = document.createElement('div'); frame.className = 'img-frame';
-    var img = document.createElement('img'); img.alt = tr_(s) + ' ' + n; img.loading = 'lazy'; img.src = m.url;
+    var img = document.createElement('img'); img.alt = tr_(s) + ' ' + n; if (!ctx) img.loading = 'lazy'; img.src = m.url;
     frame.appendChild(img);
     var mine = annsForImage(m.id);
     if (ctx) mine = mine.filter(function (a) { return !isTimedNote(a) || noteActive(a, ctx); });
@@ -2917,7 +2918,6 @@
     }) : [];
     var ctx = { avId: avId, now: now }, noteIds = [];
     active.forEach(function (l) { annsForImage(l.image_media_id).forEach(function (a) { if (isTimedNote(a) && noteActive(a, ctx)) noteIds.push(a.id); }); });
-    var key = active.map(function (l) { return l.id; }).join(',') + '|' + terms.map(function (a) { return a.id; }).join(',') + '|' + noteIds.join(',');
     document.querySelectorAll('#sheetImages .link-card').forEach(function (c) { c.classList.toggle('active', active.some(function (l) { return l.id === c.dataset.linkId; })); });
     document.querySelectorAll('#sheetKnow .tr-line').forEach(function (b) {
       b.classList.toggle('now', b.dataset.mediaId === avId && now >= +b.dataset.start && now < +b.dataset.end);
@@ -2929,25 +2929,45 @@
       tl.querySelectorAll('.tl-head').forEach(function (hd) { hd.style.left = Math.min(100, now / dur * 100) + '%'; });
       tl.querySelectorAll('.tl-item').forEach(function (it) { it.classList.toggle('active', now >= +it.dataset.start && now < +it.dataset.end); });
     }
-    if (stage.dataset.key === key) return;
-    stage.dataset.key = key; stage.innerHTML = '';
-    // Η σκηνή μένει σταθερή (ίδιο ύψος) όσο η ιστορία έχει εικόνες/όρους με χρόνο· αλλάζει μόνο το περιεχόμενό της
+    // Η σκηνή μένει σταθερή (ίδιο ύψος) όσο η ιστορία έχει εικόνες/όρους με χρόνο. Οι εικόνες ξαναφτιάχνονται μόνο όταν αλλάζει το σύνολο
+    // των εικόνων/περιοχών· όταν αλλάζουν μόνο οι όροι, οι εικόνες μένουν ως έχουν (χωρίς αναβοσβήσιμο).
     var used = currentLinks.length || (sheetK && sheetK.annotations.some(function (a) { return a.status === 'approved' && hasRange(a); }));
-    if (!used) { stage.hidden = true; return; }
+    if (!used) { stage.hidden = true; stage.dataset.key = ''; return; }
     stage.hidden = false;
-    var view = document.createElement('div'); view.className = 'stage-view';
-    if (!active.length) { var idle = document.createElement('div'); idle.className = 'stage-idle'; idle.textContent = t('stageIdle'); view.appendChild(idle); }
-    active.forEach(function (l) {
-      var im = mediaById(s, l.image_media_id);
-      if (im) view.appendChild(figureFor(s, im, s.media.filter(function (x) { return x.kind === 'image'; }).indexOf(im) + 1, ctx));
-    });
-    stage.appendChild(view);
-    var all = terms.slice(), seen = {};
-    active.forEach(function (l) { annsForImage(l.image_media_id).forEach(function (a) { if (isTimedNote(a) && noteActive(a, ctx)) all.push(a); }); });
-    var row = document.createElement('div'); row.className = 'stage-terms'; row.setAttribute('aria-label', t('tlNowTerms'));
-    var ul = document.createElement('ul'); ul.className = 'term-list';
-    all.forEach(function (a) { if (seen[a.term_uri]) return; seen[a.term_uri] = 1; var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
-    row.appendChild(ul); stage.appendChild(row);
+    var view = stage.querySelector('.stage-view'), row = stage.querySelector('.stage-terms');
+    if (!view) {
+      view = document.createElement('div'); view.className = 'stage-view'; stage.appendChild(view);
+      row = document.createElement('div'); row.className = 'stage-terms'; row.setAttribute('aria-label', t('tlNowTerms')); stage.appendChild(row);
+    }
+    var imgKey = active.map(function (l) { return l.id; }).join(',') + '|' + noteIds.join(',');
+    if (stage.dataset.imgKey !== imgKey) {
+      stage.dataset.imgKey = imgKey;
+      var old = {};
+      [].slice.call(view.children).forEach(function (c) { if (c.dataset.figKey) old[c.dataset.figKey] = c; });
+      view.innerHTML = '';
+      if (!active.length) { var idle = document.createElement('div'); idle.className = 'stage-idle'; idle.textContent = t('stageIdle'); view.appendChild(idle); }
+      active.forEach(function (l) {
+        var im = mediaById(s, l.image_media_id); if (!im) return;
+        var fk = l.image_media_id, el = old[fk];
+        if (!el) { el = figureFor(s, im, s.media.filter(function (x) { return x.kind === 'image'; }).indexOf(im) + 1, ctx); el.dataset.figKey = fk; }
+        else {                                                  // ίδια εικόνα: μένει στη θέση της, αλλάζουν μόνο οι περιοχές
+          el.classList.add('keep');
+          var fr = el.querySelector('.img-frame');
+          fr.querySelectorAll('.region-box').forEach(function (r) { r.remove(); });
+          annsForImage(l.image_media_id).filter(function (a) { return hasRegion(a) && (!isTimedNote(a) || noteActive(a, ctx)); }).forEach(function (a) { fr.appendChild(regionBox(a)); });
+        }
+        view.appendChild(el);
+      });
+    }
+    var termKey = terms.map(function (a) { return a.id; }).join(',') + '|' + noteIds.join(',');
+    if (stage.dataset.termKey !== termKey) {
+      stage.dataset.termKey = termKey; row.innerHTML = '';
+      var all = terms.slice(), seen = {};
+      active.forEach(function (l) { annsForImage(l.image_media_id).forEach(function (a) { if (isTimedNote(a) && noteActive(a, ctx)) all.push(a); }); });
+      var ul = document.createElement('ul'); ul.className = 'term-list';
+      all.forEach(function (a) { if (seen[a.term_uri]) return; seen[a.term_uri] = 1; var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
+      row.appendChild(ul);
+    }
   }
 
   // Γραμμή χρόνου κάτω από κάθε ήχο/βίντεο: ποια μέρη αφορούν εικόνες και ποια όρους
@@ -3953,7 +3973,21 @@
     var imgs = s.media.filter(function (m) { return m.kind === 'image' && m.id; });
     if (!av.length && !imgs.length) { var p = document.createElement('p'); p.textContent = t('annNoMedia'); body.appendChild(p); }
     av.forEach(function (m, i) { body.appendChild(annSection(s, m, i + 1)); });
-    imgs.forEach(function (m, i) { body.appendChild(imageSection(s, m, i + 1)); });
+    if (imgs.length) {
+      // Όλες οι εικόνες σε μία αναδιπλούμενη ενότητα, και μέσα σε αυτήν κάθε εικόνα χωριστά (ανοίγει μία κάθε φορά)
+      var all = document.createElement('details'); all.className = 'ann-step'; all.open = !av.length;
+      var allSm = document.createElement('summary'); allSm.textContent = t('imgSection') + ' (' + imgs.length + ')'; all.appendChild(allSm);
+      var each = [];
+      imgs.forEach(function (m, i) {
+        var d = document.createElement('details'); d.className = 'ann-step'; each.push(d);
+        var sm = document.createElement('summary'); sm.textContent = t('type_image') + ' ' + (i + 1); d.appendChild(sm);
+        d.appendChild(imageSection(s, m, i + 1));
+        d.addEventListener('toggle', function () { if (d.open) each.forEach(function (o) { if (o !== d) o.open = false; }); });
+        all.appendChild(d);
+      });
+      if (each.length === 1) each[0].open = true;
+      body.appendChild(all);
+    }
     openDialog('annSheet');
   };
   $('annCloseBtn').onclick = function () { closeDialog('annSheet'); if (currentSheetStory) renderKnowledge(currentSheetStory); };
