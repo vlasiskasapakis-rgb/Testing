@@ -203,7 +203,7 @@
   .tr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0; }
   .tr-row .btn-primary { padding: 10px 20px; min-height: 44px; }
   .ann-why { flex-basis: 100%; font-size: 13px; color: var(--muted); margin: 2px 0 0; }
-  .suggest-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 8px; padding: 10px 12px; background: var(--sky-soft); border-radius: 12px; }
+  .suggest-bar { position: sticky; bottom: 0; z-index: 6; box-shadow: 0 -6px 14px rgba(14,63,80,.12); margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 8px; padding: 10px 12px; background: var(--sky-soft); border-radius: 12px; }
   .suggest-bar .btn-primary { padding: 10px 18px; min-height: 44px; }
   .suggest-bar p { margin: 0; font-size: 13px; color: var(--muted); flex: 1 1 220px; }
   .det-box h4 { margin: 0 0 4px; font-size: 14px; color: var(--petrol); }
@@ -424,7 +424,7 @@
 </style>
 <style>
   /* ---------- Διάταξη ιστοσελίδας ---------- */
-  html, body { height: auto; overflow: auto; background: var(--mist); }
+  html, body { height: auto; overflow: visible; background: var(--mist); }
   #annotateBtn, #deleteBtn { display: none !important; }
   .site-head { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 20px; background: var(--petrol); color: #fff; }
   .site-head h1 { color: #fff; font-size: 22px; margin: 0; flex: 1 1 auto; }
@@ -522,11 +522,6 @@
             <details id="locFold" class="fold" hidden open><summary data-i18n="locMapTitle"></summary><div id="locMap"></div></details>
           </div>
           <div class="col-ann">
-            <div class="suggest-bar">
-              <button type="button" class="btn-primary" id="suggestAllBtn" data-i18n="sugAll"></button>
-              <p data-i18n="sugHint"></p>
-              <p id="suggestStatus" role="status" style="flex-basis:100%"></p>
-            </div>
             <div class="tabbar">
               <div role="tablist" class="tabs">
                 <button type="button" role="tab" id="tabRec" aria-selected="true" aria-controls="panelRec"></button>
@@ -536,6 +531,11 @@
             </div>
             <div id="panelRec" role="tabpanel" aria-labelledby="tabRec"></div>
             <div id="panelImg" role="tabpanel" aria-labelledby="tabImg" hidden></div>
+            <div class="suggest-bar">
+              <button type="button" class="btn-primary" id="suggestAllBtn" data-i18n="sugAll"></button>
+              <p data-i18n="sugHint"></p>
+              <p id="suggestStatus" role="status" style="flex-basis:100%"></p>
+            </div>
           </div>
         </div>
         <div id="sheetKnow" class="story-know"></div>
@@ -725,12 +725,16 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      trSave: "2 · Αποθήκευση απομαγνητοφώνησης",
+      trSaved: "Η απομαγνητοφώνηση αποθηκεύτηκε ({n} γραμμές). Τώρα πάτα «3 · Πρόταση όρων για όλη την ιστορία».",
+      trNothingToSave: "Δεν υπάρχει αλλαγή για αποθήκευση.",
+      sugSaveFirst: "Αποθήκευσε πρώτα την απομαγνητοφώνηση: {n} (κουμπί «2 · Αποθήκευση απομαγνητοφώνησης»).",
       annTrTitle: "Απομαγνητοφώνηση",
       annTermsTitle: "Όροι στις γραμμές",
       trBtn: "1 · Μεταγραφή",
-      trReady: "Η απομαγνητοφώνηση είναι έτοιμη. Διόρθωσέ τη αν θέλεις και πάτα «2 · Αποθήκευση και πρόταση όρων».",
-      sugAll: "2 · Αποθήκευση και πρόταση όρων για όλη την ιστορία",
-      sugHint: "Αποθηκεύει τις απομαγνητοφωνήσεις και τις συνδυάζει με τα στοιχεία της ιστορίας (τίτλος, ταυτότητα, περίοδος, τοποθεσία) για να προτείνει όρους για ηχογραφήσεις και εικόνες.",
+      trReady: "Η απομαγνητοφώνηση είναι έτοιμη. Διόρθωσέ τη αν θέλεις και πάτα «2 · Αποθήκευση απομαγνητοφώνησης».",
+      sugAll: "3 · Πρόταση όρων για όλη την ιστορία",
+      sugHint: "Χρησιμοποιεί όλες τις αποθηκευμένες απομαγνητοφωνήσεις μαζί με τα στοιχεία της ιστορίας (τίτλος, ταυτότητα, περίοδος, τοποθεσία) και προτείνει όρους για ηχογραφήσεις και εικόνες, μία φορά.",
       sugRunning: "Αναζήτηση… {i}/{n}",
       sugDone: "{n} νέες προτάσεις ({h} υψηλής βεβαιότητας).",
       sugNone: "Δεν βρέθηκαν νέες προτάσεις.",
@@ -1039,12 +1043,16 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      trSave: "2 · Save transcript",
+      trSaved: "Transcript saved ({n} lines). Now press “3 · Suggest terms for the whole story”.",
+      trNothingToSave: "Nothing new to save.",
+      sugSaveFirst: "Save the transcript first: {n} (button “2 · Save transcript”).",
       annTrTitle: "Transcript",
       annTermsTitle: "Terms on the lines",
       trBtn: "1 · Transcribe",
-      trReady: "Transcript ready. Edit it if you like, then press “2 · Save and suggest”.",
-      sugAll: "2 · Save and suggest for the whole story",
-      sugHint: "Saves the transcripts and combines them with the story's details (title, identity, period, location) to suggest terms for recordings and images.",
+      trReady: "Transcript ready. Edit it if you like, then press “2 · Save transcript”.",
+      sugAll: "3 · Suggest terms for the whole story",
+      sugHint: "Uses all saved transcripts together with the story's details (title, identity, period, location) and suggests terms for recordings and images, once.",
       sugRunning: "Searching… {i}/{n}",
       sugDone: "{n} new suggestions ({h} high confidence).",
       sugNone: "No new suggestions found.",
@@ -1356,12 +1364,16 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      trSave: "2 · Enregistrer la transcription",
+      trSaved: "Transcription enregistrée ({n} lignes). Appuyez maintenant sur « 3 · Suggérer des termes pour toute l'histoire ».",
+      trNothingToSave: "Rien de nouveau à enregistrer.",
+      sugSaveFirst: "Enregistrez d'abord la transcription : {n} (bouton « 2 · Enregistrer la transcription »).",
       annTrTitle: "Transcription",
       annTermsTitle: "Termes sur les lignes",
       trBtn: "1 · Transcrire",
-      trReady: "Transcription prête. Corrigez-la si besoin, puis appuyez sur « 2 · Enregistrer et suggérer ».",
-      sugAll: "2 · Enregistrer et suggérer pour toute l'histoire",
-      sugHint: "Enregistre les transcriptions et les combine avec les détails de l'histoire (titre, identité, période, lieu) pour suggérer des termes pour les enregistrements et les images.",
+      trReady: "Transcription prête. Corrigez-la si besoin, puis appuyez sur « 2 · Enregistrer la transcription ».",
+      sugAll: "3 · Suggérer des termes pour toute l'histoire",
+      sugHint: "Utilise toutes les transcriptions enregistrées avec les détails de l'histoire (titre, identité, période, lieu) et suggère des termes pour les enregistrements et les images, en une fois.",
       sugRunning: "Recherche… {i}/{n}",
       sugDone: "{n} nouvelles suggestions ({h} de haute confiance).",
       sugNone: "Aucune nouvelle suggestion.",
@@ -1667,12 +1679,16 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      trSave: "2 · Salva la trascrizione",
+      trSaved: "Trascrizione salvata ({n} righe). Ora premi «3 · Suggerisci termini per tutta la storia».",
+      trNothingToSave: "Niente di nuovo da salvare.",
+      sugSaveFirst: "Salva prima la trascrizione: {n} (pulsante «2 · Salva la trascrizione»).",
       annTrTitle: "Trascrizione",
       annTermsTitle: "Termini sulle righe",
       trBtn: "1 · Trascrivi",
-      trReady: "Trascrizione pronta. Correggila se vuoi, poi premi «2 · Salva e suggerisci».",
-      sugAll: "2 · Salva e suggerisci per tutta la storia",
-      sugHint: "Salva le trascrizioni e le combina con i dettagli della storia (titolo, identità, periodo, luogo) per suggerire termini per registrazioni e immagini.",
+      trReady: "Trascrizione pronta. Correggila se vuoi, poi premi «2 · Salva la trascrizione».",
+      sugAll: "3 · Suggerisci termini per tutta la storia",
+      sugHint: "Usa tutte le trascrizioni salvate insieme ai dettagli della storia (titolo, identità, periodo, luogo) e suggerisce termini per registrazioni e immagini, una volta sola.",
       sugRunning: "Ricerca… {i}/{n}",
       sugDone: "{n} nuovi suggerimenti ({h} ad alta affidabilità).",
       sugNone: "Nessun nuovo suggerimento.",
@@ -3192,6 +3208,7 @@
     var langSel = document.createElement('select'); langSel.id = uid + '-lang'; langSel.className = 'lang-select'; langSel.setAttribute('aria-label', t('annLangLabel'));
     ['el', 'en', 'fr', 'it'].forEach(function (c) { var o = document.createElement('option'); o.value = c; o.textContent = c.toUpperCase(); langSel.appendChild(o); });
     langSel.value = LANG; trRow.appendChild(langSel);
+    var saveBtn = document.createElement('button'); saveBtn.type = 'button'; saveBtn.className = 'btn-secondary'; saveBtn.textContent = t('trSave'); trRow.appendChild(saveBtn);
     var fileBtn = document.createElement('button'); fileBtn.type = 'button'; fileBtn.className = 'link-btn'; fileBtn.textContent = t('annUpload'); trRow.appendChild(fileBtn);
     var fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.srt,.vtt,.txt,text/plain,text/vtt'; fileIn.hidden = true;
     var taWrap = document.createElement('div'); taWrap.className = 'input-group';
@@ -3217,7 +3234,7 @@
       });
     }
 
-    function busy(on) { [serverBtn, fileBtn, langSel, ta].forEach(function (el) { el.disabled = on; }); }
+    function busy(on) { [serverBtn, saveBtn, fileBtn, langSel, ta].forEach(function (el) { el.disabled = on; }); }
 
     function paint() {
       var tr = data && data.transcripts.filter(function (x) { return x.media_id === m.id; })[0];
@@ -3278,8 +3295,24 @@
       var segs = attachWords(textToSegments(ta.value).slice(0, 400));
       if (!segs.length) return 0;
       var rows = await saveTranscript(m, langSel.value, segs);
-      dirty = false; filled = false; status.textContent = ''; await reload();
+      dirty = false; filled = false; await reload();
       return rows.length;
+    };
+    // Μη αποθηκευμένο κείμενο: υπάρχει κείμενο που άλλαξε (ή δεν έχει αποθηκευτεί ποτέ απομαγνητοφώνηση)
+    sec.isUnsaved = function () {
+      var hasTr = !!(data && data.transcripts.some(function (x) { return x.media_id === m.id; }));
+      return !!ta.value.trim() && (dirty || !hasTr);
+    };
+    sec.label = t('type_' + m.kind) + ' ' + n;
+    saveBtn.onclick = async function () {
+      if (!ta.value.trim()) { status.textContent = t('annEmpty'); ta.focus(); return; }
+      busy(true); status.textContent = t('annRunning');
+      try {
+        var nl = await sec.saveIfNeeded();
+        status.textContent = nl ? t('trSaved', { n: nl }) : t('trNothingToSave');
+        notifyAnn();
+      } catch (e) { status.textContent = t('annFailed', { e: errText(e) }); }
+      finally { busy(false); }
     };
     sec.setBusy = busy;
     sec.getLang = function () { return langSel.value; };
@@ -3505,9 +3538,12 @@
     var s = currentSheetStory; if (!s || !isAnnotator()) return;
     var b = this, st = $('suggestStatus'); b.disabled = true; st.textContent = '';
     annSections.forEach(function (x) { x.setBusy(true); });
+    var unsaved = annSections.filter(function (x) { return x.isUnsaved(); });
+    if (unsaved.length) {        // η πρόταση χρησιμοποιεί μόνο αποθηκευμένες απομαγνητοφωνήσεις: πρώτα «2 · Αποθήκευση»
+      st.textContent = t('sugSaveFirst', { n: unsaved.map(function (x) { return x.label; }).join(', ') });
+      b.disabled = false; annSections.forEach(function (x) { x.setBusy(false); }); return;
+    }
     try {
-      var saved = 0;
-      for (var i = 0; i < annSections.length; i++) { st.textContent = t('annRunning'); saved += await annSections[i].saveIfNeeded(); }
       var lang = annSections.length ? annSections[0].getLang() : LANG;
       var res = await suggestStory(s, lang, function (i2, total) { st.textContent = t('sugRunning', { i: i2, n: total }); });
       notifyAnn();
