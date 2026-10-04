@@ -87,7 +87,7 @@ subtitles (they still appear in the transcript list).
 
 ## What the public sees
 - Every audio/video has a **timeline** under its player: amber bars are the parts linked to images, blue bars are the parts
-  where a term applies (hover a bar for its name; the term list below also has ▶ time buttons). Tap a bar to play from there; the line follows the playback. Terms with no time range apply to the
+  where a term applies (hover a bar for its name; the term list below also has ▶ time buttons). Tapping a bar **jumps there and pauses**, so you can look at the image or terms in your own time (the box under the player shows them); tapping an empty part of the bar moves the playhead without changing play/pause. The ▶ buttons (images list, term times, transcript lines) still play from that moment. The term list and the images are collapsible sections (closed by default, except the images of a story that has no audio/video). Terms with no time range apply to the
   whole recording and have no bar.
 - Image-only story: the image with its approved terms and marked areas.
 - Story with audio/video: while it plays, the image linked to the current moment appears under the
