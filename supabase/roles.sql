@@ -42,6 +42,35 @@ language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.profiles where user_id = auth.uid() and role = 'annotator');
 $$;
 
+-- ---------- consent ----------
+-- Before a facilitator can add a story, the participant consents on the facilitator's device; the app
+-- generates a short code (WM-XXXX-XXXX) from the record's id. The participant signs a paper form that
+-- carries the same code, which is how a signed form is matched to its story(ies).
+create table if not exists public.consents (
+  id                uuid primary key default gen_random_uuid(),
+  code              text not null unique check (code ~ '^WM-[A-Z0-9]{4}-[A-Z0-9]{4}$'),
+  user_id           uuid default auth.uid() references auth.users(id) on delete set null,
+  statement_version text not null,
+  lang              text,
+  accepted          jsonb not null,
+  created_at        timestamptz not null default now()
+);
+alter table public.consents enable row level security;
+drop policy if exists "read own or all consents" on public.consents;
+drop policy if exists "add own consent"          on public.consents;
+create policy "read own or all consents" on public.consents for select to authenticated
+  using (user_id = auth.uid() or public.is_annotator());
+create policy "add own consent" on public.consents for insert to authenticated
+  with check (user_id = auth.uid());
+-- No update/delete policies: a consent record is permanent.
+
+alter table public.stories add column if not exists consent_id uuid references public.consents(id) on delete restrict;
+
+-- To find the story behind a paper form (run as the project owner):
+--   select c.code, s.title, s.status, s.created_at
+--   from public.consents c left join public.stories s on s.consent_id = c.id
+--   where c.code = 'WM-XXXX-XXXX';
+
 -- ---------- publishing ----------
 do $$
 begin
@@ -68,7 +97,11 @@ drop policy if exists "owners delete own stories" on public.stories;
 create policy "read visible stories" on public.stories for select
   using (status = 'published' or user_id = auth.uid() or public.is_annotator());
 create policy "owners add drafts" on public.stories for insert to authenticated
-  with check (user_id = auth.uid() and status = 'draft');
+  with check (
+    user_id = auth.uid() and status = 'draft'
+    and consent_id is not null
+    and exists (select 1 from public.consents c where c.id = consent_id and c.user_id = auth.uid())
+  );
 create policy "annotators publish" on public.stories for update to authenticated
   using (public.is_annotator()) with check (public.is_annotator());
 create policy "owners delete own stories" on public.stories for delete to authenticated

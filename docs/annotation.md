@@ -13,7 +13,7 @@ Every new account is a facilitator. This is enforced by the database rules, not 
 buttons. A story reaches the public only when an annotator presses **Publish for everyone**.
 
 ## Setup (once, in this order)
-1. SQL editor: run `supabase/schema.sql`, then `supabase/annotations.sql`, then `supabase/roles.sql`
+1. SQL editor: run `supabase/schema.sql`, then `supabase/annotations.sql`, then `supabase/roles.sql` (re-run `roles.sql` after pulling updates: it also creates the consent tables)
    (each is safe to run again). `roles.sql` creates the roles, makes existing stories published, and
    makes every existing account a facilitator.
 2. Make someone an annotator (they sign up first, then you run this in the SQL editor):
@@ -49,6 +49,24 @@ A term points at the seconds where its word is spoken, not at its whole transcri
 - **Set exact times for all suggestions** refines older suggestions that still cover the whole line. Anything
   you already adjusted is left alone.
 - Editing a line's text in the box drops its word timings (they no longer match); re-run the transcription to get them back.
+
+## Consent before every upload
+Pressing **+** first opens a consent screen for the participant (the facilitator can switch its language). All four statements must be
+ticked; the app then creates a record and shows a code like `WM-7K3Q-9D2F`, derived from the record's id, with a **Copy code**
+button. Write the same code on the paper form the participant signs. The code stays visible on the upload screen, is stored with
+the story, and is shown (with a copy button) to the story's owner and to annotators; the Stories list can be searched by it.
+- A participant who tells several stories on one form can reuse the code: choose it under "Use a code you already created".
+- The database refuses a new story that has no consent record belonging to the uploader.
+- To find the story behind a form (SQL editor): `select c.code, s.title, s.status from consents c left join stories s on s.consent_id = c.id where c.code = 'WM-XXXX-XXXX';`
+- The consent wording (4 statements, `consentC1`-`consentC4` in `index.html`) is a plain-language draft: have your ethics/legal
+  reviewers approve or replace it, and bump `CONSENT_VERSION` when it changes. No participant name is stored digitally; identity lives
+  on the paper form. Withdrawal today = the facilitator who uploaded the story deletes it.
+
+## Subtitles
+If a story has a timed transcript, it is shown as subtitles while the recording plays: video uses the browser's own subtitle track
+(works in full screen), audio shows a caption bar under the player. Long transcript lines are split into short subtitles (using word
+timings when they exist). Viewers can switch subtitles off; the choice is remembered. Transcripts without timestamps are not shown as
+subtitles (they still appear in the transcript list).
 
 ## What the public sees
 - Every audio/video has a **timeline** under its player: amber bars are the parts linked to images, blue bars are the parts
