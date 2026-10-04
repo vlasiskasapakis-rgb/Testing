@@ -12,6 +12,12 @@
 Every new account is a facilitator. This is enforced by the database rules, not only by hiding
 buttons. A story reaches the public only when an annotator presses **Publish for everyone**.
 
+## Order of the files
+The order of a story's files is the order they appear in the story (and in the app): the first audio is listed and played first.
+- **While uploading** each file has ↑ and ↓ buttons in the list; the list order is the saved order. Numbers ("Audio 1, 2…") follow the new order.
+- **Afterwards**, on the annotation website, the **Order of recordings** dropdown above the player has ↑ / ↓ for each recording;
+  a move is saved at once. Re-run `supabase/roles.sql` once: it lets the story's owner and annotators change only the `position` of a story's media.
+
 ## Details for each file (facilitators)
 In the upload form each image, audio or video has a 📍 button for its details: **title**, **identity** (who or what it is about),
 **date recorded** (starts as the file's date), **period it refers to** (free text, e.g. "summer 1965") and **location**. The location

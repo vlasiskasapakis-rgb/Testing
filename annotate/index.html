@@ -211,6 +211,11 @@
   .steps-row button { flex: 1 1 auto; padding: 8px 10px; min-height: 44px; font-size: 15px; font-weight: 700; white-space: nowrap; }
   @media (max-width: 700px) { .steps-row { flex-wrap: wrap; } }
   .steps-bar p { margin: 4px 2px 0; font-size: 13px; color: var(--muted); min-height: 1.3em; flex: 1 1 auto; }
+  .order-list { list-style: none; margin: 6px 0; padding: 0; }
+  .order-item { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-top: 1px solid var(--line); }
+  .order-item span { flex: 1; min-width: 0; }
+  .x-btn { width: 34px; height: 34px; padding: 0; border-radius: 50%; background: var(--mist); color: var(--petrol); font-weight: 700; border: 1px solid var(--line-strong); }
+  .x-btn:disabled { opacity: .35; }
   .rec-wrap > summary { font-size: 16px; }
   .rec-wrap > .ann-media { border-top: 0; padding-top: 0; margin-top: 0; }
   .rec-info { padding: 8px 10px; background: var(--mist); border-radius: 10px; margin: 6px 0 8px; }
@@ -541,6 +546,7 @@
         </div>
         <div class="cols">
           <div class="col-media">
+            <details id="orderFold" class="fold" hidden><summary data-i18n="orderTitle"></summary><ol id="orderList" class="order-list"></ol><p id="orderErr" class="field-error" role="alert"></p></details>
             <div id="sheetMedia" class="story-media"></div>
             <div id="sheetImages" class="story-media"></div>
             <details id="locFold" class="fold" hidden open><summary data-i18n="locMapTitle"></summary><div id="locMap"></div></details>
@@ -757,6 +763,10 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      moveUp: "Μετακίνηση πάνω: {name}",
+      moveDown: "Μετακίνηση κάτω: {name}",
+      orderTitle: "Σειρά ηχογραφήσεων (όπως εμφανίζονται στην εφαρμογή)",
+      orderSaveErr: "Η σειρά δεν αποθηκεύτηκε: {e}",
       colTerm: "Όρος",
       colArea: "Περιοχή",
       colRec: "Ηχογράφηση",
@@ -1087,6 +1097,10 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      moveUp: "Move up: {name}",
+      moveDown: "Move down: {name}",
+      orderTitle: "Order of recordings (as shown in the app)",
+      orderSaveErr: "The order was not saved: {e}",
       colTerm: "Term",
       colArea: "Area",
       colRec: "Recording",
@@ -1420,6 +1434,10 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      moveUp: "Monter : {name}",
+      moveDown: "Descendre : {name}",
+      orderTitle: "Ordre des enregistrements (comme dans l'application)",
+      orderSaveErr: "L'ordre n'a pas été enregistré : {e}",
       colTerm: "Terme",
       colArea: "Zone",
       colRec: "Enregistrement",
@@ -1747,6 +1765,10 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      moveUp: "Sposta su: {name}",
+      moveDown: "Sposta giù: {name}",
+      orderTitle: "Ordine delle registrazioni (come nell'app)",
+      orderSaveErr: "L'ordine non è stato salvato: {e}",
       colTerm: "Termine",
       colArea: "Area",
       colRec: "Registrazione",
@@ -2068,7 +2090,7 @@
       consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
-        return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
+        return { id: m.id, kind: m.kind, path: m.path, position: m.position, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
           title: m.title || '', about: m.about || '', recorded: m.recorded_at || '', period: m.period || '', lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
@@ -3904,6 +3926,7 @@
     $('sheetAuthor').textContent = s.author ? t('byAuthor', { n: s.author }) : '';
     renderSheetMedia(s);
     renderKnowledge(s);
+    renderOrder(s);
     try { renderLocMap(s); } catch (e) { try { console.warn('map', e); } catch (_) {} }      // ο χάρτης δεν πρέπει να εμποδίζει τον σχολιασμό
     annListeners = [];
     buildAnnotate();
@@ -3925,6 +3948,35 @@
     var ll = [];
     pts.forEach(function (p) { L.marker([p.lat, p.lon]).bindPopup(p.name).addTo(locLayer); ll.push([p.lat, p.lon]); });
     setTimeout(function () { locMap.invalidateSize(); if (ll.length === 1) locMap.setView(ll[0], 15); else locMap.fitBounds(ll, { padding: [30, 30], maxZoom: 16 }); }, 80);
+  }
+  // Σειρά ηχογραφήσεων: ↑/↓ αλλάζει τη θέση (position) στη βάση, άρα και τη σειρά στην εφαρμογή
+  function renderOrder(s) {
+    var av = s.media.filter(function (m) { return m.kind !== 'image' && m.id; });
+    $('orderFold').hidden = av.length < 2;
+    var ol = $('orderList'); ol.innerHTML = ''; $('orderErr').textContent = '';
+    av.forEach(function (m, i) {
+      var li = document.createElement('li'); li.className = 'order-item';
+      var lb = document.createElement('span'); lb.textContent = t('type_' + m.kind) + ' ' + (i + 1) + (m.title ? ' · ' + m.title : ''); li.appendChild(lb);
+      [['↑', -1, 'moveUp'], ['↓', 1, 'moveDown']].forEach(function (d) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = d[0]; b.className = 'x-btn';
+        b.setAttribute('aria-label', t(d[2], { name: lb.textContent })); b.disabled = (d[1] < 0 && i === 0) || (d[1] > 0 && i === av.length - 1);
+        b.onclick = async function () {
+          var o = av[i + d[1]]; if (!o) return;
+          b.disabled = true;
+          // οι δύο ηχογραφήσεις ανταλλάσσουν θέσεις (οι εικόνες δεν μετακινούνται)
+          var pa = m.position, pb = o.position;
+          var r1 = await sb.from('story_media').update({ position: pb }).eq('id', m.id);
+          var r2 = r1.error ? r1 : await sb.from('story_media').update({ position: pa }).eq('id', o.id);
+          if (r2.error) { $('orderErr').textContent = t('orderSaveErr', { e: errText(r2.error) }); if (!r1.error) await sb.from('story_media').update({ position: pa }).eq('id', m.id); b.disabled = false; return; }
+          m.position = pb; o.position = pa;
+          s.media.sort(function (x, y) { return (x.position || 0) - (y.position || 0); });
+          openStory(s);
+          var again = $('orderFold'); again.open = true;
+        };
+        li.appendChild(b);
+      });
+      ol.appendChild(li);
+    });
   }
   function closeStory() {
     clearSheetMedia(); currentSheetStory = null; annListeners = [];
