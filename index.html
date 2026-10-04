@@ -937,6 +937,7 @@
       consentNeedAll: "Τσέκαρε όλα τα πλαίσια για να συνεχίσεις.",
       consentLabel: "Κωδικός συναίνεσης: {c}",
       annNoRights: "Ο λογαριασμός σου δεν είναι σχολιαστής, οπότε δεν μπορείς να αλλάξεις σχόλια. Ζήτα από τον υπεύθυνο του έργου να σου δώσει τον ρόλο του σχολιαστή και βεβαιώσου ότι είσαι συνδεδεμένος με αυτόν τον λογαριασμό.",
+      annLoadFail: "Δεν φορτώθηκαν όλα τα σχόλια της ιστορίας: {e}",
       listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
     },
     en: {
@@ -1156,6 +1157,7 @@
       consentNeedAll: "Tick every box to continue.",
       consentLabel: "Consent code: {c}",
       annNoRights: "Your account is not an annotator, so you cannot change annotations. Ask the project owner to give you the annotator role, and make sure you are logged in with that account.",
+      annLoadFail: "Some of this story's annotations could not be loaded: {e}",
       listSearch: "Search by title, name or consent code"
     },
     fr: {
@@ -1375,6 +1377,7 @@
       consentNeedAll: "Cochez toutes les cases pour continuer.",
       consentLabel: "Code de consentement : {c}",
       annNoRights: "Votre compte n'est pas annotateur, vous ne pouvez donc pas modifier les annotations. Demandez au responsable du projet de vous donner le rôle d'annotateur et vérifiez que vous êtes connecté avec ce compte.",
+      annLoadFail: "Certaines annotations de cette histoire n'ont pas pu être chargées : {e}",
       listSearch: "Rechercher par titre, nom ou code de consentement"
     },
     it: {
@@ -1594,6 +1597,7 @@
       consentNeedAll: "Spunta tutte le caselle per continuare.",
       consentLabel: "Codice di consenso: {c}",
       annNoRights: "Il tuo account non è un annotatore, quindi non puoi modificare le annotazioni. Chiedi al responsabile del progetto di assegnarti il ruolo di annotatore e verifica di aver effettuato l'accesso con quell'account.",
+      annLoadFail: "Alcune annotazioni di questa storia non sono state caricate: {e}",
       listSearch: "Cerca per titolo, nome o codice di consenso"
     }
   };
@@ -2298,9 +2302,12 @@
       res[1] = await sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids);
     }
     if (res[0].error) throw res[0].error;
-    if (res[1].error) throw res[1].error;
-    res[1].data.forEach(function (tr) { tr.transcript_segments.sort(function (a, b) { return a.idx - b.idx; }); });
-    return { annotations: res[0].data, transcripts: res[1].data, links: res[2].error ? [] : res[2].data };
+    // Για τους επισκέπτες: ό,τι φορτώνει εμφανίζεται, και ό,τι αποτυγχάνει αναφέρεται (δεν κρύβεται σιωπηλά).
+    var problems = [], trs = [];
+    if (res[1].error) { if (all) throw res[1].error; problems.push(res[1].error.message); } else trs = res[1].data;
+    if (res[2].error && !all) problems.push(res[2].error.message);
+    trs.forEach(function (tr) { tr.transcript_segments.sort(function (a, b) { return a.idx - b.idx; }); });
+    return { annotations: res[0].data, transcripts: trs, links: res[2].error ? [] : res[2].data, problems: problems };
   }
 
   function termLink(a) {
@@ -2756,8 +2763,13 @@
     renderConsentUI(s);
     $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden && $('deleteBtn').hidden && $('publishBtn').hidden;
     if (!hasDbMedia(s)) return;
+    function loadNotice(msg) {
+      var n = document.createElement('p'); n.className = 'field-error'; n.textContent = t('annLoadFail', { e: msg });
+      box.appendChild(n);
+    }
     fetchKnowledge(s, false).then(function (k) {
       if (currentSheetStory !== s) return;
+      if (k.problems && k.problems.length) { try { console.warn('Walking Memory:', k.problems); } catch (e) {} loadNotice(k.problems[0]); }
       renderImages(s, k);
       attachSubtitles(s, k);
       k.transcripts.filter(function (tr) { return tr.status === 'done' && tr.text; }).forEach(function (tr) {
@@ -2807,7 +2819,11 @@
         });
         box.appendChild(ul);
       }
-    }).catch(function () {});
+    }).catch(function (e) {
+      if (currentSheetStory !== s) return;
+      try { console.error('Walking Memory:', e); } catch (_) {}
+      loadNotice((e && e.message) || String(e));
+    });
   }
 
   // --- Αναζήτηση όρων στον browser (Wikidata, Getty)· δεν χρειάζεται κλειδί ή server ---
