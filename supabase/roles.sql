@@ -212,5 +212,14 @@ create policy "annotators write links" on public.media_links for all to authenti
     and exists (select 1 from public.story_media a where a.id = av_media_id and a.story_id = media_links.story_id and a.kind in ('audio', 'video'))
   );
 
+-- Per-file details entered by the facilitator: title, identity (who/what), date recorded, period it refers to, location
+alter table public.story_media
+  add column if not exists title       text,
+  add column if not exists about       text,
+  add column if not exists recorded_at date,
+  add column if not exists period      text,
+  add column if not exists lat         double precision,
+  add column if not exists lon         double precision;
+
 -- Make the API pick up new columns immediately (avoids "could not find the column ... in the schema cache")
 notify pgrst, 'reload schema';

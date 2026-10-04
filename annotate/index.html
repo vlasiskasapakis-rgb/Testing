@@ -241,9 +241,13 @@
   .stage-view { height: 38vh; min-height: 200px; display: flex; gap: 8px; align-items: center; justify-content: center; background: var(--mist); border-radius: 12px; overflow: hidden; }
   .stage-view .img-wrap { height: 100%; display: flex; align-items: center; min-width: 0; animation: stageIn .35s ease; }
   .stage-view .img-frame { display: inline-block; max-width: 100%; }
-  .stage-view .img-frame img { max-height: 36vh; max-width: 100%; width: auto; height: auto; border-radius: 10px; cursor: zoom-in; }
+  .stage-view .img-frame img { max-height: 32vh; max-width: 100%; width: auto; height: auto; border-radius: 10px; cursor: zoom-in; }
   .stage-view .img-terms { display: none; }
   .stage-view .img-wrap.keep { animation: none; }
+  .media-cap { font-size: 14px; color: var(--muted); margin: 6px 0 4px; line-height: 1.35; }
+  .media-cap strong { display: block; color: var(--petrol); font-size: 15px; }
+  .media-cap a { color: var(--petrol); font-weight: 600; }
+  .stage-view .img-wrap { flex-direction: column; justify-content: center; }
   .stage-idle { color: var(--muted); font-size: 15px; text-align: center; padding: 0 16px; }
   .stage-terms { min-height: 44px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
   .stage-terms .term-list { margin: 0; }
@@ -703,6 +707,8 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      miRecorded: "Καταγράφηκε",
+      miOpenMap: "Άνοιγμα στον χάρτη",
       siteTitle: "Walking Memory · Σχολιασμός",
       tabRec: "Απομαγνητοφώνηση και όροι",
       tabImg: "Εικόνες",
@@ -792,7 +798,7 @@
       imgSyncNone: "Είναι ήδη συνδεδεμένο με όλες τις αναφορές.",
       annStep1: "1 · Απομαγνητοφώνηση",
       annStep2: "2 · Όροι",
-      annOptions: "Επιλογές (γλώσσα, ταχύτητα)",
+      annOptions: "Επιλογές (γλώσσα)",
       annAdvanced: "Για προχωρημένους",
       annMore: "Περισσότερα",
       imgWhatTitle: "Τι δείχνει αυτή η εικόνα;",
@@ -983,6 +989,8 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      miRecorded: "Recorded",
+      miOpenMap: "Open in map",
       siteTitle: "Walking Memory · Annotation",
       tabRec: "Transcription et termes",
       tabImg: "Images",
@@ -1075,7 +1083,7 @@
       imgSyncNone: "Already linked to every mention.",
       annStep1: "1 · Transcript",
       annStep2: "2 · Terms",
-      annOptions: "Options (language, speed)",
+      annOptions: "Options (language)",
       annAdvanced: "Advanced",
       annMore: "More",
       imgWhatTitle: "What is in this image?",
@@ -1266,6 +1274,8 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      miRecorded: "Enregistré",
+      miOpenMap: "Ouvrir dans la carte",
       siteTitle: "Walking Memory · Annotation",
       siteLoginTitle: "Connexion des annotateurs",
       siteLoginHint: "Ce site est réservé aux annotateurs. Les facilitateurs utilisent l'application.",
@@ -1352,7 +1362,7 @@
       imgSyncNone: "Déjà lié à toutes les mentions.",
       annStep1: "1 · Transcription",
       annStep2: "2 · Termes",
-      annOptions: "Options (langue, vitesse)",
+      annOptions: "Options (langue)",
       annAdvanced: "Avancé",
       annMore: "Plus",
       imgWhatTitle: "Que montre cette image ?",
@@ -1543,6 +1553,8 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      miRecorded: "Registrato",
+      miOpenMap: "Apri nella mappa",
       siteTitle: "Walking Memory · Annotazione",
       tabRec: "Trascrizione e termini",
       tabImg: "Immagini",
@@ -1632,7 +1644,7 @@
       imgSyncNone: "Già collegato a tutte le menzioni.",
       annStep1: "1 · Trascrizione",
       annStep2: "2 · Termini",
-      annOptions: "Opzioni (lingua, velocità)",
+      annOptions: "Opzioni (lingua)",
       annAdvanced: "Avanzate",
       annMore: "Altro",
       imgWhatTitle: "Cosa mostra questa immagine?",
@@ -1814,7 +1826,8 @@
       consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
-        return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl };
+        return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
+          title: m.title || '', about: m.about || '', recorded: m.recorded_at || '', period: m.period || '', lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
   }
@@ -2141,6 +2154,26 @@
   function noteActive(a, ctx) { return a.av_media_id === ctx.avId && ctx.now >= a.start_s && ctx.now < a.end_s; }
 
   // ctx = { avId, now }: στη σκηνή δείχνει μόνο τις σημειώσεις που ισχύουν τώρα· χωρίς ctx (λίστα, μεγέθυνση) δείχνει όλες
+  function osmLink(lat, lon) { return 'https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lon + '#map=17/' + lat + '/' + lon; }
+  // Λεζάντα αρχείου: τίτλος, ταυτότητα, ημερομηνία/περίοδος, τοποθεσία (titleOnly: μόνο ο τίτλος, για τη σκηνή)
+  function mediaCaption(m, titleOnly) {
+    var box = document.createElement('div'); box.className = 'media-cap';
+    if (m.title) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
+    if (!titleOnly) {
+      var bits = [];
+      if (m.about) bits.push(m.about);
+      if (m.recorded) bits.push(t('miRecorded') + ' ' + m.recorded);
+      if (m.period) bits.push(m.period);
+      if (bits.length) { var p = document.createElement('div'); p.textContent = bits.join(' · '); box.appendChild(p); }
+      if (m.lat != null && m.lon != null) {
+        var a = document.createElement('a'); a.href = osmLink(m.lat, m.lon); a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = '📍 ' + (+m.lat).toFixed(5) + ', ' + (+m.lon).toFixed(5); a.setAttribute('aria-label', t('miOpenMap') + ': ' + (m.title || ''));
+        box.appendChild(a);
+      }
+    }
+    return box.children.length ? box : null;
+  }
+
   function figureFor(s, m, n, ctx) {
     var wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.dataset.mediaId = m.id || '';
     var frame = document.createElement('div'); frame.className = 'img-frame';
@@ -2154,6 +2187,7 @@
     img.onclick = enlarge;
     img.onkeydown = function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); enlarge(); } };
     wrap.appendChild(frame);
+    var cap = mediaCaption(m, !!ctx); if (cap) wrap.appendChild(cap);
     if (mine.length) {
       var info = document.createElement('div'); info.className = 'img-terms';
       info.appendChild(document.createTextNode(t('imgDepicts') + ' '));
@@ -2715,49 +2749,6 @@
     return lines.join('\n');
   }
 
-  // --- Whisper στη συσκευή (transformers.js)· το αρχείο δεν φεύγει από τον browser ---
-  // Ταχύτητα/ποιότητα: tiny (γρήγορο), base, small (καλύτερο). Με WebGPU τρέχει στην κάρτα γραφικών.
-  var WHISPER_MODELS = { fast: 'Xenova/whisper-tiny', balanced: 'Xenova/whisper-base', best: 'Xenova/whisper-small' };
-  var QUALITY_KEY = 'wm_whisper_quality';
-  var whisperPipes = {}, tfModule = null;
-  function loadTf() {
-    if (!tfModule) tfModule = import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3').catch(function (e) { tfModule = null; throw e; });
-    return tfModule;
-  }
-  var WHISPER_LANG = { el: 'greek', en: 'english', fr: 'french', it: 'italian' };
-
-  function savedQuality() {
-    try { var q = localStorage.getItem(QUALITY_KEY); if (WHISPER_MODELS[q]) return q; } catch (e) {}
-    return 'balanced';
-  }
-  async function hasWebGPU() {
-    try { return !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch (e) { return false; }
-  }
-
-  async function loadWhisper(quality, device, onProgress) {
-    var key = quality + ':' + device;
-    if (whisperPipes[key]) return whisperPipes[key];
-    var tf = await loadTf();
-    var opts = device === 'webgpu'
-      ? { device: 'webgpu', dtype: { encoder_model: 'fp32', decoder_model_merged: 'q4' } }
-      : { dtype: 'q8' };
-    opts.progress_callback = function (e) { if (e && e.status === 'progress' && typeof e.progress === 'number') onProgress(Math.round(e.progress)); };
-    var pipe = await tf.pipeline('automatic-speech-recognition', WHISPER_MODELS[quality], opts);
-    whisperPipes[key] = pipe;
-    return pipe;
-  }
-
-  async function decodeAudio16k(url) {
-    var buf = await (await fetch(url)).arrayBuffer();
-    var AC = window.AudioContext || window.webkitAudioContext, ac = new AC({ sampleRate: 16000 }), ab;
-    try { ab = await ac.decodeAudioData(buf); } catch (e) { throw new Error(t('annDecodeErr')); } finally { try { ac.close(); } catch (e) {} }
-    var a = ab.getChannelData(0);
-    if (ab.numberOfChannels < 2) return a;
-    var b = ab.getChannelData(1), mono = new Float32Array(a.length);
-    for (var i = 0; i < a.length; i++) mono[i] = (a[i] + b[i]) / 2;
-    return mono;
-  }
-
   async function fnErrorMessage(err) {
     try { if (err && err.context && err.context.json) { var j = await err.context.json(); if (j && j.error) return j.error; } } catch (e) {}
     if (err && /FunctionsFetchError|Failed to send/i.test((err.name || '') + ' ' + (err.message || ''))) return t('annServerMissing');
@@ -2769,47 +2760,6 @@
     if (r.error) throw new Error(await fnErrorMessage(r.error));
     var segs = (r.data && r.data.segments) || [];
     if (!segs.length) throw new Error(t('annServerEmpty'));
-    return segs;
-  }
-
-  async function whisperTranscribe(url, lang, quality, onStatus) {
-    var audio = await decodeAudio16k(url);
-    async function run(device) {
-      var pipe = await loadWhisper(quality, device, function (p) { onStatus(t('annWhisperLoad', { p: p })); });
-      onStatus(t(device === 'webgpu' ? 'annWhisperRunGpu' : 'annWhisperRun'));
-      var opts = { language: WHISPER_LANG[lang] || 'english', task: 'transcribe', chunk_length_s: 30, stride_length_s: 5 };
-      try { opts.return_timestamps = 'word'; return { res: await pipe(audio, opts), word: true }; }   // χρονισμοί λέξεων
-      catch (e) { opts.return_timestamps = true; return { res: await pipe(audio, opts), word: false }; }
-    }
-    var out;
-    if (await hasWebGPU()) {
-      try { out = await run('webgpu'); }
-      catch (e) { onStatus(t('annWhisperFallback')); out = await run('wasm'); }
-    } else { out = await run('wasm'); }
-    var res = out.res;
-    var chunks = (res.chunks || []).filter(function (c) { return c.text && c.text.trim(); });
-    if (!chunks.length && res.text && res.text.trim()) return [{ start_s: 0, end_s: 0, text: res.text.trim() }];
-    if (out.word) return groupWords(chunks);
-    return chunks.map(function (c) { return { start_s: c.timestamp[0] || 0, end_s: c.timestamp[1] == null ? (c.timestamp[0] || 0) : c.timestamp[1], text: c.text.trim() }; });
-  }
-
-  // Ομαδοποίηση λέξεων με χρονισμούς σε γραμμές (τέλος πρότασης, παύση ή μέγιστο μήκος)
-  function groupWords(chunks) {
-    var segs = [], cur = null;
-    function flush() {
-      if (!cur) return;
-      cur.text = cur.words.map(function (w) { return w.w; }).join(' ');
-      cur.start_s = cur.words[0].s; cur.end_s = cur.words[cur.words.length - 1].e;
-      segs.push(cur); cur = null;
-    }
-    chunks.forEach(function (c) {
-      var w = c.text.trim(), st_ = c.timestamp[0] || 0, en_ = c.timestamp[1] == null ? st_ : c.timestamp[1];
-      if (cur && st_ - cur.words[cur.words.length - 1].e > 0.9) flush();
-      if (!cur) cur = { words: [] };
-      cur.words.push({ w: w, s: +st_.toFixed(2), e: +Math.max(en_, st_).toFixed(2) });
-      if (/[.!?;·]$/.test(w) || cur.words.length >= 18) flush();
-    });
-    flush();
     return segs;
   }
 
@@ -2879,7 +2829,6 @@
     var step1 = document.createElement('details'); step1.className = 'ann-step';
     var sm1 = document.createElement('summary'); sm1.textContent = t('annStep1'); step1.appendChild(sm1);
     var serverBtn = document.createElement('button'); serverBtn.type = 'button'; serverBtn.className = 'btn-primary btn-wide'; serverBtn.textContent = t('annServer'); step1.appendChild(serverBtn);
-    var whisperBtn = document.createElement('button'); whisperBtn.type = 'button'; whisperBtn.className = 'btn-secondary btn-wide'; whisperBtn.textContent = t('annWhisper'); step1.appendChild(whisperBtn);
     var fileBtn = document.createElement('button'); fileBtn.type = 'button'; fileBtn.className = 'btn-secondary btn-wide'; fileBtn.textContent = t('annUpload'); step1.appendChild(fileBtn);
     var fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.srt,.vtt,.txt,text/plain,text/vtt'; fileIn.hidden = true; step1.appendChild(fileIn);
     var opts = document.createElement('details'); opts.className = 'ann-step';
@@ -2889,13 +2838,6 @@
     var langSel = document.createElement('select'); langSel.id = uid + '-lang'; langSel.className = 'lang-select';
     ['el', 'en', 'fr', 'it'].forEach(function (c) { var o = document.createElement('option'); o.value = c; o.textContent = c.toUpperCase(); langSel.appendChild(o); });
     langSel.value = LANG; langWrap.appendChild(langLbl); langWrap.appendChild(langSel); opts.appendChild(langWrap);
-    var qWrap = document.createElement('div'); qWrap.className = 'input-group';
-    var qLbl = document.createElement('label'); qLbl.htmlFor = uid + '-q'; qLbl.textContent = t('annQuality');
-    var qSel = document.createElement('select'); qSel.id = uid + '-q'; qSel.className = 'lang-select';
-    ['fast', 'balanced', 'best'].forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = t('annQ_' + k); qSel.appendChild(o); });
-    qSel.value = savedQuality();
-    qSel.onchange = function () { try { localStorage.setItem(QUALITY_KEY, qSel.value); } catch (e) {} };
-    qWrap.appendChild(qLbl); qWrap.appendChild(qSel); opts.appendChild(qWrap);
     step1.appendChild(opts);
     var taWrap = document.createElement('div'); taWrap.className = 'input-group';
     var taLbl = document.createElement('label'); taLbl.htmlFor = uid + '-text'; taLbl.textContent = t('annTextLabel');
@@ -2924,7 +2866,7 @@
       });
     }
 
-    function busy(on) { [serverBtn, whisperBtn, fileBtn, save, auto, refine, langSel, qSel, ta].forEach(function (el) { el.disabled = on; }); }
+    function busy(on) { [serverBtn, fileBtn, save, auto, refine, langSel, ta].forEach(function (el) { el.disabled = on; }); }
 
     function paint() {
       var tr = data && data.transcripts.filter(function (x) { return x.media_id === m.id; })[0];
@@ -2952,15 +2894,6 @@
 
     async function reload() { data = await fetchKnowledge(s, true); paint(); }
 
-    whisperBtn.onclick = async function () {
-      busy(true);
-      try {
-        var segs = await whisperTranscribe(m.url, langSel.value, qSel.value, function (msg) { status.textContent = msg; });
-        ta.value = segmentsToText(segs); filled = true; lastWords = segs.map(function (g) { return { text: g.text, words: g.words || null }; });
-        status.textContent = '';
-      } catch (e) { status.textContent = t('annWhisperErr', { e: e.message || e }); }
-      finally { busy(false); }
-    };
     serverBtn.onclick = async function () {
       busy(true); status.textContent = t('annServerRun');
       try {
@@ -3028,57 +2961,6 @@
   }
 
   // --- Εικόνες: σύνδεση με όρους της ιστορίας, προαιρετική περιοχή, προτάσεις CLIP στη συσκευή ---
-  var clipPipe = null;
-
-  async function enLabels(terms) {
-    var out = {}, ids = [];
-    terms.forEach(function (tm) {
-      if (tm.vocabulary === 'wikidata') ids.push(tm.term_uri.split('/').pop()); else out[tm.term_uri] = tm.label;
-    });
-    for (var i = 0; i < ids.length; i += 50) {
-      try {
-        var r = await fetch(WD_API + '?action=wbgetentities&format=json&origin=*&props=labels&languages=en&ids=' + ids.slice(i, i + 50).join('|'));
-        if (!r.ok) continue;
-        var d = await r.json();
-        Object.keys(d.entities || {}).forEach(function (id) {
-          var l = d.entities[id].labels && d.entities[id].labels.en;
-          if (l) out['https://www.wikidata.org/entity/' + id] = l.value;
-        });
-      } catch (e) { /* θα χρησιμοποιηθεί η υπάρχουσα ετικέτα */ }
-    }
-    return out;
-  }
-
-  // Συγκρίνει την εικόνα με τους όρους (CLIP, zero-shot) και προτείνει όσους ταιριάζουν πιθανότατα.
-  async function clipSuggest(m, terms, existing, onStatus) {
-    var cands = terms.filter(function (tm) { return !existing.some(function (a) { return a.term_uri === tm.term_uri; }); });
-    if (!cands.length) return 0;
-    var tf = await loadTf();
-    if (!clipPipe) {
-      clipPipe = await tf.pipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32', {
-        progress_callback: function (e) { if (e && e.status === 'progress' && typeof e.progress === 'number') onStatus(t('imgClipLoad', { p: Math.round(e.progress) })); }
-      });
-    }
-    onStatus(t('imgClipRun'));
-    var en = await enLabels(cands);
-    var labels = cands.map(function (tm) { return en[tm.term_uri] || tm.label; });
-    var distract = ['something unrelated', 'a blurry or dark photo'];
-    var out = await clipPipe(m.url, labels.concat(distract));
-    var score = {};
-    out.forEach(function (o) { if (!(o.label in score)) score[o.label] = o.score; });
-    var bestDistract = Math.max.apply(null, distract.map(function (d) { return score[d] || 0; }));
-    var picks = cands.map(function (tm, i) { return { tm: tm, score: score[labels[i]] || 0 }; })
-      .filter(function (x) { return x.score >= 0.3 && x.score > bestDistract; })
-      .sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
-    if (!picks.length) return 0;
-    var rows = picks.map(function (x) {
-      return { media_id: m.id, mention: x.tm.label, kind: x.tm.kind, vocabulary: x.tm.vocabulary, term_uri: x.tm.term_uri, label: x.tm.label,
-        description: x.tm.description || '', status: 'suggested', source: 'clip' };
-    });
-    var ins = await sb.from('annotations').insert(rows);
-    if (ins.error) throw ins.error;
-    return rows.length;
-  }
 
   var ANN_BASE = 'id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source,region_x,region_y,region_w,region_h';
   var ANN_COLS = ANN_BASE + ',av_media_id';
@@ -3442,6 +3324,7 @@
       el.addEventListener('play', function () {
         $('sheetMedia').querySelectorAll('audio, video').forEach(function (o) { if (o !== el) o.pause(); });
       });
+      var mcap = mediaCaption(m); if (mcap) $('sheetMedia').appendChild(mcap);
       $('sheetMedia').appendChild(el);
     });
     renderImages(s, null);
@@ -3502,7 +3385,9 @@
     STORIES = [];
     try {
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
-      var r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
+      var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
+      var r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
+      if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
       if (r.error) throw r.error;
       STORIES = r.data.map(storyFromRow);

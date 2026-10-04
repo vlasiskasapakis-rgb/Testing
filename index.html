@@ -236,9 +236,13 @@
   .stage-view { height: 38vh; min-height: 200px; display: flex; gap: 8px; align-items: center; justify-content: center; background: var(--mist); border-radius: 12px; overflow: hidden; }
   .stage-view .img-wrap { height: 100%; display: flex; align-items: center; min-width: 0; animation: stageIn .35s ease; }
   .stage-view .img-frame { display: inline-block; max-width: 100%; }
-  .stage-view .img-frame img { max-height: 36vh; max-width: 100%; width: auto; height: auto; border-radius: 10px; cursor: zoom-in; }
+  .stage-view .img-frame img { max-height: 32vh; max-width: 100%; width: auto; height: auto; border-radius: 10px; cursor: zoom-in; }
   .stage-view .img-terms { display: none; }
   .stage-view .img-wrap.keep { animation: none; }
+  .media-cap { font-size: 14px; color: var(--muted); margin: 6px 0 4px; line-height: 1.35; }
+  .media-cap strong { display: block; color: var(--petrol); font-size: 15px; }
+  .media-cap a { color: var(--petrol); font-weight: 600; }
+  .stage-view .img-wrap { flex-direction: column; justify-content: center; }
   .stage-idle { color: var(--muted); font-size: 15px; text-align: center; padding: 0 16px; }
   .stage-terms { min-height: 44px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
   .stage-terms .term-list { margin: 0; }
@@ -288,6 +292,13 @@
   .ann-time-panel { flex-basis: 100%; }
   .ann-player { width: 100%; max-height: 220px; margin: 6px 0; }
   #consentSheet { z-index: 66; }
+  #mediaInfoSheet { z-index: 90; }
+  #mapPickSheet { z-index: 95; }
+  #pickMap { height: 52vh; min-height: 260px; border-radius: 12px; border: 2px solid var(--line-strong); margin: 8px 0; }
+  .loc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+  .loc-actions button { min-height: 44px; padding: 8px 16px; }
+  .mi-info { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn.info { background: var(--sky); margin-right: 6px; }
   .check { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 12px; font-weight: 400; color: var(--ink); line-height: 1.4; }
   .check input { flex: none; width: 24px; height: 24px; margin-top: 2px; }
   .code-big { display: block; margin: 6px 0 10px; padding: 12px; text-align: center; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 30px; font-weight: 700; letter-spacing: .08em; color: var(--petrol); background: var(--mist); border: 2px dashed var(--line-strong); border-radius: 12px; user-select: all; -webkit-user-select: all; }
@@ -724,6 +735,42 @@
   </div>
 </div>
 
+<!-- Στοιχεία αρχείου: τίτλος, ταυτότητα, χρόνος, τοποθεσία -->
+<div id="mediaInfoSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="miHeading">
+  <div class="sheet-inner">
+    <h2 id="miHeading"></h2>
+    <div class="input-group"><label for="miTitleIn" data-i18n="miTitle"></label><input type="text" id="miTitleIn" maxlength="120" autocomplete="off"></div>
+    <div class="input-group"><label for="miAboutIn" data-i18n="miAbout"></label><input type="text" id="miAboutIn" maxlength="200" autocomplete="off" data-i18n-ph="miAboutPh"></div>
+    <div class="input-group"><label for="miDateIn" data-i18n="miDate"></label><input type="date" id="miDateIn"></div>
+    <div class="input-group"><label for="miPeriodIn" data-i18n="miPeriod"></label><input type="text" id="miPeriodIn" maxlength="120" autocomplete="off" data-i18n-ph="miPeriodPh"></div>
+    <div class="input-group">
+      <span class="group-label" id="miLocLabel" data-i18n="miLoc"></span>
+      <div id="miLocText" class="loc-box" aria-labelledby="miLocLabel"></div>
+      <div class="loc-actions">
+        <button type="button" class="btn-secondary" id="miLocGps" data-i18n="miLocGps"></button>
+        <button type="button" class="btn-secondary" id="miLocMap" data-i18n="miLocMap"></button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn-secondary" id="miCancel" data-i18n="cancel"></button>
+      <button type="button" class="btn-primary" id="miSave" data-i18n="miSave"></button>
+    </div>
+  </div>
+</div>
+
+<div id="mapPickSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="pickHeading">
+  <div class="sheet-inner">
+    <h2 id="pickHeading" data-i18n="pickTitle"></h2>
+    <p class="sheet-sub" data-i18n="pickHint"></p>
+    <div id="pickMap" role="application" data-i18n-aria="map"></div>
+    <div id="pickCoords" class="loc-box" aria-live="polite"></div>
+    <div class="btn-row">
+      <button type="button" class="btn-secondary" id="pickCancel" data-i18n="cancel"></button>
+      <button type="button" class="btn-primary" id="pickUse" data-i18n="pickUse"></button>
+    </div>
+  </div>
+</div>
+
 <video id="procVideo" playsinline preload="auto" aria-hidden="true" tabindex="-1"></video>
 
 <script>
@@ -898,6 +945,24 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      miDetails: "Στοιχεία",
+      miTitle: "Τίτλος",
+      miAbout: "Ταυτότητα: ποιος ή τι αφορά",
+      miAboutPh: "π.χ. η γιαγιά Μαρία, το καφενείο του Νίκου",
+      miDate: "Ημερομηνία καταγραφής",
+      miPeriod: "Περίοδος που αφορά",
+      miPeriodPh: "π.χ. καλοκαίρι 1965, δεκαετία του '50",
+      miLoc: "Τοποθεσία",
+      miLocGps: "Η τοποθεσία μου (GPS)",
+      miLocMap: "Επιλογή από χάρτη",
+      miLocNone: "Δεν έχει οριστεί τοποθεσία",
+      miSave: "Αποθήκευση στοιχείων",
+      miEmpty: "Πρόσθεσε τίτλο, ημερομηνία και τοποθεσία",
+      pickTitle: "Διάλεξε τοποθεσία",
+      pickHint: "Πάτησε στον χάρτη για να βάλεις τον δείκτη.",
+      pickUse: "Χρήση αυτής της τοποθεσίας",
+      miRecorded: "Καταγράφηκε",
+      miOpenMap: "Άνοιγμα στον χάρτη",
       annSiteNote: "Ο σχολιασμός γίνεται πλέον στην ιστοσελίδα σχολιαστών.",
       annSiteLink: "Άνοιγμα ιστοσελίδας σχολιασμού",
       stageIdle: "Εδώ θα εμφανίζονται οι εικόνες και οι όροι όσο παίζει η αφήγηση.",
@@ -1170,6 +1235,24 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      miDetails: "Details",
+      miTitle: "Title",
+      miAbout: "Identity: who or what it is about",
+      miAboutPh: "e.g. Grandma Maria, Nikos's café",
+      miDate: "Date recorded",
+      miPeriod: "Period it refers to",
+      miPeriodPh: "e.g. summer 1965, the 1950s",
+      miLoc: "Location",
+      miLocGps: "My location (GPS)",
+      miLocMap: "Pick on the map",
+      miLocNone: "No location set",
+      miSave: "Save details",
+      miEmpty: "Add a title, date and location",
+      pickTitle: "Choose a location",
+      pickHint: "Tap the map to place the marker.",
+      pickUse: "Use this location",
+      miRecorded: "Recorded",
+      miOpenMap: "Open in map",
       annSiteNote: "Annotation is now done on the annotation website.",
       annSiteLink: "Open the annotation website",
       stageIdle: "Images and terms appear here as the recording plays.",
@@ -1442,6 +1525,24 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      miDetails: "Détails",
+      miTitle: "Titre",
+      miAbout: "Identité : de qui ou de quoi il s'agit",
+      miAboutPh: "p. ex. Grand-mère Maria, le café de Nikos",
+      miDate: "Date d'enregistrement",
+      miPeriod: "Période concernée",
+      miPeriodPh: "p. ex. été 1965, années 1950",
+      miLoc: "Lieu",
+      miLocGps: "Ma position (GPS)",
+      miLocMap: "Choisir sur la carte",
+      miLocNone: "Aucun lieu défini",
+      miSave: "Enregistrer les détails",
+      miEmpty: "Ajoutez un titre, une date et un lieu",
+      pickTitle: "Choisissez un lieu",
+      pickHint: "Touchez la carte pour placer le repère.",
+      pickUse: "Utiliser ce lieu",
+      miRecorded: "Enregistré",
+      miOpenMap: "Ouvrir dans la carte",
       annSiteNote: "L'annotation se fait désormais sur le site d'annotation.",
       annSiteLink: "Ouvrir le site d'annotation",
       stageIdle: "Les images et les termes apparaissent ici pendant la lecture.",
@@ -1714,6 +1815,24 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      miDetails: "Dettagli",
+      miTitle: "Titolo",
+      miAbout: "Identità: di chi o di cosa si tratta",
+      miAboutPh: "es. nonna Maria, il caffè di Nikos",
+      miDate: "Data di registrazione",
+      miPeriod: "Periodo a cui si riferisce",
+      miPeriodPh: "es. estate 1965, anni '50",
+      miLoc: "Luogo",
+      miLocGps: "La mia posizione (GPS)",
+      miLocMap: "Scegli sulla mappa",
+      miLocNone: "Nessun luogo impostato",
+      miSave: "Salva i dettagli",
+      miEmpty: "Aggiungi titolo, data e luogo",
+      pickTitle: "Scegli un luogo",
+      pickHint: "Tocca la mappa per posizionare il segnaposto.",
+      pickUse: "Usa questo luogo",
+      miRecorded: "Registrato",
+      miOpenMap: "Apri nella mappa",
       annSiteNote: "L'annotazione si fa ora sul sito di annotazione.",
       annSiteLink: "Apri il sito di annotazione",
       stageIdle: "Immagini e termini compaiono qui durante la riproduzione.",
@@ -2048,6 +2167,7 @@
       el.addEventListener('play', function () {
         $('sheetMedia').querySelectorAll('audio, video').forEach(function (o) { if (o !== el) o.pause(); });
       });
+      var mcap = mediaCaption(m); if (mcap) $('sheetMedia').appendChild(mcap);
       $('sheetMedia').appendChild(el);
     });
     renderImages(s, null);
@@ -2441,7 +2561,8 @@
       consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
-        return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl };
+        return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
+          title: m.title || '', about: m.about || '', recorded: m.recorded_at || '', period: m.period || '', lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
   }
@@ -2456,7 +2577,9 @@
     if (!sb) return;
     try {
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
-      var r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
+      var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
+      var r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
+      if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');   // βάση χωρίς πίνακα συναινέσεων
       if (r.error) r = await sb.from('stories').select(cols).order('created_at');              // βάση χωρίς στήλη status
       if (r.error) throw r.error;
@@ -2483,12 +2606,16 @@
           var up = await sb.storage.from(BUCKET).upload(path, f.blob, { contentType: type, upsert: false });
           if (up.error) throw up.error;
           uploaded.push(path);
-          rows.push({ story_id: sid, kind: f.kind, path: path, position: i });
+          var inf = f.info || {};
+          rows.push({ story_id: sid, kind: f.kind, path: path, position: i, title: inf.title || null, about: inf.about || null, recorded_at: inf.recorded || null, period: inf.period || null, lat: inf.lat == null ? null : inf.lat, lon: inf.lon == null ? null : inf.lon });
         }
         var author = userName(currentUser);
         var ins = await sb.from('stories').insert({ id: sid, title: title, lat: pos.lat, lon: pos.lon, author_name: author, consent_id: consentId });
         if (ins.error) throw ins.error;
         var mi = await sb.from('story_media').insert(rows).select('id,position');
+        if (mi.error && /column|schema cache/i.test(mi.error.message || '')) {       // βάση χωρίς τις νέες στήλες (roles.sql): ανεβαίνει χωρίς τα στοιχεία αρχείου
+          mi = await sb.from('story_media').insert(rows.map(function (r) { return { story_id: r.story_id, kind: r.kind, path: r.path, position: r.position }; })).select('id,position');
+        }
         if (mi.error) throw mi.error;
         mi.data.forEach(function (d) { rows[d.position].id = d.id; });
       } catch (e) {
@@ -2797,6 +2924,26 @@
   function noteActive(a, ctx) { return a.av_media_id === ctx.avId && ctx.now >= a.start_s && ctx.now < a.end_s; }
 
   // ctx = { avId, now }: στη σκηνή δείχνει μόνο τις σημειώσεις που ισχύουν τώρα· χωρίς ctx (λίστα, μεγέθυνση) δείχνει όλες
+  function osmLink(lat, lon) { return 'https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lon + '#map=17/' + lat + '/' + lon; }
+  // Λεζάντα αρχείου: τίτλος, ταυτότητα, ημερομηνία/περίοδος, τοποθεσία (titleOnly: μόνο ο τίτλος, για τη σκηνή)
+  function mediaCaption(m, titleOnly) {
+    var box = document.createElement('div'); box.className = 'media-cap';
+    if (m.title) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
+    if (!titleOnly) {
+      var bits = [];
+      if (m.about) bits.push(m.about);
+      if (m.recorded) bits.push(t('miRecorded') + ' ' + m.recorded);
+      if (m.period) bits.push(m.period);
+      if (bits.length) { var p = document.createElement('div'); p.textContent = bits.join(' · '); box.appendChild(p); }
+      if (m.lat != null && m.lon != null) {
+        var a = document.createElement('a'); a.href = osmLink(m.lat, m.lon); a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = '📍 ' + (+m.lat).toFixed(5) + ', ' + (+m.lon).toFixed(5); a.setAttribute('aria-label', t('miOpenMap') + ': ' + (m.title || ''));
+        box.appendChild(a);
+      }
+    }
+    return box.children.length ? box : null;
+  }
+
   function figureFor(s, m, n, ctx) {
     var wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.dataset.mediaId = m.id || '';
     var frame = document.createElement('div'); frame.className = 'img-frame';
@@ -2810,6 +2957,7 @@
     img.onclick = enlarge;
     img.onkeydown = function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); enlarge(); } };
     wrap.appendChild(frame);
+    var cap = mediaCaption(m, !!ctx); if (cap) wrap.appendChild(cap);
     if (mine.length) {
       var info = document.createElement('div'); info.className = 'img-terms';
       info.appendChild(document.createTextNode(t('imgDepicts') + ' '));
@@ -4027,7 +4175,7 @@
       item.meta = meta; item.blob = null; item.outType = null;
     } else {
       var count = processedFiles.filter(function (x) { return x.kind === kind; }).length + 1;
-      item = { originalFile: currentFile, name: currentFile.name, num: count, kind: kind, meta: meta, blob: null, outType: null };
+      item = { originalFile: currentFile, name: currentFile.name, num: count, kind: kind, meta: meta, blob: null, outType: null, info: defaultInfo(currentFile) };
       processedFiles.push(item);
       idx = processedFiles.length - 1;
     }
@@ -4036,6 +4184,21 @@
     announce(t('kept', { name: nameOf(item) }));
     leaveEditor(document.querySelector('#mediaList [data-act="edit"][data-i="' + idx + '"]'));
   };
+
+  // Στοιχεία αρχείου: τίτλος, ταυτότητα (ποιος/τι), ημερομηνία καταγραφής, περίοδος που αφορά, τοποθεσία (αρχικά το GPS)
+  function isoDate(ms) { var d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function defaultInfo(file) {
+    var lm = file && file.lastModified ? file.lastModified : Date.now();
+    return { title: '', about: '', recorded: isoDate(lm), period: '', lat: me ? me.lat : null, lon: me ? me.lon : null };
+  }
+  function infoOf(f) { if (!f.info) f.info = defaultInfo(f.originalFile); return f.info; }
+  function infoSummary(f) {
+    var i = infoOf(f), bits = [];
+    if (i.title) bits.push(i.title);
+    if (i.recorded) bits.push(i.recorded);
+    if (i.lat != null) bits.push('📍 ' + (+i.lat).toFixed(4) + ', ' + (+i.lon).toFixed(4));
+    return bits.length ? bits.join(' · ') : t('miEmpty');
+  }
 
   function describeChanges(f) {
     if (f.kind === 'image') {
@@ -4067,8 +4230,10 @@
                 '<div class="mi-text">' +
                   '<span class="mi-name" title="' + escHTML(f.name) + '">' + escHTML(nm) + ' <small>(' + Math.round(f.originalFile.size / 1024) + ' KB)</small></span>' +
                   '<span class="mi-changes">' + escHTML(describeChanges(f)) + ' · ' + escHTML(f.blob ? t('saved') : t('pending')) + '</span>' +
+                  '<span class="mi-info">' + escHTML(infoSummary(f)) + '</span>' +
                 '</div>' +
                 '<div style="flex-shrink:0;">' +
+                  '<button type="button" class="icon-btn info" data-act="info" data-i="' + i + '" aria-label="' + escHTML(t('miDetails') + ': ' + nm) + '"><span aria-hidden="true">📍</span></button>' +
                   '<button type="button" class="icon-btn edit" data-act="edit" data-i="' + i + '" aria-label="' + escHTML(t('editItem', { name: nm })) + '"><span aria-hidden="true">✏️</span></button>' +
                   '<button type="button" class="icon-btn del" data-act="del" data-i="' + i + '" aria-label="' + escHTML(t('deleteItem', { name: nm })) + '"><span aria-hidden="true">✕</span></button>' +
                 '</div>' +
@@ -4078,6 +4243,57 @@
   }
   onLangChange(updateMediaListUI);
 
+  // ---- Φόρμα στοιχείων αρχείου ----
+  var miIndex = -1, miLoc = { lat: null, lon: null };
+  function miShowLoc() { $('miLocText').textContent = miLoc.lat != null ? (+miLoc.lat).toFixed(5) + ', ' + (+miLoc.lon).toFixed(5) : t('miLocNone'); }
+  function openMediaInfo(i) {
+    var f = processedFiles[i]; if (!f) return;
+    miIndex = i; var info = infoOf(f);
+    $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f);
+    $('miTitleIn').value = info.title; $('miAboutIn').value = info.about; $('miDateIn').value = info.recorded; $('miPeriodIn').value = info.period;
+    miLoc = { lat: info.lat, lon: info.lon }; miShowLoc();
+    $('miLocGps').disabled = !me;
+    openDialog('mediaInfoSheet', $('miTitleIn'));
+  }
+  $('miLocGps').onclick = function () { if (!me) return; miLoc = { lat: me.lat, lon: me.lon }; miShowLoc(); };
+  $('miCancel').onclick = function () { closeDialog('mediaInfoSheet'); };
+  escHandlers.mediaInfoSheet = function () { closeDialog('mediaInfoSheet'); };
+  $('miSave').onclick = function () {
+    var f = processedFiles[miIndex]; if (!f) { closeDialog('mediaInfoSheet'); return; }
+    f.info = { title: $('miTitleIn').value.trim(), about: $('miAboutIn').value.trim(), recorded: $('miDateIn').value, period: $('miPeriodIn').value.trim(), lat: miLoc.lat, lon: miLoc.lon };
+    updateMediaListUI();
+    closeDialog('mediaInfoSheet');
+  };
+  onLangChange(function () { if ($('mediaInfoSheet').classList.contains('on')) { miShowLoc(); var f = processedFiles[miIndex]; if (f) $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f); } });
+
+  // Επιλογή τοποθεσίας από χάρτη (Leaflet)
+  var pickMap = null, pickMarker = null, pickPoint = null;
+  function pickShow() { $('pickCoords').textContent = pickPoint ? pickPoint.lat.toFixed(5) + ', ' + pickPoint.lon.toFixed(5) : t('miLocNone'); $('pickUse').disabled = !pickPoint; }
+  function pickSet(lat, lon) {
+    pickPoint = { lat: lat, lon: lon };
+    if (pickMarker) pickMarker.setLatLng([lat, lon]); else pickMarker = L.marker([lat, lon]).addTo(pickMap);
+    pickShow();
+  }
+  $('miLocMap').onclick = function () {
+    pickPoint = miLoc.lat != null ? { lat: miLoc.lat, lon: miLoc.lon } : null;
+    openDialog('mapPickSheet', $('pickUse'));
+    setTimeout(function () {
+      var c = pickPoint ? [pickPoint.lat, pickPoint.lon] : (me ? [me.lat, me.lon] : DEFAULT_CENTER);
+      if (!pickMap) {
+        pickMap = L.map('pickMap', { zoomControl: true }).setView(c, 16);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(pickMap);
+        pickMap.on('click', function (ev) { pickSet(ev.latlng.lat, ev.latlng.lng); });
+      } else { pickMap.setView(c, pickMap.getZoom()); }
+      pickMap.invalidateSize();
+      if (pickMarker) { pickMap.removeLayer(pickMarker); pickMarker = null; }
+      if (pickPoint) pickSet(pickPoint.lat, pickPoint.lon);
+      pickShow();
+    }, 60);
+  };
+  $('pickCancel').onclick = function () { closeDialog('mapPickSheet'); };
+  escHandlers.mapPickSheet = function () { closeDialog('mapPickSheet'); };
+  $('pickUse').onclick = function () { if (pickPoint) { miLoc = { lat: pickPoint.lat, lon: pickPoint.lon }; miShowLoc(); } closeDialog('mapPickSheet'); };
+
   $('mediaList').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-act]'); if (!b) return;
     var i = parseInt(b.dataset.i, 10), f = processedFiles[i];
@@ -4085,6 +4301,8 @@
     if (b.dataset.act === 'edit') {
       window.currentEditIndex = i;
       loadFileIntoEditor(f.originalFile, f.meta);
+    } else if (b.dataset.act === 'info') {
+      openMediaInfo(i);
     } else {
       var nm = nameOf(f);
       processedFiles.splice(i, 1);
