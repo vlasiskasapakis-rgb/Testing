@@ -204,7 +204,15 @@
   #sheetTools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; } #sheetTools[hidden] { display: none; }
   #annSheet { z-index: 65; }
   .img-frame { position: relative; line-height: 0; }
-  .story-media .img-frame img, .ann-media .img-frame img { width: 100%; height: auto; max-height: none; display: block; border-radius: 12px; background: #000; }
+  .story-media .img-frame { display: inline-block; max-width: 100%; }
+  .story-media .img-frame img { display: block; width: auto; max-width: 100%; max-height: 42vh; height: auto; border-radius: 12px; background: #000; cursor: zoom-in; }
+  #imgPopup { z-index: 80; }
+  #imgPopup .sheet-inner { max-height: 96vh; }
+  .popup-stage { display: flex; justify-content: center; }
+  .popup-frame { position: relative; display: inline-block; line-height: 0; max-width: 100%; }
+  .popup-frame img { display: block; width: auto; height: auto; max-width: 100%; max-height: 62vh; border-radius: 12px; background: #000; }
+  .img-thumb { display: block; padding: 0; width: 120px; height: 90px; overflow: hidden; border: 2px solid var(--line-strong); border-radius: 12px; background: #000; cursor: zoom-in; }
+  .img-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .region-layer { position: absolute; inset: 0; pointer-events: none; }
   .region-layer.drawing { pointer-events: auto; cursor: crosshair; touch-action: none; outline: 3px solid var(--amber); }
   .region-box { position: absolute; box-sizing: border-box; pointer-events: none; border: 3px solid var(--amber); box-shadow: 0 0 0 1px rgba(255,255,255,.9) inset, 0 0 0 1px rgba(0,0,0,.45); }
@@ -585,6 +593,15 @@
   </div>
 </div>
 
+<div id="imgPopup" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="imgPopupTitle">
+  <div class="sheet-inner">
+    <h2 id="imgPopupTitle"></h2>
+    <p id="imgPopupHint" class="sheet-sub" hidden></p>
+    <div class="popup-stage"><div class="popup-frame"><img id="imgPopupImg" alt=""><div id="imgPopupLayer" class="region-layer"></div></div></div>
+    <button id="imgPopupClose" class="btn-primary" style="margin-top:14px" data-i18n="close"></button>
+  </div>
+</div>
+
 <div id="annSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="annTitle">
   <div class="sheet-inner">
     <h2 id="annTitle" data-i18n="annTitle"></h2>
@@ -834,7 +851,15 @@
       annTimeStartNow: "Αρχή = τρέχων χρόνος",
       annTimeEndNow: "Τέλος = τρέχων χρόνος",
       annTimeClear: "Ολόκληρη η καταγραφή",
-      annPlayerHint: "Χρησιμοποίησε τον αναπαραγωγέα για να βρεις την ακριβή στιγμή κάθε όρου."
+      annPlayerHint: "Χρησιμοποίησε τον αναπαραγωγέα για να βρεις την ακριβή στιγμή κάθε όρου.",
+      annTimeFind: "Εύρεση ακριβών δευτερολέπτων",
+      annTimeNotFound: "Δεν βρέθηκε αυτή η λέξη στη γραμμή της απομαγνητοφώνησης.",
+      annRefine: "Ακριβείς χρόνοι για όλες τις προτάσεις",
+      annRefined: "Βελτιώθηκαν οι χρόνοι για {n} προτάσεις.",
+      annRefineNone: "Δεν υπάρχει τίποτα προς βελτίωση.",
+      imgEnlarge: "Μεγέθυνση εικόνας",
+      imgAreasCount: "Σημαδεμένες περιοχές: {n}",
+      annAdded: "Ήδη προστέθηκε"
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -1025,7 +1050,15 @@
       annTimeStartNow: "Start = current time",
       annTimeEndNow: "End = current time",
       annTimeClear: "Whole recording",
-      annPlayerHint: "Use the player to find the exact moment of each term."
+      annPlayerHint: "Use the player to find the exact moment of each term.",
+      annTimeFind: "Find exact seconds",
+      annTimeNotFound: "That word was not found in the transcript line.",
+      annRefine: "Set exact times for all suggestions",
+      annRefined: "Refined the times of {n} suggestions.",
+      annRefineNone: "Nothing to refine.",
+      imgEnlarge: "Enlarge image",
+      imgAreasCount: "Marked areas: {n}",
+      annAdded: "Already added"
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -1216,7 +1249,15 @@
       annTimeStartNow: "Début = temps actuel",
       annTimeEndNow: "Fin = temps actuel",
       annTimeClear: "Enregistrement entier",
-      annPlayerHint: "Utilisez le lecteur pour trouver le moment exact de chaque terme."
+      annPlayerHint: "Utilisez le lecteur pour trouver le moment exact de chaque terme.",
+      annTimeFind: "Trouver les secondes exactes",
+      annTimeNotFound: "Ce mot n'a pas été trouvé dans la ligne de transcription.",
+      annRefine: "Temps exacts pour toutes les suggestions",
+      annRefined: "Durées affinées pour {n} suggestions.",
+      annRefineNone: "Rien à affiner.",
+      imgEnlarge: "Agrandir l'image",
+      imgAreasCount: "Zones marquées : {n}",
+      annAdded: "Déjà ajouté"
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -1407,7 +1448,15 @@
       annTimeStartNow: "Inizio = tempo attuale",
       annTimeEndNow: "Fine = tempo attuale",
       annTimeClear: "Intera registrazione",
-      annPlayerHint: "Usa il lettore per trovare il momento esatto di ogni termine."
+      annPlayerHint: "Usa il lettore per trovare il momento esatto di ogni termine.",
+      annTimeFind: "Trova i secondi esatti",
+      annTimeNotFound: "Parola non trovata nella riga di trascrizione.",
+      annRefine: "Tempi esatti per tutti i suggerimenti",
+      annRefined: "Tempi precisati per {n} suggerimenti.",
+      annRefineNone: "Niente da precisare.",
+      imgEnlarge: "Ingrandisci l'immagine",
+      imgAreasCount: "Aree segnate: {n}",
+      annAdded: "Già aggiunto"
     }
   };
 
@@ -2098,9 +2147,12 @@
     if (!all) aq = aq.eq('status', 'approved');
     var res = await Promise.all([
       aq,
-      sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids),
+      sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text,words)').in('media_id', ids),
       sb.from('media_links').select('id,story_id,image_media_id,av_media_id,start_s,end_s').eq('story_id', s.dbId).order('start_s')
     ]);
+    if (res[1].error && /words/i.test(res[1].error.message || '')) {   // βάση χωρίς στήλη words
+      res[1] = await sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids);
+    }
     if (res[0].error) throw res[0].error;
     if (res[1].error) throw res[1].error;
     res[1].data.forEach(function (tr) { tr.transcript_segments.sort(function (a, b) { return a.idx - b.idx; }); });
@@ -2179,6 +2231,46 @@
     var b = x.match(/^(\d+):(\d{1,2}):(\d{1,2}(?:\.\d+)?)$/); if (b) return +b[1] * 3600 + +b[2] * 60 + parseFloat(b[3]);
     return NaN;
   }
+  // --- Ακριβής χρόνος μιας αναφοράς μέσα σε γραμμή απομαγνητοφώνησης ---
+  function normTok(w) { return String(w).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ''); }
+  function tokensOf(str) { return String(str).split(/\s+/).map(normTok).filter(Boolean); }
+  function sameTok(a, b) {
+    if (a === b) return true;
+    var n = Math.min(a.length, b.length); if (n < 4) return false;
+    var i = 0; while (i < n && a[i] === b[i]) i++;
+    return i >= Math.max(4, n - 2);   // ανεκτικό σε καταλήξεις (Μυτιλήνη / Μυτιλήνης)
+  }
+  function findSeq(hay, needle) {
+    for (var i = 0; i + needle.length <= hay.length; i++) {
+      var ok = true;
+      for (var j = 0; j < needle.length; j++) { if (!sameTok(hay[i + j], needle[j])) { ok = false; break; } }
+      if (ok) return i;
+    }
+    return -1;
+  }
+  // Επιστρέφει {start, end, exact} ή null. exact=true όταν υπάρχουν χρονισμοί λέξεων· αλλιώς εκτίμηση βάσει θέσης στο κείμενο.
+  function locateMention(seg, mention) {
+    var mt = tokensOf(mention), segStart = +seg.start_s, segEnd = +seg.end_s, dur = segEnd - segStart;
+    if (!mt.length || !(dur > 0)) return null;
+    function fin(a, b, pad, minW, exact) {
+      a -= pad; b += pad;
+      if (b - a < minW) { var c = (a + b) / 2; a = c - minW / 2; b = c + minW / 2; }
+      a = Math.max(segStart, a); b = Math.min(segEnd, b);
+      return b - a > 0.2 ? { start: +a.toFixed(2), end: +b.toFixed(2), exact: exact } : null;
+    }
+    var words = seg.words;
+    if (words && words.length) {
+      var i = findSeq(words.map(function (w) { return normTok(w.w); }), mt);
+      if (i >= 0) return fin(words[i].s, words[i + mt.length - 1].e, 0.1, 0.5, true);
+    }
+    var toks = String(seg.text).split(/\s+/).filter(function (x) { return normTok(x); });
+    var j = findSeq(toks.map(normTok), mt);
+    if (j < 0) return null;
+    var total = 0, before = 0, len = 0;
+    toks.forEach(function (x, k) { var l = x.length + 1; total += l; if (k < j) before += l; else if (k < j + mt.length) len += l; });
+    return fin(segStart + dur * before / total, segStart + dur * (before + len) / total, 0.15, 1.2, false);
+  }
+
   function hasRange(a) { return a.end_s != null && a.start_s != null && a.end_s > a.start_s; }
 
   function hasRegion(a) { return a.region_x != null && a.region_w > 0 && a.region_h > 0; }
@@ -2188,6 +2280,48 @@
     d.style.width = (a.region_w * 100) + '%'; d.style.height = (a.region_h * 100) + '%';
     d.title = a.label; return d;
   }
+  // ---------- Αναδυόμενο παράθυρο εικόνας (προβολή και σήμανση περιοχής) ----------
+  var popupDraw = null;
+  function openImagePopup(o) {
+    $('imgPopupTitle').textContent = o.title || o.alt || '';
+    var img = $('imgPopupImg'); img.alt = o.alt || ''; img.src = o.url;
+    var layer = $('imgPopupLayer'); layer.innerHTML = '';
+    (o.regions || []).forEach(function (a) { layer.appendChild(regionBox(a, a.status === 'suggested' ? 'suggested' : '')); });
+    popupDraw = o.draw ? o : null;
+    layer.classList.toggle('drawing', !!o.draw);
+    var hint = $('imgPopupHint'); hint.hidden = !o.draw; hint.textContent = t('imgMarkHint');
+    openDialog('imgPopup', $('imgPopupClose'));
+  }
+  $('imgPopupClose').onclick = function () { popupDraw = null; closeDialog('imgPopup'); };
+  escHandlers.imgPopup = function () { $('imgPopupClose').click(); };
+
+  // Σχεδίαση περιοχής με σύρσιμο (ποντίκι ή αφή) πάνω στη μεγάλη εικόνα
+  (function () {
+    var layer = $('imgPopupLayer'), start = null, preview = null;
+    function pt(ev) {
+      var r = $('imgPopupImg').getBoundingClientRect();
+      return { x: Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)) };
+    }
+    function rectOf(a, b) { return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y) }; }
+    layer.onpointerdown = function (ev) {
+      if (!popupDraw) return;
+      ev.preventDefault(); layer.setPointerCapture(ev.pointerId);
+      start = pt(ev); preview = regionBox({ region_x: start.x, region_y: start.y, region_w: 0, region_h: 0, label: '' }, 'suggested'); layer.appendChild(preview);
+    };
+    layer.onpointermove = function (ev) {
+      if (!start) return;
+      var r = rectOf(start, pt(ev));
+      preview.style.left = r.x * 100 + '%'; preview.style.top = r.y * 100 + '%'; preview.style.width = r.w * 100 + '%'; preview.style.height = r.h * 100 + '%';
+    };
+    layer.onpointerup = function (ev) {
+      if (!start) return;
+      var r = rectOf(start, pt(ev)); start = null; if (preview) { preview.remove(); preview = null; }
+      if (!popupDraw || r.w < 0.02 || r.h < 0.02) return;      // πολύ μικρό: δοκίμασε ξανά
+      var cb = popupDraw.onRect; popupDraw = null;
+      closeDialog('imgPopup'); cb(r);
+    };
+  })();
+
   // ---------- Εικόνες, σύνδεση με χρόνο αφήγησης και συγχρονισμός αναπαραγωγής ----------
   var sheetK = null, currentLinks = [];
 
@@ -2202,6 +2336,10 @@
     frame.appendChild(img);
     var mine = annsForImage(m.id);
     mine.filter(hasRegion).forEach(function (a) { frame.appendChild(regionBox(a)); });
+    function enlarge() { openImagePopup({ url: m.url, alt: img.alt, title: img.alt, regions: mine.filter(hasRegion) }); }
+    img.tabIndex = 0; img.setAttribute('role', 'button'); img.setAttribute('aria-label', t('imgEnlarge') + ': ' + img.alt);
+    img.onclick = enlarge;
+    img.onkeydown = function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); enlarge(); } };
     wrap.appendChild(frame);
     if (mine.length) {
       var info = document.createElement('div'); info.className = 'img-terms';
@@ -2433,7 +2571,8 @@
     if (!r.ok) throw new Error('Wikidata ' + r.status);
     var d = await r.json();
     return (d.search || []).map(function (x) {
-      return { vocabulary: 'wikidata', id: x.id, uri: 'https://www.wikidata.org/entity/' + x.id, label: x.label || x.id, description: x.description || '' };
+      return { vocabulary: 'wikidata', id: x.id, uri: 'https://www.wikidata.org/entity/' + x.id, label: x.label || x.id, description: x.description || '',
+        matchText: x.match && x.match.text ? x.match.text : null };
     });
   }
 
@@ -2502,8 +2641,14 @@
     var tid = up.data.id;
     var del = await sb.from('transcript_segments').delete().eq('transcript_id', tid);
     if (del.error) throw del.error;
-    var rows = segs.map(function (g, i) { return { transcript_id: tid, idx: i, start_s: g.start_s, end_s: g.end_s, text: g.text.slice(0, 1000) }; });
+    var rows = segs.map(function (g, i) {
+      return { transcript_id: tid, idx: i, start_s: g.start_s, end_s: g.end_s, text: g.text.slice(0, 1000),
+        words: g.words && g.words.length ? g.words.slice(0, 300).map(function (w) { return { w: w.w, s: w.s, e: w.e }; }) : null };
+    });
     var ins = await sb.from('transcript_segments').insert(rows);
+    if (ins.error && /words/i.test(ins.error.message || '')) {   // βάση χωρίς στήλη words: αποθήκευση χωρίς χρονισμούς λέξεων
+      ins = await sb.from('transcript_segments').insert(rows.map(function (r) { var c = Object.assign({}, r); delete c.words; return c; }));
+    }
     if (ins.error) throw ins.error;
     // Οι αυτόματες προτάσεις που δεν έχεις ελέγξει αντικαθίστανται· οι εγκεκριμένες/απορριφθείσες μένουν.
     var da = await sb.from('annotations').delete().eq('media_id', m.id).eq('source', 'auto').eq('status', 'suggested');
@@ -2526,17 +2671,32 @@
         return wdSearch(ph, lang, 2).catch(function () { return []; }).then(function (r) { found[ph] = r; onProgress(++done, order.length); });
       }));
     }
+    // Μόνο αποτελέσματα που ταιριάζουν ολόκληρη τη φράση (το Wikidata ταιριάζει και με αρχή λέξης), και το καλύτερο ένα ανά φράση.
+    order.forEach(function (ph) {
+      var pt_ = tokensOf(ph);
+      found[ph] = found[ph].filter(function (c) {
+        if (!c.matchText) return true;
+        var ct = tokensOf(c.matchText);
+        return ct.length === pt_.length && pt_.every(function (x, i) { return sameTok(x, ct[i]); });
+      }).slice(0, 1);
+    });
+    // Ό,τι υπάρχει ήδη (εγκεκριμένο, απορριμμένο ή χειροκίνητο) για την ίδια γραμμή δεν προτείνεται ξανά.
+    var haveRes = await sb.from('annotations').select('term_uri,segment_idx').eq('media_id', m.id);
+    var have = {};
+    ((haveRes && haveRes.data) || []).forEach(function (a) { have[a.term_uri + '|' + a.segment_idx] = true; });
     var ids = [];
     order.forEach(function (ph) { found[ph].forEach(function (c) { ids.push(c.id); }); });
     var kinds = await wdKinds(ids.filter(function (x, k) { return ids.indexOf(x) === k; }));
     var rows = [], seen = {};
-    order.forEach(function (ph) {
+    // Οι συντομότερες φράσεις πρώτες: ο "Μυτιλήνη" υπερισχύει του "Στη Μυτιλήνη" όταν δίνουν την ίδια οντότητα
+    order.slice().sort(function (a, b) { return tokensOf(a).length - tokensOf(b).length; }).forEach(function (ph) {
       found[ph].forEach(function (c) {
         phrases[ph].forEach(function (g) {
           var key = c.uri + '|' + g.idx;
-          if (seen[key]) return;
+          if (seen[key] || have[key]) return;
           seen[key] = 1;
-          rows.push({ media_id: m.id, segment_idx: g.idx, start_s: g.start_s, end_s: g.end_s, mention: ph, kind: kinds[c.id] || 'concept',
+          var loc = locateMention(g, ph);
+          rows.push({ media_id: m.id, segment_idx: g.idx, start_s: loc ? loc.start : g.start_s, end_s: loc ? loc.end : g.end_s, mention: ph, kind: kinds[c.id] || 'concept',
             vocabulary: 'wikidata', term_uri: c.uri, label: c.label.slice(0, 200), description: c.description.slice(0, 300), status: 'suggested', source: 'auto' });
         });
       });
@@ -2595,6 +2755,11 @@
         if (r.error) { alert(t('annSaveError', { e: r.error.message })); return; }
         a.start_s = st_; a.end_s = en_; onChange(); notifyAnn();
       }
+      tb(t('annTimeFind'), function () {
+        var loc = ctx.locate ? ctx.locate(a) : null;
+        if (!loc) { alert(t('annTimeNotFound')); return; }
+        si.value = fmtT(loc.start); ei.value = fmtT(loc.end); ctx.seek(loc.start);
+      });
       tb(t('annTimeSave'), function () {
         var x = parseTime(si.value), y = parseTime(ei.value);
         if (!(x >= 0) || !(y > x)) { alert(t('lnkBad')); return; }
@@ -2709,19 +2874,43 @@
     async function run(device) {
       var pipe = await loadWhisper(quality, device, function (p) { onStatus(t('annWhisperLoad', { p: p })); });
       onStatus(t(device === 'webgpu' ? 'annWhisperRunGpu' : 'annWhisperRun'));
-      return pipe(audio, { language: WHISPER_LANG[lang] || 'english', task: 'transcribe', return_timestamps: true, chunk_length_s: 30, stride_length_s: 5 });
+      var opts = { language: WHISPER_LANG[lang] || 'english', task: 'transcribe', chunk_length_s: 30, stride_length_s: 5 };
+      try { opts.return_timestamps = 'word'; return { res: await pipe(audio, opts), word: true }; }   // χρονισμοί λέξεων
+      catch (e) { opts.return_timestamps = true; return { res: await pipe(audio, opts), word: false }; }
     }
-    var res;
+    var out;
     if (await hasWebGPU()) {
-      try { res = await run('webgpu'); }
-      catch (e) { onStatus(t('annWhisperFallback')); res = await run('wasm'); }
-    } else { res = await run('wasm'); }
+      try { out = await run('webgpu'); }
+      catch (e) { onStatus(t('annWhisperFallback')); out = await run('wasm'); }
+    } else { out = await run('wasm'); }
+    var res = out.res;
     var chunks = (res.chunks || []).filter(function (c) { return c.text && c.text.trim(); });
     if (!chunks.length && res.text && res.text.trim()) return [{ start_s: 0, end_s: 0, text: res.text.trim() }];
+    if (out.word) return groupWords(chunks);
     return chunks.map(function (c) { return { start_s: c.timestamp[0] || 0, end_s: c.timestamp[1] == null ? (c.timestamp[0] || 0) : c.timestamp[1], text: c.text.trim() }; });
   }
 
-  function addTermForm(seg, m, lang, onAdded) {
+  // Ομαδοποίηση λέξεων με χρονισμούς σε γραμμές (τέλος πρότασης, παύση ή μέγιστο μήκος)
+  function groupWords(chunks) {
+    var segs = [], cur = null;
+    function flush() {
+      if (!cur) return;
+      cur.text = cur.words.map(function (w) { return w.w; }).join(' ');
+      cur.start_s = cur.words[0].s; cur.end_s = cur.words[cur.words.length - 1].e;
+      segs.push(cur); cur = null;
+    }
+    chunks.forEach(function (c) {
+      var w = c.text.trim(), st_ = c.timestamp[0] || 0, en_ = c.timestamp[1] == null ? st_ : c.timestamp[1];
+      if (cur && st_ - cur.words[cur.words.length - 1].e > 0.9) flush();
+      if (!cur) cur = { words: [] };
+      cur.words.push({ w: w, s: +st_.toFixed(2), e: +Math.max(en_, st_).toFixed(2) });
+      if (/[.!?;·]$/.test(w) || cur.words.length >= 18) flush();
+    });
+    flush();
+    return segs;
+  }
+
+  function addTermForm(seg, m, lang, onAdded, hasTerm) {
     var wrap = document.createElement('div'); wrap.className = 'ann-add';
     var open = document.createElement('button'); open.type = 'button'; open.className = 'link-btn'; open.textContent = t('annAddTerm');
     var form = document.createElement('div'); form.hidden = true;
@@ -2746,10 +2935,12 @@
           var kind = c.kind;
           row.appendChild(kindSelect(kind, c.label, function (k) { kind = k; }));
           var add = document.createElement('button'); add.type = 'button'; add.textContent = t('annAdd'); add.setAttribute('aria-label', t('annAdd') + ': ' + c.label);
+          if (hasTerm && hasTerm(c.uri)) { add.disabled = true; add.textContent = t('annAdded'); }
           add.onclick = async function () {
             add.disabled = true;
+            var loc = locateMention(seg, q);
             var r = await sb.from('annotations').insert({
-              media_id: m.id, segment_idx: seg.idx, start_s: seg.start_s, end_s: seg.end_s, mention: q, kind: kind, vocabulary: c.vocabulary,
+              media_id: m.id, segment_idx: seg.idx, start_s: loc ? loc.start : seg.start_s, end_s: loc ? loc.end : seg.end_s, mention: q, kind: kind, vocabulary: c.vocabulary,
               term_uri: c.uri, label: c.label.slice(0, 200), description: (c.description || '').slice(0, 300),
               status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString()
             }).select('id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source').single();
@@ -2776,7 +2967,8 @@
     playerEl.className = 'ann-player'; playerEl.controls = true; playerEl.preload = 'metadata'; playerEl.src = m.url;
     playerEl.setAttribute('aria-label', t('type_' + m.kind) + ' ' + n); sec.appendChild(playerEl);
     var ph = document.createElement('p'); ph.className = 'sheet-sub'; ph.textContent = t('annPlayerHint'); sec.appendChild(ph);
-    var ctx = { getTime: function () { return playerEl.currentTime || 0; }, seek: function (x) { try { playerEl.currentTime = x; } catch (e) {} } };
+    var ctx = { getTime: function () { return playerEl.currentTime || 0; }, seek: function (x) { try { playerEl.currentTime = x; } catch (e) {} },
+      locate: function (a) { var g = segByIdx[a.segment_idx]; return g ? locateMention(g, a.mention) : null; } };
 
     var langWrap = document.createElement('div'); langWrap.className = 'input-group';
     var langLbl = document.createElement('label'); langLbl.htmlFor = uid + '-lang'; langLbl.textContent = t('annLangLabel');
@@ -2805,16 +2997,27 @@
     var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
     var save = document.createElement('button'); save.type = 'button'; save.className = 'btn-secondary btn-wide'; save.textContent = t('annRun'); sec.appendChild(save);
     var auto = document.createElement('button'); auto.type = 'button'; auto.className = 'btn-primary btn-wide'; auto.textContent = t('annAuto'); sec.appendChild(auto);
+    var refine = document.createElement('button'); refine.type = 'button'; refine.className = 'btn-secondary btn-wide'; refine.textContent = t('annRefine'); sec.appendChild(refine);
     var list = document.createElement('div'); sec.appendChild(list);
-    var data = null, filled = false;
+    var data = null, filled = false, lastWords = [], segByIdx = {};
 
-    function busy(on) { [serverBtn, whisperBtn, fileBtn, save, auto, langSel, qSel, ta].forEach(function (el) { el.disabled = on; }); }
+    function attachWords(segs) {
+      var pool = lastWords.slice();
+      return segs.map(function (g) {
+        var i = pool.findIndex(function (x) { return x && x.words && x.words.length && x.text === g.text; });
+        if (i >= 0) { g.words = pool[i].words.slice(0, 300); pool[i] = null; }
+        return g;
+      });
+    }
+
+    function busy(on) { [serverBtn, whisperBtn, fileBtn, save, auto, refine, langSel, qSel, ta].forEach(function (el) { el.disabled = on; }); }
 
     function paint() {
       var tr = data && data.transcripts.filter(function (x) { return x.media_id === m.id; })[0];
       var anns = data ? data.annotations.filter(function (a) { return a.media_id === m.id; }) : [];
       list.innerHTML = '';
-      if (tr && !filled) { ta.value = segmentsToText(tr.transcript_segments); if (tr.language) langSel.value = tr.language; filled = true; }
+      if (tr && !filled) { ta.value = segmentsToText(tr.transcript_segments); lastWords = tr.transcript_segments.map(function (g) { return { text: g.text, words: g.words || null }; }); if (tr.language) langSel.value = tr.language; filled = true; }
+      segByIdx = {}; if (tr) tr.transcript_segments.forEach(function (g) { segByIdx[g.idx] = g; });
       if (!tr) return;
       tr.transcript_segments.forEach(function (seg) {
         var mine = anns.filter(function (a) { return a.segment_idx === seg.idx; });
@@ -2823,7 +3026,8 @@
         var tx = document.createElement('div'); tx.textContent = seg.text;
         box.appendChild(when); box.appendChild(tx);
         mine.forEach(function (a) { box.appendChild(annRowEl(a, paint, ctx)); });
-        box.appendChild(addTermForm(seg, m, tr.language || langSel.value, function (row) { data.annotations.push(row); paint(); notifyAnn(); }));
+        box.appendChild(addTermForm(seg, m, tr.language || langSel.value, function (row) { data.annotations.push(row); paint(); notifyAnn(); },
+          function (uri) { return data.annotations.some(function (a) { return a.media_id === m.id && a.segment_idx === seg.idx && a.term_uri === uri && a.status !== 'rejected'; }); }));
         list.appendChild(box);
       });
     }
@@ -2834,7 +3038,7 @@
       busy(true);
       try {
         var segs = await whisperTranscribe(m.url, langSel.value, qSel.value, function (msg) { status.textContent = msg; });
-        ta.value = segmentsToText(segs); filled = true;
+        ta.value = segmentsToText(segs); filled = true; lastWords = segs.map(function (g) { return { text: g.text, words: g.words || null }; });
         status.textContent = '';
       } catch (e) { status.textContent = t('annWhisperErr', { e: e.message || e }); }
       finally { busy(false); }
@@ -2843,7 +3047,7 @@
       busy(true); status.textContent = t('annServerRun');
       try {
         var segs = await serverTranscribe(m.id, langSel.value);
-        ta.value = segmentsToText(segs); filled = true;
+        ta.value = segmentsToText(segs); filled = true; lastWords = segs.map(function (g) { return { text: g.text, words: g.words || null }; });
         status.textContent = '';
       } catch (e) { status.textContent = t('annServerErr', { e: e.message || e }); }
       finally { busy(false); }
@@ -2853,20 +3057,20 @@
       var f = fileIn.files && fileIn.files[0];
       if (!f) return;
       var rd = new FileReader();
-      rd.onload = function () { ta.value = parseSubtitleFile(String(rd.result || '')); filled = true; };
+      rd.onload = function () { ta.value = parseSubtitleFile(String(rd.result || '')); filled = true; lastWords = []; };
       rd.readAsText(f);
       fileIn.value = '';
     };
 
     async function saveFlow(withAuto) {
-      var segs = textToSegments(ta.value).slice(0, 400);
+      var segs = attachWords(textToSegments(ta.value).slice(0, 400));
       if (!segs.length) { status.textContent = t('annEmpty'); ta.focus(); return; }
       busy(true); status.textContent = t('annRunning');
       try {
         var rows = await saveTranscript(m, langSel.value, segs);
         var msg = t('annSaved', { s: rows.length });
         if (withAuto) {
-          var count = await autoSuggest(m, langSel.value, rows.map(function (r) { return { idx: r.idx, start_s: r.start_s, end_s: r.end_s, text: r.text }; }),
+          var count = await autoSuggest(m, langSel.value, rows.map(function (r) { return { idx: r.idx, start_s: r.start_s, end_s: r.end_s, text: r.text, words: r.words || null }; }),
             function (i, total) { status.textContent = t('annAutoProgress', { i: i, n: total }); });
           msg = t('annAutoDone', { n: count });
         }
@@ -2878,6 +3082,27 @@
         status.textContent = t('annFailed', { e: e.message || e });
       } finally { busy(false); }
     }
+    // Ακριβείς χρόνοι για προτάσεις που ακόμα καλύπτουν ολόκληρη τη γραμμή (όσες έχεις ήδη διορθώσει μένουν ως έχουν)
+    refine.onclick = async function () {
+      if (!data) return;
+      busy(true); status.textContent = t('annRunning');
+      var n = 0;
+      try {
+        var mine = data.annotations.filter(function (a) { return a.media_id === m.id && a.segment_idx != null && a.status !== 'rejected'; });
+        for (var i = 0; i < mine.length; i++) {
+          var a = mine[i], g = segByIdx[a.segment_idx];
+          if (!g || a.start_s !== g.start_s || a.end_s !== g.end_s) continue;
+          var loc = locateMention(g, a.mention);
+          if (!loc) continue;
+          var r = await sb.from('annotations').update({ start_s: loc.start, end_s: loc.end }).eq('id', a.id);
+          if (r.error) throw r.error;
+          a.start_s = loc.start; a.end_s = loc.end; n++;
+        }
+        paint(); notifyAnn();
+        status.textContent = n ? t('annRefined', { n: n }) : t('annRefineNone');
+      } catch (e) { status.textContent = t('annFailed', { e: e.message || e }); }
+      finally { busy(false); }
+    };
     save.onclick = function () { saveFlow(false); };
     auto.onclick = function () { saveFlow(true); };
     reload().catch(function (e) { status.textContent = t('annFailed', { e: e.message || e }); });
@@ -2943,22 +3168,23 @@
     var sec = document.createElement('section'); sec.className = 'ann-media';
     var h = document.createElement('h3'); h.textContent = t('type_image') + ' ' + n; sec.appendChild(h);
 
-    var frame = document.createElement('div'); frame.className = 'img-frame';
-    var img = document.createElement('img'); img.src = m.url; img.alt = t('type_image') + ' ' + n;
-    var layer = document.createElement('div'); layer.className = 'region-layer';
-    frame.appendChild(img); frame.appendChild(layer); sec.appendChild(frame);
-
-    var hint = document.createElement('p'); hint.className = 'sheet-sub'; hint.hidden = true; hint.textContent = t('imgMarkHint'); sec.appendChild(hint);
+    var imgAlt = t('type_image') + ' ' + n;
+    var thumb = document.createElement('button'); thumb.type = 'button'; thumb.className = 'img-thumb'; thumb.setAttribute('aria-label', t('imgEnlarge') + ': ' + imgAlt);
+    var timg = document.createElement('img'); timg.src = m.url; timg.alt = ''; thumb.appendChild(timg); sec.appendChild(thumb);
+    var areaNote = document.createElement('p'); areaNote.className = 'sheet-sub'; sec.appendChild(areaNote);
+    thumb.onclick = function () {
+      openImagePopup({ url: m.url, alt: imgAlt, title: imgAlt, regions: anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }) });
+    };
     var head = document.createElement('h3'); head.textContent = t('imgTerms'); sec.appendChild(head);
     var list = document.createElement('div'); sec.appendChild(list);
     var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
     var clipBtn = document.createElement('button'); clipBtn.type = 'button'; clipBtn.className = 'btn-secondary btn-wide'; clipBtn.textContent = t('imgClip'); sec.appendChild(clipBtn);
 
-    var terms = [], anns = [], drawFor = null, links = [], transcripts = [], selAvId = null, lnkInit = false;
+    var terms = [], anns = [], links = [], transcripts = [], selAvId = null, lnkInit = false;
 
     function paint() {
-      layer.innerHTML = '';
-      anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }).forEach(function (a) { layer.appendChild(regionBox(a, a.status === 'suggested' ? 'suggested' : '')); });
+      var nAreas = anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }).length;
+      areaNote.textContent = nAreas ? t('imgAreasCount', { n: nAreas }) : '';
       list.innerHTML = '';
       if (!terms.length) { var p = document.createElement('p'); p.textContent = t('imgNoTerms'); list.appendChild(p); return; }
       terms.forEach(function (tm, i) {
@@ -3001,8 +3227,18 @@
           btn(t('annReject'), function () { return setStatus(ex, 'rejected'); });
         }
         if (ex && ex.status === 'approved') {
-          var mark = btn(t('imgMark'), async function () { drawFor = drawFor === ex ? null : ex; });
-          mark.setAttribute('aria-pressed', drawFor === ex ? 'true' : 'false');
+          btn(t('imgMark'), async function () {
+            openImagePopup({
+              url: m.url, alt: imgAlt, title: imgAlt + ' — ' + tm.label, draw: true,
+              regions: anns.filter(function (a) { return a !== ex && a.status !== 'rejected' && hasRegion(a); }),
+              onRect: async function (r) {
+                var res = await sb.from('annotations').update({ region_x: r.x, region_y: r.y, region_w: r.w, region_h: r.h }).eq('id', ex.id);
+                if (res.error) alert(t('annSaveError', { e: res.error.message }));
+                else { ex.region_x = r.x; ex.region_y = r.y; ex.region_w = r.w; ex.region_h = r.h; }
+                paint();
+              }
+            });
+          });
           if (hasRegion(ex)) btn(t('imgClear'), async function () {
             var r = await sb.from('annotations').update({ region_x: null, region_y: null, region_w: null, region_h: null }).eq('id', ex.id);
             if (r.error) throw r.error; ex.region_x = ex.region_y = ex.region_w = ex.region_h = null;
@@ -3010,36 +3246,7 @@
         }
         list.appendChild(row);
       });
-      layer.classList.toggle('drawing', !!drawFor); hint.hidden = !drawFor;
     }
-
-    // Σχεδίαση περιοχής με σύρσιμο (δείκτης: ποντίκι ή αφή)
-    var start = null, preview = null;
-    function pt(ev) {
-      var r = img.getBoundingClientRect();
-      return { x: Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)) };
-    }
-    function rectOf(a, b) { return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y) }; }
-    layer.onpointerdown = function (ev) {
-      if (!drawFor) return;
-      ev.preventDefault(); layer.setPointerCapture(ev.pointerId);
-      start = pt(ev); preview = regionBox({ region_x: start.x, region_y: start.y, region_w: 0, region_h: 0, label: '' }, 'suggested'); layer.appendChild(preview);
-    };
-    layer.onpointermove = function (ev) {
-      if (!start) return;
-      var r = rectOf(start, pt(ev));
-      preview.style.left = r.x * 100 + '%'; preview.style.top = r.y * 100 + '%'; preview.style.width = r.w * 100 + '%'; preview.style.height = r.h * 100 + '%';
-    };
-    layer.onpointerup = async function (ev) {
-      if (!start) return;
-      var r = rectOf(start, pt(ev)); start = null; if (preview) { preview.remove(); preview = null; }
-      var target = drawFor;
-      if (!target || r.w < 0.02 || r.h < 0.02) { paint(); return; }
-      var res = await sb.from('annotations').update({ region_x: r.x, region_y: r.y, region_w: r.w, region_h: r.h }).eq('id', target.id);
-      if (res.error) { alert(t('annSaveError', { e: res.error.message })); }
-      else { target.region_x = r.x; target.region_y = r.y; target.region_w = r.w; target.region_h = r.h; }
-      drawFor = null; paint();
-    };
 
     async function reload() {
       var k = await fetchKnowledge(s, true);

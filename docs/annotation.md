@@ -30,13 +30,25 @@ every list and query, but anyone who is given a draft file's exact URL could ope
 ## Annotator workflow
 1. **Stories** (top left) lists every story with its status; open one without having to be nearby.
 2. **Transcribe and annotate**: for each audio/video get a transcript, find or add terms, approve.
-3. For each image: tick the terms it shows, optionally mark an area, and use **Link this image to a
+3. For each image (shown as a small thumbnail; tap it to open it larger in a popup): tick the terms it shows, optionally mark an area (**Mark area** opens the popup, drag on the image), and use **Link this image to a
    moment of the story**: choose the audio/video, pick a transcript line or set start/end (the small
    player has "Start/End = current time"), then **Add link**. An image can have several links.
    Each term on an audio/video row has a **Time** button: set when in the recording it applies (the
    player on that section has Start/End = current time), or choose **Whole recording**. Transcript-based
    suggestions start with their transcript line's range.
 4. **Publish for everyone**.
+
+## Exact seconds for suggestions
+A term points at the seconds where its word is spoken, not at its whole transcript line:
+- **Word timings** (Whisper on this device, or the Groq server option) are saved with each line
+  (`transcript_segments.words`; run `roles.sql` once to add the column). Terms found in such a line get the exact
+  range of the word, with a little padding.
+- **No word timings** (typed text, `.srt`/`.vtt`, or a line you edited): the range is *estimated* from where the word sits
+  in the line, with a minimum width of about 1 second. Check these; use **Time → Find exact seconds**, or set
+  start/end with the player.
+- **Set exact times for all suggestions** refines older suggestions that still cover the whole line. Anything
+  you already adjusted is left alone.
+- Editing a line's text in the box drops its word timings (they no longer match); re-run the transcription to get them back.
 
 ## What the public sees
 - Every audio/video has a **timeline** under its player: amber bars are the parts linked to images, blue bars are the parts

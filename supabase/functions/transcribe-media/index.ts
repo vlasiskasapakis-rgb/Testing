@@ -54,6 +54,7 @@ Deno.serve(async (req: Request) => {
   form.append('model', MODEL);
   form.append('response_format', 'verbose_json');
   form.append('timestamp_granularities[]', 'segment');
+  form.append('timestamp_granularities[]', 'word');
   if (lang) form.append('language', lang);
 
   const r = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
@@ -67,5 +68,12 @@ Deno.serve(async (req: Request) => {
     start_s: Number(s.start) || 0, end_s: Number(s.end) || 0, text: String(s.text || '').trim(),
   })).filter((s: any) => s.text);
   if (!segments.length && d.text) segments.push({ start_s: 0, end_s: 0, text: String(d.text).trim() });
+  // Attach word timings (when the service returns them) to the segment they fall in, so annotations
+  // can point at the exact seconds a word is spoken.
+  const words = (d.words || []).map((w: any) => ({ w: String(w.word || '').trim(), s: Number(w.start) || 0, e: Number(w.end) || 0 })).filter((w: any) => w.w);
+  for (const sg of segments as any[]) {
+    const inSeg = words.filter((w: any) => w.s >= sg.start_s - 0.05 && w.s < sg.end_s + 0.05).slice(0, 300);
+    sg.words = inSeg.length ? inSeg.map((w: any) => ({ w: w.w, s: +w.s.toFixed(2), e: +w.e.toFixed(2) })) : null;
+  }
   return json({ ok: true, segments });
 });

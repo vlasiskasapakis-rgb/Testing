@@ -25,6 +25,11 @@ create table if not exists public.transcript_segments (
   unique (transcript_id, idx)
 );
 
+-- Word timings for each transcript line: [{"w": "word", "s": start_seconds, "e": end_seconds}, ...]
+alter table public.transcript_segments add column if not exists words jsonb;
+alter table public.transcript_segments drop constraint if exists transcript_segments_words_check;
+alter table public.transcript_segments add  constraint transcript_segments_words_check check (words is null or jsonb_typeof(words) = 'array');
+
 create table if not exists public.annotations (
   id          uuid primary key default gen_random_uuid(),
   media_id    uuid not null references public.story_media(id) on delete cascade,
