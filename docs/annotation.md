@@ -19,14 +19,18 @@ starts as your GPS position; you can press **Pick on the map** and tap a place i
 each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` once: it adds the columns to `story_media`
 (an upload still works without them, but the details are then not saved).
 
-## Three buttons (annotation website)
-1. **1 · Transcribe** (on each recording): fills the transcript text (Groq server; or **Load a .srt / .vtt / .txt file**). Edit the text if needed.
-2. **2 · Save transcript** (on each recording): stores the text.
-3. **3 · Suggest terms for the whole story** (the bar at the bottom of the right column, always in view): uses all saved transcripts together with the story's details and
-   suggests the terms once (below). If a transcript has unsaved changes, it asks you to save it first.
+## Three buttons in a row (annotation website)
+At the top of the right column, always in view: **1 · Transcribe**, **2 · Save transcript**, **3 · Suggest terms** (plus a small
+language picker for the transcription). They work on the whole story:
+1. **1 · Transcribe** fills the transcript text of every recording that has none yet (Groq server). If every recording already has
+   text it asks before replacing it. A recording's text can also be loaded from a .srt / .vtt / .txt file (link in its section) or
+   typed. Edit the text freely.
+2. **2 · Save transcript** stores the changed texts.
+3. **3 · Suggest terms** uses all saved transcripts together with the story's details and suggests the terms once (below). If a
+   transcript has unsaved changes it asks you to save first. For a story with only images, buttons 1 and 2 are disabled.
 
 ## One combined suggestion for the whole story (annotation website)
-**3 · Suggest terms for the whole story** (the bar at the bottom of the right column, always in view) combines everything known about the story in one pass. The details are used **inside the transcript**, not as a
+**3 · Suggest terms** combines everything known about the story in one pass. The details are used **inside the transcript**, not as a
 separate list:
 - Names spoken in the transcript are looked up in Wikidata. The **title, identity, period and location** of the file decide which
   match is right and how confident the suggestion is.
