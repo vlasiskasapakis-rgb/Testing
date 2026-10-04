@@ -2,6 +2,15 @@
 -- Everyone (logged in or not) can READ stories. Only logged-in users can
 -- publish, and each user can only change or delete their own stories.
 
+-- Safety guard: this file is for first-time setup only. Once roles.sql has been applied, running it again
+-- would restore the old, weaker security rules (e.g. make drafts public). Use roles.sql for later updates.
+do $$
+begin
+  if to_regclass('public.profiles') is not null then
+    raise exception 'Roles are already installed. Do not re-run this file (it would weaken the security rules); run roles.sql instead.';
+  end if;
+end $$;
+
 create table if not exists public.stories (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null default auth.uid() references auth.users(id) on delete cascade,
