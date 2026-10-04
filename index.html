@@ -255,6 +255,11 @@
   .tl-item.active { outline: 2px solid var(--petrol); opacity: 1; }
   .tl-head { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--petrol); pointer-events: none; }
   .now-terms { margin-top: 8px; }
+  .tl-item.imgnote { background: var(--petrol); }
+  .term-block { margin-bottom: 10px; }
+  .inst-row { margin-left: 22px; padding: 6px 0 6px 10px; border-left: 3px solid var(--line); }
+  .inst-row .ann-when { flex-basis: 100%; }
+  .ann-time-panel .hint { font-size: 12px; color: var(--muted); margin: 0 0 6px; }
   .fold { margin: 8px 0; border: 1px solid var(--line); border-radius: 12px; padding: 0 12px 6px; background: #fff; }
   .fold > summary { cursor: pointer; font-weight: 700; color: var(--petrol); min-height: 44px; display: flex; align-items: center; }
   .fold > .img-wrap, .fold > .link-strip, .fold > .term-list { margin-top: 6px; }
@@ -943,6 +948,18 @@
       annNoRights: "Ο λογαριασμός σου δεν είναι σχολιαστής, οπότε δεν μπορείς να αλλάξεις σχόλια. Ζήτα από τον υπεύθυνο του έργου να σου δώσει τον ρόλο του σχολιαστή και βεβαιώσου ότι είσαι συνδεδεμένος με αυτόν τον λογαριασμό.",
       annLoadFail: "Δεν φορτώθηκαν όλα τα σχόλια της ιστορίας: {e}",
       imgSection: "Εικόνες",
+      tlImgNotes: "Σημειώσεις εικόνας",
+      imgWholeImage: "ολόκληρη η εικόνα",
+      imgAreaMarked: "σημαδεμένη περιοχή",
+      imgAlways: "πάντα",
+      imgAdd: "+ Άλλη στιγμή ή περιοχή",
+      imgDeleteInst: "Διαγραφή αυτής",
+      imgTime: "Χρόνος",
+      imgTimeSave: "Αποθήκευση χρόνου",
+      imgTimeClear: "Πάντα ορατό",
+      imgTimeHint: "Οι χρόνοι αφορούν τον ήχο/βίντεο που διάλεξες στο «Σύνδεση εικόνας με στιγμή της αφήγησης». Χρησιμοποίησε τον αναπαραγωγέα εκεί και τα κουμπιά Αρχή/Τέλος.",
+      imgTimeOutside: "Η εικόνα δεν εμφανίζεται εκείνη τη στιγμή (δεν είναι συνδεδεμένη με αυτό το μέρος της καταγραφής). Να γίνει αποθήκευση;",
+      imgConfirmRemoveAll: "Να αφαιρεθούν και οι {n} σημειώσεις αυτού του όρου σε αυτή την εικόνα;",
       listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
     },
     en: {
@@ -1164,6 +1181,18 @@
       annNoRights: "Your account is not an annotator, so you cannot change annotations. Ask the project owner to give you the annotator role, and make sure you are logged in with that account.",
       annLoadFail: "Some of this story's annotations could not be loaded: {e}",
       imgSection: "Images",
+      tlImgNotes: "Image notes",
+      imgWholeImage: "whole image",
+      imgAreaMarked: "area marked",
+      imgAlways: "always shown",
+      imgAdd: "+ Add another time or area",
+      imgDeleteInst: "Delete this one",
+      imgTime: "Time",
+      imgTimeSave: "Save time",
+      imgTimeClear: "Always shown",
+      imgTimeHint: "Times refer to the audio/video chosen in \"Link this image to a moment of the story\". Use its player and the Start/End buttons.",
+      imgTimeOutside: "The image is not shown at that time (it is not linked to that part of the recording). Save anyway?",
+      imgConfirmRemoveAll: "Remove all {n} notes of this term on this image?",
       listSearch: "Search by title, name or consent code"
     },
     fr: {
@@ -1385,6 +1414,18 @@
       annNoRights: "Votre compte n'est pas annotateur, vous ne pouvez donc pas modifier les annotations. Demandez au responsable du projet de vous donner le rôle d'annotateur et vérifiez que vous êtes connecté avec ce compte.",
       annLoadFail: "Certaines annotations de cette histoire n'ont pas pu être chargées : {e}",
       imgSection: "Images",
+      tlImgNotes: "Notes d'image",
+      imgWholeImage: "image entière",
+      imgAreaMarked: "zone marquée",
+      imgAlways: "toujours affichée",
+      imgAdd: "+ Ajouter un autre moment ou une autre zone",
+      imgDeleteInst: "Supprimer celle-ci",
+      imgTime: "Durée",
+      imgTimeSave: "Enregistrer la durée",
+      imgTimeClear: "Toujours affichée",
+      imgTimeHint: "Les durées se rapportent à l'audio/vidéo choisi dans « Lier cette image à un moment du récit ». Utilisez son lecteur et les boutons Début/Fin.",
+      imgTimeOutside: "L'image n'est pas affichée à ce moment (elle n'est pas liée à cette partie de l'enregistrement). Enregistrer quand même ?",
+      imgConfirmRemoveAll: "Supprimer les {n} notes de ce terme sur cette image ?",
       listSearch: "Rechercher par titre, nom ou code de consentement"
     },
     it: {
@@ -1606,6 +1647,18 @@
       annNoRights: "Il tuo account non è un annotatore, quindi non puoi modificare le annotazioni. Chiedi al responsabile del progetto di assegnarti il ruolo di annotatore e verifica di aver effettuato l'accesso con quell'account.",
       annLoadFail: "Alcune annotazioni di questa storia non sono state caricate: {e}",
       imgSection: "Immagini",
+      tlImgNotes: "Note dell'immagine",
+      imgWholeImage: "immagine intera",
+      imgAreaMarked: "area segnata",
+      imgAlways: "sempre visibile",
+      imgAdd: "+ Aggiungi un altro momento o un'altra area",
+      imgDeleteInst: "Elimina questa",
+      imgTime: "Tempo",
+      imgTimeSave: "Salva il tempo",
+      imgTimeClear: "Sempre visibile",
+      imgTimeHint: "I tempi si riferiscono all'audio/video scelto in «Collega questa immagine a un momento del racconto». Usa il suo lettore e i pulsanti Inizio/Fine.",
+      imgTimeOutside: "L'immagine non è visibile in quel momento (non è collegata a quella parte della registrazione). Salvare comunque?",
+      imgConfirmRemoveAll: "Rimuovere tutte le {n} note di questo termine su questa immagine?",
       listSearch: "Cerca per titolo, nome o codice di consenso"
     }
   };
@@ -2300,8 +2353,11 @@
 
   async function fetchKnowledge(s, all) {
     var ids = s.media.map(function (m) { return m.id; }).filter(Boolean);
-    var aq = sb.from('annotations').select('id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source,region_x,region_y,region_w,region_h').in('media_id', ids).order('start_s');
-    if (!all) aq = aq.eq('status', 'approved');
+    function annQuery() {
+      var q = sb.from('annotations').select(ANN_COLS).in('media_id', ids).order('start_s');
+      return all ? q : q.eq('status', 'approved');
+    }
+    var aq = annQuery();
     var res = await Promise.all([
       aq,
       sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text,words)').in('media_id', ids),
@@ -2309,6 +2365,9 @@
     ]);
     if (res[1].error && /words/i.test(res[1].error.message || '')) {   // βάση χωρίς στήλη words
       res[1] = await sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids);
+    }
+    if (res[0].error && /av_media_id/i.test(res[0].error.message || '')) {   // βάση χωρίς τη στήλη av_media_id
+      ANN_COLS = ANN_BASE; res[0] = await annQuery();
     }
     if (res[0].error) throw res[0].error;
     // Για τους επισκέπτες: ό,τι φορτώνει εμφανίζεται, και ό,τι αποτυγχάνει αναφέρεται (δεν κρύβεται σιωπηλά).
@@ -2634,12 +2693,18 @@
     return sheetK ? sheetK.annotations.filter(function (a) { return a.media_id === mid && a.status === 'approved'; }) : [];
   }
 
-  function figureFor(s, m, n) {
+  // Σημείωση εικόνας δεμένη με χρόνο: ισχύει μόνο όσο παίζει το αντίστοιχο σημείο του ήχου/βίντεο
+  function isTimedNote(a) { return !!(a.av_media_id && hasRange(a)); }
+  function noteActive(a, ctx) { return a.av_media_id === ctx.avId && ctx.now >= a.start_s && ctx.now < a.end_s; }
+
+  // ctx = { avId, now }: στη σκηνή δείχνει μόνο τις σημειώσεις που ισχύουν τώρα· χωρίς ctx (λίστα, μεγέθυνση) δείχνει όλες
+  function figureFor(s, m, n, ctx) {
     var wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.dataset.mediaId = m.id || '';
     var frame = document.createElement('div'); frame.className = 'img-frame';
     var img = document.createElement('img'); img.alt = tr_(s) + ' ' + n; img.loading = 'lazy'; img.src = m.url;
     frame.appendChild(img);
     var mine = annsForImage(m.id);
+    if (ctx) mine = mine.filter(function (a) { return !isTimedNote(a) || noteActive(a, ctx); });
     mine.filter(hasRegion).forEach(function (a) { frame.appendChild(regionBox(a)); });
     function enlarge() { openImagePopup({ url: m.url, alt: img.alt, title: img.alt, regions: mine.filter(hasRegion) }); }
     img.tabIndex = 0; img.setAttribute('role', 'button'); img.setAttribute('aria-label', t('imgEnlarge') + ': ' + img.alt);
@@ -2650,7 +2715,11 @@
       var info = document.createElement('div'); info.className = 'img-terms';
       info.appendChild(document.createTextNode(t('imgDepicts') + ' '));
       var ul = document.createElement('ul'); ul.className = 'term-list';
-      mine.forEach(function (a) { var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
+      mine.forEach(function (a) {
+        var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); });
+        if (!ctx && isTimedNote(a)) { var tg = document.createElement('span'); tg.className = 'vocab-tag'; tg.textContent = mmss(a.start_s) + '–' + mmss(a.end_s); li.appendChild(tg); }
+        ul.appendChild(li);
+      });
       info.appendChild(ul); wrap.appendChild(info);
     }
     return wrap;
@@ -2679,7 +2748,9 @@
     var terms = sheetK ? sheetK.annotations.filter(function (a) {
       return a.status === 'approved' && a.media_id === avId && hasRange(a) && now >= a.start_s && now < a.end_s;
     }) : [];
-    var key = active.map(function (l) { return l.id; }).join(',') + '|' + terms.map(function (a) { return a.id; }).join(',');
+    var ctx = { avId: avId, now: now }, noteIds = [];
+    active.forEach(function (l) { annsForImage(l.image_media_id).forEach(function (a) { if (isTimedNote(a) && noteActive(a, ctx)) noteIds.push(a.id); }); });
+    var key = active.map(function (l) { return l.id; }).join(',') + '|' + terms.map(function (a) { return a.id; }).join(',') + '|' + noteIds.join(',');
     document.querySelectorAll('#sheetImages .link-card').forEach(function (c) { c.classList.toggle('active', active.some(function (l) { return l.id === c.dataset.linkId; })); });
     document.querySelectorAll('#sheetKnow .tr-line').forEach(function (b) {
       b.classList.toggle('now', b.dataset.mediaId === avId && now >= +b.dataset.start && now < +b.dataset.end);
@@ -2698,7 +2769,7 @@
     var h = document.createElement('h3'); h.textContent = t('imgNow'); stage.appendChild(h);
     active.forEach(function (l) {
       var im = mediaById(s, l.image_media_id);
-      if (im) stage.appendChild(figureFor(s, im, s.media.filter(function (x) { return x.kind === 'image'; }).indexOf(im) + 1));
+      if (im) stage.appendChild(figureFor(s, im, s.media.filter(function (x) { return x.kind === 'image'; }).indexOf(im) + 1, ctx));
     });
     if (terms.length) {
       var nt = document.createElement('div'); nt.className = 'now-terms';
@@ -2728,6 +2799,10 @@
     sheetK.annotations.filter(function (a) { return a.status === 'approved' && a.media_id === avId && hasRange(a); }).forEach(function (a) {
       out.push({ type: 'term', start: a.start_s, end: a.end_s, label: termLabel(a) });
     });
+    sheetK.annotations.filter(function (a) { return a.status === 'approved' && a.av_media_id === avId && isTimedNote(a); }).forEach(function (a) {
+      var n = imgs.indexOf(mediaById(s, a.media_id)) + 1;
+      out.push({ type: 'imgnote', start: a.start_s, end: a.end_s, label: termLabel(a) + ' · ' + t('tlItemImg', { n: n }) });
+    });
     return out;
   }
 
@@ -2740,13 +2815,13 @@
     var dur = avDuration(avEl, items);
     var box = document.createElement('div'); box.className = 'tl'; box.dataset.mediaId = id; box.dataset.dur = dur;
     var lg = document.createElement('div'); lg.className = 'tl-legend';
-    [['img', 'tlImages', 'var(--amber)'], ['term', 'tlTerms', 'var(--sky)']].forEach(function (x) {
+    [['img', 'tlImages', 'var(--amber)'], ['imgnote', 'tlImgNotes', 'var(--petrol)'], ['term', 'tlTerms', 'var(--sky)']].forEach(function (x) {
       if (!items.some(function (i) { return i.type === x[0]; })) return;
       var sp = document.createElement('span'); var sw = document.createElement('i'); sw.style.background = x[2];
       sp.appendChild(sw); sp.appendChild(document.createTextNode(t(x[1]))); lg.appendChild(sp);
     });
     box.appendChild(lg);
-    ['img', 'term'].forEach(function (type) {
+    ['img', 'imgnote', 'term'].forEach(function (type) {
       var list = items.filter(function (i) { return i.type === type; }).sort(function (a, b) { return a.start - b.start; });
       if (!list.length) return;
       var lanes = [];
@@ -2876,7 +2951,8 @@
         var byUri = {}, order = [];
         k.annotations.forEach(function (a) {
           if (!byUri[a.term_uri]) { byUri[a.term_uri] = { a: a, times: [] }; order.push(a.term_uri); }
-          if (hasRange(a)) byUri[a.term_uri].times.push(a);
+          var mk = mediaById(s, a.media_id);
+          if (hasRange(a) && (a.av_media_id || (mk && mk.kind !== 'image'))) byUri[a.term_uri].times.push(a);
         });
         order.forEach(function (uri) {
           var g = byUri[uri], li = document.createElement('li');
@@ -2886,7 +2962,7 @@
             g.times.sort(function (x, y) { return x.start_s - y.start_s; }).slice(0, 6).forEach(function (x) {
               var b = document.createElement('button'); b.type = 'button'; b.textContent = '▶ ' + mmss(x.start_s);
               b.setAttribute('aria-label', t('trPlay', { t: mmss(x.start_s) }) + ': ' + termLabel(x));
-              b.onclick = function () { seekPlay(x.media_id, x.start_s); };
+              b.onclick = function () { seekPlay(x.av_media_id || x.media_id, x.start_s); };
               sp.appendChild(b);
             });
             li.appendChild(sp);
@@ -3509,7 +3585,8 @@
     return rows.length;
   }
 
-  var ANN_COLS = 'id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source,region_x,region_y,region_w,region_h';
+  var ANN_BASE = 'id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source,region_x,region_y,region_w,region_h';
+  var ANN_COLS = ANN_BASE + ',av_media_id';
 
   function imageSection(s, m, n) {
     var sec = document.createElement('section'); sec.className = 'ann-media';
@@ -3529,69 +3606,124 @@
 
     var terms = [], anns = [], links = [], transcripts = [], selAvId = null, lnkInit = false;
 
+    function fail(e) { alert(t('annSaveError', { e: errText(e) })); }
+    async function setStatus(a, status) {
+      var r = await sb.from('annotations').update({ status: status, approved_by: status === 'approved' ? currentUser.id : null, approved_at: status === 'approved' ? new Date().toISOString() : null }).eq('id', a.id);
+      if (r.error) throw r.error; a.status = status;
+    }
+    async function addInstance(tm) {
+      var r = await sb.from('annotations').insert({ media_id: m.id, mention: tm.label, kind: tm.kind, vocabulary: tm.vocabulary, term_uri: tm.term_uri, label: tm.label,
+        description: tm.description || '', status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString() }).select(ANN_COLS).single();
+      if (r.error) throw r.error; anns.push(r.data); return r.data;
+    }
+    async function deleteInst(a) {
+      var d = await sb.from('annotations').delete().eq('id', a.id);
+      if (d.error) throw d.error; anns.splice(anns.indexOf(a), 1);
+    }
+    async function saveTimeFor(a, st_, en_) {
+      var patch = st_ == null ? { start_s: null, end_s: null, av_media_id: null } : { start_s: st_, end_s: en_, av_media_id: selAvId };
+      var r = await sb.from('annotations').update(patch).eq('id', a.id);
+      if (r.error) throw r.error; Object.assign(a, patch);
+    }
+    function instSummary(a) {
+      return (hasRegion(a) ? t('imgAreaMarked') : t('imgWholeImage')) + ' · ' +
+        (isTimedNote(a) ? avLabel(a.av_media_id) + ' ' + mmss(a.start_s) + '–' + mmss(a.end_s) : t('imgAlways'));
+    }
+
+    // Μία σημείωση (περίπτωση) ενός όρου πάνω στην εικόνα: προαιρετική περιοχή και προαιρετικός χρόνος της αφήγησης
+    function instRow(tm, ex, count) {
+      var row = document.createElement('div'); row.className = 'ann-row inst-row';
+      var sm = document.createElement('span'); sm.className = 'ann-when'; sm.textContent = instSummary(ex); row.appendChild(sm);
+      function ib(label, fn) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.setAttribute('aria-label', label + ': ' + tm.label);
+        b.onclick = async function () { b.disabled = true; try { await fn(); } catch (e) { fail(e); } paint(); };
+        row.appendChild(b); return b;
+      }
+      if (ex.status === 'suggested') {
+        var sg = document.createElement('span'); sg.className = 'badge-sug'; sg.textContent = t('imgSuggested'); row.appendChild(sg);
+        ib(t('annApprove'), function () { return setStatus(ex, 'approved'); });
+        ib(t('annReject'), function () { return setStatus(ex, 'rejected'); });
+        return row;
+      }
+      ib(t('imgMark'), async function () {
+        openImagePopup({
+          url: m.url, alt: imgAlt, title: imgAlt + ' — ' + tm.label, draw: true,
+          regions: anns.filter(function (a) { return a !== ex && a.status !== 'rejected' && hasRegion(a); }),
+          onRect: async function (r) {
+            var res = await sb.from('annotations').update({ region_x: r.x, region_y: r.y, region_w: r.w, region_h: r.h }).eq('id', ex.id);
+            if (res.error) alert(t('annSaveError', { e: errText(res.error) }));
+            else { ex.region_x = r.x; ex.region_y = r.y; ex.region_w = r.w; ex.region_h = r.h; }
+            paint();
+          }
+        });
+      });
+      if (hasRegion(ex)) ib(t('imgClear'), async function () {
+        var r = await sb.from('annotations').update({ region_x: null, region_y: null, region_w: null, region_h: null }).eq('id', ex.id);
+        if (r.error) throw r.error; ex.region_x = ex.region_y = ex.region_w = ex.region_h = null;
+      });
+      if (avs.length) {
+        var panel = document.createElement('div'); panel.className = 'ann-time-panel'; panel.hidden = true;
+        var tg = ib(t('imgTime'), async function () {});          // ανοίγει/κλείνει το πλαίσιο χρόνου (χωρίς επανασχεδίαση)
+        tg.onclick = function () { panel.hidden = !panel.hidden; tg.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true'); };
+        tg.setAttribute('aria-expanded', 'false');
+        var hint = document.createElement('p'); hint.className = 'hint'; hint.textContent = t('imgTimeHint'); panel.appendChild(hint);
+        var si = document.createElement('input'); si.type = 'text'; si.className = 'time-in'; si.inputMode = 'decimal'; si.setAttribute('aria-label', t('lnkStart'));
+        var ei = document.createElement('input'); ei.type = 'text'; ei.className = 'time-in'; ei.inputMode = 'decimal'; ei.setAttribute('aria-label', t('lnkEnd'));
+        if (isTimedNote(ex)) { si.value = fmtT(ex.start_s); ei.value = fmtT(ex.end_s); }
+        panel.appendChild(si); panel.appendChild(ei);
+        function pb(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.onclick = fn; panel.appendChild(b); return b; }
+        pb(t('lnkSetStart'), function () { si.value = fmtT(playerEl ? playerEl.currentTime || 0 : 0); });
+        pb(t('lnkSetEnd'), function () { ei.value = fmtT(playerEl ? playerEl.currentTime || 0 : 0); });
+        pb(t('imgTimeSave'), async function () {
+          var a = parseTime(si.value), z = parseTime(ei.value);
+          if (!(a >= 0) || !(z > a)) { alert(t('lnkBad')); return; }
+          var shown = links.some(function (l) { return l.av_media_id === selAvId && a < l.end_s && z > l.start_s; });
+          if (!shown && !window.confirm(t('imgTimeOutside'))) return;
+          try { await saveTimeFor(ex, a, z); } catch (e) { fail(e); return; }
+          paint();
+        });
+        pb(t('imgTimeClear'), async function () { try { await saveTimeFor(ex, null, null); } catch (e) { fail(e); return; } paint(); });
+        row.appendChild(panel);
+      }
+      if (count > 1) ib(t('imgDeleteInst'), function () { return deleteInst(ex); });
+      return row;
+    }
+
     function paint() {
       var nAreas = anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }).length;
       areaNote.textContent = nAreas ? t('imgAreasCount', { n: nAreas }) : '';
       list.innerHTML = '';
       if (!terms.length) { var p = document.createElement('p'); p.textContent = t('imgNoTerms'); list.appendChild(p); return; }
-      terms.forEach(function (tm, i) {
-        var ex = anns.filter(function (a) { return a.term_uri === tm.term_uri && a.status !== 'rejected'; })[0];
+      terms.forEach(function (tm) {
+        var insts = anns.filter(function (a) { return a.term_uri === tm.term_uri && a.status !== 'rejected'; });
+        var hasApproved = insts.some(function (a) { return a.status === 'approved'; });
+        var block = document.createElement('div'); block.className = 'term-block';
         var row = document.createElement('div'); row.className = 'ann-row term-row';
         var lab = document.createElement('label');
-        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!(ex && ex.status === 'approved');
+        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = hasApproved;
         lab.appendChild(cb); lab.appendChild(document.createTextNode(tm.label));
         var tag = document.createElement('span'); tag.className = 'vocab-tag'; tag.textContent = VOCAB_LABEL[tm.vocabulary] || tm.vocabulary; lab.appendChild(tag);
-        row.appendChild(lab);
-        function btn(label, fn) {
-          var b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.setAttribute('aria-label', label + ': ' + tm.label);
-          b.onclick = async function () { b.disabled = true; try { await fn(); } catch (e) { alert(t('annSaveError', { e: errText(e) })); } paint(); };
-          row.appendChild(b); return b;
-        }
-        async function setStatus(a, status) {
-          var r = await sb.from('annotations').update({ status: status, approved_by: status === 'approved' ? currentUser.id : null, approved_at: status === 'approved' ? new Date().toISOString() : null }).eq('id', a.id);
-          if (r.error) throw r.error; a.status = status;
-        }
+        row.appendChild(lab); block.appendChild(row);
         cb.onchange = async function () {
           cb.disabled = true;
           try {
             if (cb.checked) {
-              if (ex) await setStatus(ex, 'approved');
-              else {
-                var r = await sb.from('annotations').insert({ media_id: m.id, mention: tm.label, kind: tm.kind, vocabulary: tm.vocabulary, term_uri: tm.term_uri, label: tm.label,
-                  description: tm.description || '', status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString() }).select(ANN_COLS).single();
-                if (r.error) throw r.error; anns.push(r.data);
-              }
-            } else if (ex) {
-              var d = await sb.from('annotations').delete().eq('id', ex.id);
-              if (d.error) throw d.error; anns.splice(anns.indexOf(ex), 1);
+              var sug = insts.filter(function (a) { return a.status === 'suggested'; })[0];
+              if (sug) await setStatus(sug, 'approved'); else await addInstance(tm);
+            } else if (insts.length) {
+              if (insts.length > 1 && !window.confirm(t('imgConfirmRemoveAll', { n: insts.length }))) { cb.checked = true; cb.disabled = false; return; }
+              for (var q = 0; q < insts.length; q++) await deleteInst(insts[q]);
             }
-          } catch (e) { alert(t('annSaveError', { e: errText(e) })); }
+          } catch (e) { fail(e); }
           paint();
         };
-        if (ex && ex.status === 'suggested') {
-          var sg = document.createElement('span'); sg.className = 'badge-sug'; sg.textContent = t('imgSuggested'); row.appendChild(sg);
-          btn(t('annApprove'), function () { return setStatus(ex, 'approved'); });
-          btn(t('annReject'), function () { return setStatus(ex, 'rejected'); });
+        insts.forEach(function (ex) { block.appendChild(instRow(tm, ex, insts.length)); });
+        if (hasApproved) {
+          var add = document.createElement('button'); add.type = 'button'; add.className = 'link-btn'; add.textContent = t('imgAdd');
+          add.onclick = async function () { add.disabled = true; try { await addInstance(tm); } catch (e) { fail(e); } paint(); };
+          block.appendChild(add);
         }
-        if (ex && ex.status === 'approved') {
-          btn(t('imgMark'), async function () {
-            openImagePopup({
-              url: m.url, alt: imgAlt, title: imgAlt + ' — ' + tm.label, draw: true,
-              regions: anns.filter(function (a) { return a !== ex && a.status !== 'rejected' && hasRegion(a); }),
-              onRect: async function (r) {
-                var res = await sb.from('annotations').update({ region_x: r.x, region_y: r.y, region_w: r.w, region_h: r.h }).eq('id', ex.id);
-                if (res.error) alert(t('annSaveError', { e: errText(res.error) }));
-                else { ex.region_x = r.x; ex.region_y = r.y; ex.region_w = r.w; ex.region_h = r.h; }
-                paint();
-              }
-            });
-          });
-          if (hasRegion(ex)) btn(t('imgClear'), async function () {
-            var r = await sb.from('annotations').update({ region_x: null, region_y: null, region_w: null, region_h: null }).eq('id', ex.id);
-            if (r.error) throw r.error; ex.region_x = ex.region_y = ex.region_w = ex.region_h = null;
-          });
-        }
-        list.appendChild(row);
+        list.appendChild(block);
       });
     }
 
@@ -3613,7 +3745,7 @@
     annListeners.push(function () { return reload(); });
 
     // --- Σύνδεση της εικόνας με στιγμή ήχου/βίντεο (για τον χρήστη που βλέπει την ιστορία) ---
-    var lnkBox = document.createElement('div'); lnkBox.className = 'lnk-box'; sec.appendChild(lnkBox);
+    var lnkBox = document.createElement('div'); lnkBox.className = 'lnk-box'; sec.insertBefore(lnkBox, head);
     var avs = s.media.filter(function (x) { return x.kind !== 'image' && x.id; });
     var lineSel = null, playerEl = null, startIn = null, endIn = null;
 
@@ -3782,6 +3914,12 @@
               'rdf:value': 'xywh=percent:' + pct(a.region_x) + ',' + pct(a.region_y) + ',' + pct(a.region_w) + ',' + pct(a.region_h) }
           } : { 'oa:hasSource': { '@id': m.url } }
         });
+        var avm = a.av_media_id && mediaById(s, a.av_media_id);
+        if (avm && hasRange(a)) {
+          // Η σημείωση ισχύει μόνο για ένα διάστημα της αφήγησης: το συγκείμενο (oa:hasScope) είναι το αρχείο ήχου/βίντεο με χρονικό τμήμα
+          graph[graph.length - 1]['oa:hasScope'] = { 'oa:hasSource': { '@id': avm.url },
+            'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + a.start_s + ',' + a.end_s } };
+        }
         return;
       }
       narr[a.kind === 'event' ? 'hdt:HP10_tells_about' : 'crm:P67_refers_to'].push({ '@id': a.term_uri });

@@ -133,6 +133,14 @@ alter table public.annotations add  constraint annotations_region_check check (
       and region_x + region_w <= 1.0001 and region_y + region_h <= 1.0001)
 );
 
+-- Image annotations can be tied to a moment of the story: which audio/video, and when (start_s/end_s on that recording).
+alter table public.annotations add column if not exists av_media_id uuid references public.story_media(id) on delete cascade;
+alter table public.annotations drop constraint if exists annotations_av_time_check;
+alter table public.annotations add  constraint annotations_av_time_check check (
+  av_media_id is null or (start_s is not null and end_s is not null and end_s > start_s)
+);
+create index if not exists annotations_av_idx on public.annotations(av_media_id);
+
 -- ---------- transcripts, segments, annotations: annotators write ----------
 drop policy if exists "transcripts are public"    on public.media_transcripts;
 drop policy if exists "owners write transcripts"  on public.media_transcripts;
