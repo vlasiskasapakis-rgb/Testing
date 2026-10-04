@@ -73,6 +73,12 @@ the story, and is shown (with a copy button) to the story's owner and to annotat
   reviewers approve or replace it, and bump `CONSENT_VERSION` when it changes. No participant name is stored digitally; identity lives
   on the paper form. Withdrawal today = the facilitator who uploaded the story deletes it.
 
+## Term names follow the selected language
+Viewers see each term's name in the language they picked (Greek, English, French, Italian), taken from the vocabulary the term came
+from: Wikidata labels directly, and Getty AAT/TGN/ULAN terms through the matching Wikidata item. If the vocabulary has no name in that
+language, the name stored by the annotator is shown. Annotator screens and the JSON-LD export keep the stored names. Names are looked up
+once per language per visit and apply to the term list, the timeline bars and the "terms at this moment" box.
+
 ## Subtitles
 If a story has a timed transcript, it is shown as subtitles while the recording plays: video uses the browser's own subtitle track
 (works in full screen), audio shows a caption bar under the player. Long transcript lines are split into short subtitles (using word
@@ -81,7 +87,7 @@ subtitles (they still appear in the transcript list).
 
 ## What the public sees
 - Every audio/video has a **timeline** under its player: amber bars are the parts linked to images, blue bars are the parts
-  where a term applies. Tap a bar to play from there; the line follows the playback. Terms with no time range apply to the
+  where a term applies (hover a bar for its name; the term list below also has ▶ time buttons). Tap a bar to play from there; the line follows the playback. Terms with no time range apply to the
   whole recording and have no bar.
 - Image-only story: the image with its approved terms and marked areas.
 - Story with audio/video: while it plays, the image linked to the current moment appears under the

@@ -161,9 +161,20 @@ drop policy if exists "owners review annotations"       on public.annotations;
 drop policy if exists "owners delete annotations"       on public.annotations;
 drop policy if exists "read visible annotations"        on public.annotations;
 drop policy if exists "annotators write annotations"    on public.annotations;
+-- Is this media part of a published story (or one the signed-in user owns)? SECURITY DEFINER, so the answer does not
+-- depend on the caller's own access to story_media/stories (a chain of nested row-level checks that can silently hide rows).
+create or replace function public.media_is_public(mid uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.story_media m join public.stories s on s.id = m.story_id
+    where m.id = mid and (s.status = 'published' or s.user_id = auth.uid())
+  );
+$$;
+grant execute on function public.media_is_public(uuid) to anon, authenticated;
+grant execute on function public.is_annotator() to anon, authenticated;
+
 create policy "read visible annotations" on public.annotations for select
-  using (public.is_annotator()
-         or (status = 'approved' and exists (select 1 from public.story_media m where m.id = annotations.media_id)));
+  using (public.is_annotator() or (status = 'approved' and public.media_is_public(media_id)));
 create policy "annotators write annotations" on public.annotations for all to authenticated
   using (public.is_annotator()) with check (public.is_annotator());
 
