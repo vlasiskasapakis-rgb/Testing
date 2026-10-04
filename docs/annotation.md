@@ -23,7 +23,7 @@ In the upload form each image, audio or video has a 📍 button for its details:
 **date recorded** (starts as the file's date), **period it refers to** (free text, e.g. "summer 1965") and **location**. The location
 starts as your GPS position; you can press **Pick on the map** and tap a place instead. Visitors and annotators see these under
 each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` once: it adds the columns to `story_media`
-(an upload still works without them, but the details are then not saved).
+(an upload still works without them, but the details, including each file's location, are then NOT saved; the app tells you when that happens).
 
 ## One dropdown per recording in the player area
 In the story view (the app and the annotation website) each audio or video is its own dropdown ("Audio 2 · Second tape") holding its
@@ -67,7 +67,7 @@ Re-run `supabase/roles.sql` once (it adds `annotations.reason`; suggestions work
 ## Map of all locations (annotation website)
 The **Map** button in the header (next to **Stories**) shows every location that users uploaded, **for each file** (photo, audio, video)
 and for each story:
-- a **dot** for each place with files (colour = the user; the legend lists users). When several files share the same place (for example
+- a **marker for each file's own location**: 🖼 photo, 🎙 audio, 🎬 video (colour = the user; the legend lists users). When several files share the same place (for example
   they all kept the GPS default) the dot shows their **number**; click it to list the files and open their stories. A **hollow circle**
   is the place where a story was created;
 - **Connect files of the same story** (on by default) draws a line from the story's creation place through its files in their order

@@ -800,6 +800,7 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      mapLegendKey: "● αρχείο (🖼 φωτογραφία, 🎙 ήχος, 🎬 βίντεο) · ○ τόπος δημιουργίας ιστορίας",
       mapLinkUsers: "Σύνδεση ιστοριών κάθε χρήστη με τη σειρά",
       mapNoFileLoc: "Κανένα αρχείο δεν έχει δική του τοποθεσία (παλιότερες καταχωρίσεις ή δεν έχει τρέξει το roles.sql). Εμφανίζονται μόνο οι τοποθεσίες των ιστοριών.",
       mapHere: "{n} αρχεία σε αυτή την τοποθεσία",
@@ -1151,6 +1152,7 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      mapLegendKey: "● file (🖼 photo, 🎙 audio, 🎬 video) · ○ place where the story was created",
       mapLinkUsers: "Connect each user's stories in order",
       mapNoFileLoc: "None of the files has its own location (older uploads, or roles.sql has not been run). Only story locations are shown.",
       mapHere: "{n} files at this location",
@@ -1505,6 +1507,7 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      mapLegendKey: "● fichier (🖼 photo, 🎙 audio, 🎬 vidéo) · ○ lieu de création de l'histoire",
       mapLinkUsers: "Relier les histoires de chaque utilisateur dans l'ordre",
       mapNoFileLoc: "Aucun fichier n'a son propre lieu (anciens envois, ou roles.sql n'a pas été exécuté). Seuls les lieux des histoires sont affichés.",
       mapHere: "{n} fichiers à ce lieu",
@@ -1853,6 +1856,7 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      mapLegendKey: "● file (🖼 foto, 🎙 audio, 🎬 video) · ○ luogo di creazione della storia",
       mapLinkUsers: "Collega le storie di ogni utente in ordine",
       mapNoFileLoc: "Nessun file ha un proprio luogo (caricamenti vecchi o roles.sql non eseguito). Sono mostrati solo i luoghi delle storie.",
       mapHere: "{n} file in questo luogo",
@@ -4207,6 +4211,9 @@
       var mk;
       if (files.length > 1 && L.divIcon) {
         mk = L.marker([g.lat, g.lon], { icon: L.divIcon({ className: 'map-count', html: '<span style="background:' + color + '">' + files.length + '</span>', iconSize: [30, 30] }) });
+      } else if (files.length && L.divIcon) {
+        var ic = { image: '🖼', audio: '🎙', video: '🎬' }[files[0].m.kind] || '●';
+        mk = L.marker([g.lat, g.lon], { icon: L.divIcon({ className: 'map-count', html: '<span style="background:' + color + '">' + ic + '</span>', iconSize: [30, 30] }) });
       } else if (files.length) {
         mk = L.circleMarker([g.lat, g.lon], { radius: 8, color: '#fff', weight: 2, fillColor: color, fillOpacity: .95 });
       } else {
@@ -4239,6 +4246,7 @@
     }
     $('mapInfo').textContent = (nFiles || all.length ? t('mapCount', { f: nFiles, s: nStories, u: order.length }) : t('mapNoLoc')) + (!nFiles && all.length ? ' — ' + t('mapNoFileLoc') : '');
     var lg = $('mapLegend'); lg.innerHTML = '';
+    var key2 = document.createElement('div'); key2.style.flexBasis = '100%'; key2.textContent = t('mapLegendKey'); lg.appendChild(key2);
     if (order.length) { var lh = document.createElement('strong'); lh.textContent = t('mapLegend') + ': '; lg.appendChild(lh); }
     order.forEach(function (k) { var sp2 = document.createElement('span'); var dot = document.createElement('i'); dot.style.background = users[k].color; sp2.appendChild(dot); sp2.appendChild(document.createTextNode(users[k].name + ' (' + users[k].n + ')')); lg.appendChild(sp2); });
     setTimeout(function () { bigMap.invalidateSize(); if (all.length === 1) bigMap.setView(all[0], 15); else if (all.length) bigMap.fitBounds(all, { padding: [40, 40], maxZoom: 16 }); }, 80);
