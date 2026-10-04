@@ -136,7 +136,7 @@ Image notes are three steps; you never type times:
 2. **Mark an area** on the image (opens the popup; drag on the image).
 3. **Choose a part of the transcription**: tick one or more lines (lines where the term is spoken are pre-ticked). The note's start/end come
    from those lines and the image is linked to them automatically.
-Press **Add note**. The list below shows every note as term · area · transcript part, each with **Delete**.
+Press **Add note**. The **Notes on this image** table (Term · Area · Time · Transcript line) groups the notes of the same term. **View** shows the area on the image, the time button plays that moment, **✕** deletes one note and **Delete all** removes every note of a term (after a confirmation).
 Behind the scenes a timed note uses `annotations.av_media_id` + `start_s`/`end_s` (re-run `roles.sql` once). Viewers see only the notes
 that apply to the current second next to the image; the timeline has a dark "Image notes" lane (tap to jump and pause); outside playback
 all notes are listed with their times. The JSON-LD export gives each timed image note an `oa:hasScope` with the audio/video and time fragment.
