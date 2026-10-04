@@ -256,10 +256,6 @@
   .tl-head { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--petrol); pointer-events: none; }
   .now-terms { margin-top: 8px; }
   .debug-box { white-space: pre-wrap; font-size: 12px; background: #fff7e0; border: 1px dashed var(--amber); border-radius: 10px; padding: 8px; color: var(--ink); }
-  .tl-terms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .tl-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; min-height: 36px; border-radius: 999px; background: var(--sky-soft); color: var(--petrol); font-weight: 600; font-size: 14px; border: 2px solid transparent; }
-  .tl-chip b { color: var(--amber-text); font-size: 12px; }
-  .tl-chip.active { border-color: var(--amber); background: #fff; }
   .term-times { margin-left: 4px; } .term-times button { background: none; color: var(--petrol); font-weight: 700; font-size: 12px; padding: 2px 6px; min-height: 28px; border-radius: 6px; border: 1px solid var(--line-strong); margin-left: 4px; }
   .ann-when { font-size: 13px; font-weight: 700; color: var(--amber-text); }
   .ann-time-panel { flex-basis: 100%; }
@@ -2315,10 +2311,53 @@
     return { annotations: res[0].data, transcripts: trs, links: res[2].error ? [] : res[2].data, problems: problems };
   }
 
-  function termLink(a) {
+  // ---- Ονόματα όρων στη γλώσσα που επιλέχθηκε, από το λεξιλόγιο της κάθε σχολιασμού (Wikidata, και Getty μέσω Wikidata) ----
+  var labelCache = {};                       // "γλώσσα|uri" -> όνομα ('' όταν δεν βρέθηκε)
+  var GETTY_PROP = { aat: 'P1014', tgn: 'P1667', ulan: 'P245' };   // ιδιότητες Wikidata που δείχνουν στο αντίστοιχο id του Getty
+  function termLabel(a) { return labelCache[LANG + '|' + a.term_uri] || a.label; }
+
+  async function fetchJsonTimeout(url, ms) {
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, tm = ctl ? setTimeout(function () { ctl.abort(); }, ms) : null;
+    try { var r = await fetch(url, ctl ? { signal: ctl.signal } : undefined); if (!r.ok) throw new Error(r.status); return await r.json(); }
+    finally { if (tm) clearTimeout(tm); }
+  }
+
+  async function loadTermLabels(list, lang) {
+    var wd = {}, gt = {};
+    list.forEach(function (a) {
+      var key = lang + '|' + a.term_uri;
+      if (key in labelCache) return;
+      labelCache[key] = '';                  // αναζητείται μία φορά ανά γλώσσα, ό,τι δεν βρεθεί μένει με το αποθηκευμένο όνομα
+      if (a.vocabulary === 'wikidata') wd[a.term_uri.split('/').pop()] = a.term_uri;
+      else if (GETTY_PROP[a.vocabulary]) gt[a.vocabulary + '|' + a.term_uri.split('/').pop()] = a.term_uri;
+    });
+    var ids = Object.keys(wd), jobs = [];
+    for (var i = 0; i < ids.length; i += 50) {
+      jobs.push((function (chunk) {
+        return fetchJsonTimeout(WD_API + '?action=wbgetentities&format=json&origin=*&props=labels&languages=' + encodeURIComponent(lang) + '&ids=' + chunk.join('|'), 3000).then(function (d) {
+          chunk.forEach(function (id) { var l = d.entities && d.entities[id] && d.entities[id].labels && d.entities[id].labels[lang]; if (l && l.value) labelCache[lang + '|' + wd[id]] = l.value; });
+        });
+      })(ids.slice(i, i + 50)).catch(function () {}));
+    }
+    var gk = Object.keys(gt);
+    if (gk.length) {
+      var vals = gk.map(function (k) { var v = k.split('|'); return '(wdt:' + GETTY_PROP[v[0]] + ' "' + v[1].replace(/[^0-9A-Za-z]/g, '') + '")'; }).join(' ');
+      var q = 'SELECT ?pid ?id ?l WHERE { VALUES (?pid ?id) { ' + vals + ' } ?item ?pid ?id . ?item rdfs:label ?l . FILTER(LANG(?l) = "' + lang + '") }';
+      jobs.push(fetchJsonTimeout('https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(q), 4000).then(function (d) {
+        ((d.results && d.results.bindings) || []).forEach(function (b) {
+          var vocab = Object.keys(GETTY_PROP).filter(function (v) { return b.pid.value.slice(-GETTY_PROP[v].length) === GETTY_PROP[v]; })[0];
+          var uri = vocab && gt[vocab + '|' + b.id.value];
+          if (uri && b.l.value) labelCache[lang + '|' + uri] = b.l.value;
+        });
+      }).catch(function () {}));
+    }
+    await Promise.all(jobs);
+  }
+
+  function termLink(a, translate) {
     var link = document.createElement('a');
     link.href = safeUrl(a.term_uri); link.target = '_blank'; link.rel = 'noopener noreferrer';
-    link.textContent = a.label;
+    link.textContent = translate ? termLabel(a) : a.label;
     var tag = document.createElement('span');
     tag.className = 'vocab-tag'; tag.textContent = VOCAB_LABEL[a.vocabulary] || a.vocabulary;
     return [link, tag];
@@ -2603,7 +2642,7 @@
       var info = document.createElement('div'); info.className = 'img-terms';
       info.appendChild(document.createTextNode(t('imgDepicts') + ' '));
       var ul = document.createElement('ul'); ul.className = 'term-list';
-      mine.forEach(function (a) { var li = document.createElement('li'); termLink(a).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
+      mine.forEach(function (a) { var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
       info.appendChild(ul); wrap.appendChild(info);
     }
     return wrap;
@@ -2640,7 +2679,7 @@
     if (tl) {
       var dur = +tl.dataset.dur || 1;
       tl.querySelectorAll('.tl-head').forEach(function (hd) { hd.style.left = Math.min(100, now / dur * 100) + '%'; });
-      tl.querySelectorAll('.tl-item, .tl-chip').forEach(function (it) { it.classList.toggle('active', now >= +it.dataset.start && now < +it.dataset.end); });
+      tl.querySelectorAll('.tl-item').forEach(function (it) { it.classList.toggle('active', now >= +it.dataset.start && now < +it.dataset.end); });
     }
     if (stage.dataset.key === key) return;
     stage.dataset.key = key; stage.innerHTML = '';
@@ -2655,7 +2694,7 @@
       var nt = document.createElement('div'); nt.className = 'now-terms';
       var th = document.createElement('div'); th.className = 'img-terms'; th.textContent = t('tlNowTerms'); nt.appendChild(th);
       var ul = document.createElement('ul'); ul.className = 'term-list';
-      terms.forEach(function (a) { var li = document.createElement('li'); termLink(a).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
+      terms.forEach(function (a) { var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
       nt.appendChild(ul); stage.appendChild(nt);
     }
   }
@@ -2677,7 +2716,7 @@
       out.push({ type: 'img', start: l.start_s, end: l.end_s, label: t('tlItemImg', { n: n }) });
     });
     sheetK.annotations.filter(function (a) { return a.status === 'approved' && a.media_id === avId && hasRange(a); }).forEach(function (a) {
-      out.push({ type: 'term', start: a.start_s, end: a.end_s, label: a.label });
+      out.push({ type: 'term', start: a.start_s, end: a.end_s, label: termLabel(a) });
     });
     return out;
   }
@@ -2721,20 +2760,6 @@
       track.onclick = function (ev) { if (ev.target !== track) return; var r = track.getBoundingClientRect(); seekPlay(id, (ev.clientX - r.left) / r.width * dur); };
       box.appendChild(track);
     });
-    // Οι όροι με ετικέτα και χρόνο, με τη σειρά: πατώντας έναν παίζει από εκείνη τη στιγμή
-    var termItems = items.filter(function (i) { return i.type === 'term'; }).sort(function (a, b) { return a.start - b.start; });
-    if (termItems.length) {
-      var chips = document.createElement('div'); chips.className = 'tl-terms';
-      termItems.forEach(function (i) {
-        var c = document.createElement('button'); c.type = 'button'; c.className = 'tl-chip'; c.dataset.start = i.start; c.dataset.end = i.end;
-        var tm = document.createElement('b'); tm.textContent = mmss(i.start);
-        c.appendChild(tm); c.appendChild(document.createTextNode(i.label));
-        c.setAttribute('aria-label', t('tlAria', { l: i.label, a: mmss(i.start), b: mmss(i.end) }));
-        c.onclick = function () { seekPlay(id, i.start); };
-        chips.appendChild(c);
-      });
-      box.appendChild(chips);
-    }
     var cap = avEl.nextElementSibling;
     (cap && cap.classList.contains('subtitle-bar') ? cap : avEl).insertAdjacentElement('afterend', box);
     updateStage(avEl);
@@ -2786,7 +2811,10 @@
       var n = document.createElement('p'); n.className = 'field-error'; n.textContent = t('annLoadFail', { e: msg });
       box.appendChild(n);
     }
-    fetchKnowledge(s, false).then(function (k) {
+    fetchKnowledge(s, false).then(async function (k) {
+      if (currentSheetStory !== s) return;
+      // Ονόματα όρων στη γλώσσα της διεπαφής (μέχρι ~3 δευτερόλεπτα· αλλιώς εμφανίζονται τα αποθηκευμένα)
+      await Promise.race([loadTermLabels(k.annotations, LANG), new Promise(function (r) { setTimeout(r, 3500); })]);
       if (currentSheetStory !== s) return;
       if (k.problems && k.problems.length) { try { console.warn('Walking Memory:', k.problems); } catch (e) {} loadNotice(k.problems[0]); }
       renderImages(s, k);
@@ -2835,12 +2863,12 @@
         });
         order.forEach(function (uri) {
           var g = byUri[uri], li = document.createElement('li');
-          termLink(g.a).forEach(function (n) { li.appendChild(n); });
+          termLink(g.a, true).forEach(function (n) { li.appendChild(n); });
           if (g.times.length) {
             var sp = document.createElement('span'); sp.className = 'term-times';
             g.times.sort(function (x, y) { return x.start_s - y.start_s; }).slice(0, 6).forEach(function (x) {
               var b = document.createElement('button'); b.type = 'button'; b.textContent = '▶ ' + mmss(x.start_s);
-              b.setAttribute('aria-label', t('trPlay', { t: mmss(x.start_s) }) + ': ' + x.label);
+              b.setAttribute('aria-label', t('trPlay', { t: mmss(x.start_s) }) + ': ' + termLabel(x));
               b.onclick = function () { seekPlay(x.media_id, x.start_s); };
               sp.appendChild(b);
             });
