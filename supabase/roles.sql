@@ -114,6 +114,14 @@ create policy "read visible media" on public.story_media for select
   using (exists (select 1 from public.stories s where s.id = story_media.story_id));
 -- "owners insert media" / "owners delete media" from schema.sql stay as they are.
 
+-- Reordering recordings: the owner of a story or an annotator may change the position of its media (nothing else).
+drop policy if exists "reorder media" on public.story_media;
+create policy "reorder media" on public.story_media for update to authenticated
+  using (public.is_annotator() or exists (select 1 from public.stories s where s.id = story_media.story_id and s.user_id = auth.uid()))
+  with check (public.is_annotator() or exists (select 1 from public.stories s where s.id = story_media.story_id and s.user_id = auth.uid()));
+revoke update on public.story_media from authenticated;
+grant update (position) on public.story_media to authenticated;
+
 -- Word timings for each transcript line: [{"w": "word", "s": start_seconds, "e": end_seconds}, ...]
 alter table public.transcript_segments add column if not exists words jsonb;
 alter table public.transcript_segments drop constraint if exists transcript_segments_words_check;

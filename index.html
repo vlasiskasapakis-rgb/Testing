@@ -300,6 +300,8 @@
   .loc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
   .loc-actions button { min-height: 44px; padding: 8px 16px; }
   .mi-info { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn.mv { background: var(--mist); color: var(--petrol); margin-right: 4px; border: 1px solid var(--line-strong); }
+  .icon-btn.mv:disabled { opacity: .35; cursor: default; }
   .icon-btn.info { background: var(--sky); margin-right: 6px; }
   .check { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 12px; font-weight: 400; color: var(--ink); line-height: 1.4; }
   .check input { flex: none; width: 24px; height: 24px; margin-top: 2px; }
@@ -947,6 +949,9 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      moveUp: "Μετακίνηση πάνω: {name}",
+      moveDown: "Μετακίνηση κάτω: {name}",
+      movedTo: "{name}: θέση {i} από {n}",
       miDetails: "Στοιχεία",
       miTitle: "Τίτλος",
       miAbout: "Ταυτότητα: ποιος ή τι αφορά",
@@ -1237,6 +1242,9 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      moveUp: "Move up: {name}",
+      moveDown: "Move down: {name}",
+      movedTo: "{name}: position {i} of {n}",
       miDetails: "Details",
       miTitle: "Title",
       miAbout: "Identity: who or what it is about",
@@ -1527,6 +1535,9 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      moveUp: "Monter : {name}",
+      moveDown: "Descendre : {name}",
+      movedTo: "{name} : position {i} sur {n}",
       miDetails: "Détails",
       miTitle: "Titre",
       miAbout: "Identité : de qui ou de quoi il s'agit",
@@ -1817,6 +1828,9 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      moveUp: "Sposta su: {name}",
+      moveDown: "Sposta giù: {name}",
+      movedTo: "{name}: posizione {i} di {n}",
       miDetails: "Dettagli",
       miTitle: "Titolo",
       miAbout: "Identità: di chi o di cosa si tratta",
@@ -4244,6 +4258,8 @@
                   '<span class="mi-info">' + escHTML(infoSummary(f)) + '</span>' +
                 '</div>' +
                 '<div style="flex-shrink:0;">' +
+                  '<button type="button" class="icon-btn mv" data-act="up" data-i="' + i + '"' + (i === 0 ? ' disabled' : '') + ' aria-label="' + escHTML(t('moveUp', { name: nm })) + '"><span aria-hidden="true">↑</span></button>' +
+                  '<button type="button" class="icon-btn mv" data-act="down" data-i="' + i + '"' + (i === processedFiles.length - 1 ? ' disabled' : '') + ' aria-label="' + escHTML(t('moveDown', { name: nm })) + '"><span aria-hidden="true">↓</span></button>' +
                   '<button type="button" class="icon-btn info" data-act="info" data-i="' + i + '" aria-label="' + escHTML(t('miDetails') + ': ' + nm) + '"><span aria-hidden="true">📍</span></button>' +
                   '<button type="button" class="icon-btn edit" data-act="edit" data-i="' + i + '" aria-label="' + escHTML(t('editItem', { name: nm })) + '"><span aria-hidden="true">✏️</span></button>' +
                   '<button type="button" class="icon-btn del" data-act="del" data-i="' + i + '" aria-label="' + escHTML(t('deleteItem', { name: nm })) + '"><span aria-hidden="true">✕</span></button>' +
@@ -4314,6 +4330,16 @@
       loadFileIntoEditor(f.originalFile, f.meta);
     } else if (b.dataset.act === 'info') {
       openMediaInfo(i);
+    } else if (b.dataset.act === 'up' || b.dataset.act === 'down') {
+      // Αλλαγή σειράς: η σειρά της λίστας είναι η σειρά εμφάνισης στην ιστορία (position)
+      var j = b.dataset.act === 'up' ? i - 1 : i + 1;
+      if (j < 0 || j >= processedFiles.length) return;
+      var moved = processedFiles.splice(i, 1)[0]; processedFiles.splice(j, 0, moved);
+      var cnt = {}; processedFiles.forEach(function (x) { cnt[x.kind] = (cnt[x.kind] || 0) + 1; x.num = cnt[x.kind]; });   // αριθμοί ανά είδος με τη νέα σειρά
+      updateMediaListUI();
+      announce(t('movedTo', { name: nameOf(moved), i: j + 1, n: processedFiles.length }));
+      var again = document.querySelector('#mediaList [data-act="' + b.dataset.act + '"][data-i="' + j + '"]') || document.querySelector('#mediaList [data-act="' + (b.dataset.act === 'up' ? 'down' : 'up') + '"][data-i="' + j + '"]');
+      if (again) again.focus();
     } else {
       var nm = nameOf(f);
       processedFiles.splice(i, 1);
