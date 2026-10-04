@@ -81,6 +81,10 @@ photo shows area A for seconds 0-3 and area B for seconds 10-12. Notes without a
 Viewers see only the notes that apply to the current second (area box plus term) in the box under the player; the timeline gets a dark
 "Image notes" lane (tap a bar to jump there and pause); outside the story player (image list, enlarged image) all notes are shown with
 their times. The JSON-LD export gives each timed image note an `oa:hasScope` with the audio/video and its time fragment.
+To avoid typing times: **Link to mentions in the transcript** (per note) uses the whole transcript line where the term was approved on
+the audio/video: the first mention goes to this note (if it has no time yet), every other mention becomes a new note with the same
+area; mentions that already have a note are skipped. In the **Time** panel you can instead pick a **From transcript line** (and an optional **To line**),
+or press **Use the period the image is shown** (the image's linked range). Typing times is still possible.
 Needs `roles.sql` re-run once (adds `annotations.av_media_id` and a check that a timed note has a valid range).
 
 ## Term names follow the selected language
