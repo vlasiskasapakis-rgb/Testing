@@ -221,5 +221,8 @@ alter table public.story_media
   add column if not exists lat         double precision,
   add column if not exists lon         double precision;
 
+-- Why a suggested term was proposed (confidence and evidence from the transcript, details and location)
+alter table public.annotations add column if not exists reason text;
+
 -- Make the API pick up new columns immediately (avoids "could not find the column ... in the schema cache")
 notify pgrst, 'reload schema';

@@ -19,15 +19,21 @@ starts as your GPS position; you can press **Pick on the map** and tap a place i
 each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` once: it adds the columns to `story_media`
 (an upload still works without them, but the details are then not saved).
 
-## Details help the term suggestions (annotation website)
-Each recording and image shows its details (title, identity, date, period, location) while you annotate, and a **Map of locations**
-shows where the files were recorded. The details also make suggestions richer and more accurate:
-- **Suggest terms from the details** (in step 2 of a recording, and in each image's "Terms from this image's details"):
-  searches Wikidata for the **identity** and **title** (names), the **years/decades** in the period (e.g. "1950s", "summer 1965"),
-  and **places near the location** (within 1 km and 10 km, with the distance). They appear as suggestions for the whole file;
-  approve or reject them as usual. Approved terms of an image can then be used in its three-step notes.
-- **Find terms automatically** (from the transcript) also picks, among several Wikidata matches for a name, the one nearest to the
-  file's location (or whose description matches the title/identity/period), and adds the suggestions from the details.
+## One combined suggestion for the whole story (annotation website)
+**✨ Suggest terms for the whole story** (above the tabs; **Save and find terms automatically** does the same after saving a
+transcript) combines everything known about the story in one pass, for recordings **and** images together:
+- the **transcript** (names and places that are spoken),
+- the **title and identity** of every file, the **years/decades** in its **period**, and the **places near its location**.
+
+Each candidate Wikidata term collects evidence: where it is mentioned in the transcript, whether it matches the identity or title,
+the period, how close it is to the file's location, and whether its description fits the details. The evidence becomes a
+**confidence** (high / medium / low) and a visible **Why:** line on the suggestion, for example
+"High confidence: mentioned at 00:20 · 120 m from the file's location". When the text and the details agree (a nearby place that is
+also spoken), the term is attached to the exact seconds where it is said and ranked higher. Images receive terms too: those that are
+spoken while the image is shown (through its time links), those near its own location, and those from its own details.
+Among several Wikidata matches for a name, the one nearest the location (or whose description fits the details) is chosen.
+Unreviewed automatic suggestions are replaced on each run; approved, rejected and hand-made terms are kept.
+Re-run `supabase/roles.sql` once (it adds `annotations.reason`; suggestions work without it, but the "Why" text is then not saved).
 
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
