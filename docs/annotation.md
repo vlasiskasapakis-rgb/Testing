@@ -23,7 +23,7 @@ In the upload form each image, audio or video has a 📍 button for its details:
 **date recorded** (starts as the file's date), **period it refers to** (free text, e.g. "summer 1965") and **location**. The location
 starts as your GPS position; you can press **Pick on the map** and tap a place instead. Visitors and annotators see these under
 each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` once: it adds the columns to `story_media`
-(an upload still works without them, but the details are then not saved).
+(an upload still works without them, but the details, including each file's location, are then NOT saved; the app tells you when that happens).
 
 ## One dropdown per recording in the player area
 In the story view (the app and the annotation website) each audio or video is its own dropdown ("Audio 2 · Second tape") holding its
@@ -65,13 +65,18 @@ Unreviewed automatic suggestions are replaced on each run; approved, rejected an
 Re-run `supabase/roles.sql` once (it adds `annotations.reason`; suggestions work without it, but the "Why" text is then not saved).
 
 ## Map of all locations (annotation website)
-The **Map** button in the header (next to **Stories**) shows every location that users uploaded:
-- a **filled dot** for each file with a location (colour = the user who uploaded it; the legend lists users), and a **hollow circle** for the
-  place where each story was created;
-- **Connect files of the same story** (on by default) draws a line through a story's files in their order (dashed = draft);
-- **Connect stories that share terms** (off by default) draws purple lines between stories that have approved terms in common
-  (thicker = more terms; the popup lists them; **Min. shared terms** filters weak links, and terms shared by very many stories are ignored);
-- **Show** filters drafts / published. Click a dot to see the file's details and **Open story**.
+The **Map** button in the header (next to **Stories**) shows every location that users uploaded, **for each file** (photo, audio, video)
+and for each story:
+- a **marker for each file's own location**: 🖼 photo, 🎙 audio, 🎬 video (colour = the user; the legend lists users). When several files share the same place (for example
+  they all kept the GPS default) the dot shows their **number**; click it to list the files and open their stories. A **hollow circle**
+  is the place where a story was created;
+- **Connect files of the same story** (on by default) draws a line from the story's creation place through its files in their order
+  (dashed = draft). Files at the same place add no line;
+- **Connect each user's stories in order** (off) draws a dotted line through each user's stories in the order they were created;
+- **Connect stories that share terms** (off) draws purple lines between stories with approved terms in common (thicker = more terms;
+  **Min. shared terms** filters weak links; terms shared by very many stories are ignored);
+- **Show** filters drafts / published.
+If no file has its own location (older uploads, or `supabase/roles.sql` not yet re-run) the map says so and shows only the story places.
 
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.

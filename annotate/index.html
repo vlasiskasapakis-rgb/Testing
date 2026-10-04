@@ -228,6 +228,10 @@
   #bigMap { height: calc(100vh - 230px); min-height: 380px; border-radius: 12px; border: 1px solid var(--line-strong); }
   .map-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
   .map-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+  .map-count span { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 14px; border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,.4); }
+  .map-row { display: flex; align-items: center; gap: 8px; justify-content: space-between; padding: 3px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .map-row button { margin: 0; flex: none; }
+  .map-pop { max-width: 320px; }
   .map-pop strong { display: block; color: var(--petrol); }
   .map-pop button { margin-top: 6px; padding: 6px 12px; min-height: 34px; background: var(--petrol); color: #fff; font-weight: 700; }
   .rec-wrap > summary { font-size: 16px; }
@@ -542,6 +546,7 @@
   <section id="mapView" class="map-view" hidden aria-label="Map">
     <div class="map-bar">
       <label class="chk"><input type="checkbox" id="mapFiles" checked><span data-i18n="mapLinkFiles"></span></label>
+      <label class="chk"><input type="checkbox" id="mapUsers"><span data-i18n="mapLinkUsers"></span></label>
       <label class="chk"><input type="checkbox" id="mapTerms"><span data-i18n="mapLinkTerms"></span></label>
       <label class="chk" id="mapMinWrap" hidden><span data-i18n="mapMinShared"></span>
         <select id="mapMin" class="lang-select"><option>1</option><option>2</option><option>3</option><option>5</option></select></label>
@@ -795,6 +800,11 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      mapLegendKey: "● αρχείο (🖼 φωτογραφία, 🎙 ήχος, 🎬 βίντεο) · ○ τόπος δημιουργίας ιστορίας",
+      mapLinkUsers: "Σύνδεση ιστοριών κάθε χρήστη με τη σειρά",
+      mapNoFileLoc: "Κανένα αρχείο δεν έχει δική του τοποθεσία (παλιότερες καταχωρίσεις ή δεν έχει τρέξει το roles.sql). Εμφανίζονται μόνο οι τοποθεσίες των ιστοριών.",
+      mapHere: "{n} αρχεία σε αυτή την τοποθεσία",
+      mapMore: "… και {n} ακόμα",
       viewStories: "Ιστορίες",
       viewMap: "Χάρτης",
       mapLinkFiles: "Σύνδεση αρχείων της ίδιας ιστορίας",
@@ -1142,6 +1152,11 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      mapLegendKey: "● file (🖼 photo, 🎙 audio, 🎬 video) · ○ place where the story was created",
+      mapLinkUsers: "Connect each user's stories in order",
+      mapNoFileLoc: "None of the files has its own location (older uploads, or roles.sql has not been run). Only story locations are shown.",
+      mapHere: "{n} files at this location",
+      mapMore: "… and {n} more",
       viewStories: "Stories",
       viewMap: "Map",
       mapLinkFiles: "Connect files of the same story",
@@ -1492,6 +1507,11 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      mapLegendKey: "● fichier (🖼 photo, 🎙 audio, 🎬 vidéo) · ○ lieu de création de l'histoire",
+      mapLinkUsers: "Relier les histoires de chaque utilisateur dans l'ordre",
+      mapNoFileLoc: "Aucun fichier n'a son propre lieu (anciens envois, ou roles.sql n'a pas été exécuté). Seuls les lieux des histoires sont affichés.",
+      mapHere: "{n} fichiers à ce lieu",
+      mapMore: "… et {n} de plus",
       viewStories: "Histoires",
       viewMap: "Carte",
       mapLinkFiles: "Relier les fichiers d'une même histoire",
@@ -1836,6 +1856,11 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      mapLegendKey: "● file (🖼 foto, 🎙 audio, 🎬 video) · ○ luogo di creazione della storia",
+      mapLinkUsers: "Collega le storie di ogni utente in ordine",
+      mapNoFileLoc: "Nessun file ha un proprio luogo (caricamenti vecchi o roles.sql non eseguito). Sono mostrati solo i luoghi delle storie.",
+      mapHere: "{n} file in questo luogo",
+      mapMore: "… e altri {n}",
       viewStories: "Storie",
       viewMap: "Mappa",
       mapLinkFiles: "Collega i file della stessa storia",
@@ -4152,25 +4177,49 @@
     mapLayer.clearLayers();
     var list = STORIES.filter(function (x) { return $('mapStatusSel').value === 'all' || x.status === $('mapStatusSel').value; });
     var users = {}, order = [];
-    list.forEach(function (x) { var k = x.ownerId || x.author || '?'; if (!users[k]) { users[k] = { name: x.author || '—', color: PALETTE[order.length % PALETTE.length], n: 0 }; order.push(k); } });
-    var nFiles = 0, nStories = 0, all = [], centroids = {};
+    list.forEach(function (x) { var k = x.ownerId || x.author || '?'; if (!users[k]) { users[k] = { name: x.author || '—', color: PALETTE[order.length % PALETTE.length], n: 0, stories: [] }; order.push(k); } users[k].stories.push(x); });
+    function key(lat, lon) { return (+lat).toFixed(5) + ',' + (+lon).toFixed(5); }
+    var groups = {}, gOrder = [], nFiles = 0, nStories = 0, all = [], centroids = {};
+    function addTo(lat, lon, item) { var k = key(lat, lon); if (!groups[k]) { groups[k] = { lat: +lat, lon: +lon, items: [] }; gOrder.push(k); } groups[k].items.push(item); }
     list.forEach(function (x) {
       var u = users[x.ownerId || x.author || '?'], pts = storyPoints(x), has = false;
       var sp = (x.lat != null && x.lon != null) ? { lat: x.lat, lon: x.lon } : null;
-      // Τοποθεσία δημιουργίας της ιστορίας: μικρός κενός κύκλος
-      if (sp) { all.push([sp.lat, sp.lon]); L.circleMarker([sp.lat, sp.lon], { radius: 5, color: u.color, weight: 2, fillOpacity: 0 }).bindPopup(popupFor(x, null, t('mapStoryPoint'))).addTo(mapLayer); has = true; }
-      pts.forEach(function (p) {
-        nFiles++; all.push([p.lat, p.lon]);
-        L.circleMarker([p.lat, p.lon], { radius: 8, color: '#fff', weight: 2, fillColor: u.color, fillOpacity: .95 }).bindPopup(popupFor(x, p.m)).addTo(mapLayer);
-        has = true;
-      });
+      if (sp) { addTo(sp.lat, sp.lon, { x: x, m: null, u: u }); has = true; }
+      pts.forEach(function (p) { nFiles++; addTo(p.lat, p.lon, { x: x, m: p.m, u: u }); has = true; });
       if (has) { nStories++; u.n++; }
       var cpts = pts.length ? pts : (sp ? [sp] : []);
-      if (cpts.length) centroids[x.dbId] = { lat: cpts.reduce(function (a, p) { return a + p.lat; }, 0) / cpts.length, lon: cpts.reduce(function (a, p) { return a + p.lon; }, 0) / cpts.length, x: x };
-      // Σύνδεση των αρχείων της ίδιας ιστορίας με τη σειρά τους
-      if ($('mapFiles').checked && pts.length > 1) {
-        L.polyline(pts.map(function (p) { return [p.lat, p.lon]; }), { color: u.color, weight: 3, opacity: .75, dashArray: x.status === 'published' ? null : '6 6' }).addTo(mapLayer);
+      if (cpts.length) centroids[x.dbId] = { lat: cpts.reduce(function (a2, p) { return a2 + p.lat; }, 0) / cpts.length, lon: cpts.reduce(function (a2, p) { return a2 + p.lon; }, 0) / cpts.length, x: x };
+      // Σύνδεση: τοποθεσία δημιουργίας → αρχεία με τη σειρά τους (διαδοχικά ίδια σημεία συγχωνεύονται)
+      if ($('mapFiles').checked) {
+        var seq = (sp ? [sp] : []).concat(pts), path = [];
+        seq.forEach(function (p) { var last = path[path.length - 1]; if (!last || key(last[0], last[1]) !== key(p.lat, p.lon)) path.push([p.lat, p.lon]); });
+        if (path.length > 1) L.polyline(path, { color: u.color, weight: 3, opacity: .75, dashArray: x.status === 'published' ? null : '6 6' }).addTo(mapLayer);
       }
+    });
+    // Σύνδεση των ιστοριών κάθε χρήστη με τη σειρά δημιουργίας
+    if ($('mapUsers').checked) order.forEach(function (k) {
+      var u = users[k], path = [];
+      u.stories.forEach(function (x) { var c = centroids[x.dbId]; if (c) path.push([c.lat, c.lon]); });
+      if (path.length > 1) L.polyline(path, { color: u.color, weight: 2, opacity: .6, dashArray: '2 8' }).addTo(mapLayer);
+    });
+    // Δείκτες: ένας ανά τοποθεσία· όταν πολλά αρχεία έχουν το ίδιο σημείο εμφανίζεται ο αριθμός τους
+    gOrder.forEach(function (k) {
+      var g = groups[k], files = g.items.filter(function (i) { return i.m; }), colors = {};
+      g.items.forEach(function (i) { colors[i.u.color] = 1; });
+      var color = Object.keys(colors).length === 1 ? Object.keys(colors)[0] : '#37474F';
+      all.push([g.lat, g.lon]);
+      var mk;
+      if (files.length > 1 && L.divIcon) {
+        mk = L.marker([g.lat, g.lon], { icon: L.divIcon({ className: 'map-count', html: '<span style="background:' + color + '">' + files.length + '</span>', iconSize: [30, 30] }) });
+      } else if (files.length && L.divIcon) {
+        var ic = { image: '🖼', audio: '🎙', video: '🎬' }[files[0].m.kind] || '●';
+        mk = L.marker([g.lat, g.lon], { icon: L.divIcon({ className: 'map-count', html: '<span style="background:' + color + '">' + ic + '</span>', iconSize: [30, 30] }) });
+      } else if (files.length) {
+        mk = L.circleMarker([g.lat, g.lon], { radius: 8, color: '#fff', weight: 2, fillColor: color, fillOpacity: .95 });
+      } else {
+        mk = L.circleMarker([g.lat, g.lon], { radius: 5, color: color, weight: 2, fillOpacity: 0 });      // μόνο τοποθεσία δημιουργίας ιστορίας
+      }
+      mk.bindPopup(function () { return popupForGroup(g, files); }).addTo(mapLayer);
     });
     // Σύνδεση ιστοριών που μοιράζονται εγκεκριμένους όρους
     $('mapMinWrap').hidden = !$('mapTerms').checked;
@@ -4182,39 +4231,44 @@
           var ids = Object.keys(terms[uri].stories).filter(function (id) { return centroids[id]; });
           if (ids.length < 2 || ids.length > 12) return;          // πολύ κοινοί όροι δεν δίνουν νόημα
           for (var i = 0; i < ids.length; i++) for (var j = i + 1; j < ids.length; j++) {
-            var k = ids[i] < ids[j] ? ids[i] + '|' + ids[j] : ids[j] + '|' + ids[i];
-            (pairs[k] = pairs[k] || []).push(terms[uri].label);
+            var k2 = ids[i] < ids[j] ? ids[i] + '|' + ids[j] : ids[j] + '|' + ids[i];
+            (pairs[k2] = pairs[k2] || []).push(terms[uri].label);
           }
         });
         var min = +$('mapMin').value || 1;
-        Object.keys(pairs).filter(function (k) { return pairs[k].length >= min; }).sort(function (a, b) { return pairs[b].length - pairs[a].length; }).slice(0, 300).forEach(function (k) {
-          var ab = k.split('|'), A = centroids[ab[0]], B = centroids[ab[1]], n = pairs[k].length;
+        Object.keys(pairs).filter(function (k2) { return pairs[k2].length >= min; }).sort(function (a2, b2) { return pairs[b2].length - pairs[a2].length; }).slice(0, 300).forEach(function (k2) {
+          var ab = k2.split('|'), A = centroids[ab[0]], B = centroids[ab[1]], n = pairs[k2].length;
           var pl = L.polyline([[A.lat, A.lon], [B.lat, B.lon]], { color: '#7B1FA2', weight: Math.min(2 + n, 8), opacity: .45 });
-          pl.bindPopup(function () { var d = document.createElement('div'); d.className = 'map-pop'; var h = document.createElement('strong'); h.textContent = st_(A.x) + ' ↔ ' + st_(B.x); d.appendChild(h); d.appendChild(document.createTextNode(t('mapShared', { n: n, t: pairs[k].slice(0, 8).join(', ') + (n > 8 ? '…' : '') }))); return d; });
+          pl.bindPopup(function () { var d = document.createElement('div'); d.className = 'map-pop'; var h = document.createElement('strong'); h.textContent = st_(A.x) + ' ↔ ' + st_(B.x); d.appendChild(h); d.appendChild(document.createTextNode(t('mapShared', { n: n, t: pairs[k2].slice(0, 8).join(', ') + (n > 8 ? '…' : '') }))); return d; });
           pl.addTo(mapLayer);
         });
       } catch (e) { $('mapInfo').textContent = errText(e); return; }
     }
-    $('mapInfo').textContent = nFiles || all.length ? t('mapCount', { f: nFiles, s: nStories, u: order.length }) : t('mapNoLoc');
+    $('mapInfo').textContent = (nFiles || all.length ? t('mapCount', { f: nFiles, s: nStories, u: order.length }) : t('mapNoLoc')) + (!nFiles && all.length ? ' — ' + t('mapNoFileLoc') : '');
     var lg = $('mapLegend'); lg.innerHTML = '';
+    var key2 = document.createElement('div'); key2.style.flexBasis = '100%'; key2.textContent = t('mapLegendKey'); lg.appendChild(key2);
     if (order.length) { var lh = document.createElement('strong'); lh.textContent = t('mapLegend') + ': '; lg.appendChild(lh); }
     order.forEach(function (k) { var sp2 = document.createElement('span'); var dot = document.createElement('i'); dot.style.background = users[k].color; sp2.appendChild(dot); sp2.appendChild(document.createTextNode(users[k].name + ' (' + users[k].n + ')')); lg.appendChild(sp2); });
     setTimeout(function () { bigMap.invalidateSize(); if (all.length === 1) bigMap.setView(all[0], 15); else if (all.length) bigMap.fitBounds(all, { padding: [40, 40], maxZoom: 16 }); }, 80);
   }
-  function st_(x) { return x.t && x.t.el ? x.t.el.title : ''; }
-  function popupFor(x, m, note) {
+  // Αναδυόμενο παράθυρο τοποθεσίας: όλα τα αρχεία (και οι ιστορίες) σε αυτό το σημείο
+  function popupForGroup(g, files) {
     var d = document.createElement('div'); d.className = 'map-pop';
-    var h = document.createElement('strong'); h.textContent = st_(x) + (x.author ? ' — ' + x.author : ''); d.appendChild(h);
-    if (m) {
-      var bits = [t('type_' + m.kind) + (m.title ? ': ' + m.title : '')];
-      if (m.about) bits.push(m.about); if (m.recorded) bits.push(t('miRecorded') + ' ' + m.recorded); if (m.period) bits.push(m.period);
-      var p = document.createElement('div'); p.textContent = bits.join(' · '); d.appendChild(p);
-    } else if (note) { var q = document.createElement('div'); q.textContent = note; d.appendChild(q); }
-    var b = document.createElement('button'); b.type = 'button'; b.textContent = t('mapOpenStory');
-    b.onclick = function () { setView('stories'); openStory(x); };
-    d.appendChild(b); return d;
+    var h = document.createElement('strong'); h.textContent = files.length ? t('mapHere', { n: files.length }) : t('mapStoryPoint'); d.appendChild(h);
+    var items = files.length ? files : g.items;
+    items.slice(0, 12).forEach(function (i) {
+      var row = document.createElement('div'); row.className = 'map-row';
+      var bits = [st_(i.x) + (i.x.author ? ' — ' + i.x.author : '')];
+      if (i.m) { bits.push(t('type_' + i.m.kind) + (i.m.title ? ': ' + i.m.title : '')); if (i.m.about) bits.push(i.m.about); if (i.m.recorded) bits.push(i.m.recorded); if (i.m.period) bits.push(i.m.period); }
+      var tx = document.createElement('span'); tx.textContent = bits.join(' · '); row.appendChild(tx);
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = t('mapOpenStory'); b.onclick = function () { setView('stories'); openStory(i.x); };
+      row.appendChild(b); d.appendChild(row);
+    });
+    if (items.length > 12) { var more = document.createElement('div'); more.textContent = t('mapMore', { n: items.length - 12 }); d.appendChild(more); }
+    return d;
   }
-  ['mapFiles', 'mapTerms', 'mapMin', 'mapStatusSel'].forEach(function (id) { $(id).addEventListener('change', function () { if (currentView === 'map') renderBigMap(); }); });
+  function st_(x) { return x.t && x.t.el ? x.t.el.title : ''; }
+  ['mapFiles', 'mapUsers', 'mapTerms', 'mapMin', 'mapStatusSel'].forEach(function (id) { $(id).addEventListener('change', function () { if (currentView === 'map') renderBigMap(); }); });
 
   function showView() {
     var annot = isAnnotator();
