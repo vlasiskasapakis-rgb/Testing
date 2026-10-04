@@ -203,7 +203,7 @@
   .tr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0; }
   .tr-row .btn-primary { padding: 10px 20px; min-height: 44px; }
   .ann-why { flex-basis: 100%; font-size: 13px; color: var(--muted); margin: 2px 0 0; }
-  .suggest-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 8px; padding: 10px 12px; background: var(--sky-soft); border-radius: 12px; }
+  .suggest-bar { position: sticky; bottom: 0; z-index: 6; box-shadow: 0 -6px 14px rgba(14,63,80,.12); margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 8px; padding: 10px 12px; background: var(--sky-soft); border-radius: 12px; }
   .suggest-bar .btn-primary { padding: 10px 18px; min-height: 44px; }
   .suggest-bar p { margin: 0; font-size: 13px; color: var(--muted); flex: 1 1 220px; }
   .det-box h4 { margin: 0 0 4px; font-size: 14px; color: var(--petrol); }
@@ -424,7 +424,7 @@
 </style>
 <style>
   /* ---------- Διάταξη ιστοσελίδας ---------- */
-  html, body { height: auto; overflow: auto; background: var(--mist); }
+  html, body { height: auto; overflow: visible; background: var(--mist); }
   #annotateBtn, #deleteBtn { display: none !important; }
   .site-head { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 20px; background: var(--petrol); color: #fff; }
   .site-head h1 { color: #fff; font-size: 22px; margin: 0; flex: 1 1 auto; }
@@ -522,11 +522,6 @@
             <details id="locFold" class="fold" hidden open><summary data-i18n="locMapTitle"></summary><div id="locMap"></div></details>
           </div>
           <div class="col-ann">
-            <div class="suggest-bar">
-              <button type="button" class="btn-primary" id="suggestAllBtn" data-i18n="sugAll"></button>
-              <p data-i18n="sugHint"></p>
-              <p id="suggestStatus" role="status" style="flex-basis:100%"></p>
-            </div>
             <div class="tabbar">
               <div role="tablist" class="tabs">
                 <button type="button" role="tab" id="tabRec" aria-selected="true" aria-controls="panelRec"></button>
@@ -536,6 +531,11 @@
             </div>
             <div id="panelRec" role="tabpanel" aria-labelledby="tabRec"></div>
             <div id="panelImg" role="tabpanel" aria-labelledby="tabImg" hidden></div>
+            <div class="suggest-bar">
+              <button type="button" class="btn-primary" id="suggestAllBtn" data-i18n="sugAll"></button>
+              <p data-i18n="sugHint"></p>
+              <p id="suggestStatus" role="status" style="flex-basis:100%"></p>
+            </div>
           </div>
         </div>
         <div id="sheetKnow" class="story-know"></div>

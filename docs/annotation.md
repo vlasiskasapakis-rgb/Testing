@@ -22,11 +22,11 @@ each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` onc
 ## Three buttons (annotation website)
 1. **1 · Transcribe** (on each recording): fills the transcript text (Groq server; or **Load a .srt / .vtt / .txt file**). Edit the text if needed.
 2. **2 · Save transcript** (on each recording): stores the text.
-3. **3 · Suggest terms for the whole story** (above the tabs): uses all saved transcripts together with the story's details and
+3. **3 · Suggest terms for the whole story** (the bar at the bottom of the right column, always in view): uses all saved transcripts together with the story's details and
    suggests the terms once (below). If a transcript has unsaved changes, it asks you to save it first.
 
 ## One combined suggestion for the whole story (annotation website)
-**3 · Suggest terms for the whole story** (above the tabs) combines everything known about the story in one pass. The details are used **inside the transcript**, not as a
+**3 · Suggest terms for the whole story** (the bar at the bottom of the right column, always in view) combines everything known about the story in one pass. The details are used **inside the transcript**, not as a
 separate list:
 - Names spoken in the transcript are looked up in Wikidata. The **title, identity, period and location** of the file decide which
   match is right and how confident the suggestion is.
