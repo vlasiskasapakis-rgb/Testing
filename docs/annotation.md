@@ -19,6 +19,12 @@ starts as your GPS position; you can press **Pick on the map** and tap a place i
 each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` once: it adds the columns to `story_media`
 (an upload still works without them, but the details are then not saved).
 
+## One dropdown per recording (annotation website)
+In the **Transcript & terms** tab every recording is its own dropdown, labelled with its title and a summary
+("Audio 1 · Kitchen story — 12 lines · 3 approved · 5 to review"). Opening it shows its details (title, identity, date, period, location),
+its transcript text and the terms on its lines. One recording is open at a time; while a recording plays with **Follow playback** on,
+its dropdown opens by itself. The three buttons below work on all recordings, open or not.
+
 ## Three buttons in a row (annotation website)
 At the top of the right column, always in view: **1 · Transcribe**, **2 · Save transcript**, **3 · Suggest terms** (plus a small
 language picker for the transcription). They work on the whole story:

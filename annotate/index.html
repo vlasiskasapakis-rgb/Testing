@@ -211,6 +211,9 @@
   .steps-row button { flex: 1 1 auto; padding: 8px 10px; min-height: 44px; font-size: 15px; font-weight: 700; white-space: nowrap; }
   @media (max-width: 700px) { .steps-row { flex-wrap: wrap; } }
   .steps-bar p { margin: 4px 2px 0; font-size: 13px; color: var(--muted); min-height: 1.3em; flex: 1 1 auto; }
+  .rec-wrap > summary { font-size: 16px; }
+  .rec-wrap > .ann-media { border-top: 0; padding-top: 0; margin-top: 0; }
+  .rec-info { padding: 8px 10px; background: var(--mist); border-radius: 10px; margin: 6px 0 8px; }
   .det-box h4 { margin: 0 0 4px; font-size: 14px; color: var(--petrol); }
   .ann-media > .media-cap { margin: 0 0 8px; }
   #sheetSub { display: none; }
@@ -738,6 +741,8 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      recSummary: "{n} γραμμές · {a} εγκεκριμένοι όροι · {r} προς έλεγχο",
+      recNoTr: "χωρίς απομαγνητοφώνηση",
       trRedo: "Όλες οι ηχογραφήσεις έχουν ήδη κείμενο. Να γίνει νέα μεταγραφή και αντικατάσταση του κειμένου;",
       trRunning: "Μεταγραφή: {n}…",
       trSave: "2 · Αποθήκευση απομαγνητοφώνησης",
@@ -1058,6 +1063,8 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      recSummary: "{n} lines · {a} approved · {r} to review",
+      recNoTr: "no transcript yet",
       trRedo: "Every recording already has text. Transcribe again and replace the text?",
       trRunning: "Transcribing: {n}…",
       trSave: "2 · Save transcript",
@@ -1381,6 +1388,8 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      recSummary: "{n} lignes · {a} approuvés · {r} à vérifier",
+      recNoTr: "pas encore de transcription",
       trRedo: "Chaque enregistrement a déjà du texte. Transcrire à nouveau et remplacer le texte ?",
       trRunning: "Transcription : {n}…",
       trSave: "2 · Enregistrer la transcription",
@@ -1698,6 +1707,8 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      recSummary: "{n} righe · {a} approvati · {r} da rivedere",
+      recNoTr: "nessuna trascrizione",
       trRedo: "Ogni registrazione ha già un testo. Trascrivere di nuovo e sostituire il testo?",
       trRunning: "Trascrizione: {n}…",
       trSave: "2 · Salva la trascrizione",
@@ -2427,6 +2438,8 @@
       if (on && !b.classList.contains('now')) nowSeg = b;
       b.classList.toggle('now', on);
     });
+    var wrapEl = $('panelRec').querySelector('.rec-wrap[data-media-id="' + avId + '"]');
+    if (wrapEl && !wrapEl.open && follow && !avEl.paused && !$('panelRec').hidden) wrapEl.open = true;
     if (nowSeg && follow && !avEl.paused && !$('panelRec').hidden) { try { nowSeg.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }
     // Δείκτης θέσης και ενεργά τμήματα στη γραμμή χρόνου
     var tl = $('sheetMedia').querySelector('.tl[data-media-id="' + avId + '"]');
@@ -3209,8 +3222,7 @@
   function annSection(s, m, n) {
     var sec = document.createElement('section'); sec.className = 'ann-media';
     var uid = 'ann-' + m.id;
-    var h = document.createElement('h3'); h.textContent = t('type_' + m.kind) + ' ' + n; sec.appendChild(h);
-    var capEl = mediaCaption(m); if (capEl) sec.appendChild(capEl);
+    var capEl = mediaCaption(m); if (capEl) { capEl.classList.add('rec-info'); sec.appendChild(capEl); }
     var cx = detailsContext(s, m);
     var playerEl = document.createElement(m.kind === 'video' ? 'video' : 'audio');
     playerEl.preload = 'metadata'; playerEl.src = m.url;
@@ -3267,6 +3279,7 @@
       if (tr && !filled) { ta.value = segmentsToText(tr.transcript_segments); lastWords = tr.transcript_segments.map(function (g) { return { text: g.text, words: g.words || null }; }); if (tr.language) $('trLang').value = tr.language; filled = true; }
       segByIdx = {}; if (tr) tr.transcript_segments.forEach(function (g) { segByIdx[g.idx] = g; });
       if (!stepInit && data) { stepInit = true; step1.open = !tr; step2.open = !!tr; }
+      if (sec.onPaint) sec.onPaint(tr, anns);
       if (!tr) return;
       tr.transcript_segments.forEach(function (seg) {
         var mine = anns.filter(function (a) { return a.segment_idx === seg.idx; });
@@ -3523,7 +3536,23 @@
     var imgs = s.media.filter(function (m) { return m.kind === 'image' && m.id; });
     if (!av.length && !imgs.length) { var p = document.createElement('p'); p.textContent = t('annNoMedia'); rec.appendChild(p); }
     if (!av.length && imgs.length) { var p2 = document.createElement('p'); p2.className = 'sheet-sub'; p2.textContent = t('imgNoTranscript'); rec.appendChild(p2); }
-    av.forEach(function (m, i) { rec.appendChild(annSection(s, m, i + 1)); });
+    var recs = [];
+    av.forEach(function (m, i) {
+      // Κάθε ηχογράφηση σε δικό της αναδιπλούμενο πλαίσιο με τα στοιχεία της· ανοίγει μία κάθε φορά
+      var label = t('type_' + m.kind) + ' ' + (i + 1);
+      var d = document.createElement('details'); d.className = 'ann-step rec-wrap'; d.dataset.mediaId = m.id; recs.push(d);
+      var sm = document.createElement('summary'); sm.textContent = label + (m.title ? ' · ' + m.title : ''); d.appendChild(sm);
+      var sec = annSection(s, m, i + 1);
+      sec.onPaint = function (tr, anns) {
+        var mine = anns.filter(function (a) { return a.status !== 'rejected'; });
+        var appr = mine.filter(function (a) { return a.status === 'approved'; }).length, rev = mine.filter(function (a) { return a.status === 'suggested'; }).length;
+        sm.textContent = label + (m.title ? ' · ' + m.title : '') + ' — ' + (tr ? t('recSummary', { n: tr.transcript_segments.length, a: appr, r: rev }) : t('recNoTr'));
+      };
+      d.appendChild(sec);
+      d.addEventListener('toggle', function () { if (d.open) recs.forEach(function (o) { if (o !== d) o.open = false; }); });
+      rec.appendChild(d);
+    });
+    if (recs.length) recs[0].open = true;
     var each = [];
     imgs.forEach(function (m, i) {
       // Κάθε εικόνα χωριστά· ανοίγει μία κάθε φορά
