@@ -960,6 +960,13 @@
       imgTimeHint: "Οι χρόνοι αφορούν τον ήχο/βίντεο που διάλεξες στο «Σύνδεση εικόνας με στιγμή της αφήγησης». Χρησιμοποίησε τον αναπαραγωγέα εκεί και τα κουμπιά Αρχή/Τέλος.",
       imgTimeOutside: "Η εικόνα δεν εμφανίζεται εκείνη τη στιγμή (δεν είναι συνδεδεμένη με αυτό το μέρος της καταγραφής). Να γίνει αποθήκευση;",
       imgConfirmRemoveAll: "Να αφαιρεθούν και οι {n} σημειώσεις αυτού του όρου σε αυτή την εικόνα;",
+      imgFromLine: "Από γραμμή της απομαγνητοφώνησης",
+      imgToLine: "Έως γραμμή (προαιρετικά)",
+      imgUseLink: "Χρήση του διαστήματος που εμφανίζεται η εικόνα",
+      imgSync: "Σύνδεση με τις αναφορές στην απομαγνητοφώνηση",
+      imgNoMentions: "Ο όρος δεν αναφέρεται ακόμα με χρόνο στην απομαγνητοφώνηση.",
+      imgSyncDone: "Συνδέθηκε με {n} αναφορές στην απομαγνητοφώνηση.",
+      imgSyncNone: "Είναι ήδη συνδεδεμένο με όλες τις αναφορές.",
       listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
     },
     en: {
@@ -1193,6 +1200,13 @@
       imgTimeHint: "Times refer to the audio/video chosen in \"Link this image to a moment of the story\". Use its player and the Start/End buttons.",
       imgTimeOutside: "The image is not shown at that time (it is not linked to that part of the recording). Save anyway?",
       imgConfirmRemoveAll: "Remove all {n} notes of this term on this image?",
+      imgFromLine: "From transcript line",
+      imgToLine: "To line (optional)",
+      imgUseLink: "Use the period the image is shown",
+      imgSync: "Link to mentions in the transcript",
+      imgNoMentions: "This term has no timed mention in the transcript yet.",
+      imgSyncDone: "Linked to {n} mention(s) in the transcript.",
+      imgSyncNone: "Already linked to every mention.",
       listSearch: "Search by title, name or consent code"
     },
     fr: {
@@ -1426,6 +1440,13 @@
       imgTimeHint: "Les durées se rapportent à l'audio/vidéo choisi dans « Lier cette image à un moment du récit ». Utilisez son lecteur et les boutons Début/Fin.",
       imgTimeOutside: "L'image n'est pas affichée à ce moment (elle n'est pas liée à cette partie de l'enregistrement). Enregistrer quand même ?",
       imgConfirmRemoveAll: "Supprimer les {n} notes de ce terme sur cette image ?",
+      imgFromLine: "De la ligne de transcription",
+      imgToLine: "À la ligne (facultatif)",
+      imgUseLink: "Utiliser la période où l'image est affichée",
+      imgSync: "Lier aux mentions dans la transcription",
+      imgNoMentions: "Ce terme n'a pas encore de mention datée dans la transcription.",
+      imgSyncDone: "Lié à {n} mention(s) dans la transcription.",
+      imgSyncNone: "Déjà lié à toutes les mentions.",
       listSearch: "Rechercher par titre, nom ou code de consentement"
     },
     it: {
@@ -1659,6 +1680,13 @@
       imgTimeHint: "I tempi si riferiscono all'audio/video scelto in «Collega questa immagine a un momento del racconto». Usa il suo lettore e i pulsanti Inizio/Fine.",
       imgTimeOutside: "L'immagine non è visibile in quel momento (non è collegata a quella parte della registrazione). Salvare comunque?",
       imgConfirmRemoveAll: "Rimuovere tutte le {n} note di questo termine su questa immagine?",
+      imgFromLine: "Dalla riga di trascrizione",
+      imgToLine: "Alla riga (facoltativo)",
+      imgUseLink: "Usa il periodo in cui l'immagine è mostrata",
+      imgSync: "Collega alle menzioni nella trascrizione",
+      imgNoMentions: "Questo termine non ha ancora una menzione con tempo nella trascrizione.",
+      imgSyncDone: "Collegato a {n} menzione/i nella trascrizione.",
+      imgSyncNone: "Già collegato a tutte le menzioni.",
       listSearch: "Cerca per titolo, nome o codice di consenso"
     }
   };
@@ -3604,26 +3632,61 @@
     var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
     var clipBtn = document.createElement('button'); clipBtn.type = 'button'; clipBtn.className = 'btn-secondary btn-wide'; clipBtn.textContent = t('imgClip'); sec.appendChild(clipBtn);
 
-    var terms = [], anns = [], links = [], transcripts = [], selAvId = null, lnkInit = false;
+    var terms = [], anns = [], allAnns = [], links = [], transcripts = [], selAvId = null, lnkInit = false;
 
     function fail(e) { alert(t('annSaveError', { e: errText(e) })); }
     async function setStatus(a, status) {
       var r = await sb.from('annotations').update({ status: status, approved_by: status === 'approved' ? currentUser.id : null, approved_at: status === 'approved' ? new Date().toISOString() : null }).eq('id', a.id);
       if (r.error) throw r.error; a.status = status;
     }
-    async function addInstance(tm) {
-      var r = await sb.from('annotations').insert({ media_id: m.id, mention: tm.label, kind: tm.kind, vocabulary: tm.vocabulary, term_uri: tm.term_uri, label: tm.label,
-        description: tm.description || '', status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString() }).select(ANN_COLS).single();
+    async function addInstance(tm, extra) {
+      var row = { media_id: m.id, mention: tm.label, kind: tm.kind, vocabulary: tm.vocabulary, term_uri: tm.term_uri, label: tm.label,
+        description: tm.description || '', status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString() };
+      if (extra) Object.assign(row, extra);
+      var r = await sb.from('annotations').insert(row).select(ANN_COLS).single();
       if (r.error) throw r.error; anns.push(r.data); return r.data;
     }
     async function deleteInst(a) {
       var d = await sb.from('annotations').delete().eq('id', a.id);
       if (d.error) throw d.error; anns.splice(anns.indexOf(a), 1);
     }
-    async function saveTimeFor(a, st_, en_) {
-      var patch = st_ == null ? { start_s: null, end_s: null, av_media_id: null } : { start_s: st_, end_s: en_, av_media_id: selAvId };
+    async function saveTimeFor(a, st_, en_, av) {
+      var patch = st_ == null ? { start_s: null, end_s: null, av_media_id: null } : { start_s: st_, end_s: en_, av_media_id: av || selAvId };
       var r = await sb.from('annotations').update(patch).eq('id', a.id);
       if (r.error) throw r.error; Object.assign(a, patch);
+    }
+    // Οι στιγμές όπου ο όρος αναφέρεται στην απομαγνητοφώνηση: το διάστημα ολόκληρης της γραμμής όπου ειπώθηκε
+    function mentionsFor(tm) {
+      var out = [], seen = {};
+      allAnns.forEach(function (a) {
+        if (a.term_uri !== tm.term_uri || a.status !== 'approved' || a.media_id === m.id) return;
+        var mk = mediaById(s, a.media_id);
+        if (!mk || mk.kind === 'image') return;
+        var tr = transcripts.filter(function (x) { return x.media_id === a.media_id; })[0];
+        var seg = tr && a.segment_idx != null ? tr.transcript_segments.filter(function (g) { return g.idx === a.segment_idx; })[0] : null;
+        var st_ = seg && seg.end_s > seg.start_s ? seg.start_s : (hasRange(a) ? a.start_s : null);
+        var en_ = seg && seg.end_s > seg.start_s ? seg.end_s : (hasRange(a) ? a.end_s : null);
+        if (st_ == null) return;
+        var key = a.media_id + '|' + st_ + '|' + en_;
+        if (!seen[key]) { seen[key] = 1; out.push({ av: a.media_id, start: st_, end: en_ }); }
+      });
+      return out.sort(function (x, y) { return x.av === y.av ? x.start - y.start : (x.av < y.av ? -1 : 1); });
+    }
+    function sameSpan(a, mn) { return a.av_media_id === mn.av && Math.abs(a.start_s - mn.start) < 0.05 && Math.abs(a.end_s - mn.end) < 0.05; }
+    // Δένει τη σημείωση με κάθε αναφορά του όρου: η πρώτη στη σημείωση αυτή (αν δεν έχει χρόνο), οι υπόλοιπες σε νέες με την ίδια περιοχή
+    async function syncMentions(tm, ex, insts) {
+      var ms = mentionsFor(tm);
+      if (!ms.length) { alert(t('imgNoMentions')); return; }
+      var todo = ms.filter(function (mn) { return !insts.some(function (i) { return isTimedNote(i) && sameSpan(i, mn); }); });
+      if (!todo.length) { alert(t('imgSyncNone')); return; }
+      var n = todo.length;
+      if (!isTimedNote(ex)) { var first = todo.shift(); await saveTimeFor(ex, first.start, first.end, first.av); }
+      for (var i = 0; i < todo.length; i++) {
+        var extra = { start_s: todo[i].start, end_s: todo[i].end, av_media_id: todo[i].av };
+        if (hasRegion(ex)) { extra.region_x = ex.region_x; extra.region_y = ex.region_y; extra.region_w = ex.region_w; extra.region_h = ex.region_h; }
+        await addInstance(tm, extra);
+      }
+      status.textContent = t('imgSyncDone', { n: n });
     }
     function instSummary(a) {
       return (hasRegion(a) ? t('imgAreaMarked') : t('imgWholeImage')) + ' · ' +
@@ -3631,7 +3694,7 @@
     }
 
     // Μία σημείωση (περίπτωση) ενός όρου πάνω στην εικόνα: προαιρετική περιοχή και προαιρετικός χρόνος της αφήγησης
-    function instRow(tm, ex, count) {
+    function instRow(tm, ex, count, insts) {
       var row = document.createElement('div'); row.className = 'ann-row inst-row';
       var sm = document.createElement('span'); sm.className = 'ann-when'; sm.textContent = instSummary(ex); row.appendChild(sm);
       function ib(label, fn) {
@@ -3670,8 +3733,39 @@
         var si = document.createElement('input'); si.type = 'text'; si.className = 'time-in'; si.inputMode = 'decimal'; si.setAttribute('aria-label', t('lnkStart'));
         var ei = document.createElement('input'); ei.type = 'text'; ei.className = 'time-in'; ei.inputMode = 'decimal'; ei.setAttribute('aria-label', t('lnkEnd'));
         if (isTimedNote(ex)) { si.value = fmtT(ex.start_s); ei.value = fmtT(ex.end_s); }
+        // Επιλογή από γραμμές της απομαγνητοφώνησης αντί για χειροκίνητους χρόνους
+        function lineSelect(label, id) {
+          var wrap = document.createElement('div'); wrap.className = 'input-group';
+          var lb = document.createElement('label'); lb.htmlFor = id; lb.textContent = label;
+          var sel = document.createElement('select'); sel.id = id; sel.className = 'lang-select';
+          var none = document.createElement('option'); none.value = ''; none.textContent = '—'; sel.appendChild(none);
+          var tr = transcripts.filter(function (x) { return x.media_id === selAvId; })[0];
+          ((tr && tr.transcript_segments) || []).filter(function (g) { return g.end_s > g.start_s; }).forEach(function (g) {
+            var o = document.createElement('option'); o.value = String(g.idx); o.dataset.start = g.start_s; o.dataset.end = g.end_s;
+            o.textContent = '[' + mmss(g.start_s) + '-' + mmss(g.end_s) + '] ' + g.text.slice(0, 60); sel.appendChild(o);
+          });
+          wrap.appendChild(lb); wrap.appendChild(sel); panel.appendChild(wrap);
+          return sel;
+        }
+        var uidp = 'ln-' + ex.id;
+        var fromSel = lineSelect(t('imgFromLine'), uidp + '-f'), toSel = lineSelect(t('imgToLine'), uidp + '-t');
+        function applyLines() {
+          var f = fromSel.selectedOptions[0], e2 = (toSel.selectedOptions[0] && toSel.value !== '') ? toSel.selectedOptions[0] : f;
+          if (!f || f.value === '') return;
+          var a = +f.dataset.start, z = +e2.dataset.end;
+          if (z <= a) { z = +f.dataset.end; }
+          si.value = fmtT(a); ei.value = fmtT(z);
+          if (playerEl) { try { playerEl.currentTime = a; } catch (e) {} }
+        }
+        fromSel.onchange = applyLines; toSel.onchange = applyLines;
         panel.appendChild(si); panel.appendChild(ei);
         function pb(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.onclick = fn; panel.appendChild(b); return b; }
+        pb(t('imgUseLink'), function () {
+          var mine = links.filter(function (l) { return l.av_media_id === selAvId; });
+          if (!mine.length) return;
+          si.value = fmtT(Math.min.apply(null, mine.map(function (l) { return l.start_s; })));
+          ei.value = fmtT(Math.max.apply(null, mine.map(function (l) { return l.end_s; })));
+        });
         pb(t('lnkSetStart'), function () { si.value = fmtT(playerEl ? playerEl.currentTime || 0 : 0); });
         pb(t('lnkSetEnd'), function () { ei.value = fmtT(playerEl ? playerEl.currentTime || 0 : 0); });
         pb(t('imgTimeSave'), async function () {
@@ -3685,6 +3779,7 @@
         pb(t('imgTimeClear'), async function () { try { await saveTimeFor(ex, null, null); } catch (e) { fail(e); return; } paint(); });
         row.appendChild(panel);
       }
+      if (avs.length) ib(t('imgSync'), function () { return syncMentions(tm, ex, insts); });
       if (count > 1) ib(t('imgDeleteInst'), function () { return deleteInst(ex); });
       return row;
     }
@@ -3717,7 +3812,7 @@
           } catch (e) { fail(e); }
           paint();
         };
-        insts.forEach(function (ex) { block.appendChild(instRow(tm, ex, insts.length)); });
+        insts.forEach(function (ex) { block.appendChild(instRow(tm, ex, insts.length, insts)); });
         if (hasApproved) {
           var add = document.createElement('button'); add.type = 'button'; add.className = 'link-btn'; add.textContent = t('imgAdd');
           add.onclick = async function () { add.disabled = true; try { await addInstance(tm); } catch (e) { fail(e); } paint(); };
@@ -3736,6 +3831,7 @@
         if (a.status !== 'approved' || imageIds[a.media_id] || seen[a.term_uri]) return false;
         seen[a.term_uri] = 1; return true;
       });
+      allAnns = k.annotations;
       anns = k.annotations.filter(function (a) { return a.media_id === m.id; });
       links = k.links.filter(function (l) { return l.image_media_id === m.id; });
       transcripts = k.transcripts;
@@ -3779,7 +3875,7 @@
       playerEl = document.createElement(cur.kind === 'video' ? 'video' : 'audio');
       playerEl.controls = true; playerEl.preload = 'metadata'; playerEl.src = cur.url; playerEl.setAttribute('aria-label', avLabel(selAvId));
       lnkBox.appendChild(playerEl);
-      avSel.onchange = function () { selAvId = avSel.value; paintLinks(); };
+      avSel.onchange = function () { selAvId = avSel.value; paintLinks(); paint(); };
 
       var g2 = document.createElement('div'); g2.className = 'input-group';
       var lb2 = document.createElement('label'); lb2.htmlFor = uid + '-line'; lb2.textContent = t('lnkLine');
