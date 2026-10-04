@@ -216,6 +216,20 @@
   .order-item span { flex: 1; min-width: 0; }
   .x-btn { width: 34px; height: 34px; padding: 0; border-radius: 50%; background: var(--mist); color: var(--petrol); font-weight: 700; border: 1px solid var(--line-strong); }
   .x-btn:disabled { opacity: .35; }
+  .view-switch { display: flex; gap: 4px; background: rgba(255,255,255,.15); border-radius: 999px; padding: 3px; }
+  .view-switch[hidden] { display: none; }
+  .view-switch button { background: transparent; color: #fff; font-weight: 700; padding: 6px 16px; min-height: 36px; }
+  .view-switch button[aria-pressed="true"] { background: #fff; color: var(--petrol); }
+  .map-view { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
+  .map-bar { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-bottom: 8px; }
+  .map-bar .chk { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--petrol); font-size: 14px; }
+  .map-bar .chk input[type=checkbox] { width: 20px; height: 20px; }
+  .map-bar .lang-select { min-height: 34px; padding: 2px 10px; font-size: 14px; }
+  #bigMap { height: calc(100vh - 230px); min-height: 380px; border-radius: 12px; border: 1px solid var(--line-strong); }
+  .map-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .map-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+  .map-pop strong { display: block; color: var(--petrol); }
+  .map-pop button { margin-top: 6px; padding: 6px 12px; min-height: 34px; background: var(--petrol); color: #fff; font-weight: 700; }
   .rec-wrap > summary { font-size: 16px; }
   .rec-wrap > .ann-media { border-top: 0; padding-top: 0; margin-top: 0; }
   .rec-info { padding: 8px 10px; background: var(--mist); border-radius: 10px; margin: 6px 0 8px; }
@@ -501,6 +515,10 @@
   <select id="langSel" class="lang-select">
     <option value="el" lang="el">EL</option><option value="en" lang="en">EN</option><option value="fr" lang="fr">FR</option><option value="it" lang="it">IT</option>
   </select>
+  <nav id="viewSwitch" class="view-switch" hidden aria-label="View">
+    <button type="button" id="viewStories" aria-pressed="true" data-i18n="viewStories"></button>
+    <button type="button" id="viewMap" aria-pressed="false" data-i18n="viewMap"></button>
+  </nav>
   <div id="userBox" hidden><span id="userName"></span><button id="logoutBtn" type="button" data-i18n="logout"></button></div>
 </header>
 
@@ -519,6 +537,20 @@
   <section id="noAccess" class="card" hidden>
     <p data-i18n="siteNoAccess"></p>
     <button id="logoutBtn2" type="button" class="btn-secondary btn-wide" data-i18n="logout"></button>
+  </section>
+
+  <section id="mapView" class="map-view" hidden aria-label="Map">
+    <div class="map-bar">
+      <label class="chk"><input type="checkbox" id="mapFiles" checked><span data-i18n="mapLinkFiles"></span></label>
+      <label class="chk"><input type="checkbox" id="mapTerms"><span data-i18n="mapLinkTerms"></span></label>
+      <label class="chk" id="mapMinWrap" hidden><span data-i18n="mapMinShared"></span>
+        <select id="mapMin" class="lang-select"><option>1</option><option>2</option><option>3</option><option>5</option></select></label>
+      <label class="chk"><span data-i18n="mapStatus"></span>
+        <select id="mapStatusSel" class="lang-select"><option value="all"></option><option value="draft"></option><option value="published"></option></select></label>
+      <span id="mapInfo" class="sheet-sub" role="status"></span>
+    </div>
+    <div id="bigMap" role="application" aria-label="Map"></div>
+    <div id="mapLegend" class="map-legend"></div>
   </section>
 
   <div id="appView" class="layout" hidden>
@@ -763,6 +795,19 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      viewStories: "Ιστορίες",
+      viewMap: "Χάρτης",
+      mapLinkFiles: "Σύνδεση αρχείων της ίδιας ιστορίας",
+      mapLinkTerms: "Σύνδεση ιστοριών με κοινούς όροι",
+      mapStatus: "Εμφάνιση",
+      mapCount: "{f} αρχεία με τοποθεσία σε {s} ιστορίες · {u} χρήστες",
+      mapNoLoc: "Δεν υπάρχουν ακόμη τοποθεσίες.",
+      mapOpenStory: "Άνοιγμα ιστορίας",
+      mapShared: "Κοινοί όροι ({n}): {t}",
+      mapStoryPoint: "Τοποθεσία ιστορίας (κατά τη δημιουργία)",
+      mapLegend: "Χρήστες",
+      mapMinShared: "Ελάχ. κοινοί όροι",
+      mapLoadingTerms: "Φόρτωση όρων…",
       moveUp: "Μετακίνηση πάνω: {name}",
       moveDown: "Μετακίνηση κάτω: {name}",
       orderTitle: "Σειρά ηχογραφήσεων (όπως εμφανίζονται στην εφαρμογή)",
@@ -1097,6 +1142,19 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      viewStories: "Stories",
+      viewMap: "Map",
+      mapLinkFiles: "Connect files of the same story",
+      mapLinkTerms: "Connect stories that share terms",
+      mapStatus: "Show",
+      mapCount: "{f} files with a location in {s} stories · {u} users",
+      mapNoLoc: "No locations yet.",
+      mapOpenStory: "Open story",
+      mapShared: "Shared terms ({n}): {t}",
+      mapStoryPoint: "Story location (where it was created)",
+      mapLegend: "Users",
+      mapMinShared: "Min. shared terms",
+      mapLoadingTerms: "Loading terms…",
       moveUp: "Move up: {name}",
       moveDown: "Move down: {name}",
       orderTitle: "Order of recordings (as shown in the app)",
@@ -1434,6 +1492,19 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      viewStories: "Histoires",
+      viewMap: "Carte",
+      mapLinkFiles: "Relier les fichiers d'une même histoire",
+      mapLinkTerms: "Relier les histoires qui partagent des termes",
+      mapStatus: "Afficher",
+      mapCount: "{f} fichiers localisés dans {s} histoires · {u} utilisateurs",
+      mapNoLoc: "Aucun lieu pour l'instant.",
+      mapOpenStory: "Ouvrir l'histoire",
+      mapShared: "Termes communs ({n}) : {t}",
+      mapStoryPoint: "Lieu de l'histoire (à la création)",
+      mapLegend: "Utilisateurs",
+      mapMinShared: "Termes communs min.",
+      mapLoadingTerms: "Chargement des termes…",
       moveUp: "Monter : {name}",
       moveDown: "Descendre : {name}",
       orderTitle: "Ordre des enregistrements (comme dans l'application)",
@@ -1765,6 +1836,19 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      viewStories: "Storie",
+      viewMap: "Mappa",
+      mapLinkFiles: "Collega i file della stessa storia",
+      mapLinkTerms: "Collega le storie con termini in comune",
+      mapStatus: "Mostra",
+      mapCount: "{f} file con posizione in {s} storie · {u} utenti",
+      mapNoLoc: "Nessun luogo per ora.",
+      mapOpenStory: "Apri la storia",
+      mapShared: "Termini in comune ({n}): {t}",
+      mapStoryPoint: "Luogo della storia (alla creazione)",
+      mapLegend: "Utenti",
+      mapMinShared: "Termini in comune min.",
+      mapLoadingTerms: "Caricamento termini…",
       moveUp: "Sposta su: {name}",
       moveDown: "Sposta giù: {name}",
       orderTitle: "Ordine delle registrazioni (come nell'app)",
@@ -4023,15 +4107,122 @@
     } catch (e) { $('listBody').innerHTML = ''; var ep = document.createElement('p'); ep.className = 'field-error'; ep.textContent = t('loadStoriesError') + ' ' + errText(e); $('listBody').appendChild(ep); return; }
     var again = keep && STORIES.filter(function (x) { return x.dbId === keep; })[0];
     if (!again && currentSheetStory) closeStory();
+    mapTermsData = null;
     renderList();
+    if (currentView === 'map') renderBigMap();
   }
 
   // ---- Σύνδεση ----
+  // ---- Χάρτης όλων των τοποθεσιών που ανέβασαν οι χρήστες, με συνδέσεις ----
+  var currentView = 'stories', bigMap = null, mapLayer = null, mapTermsData = null;
+  var PALETTE = ['#E0904F', '#249CCC', '#186078', '#B3261E', '#6B8E23', '#8E44AD', '#C2185B', '#00897B', '#795548', '#455A64'];
+  function setView(v) {
+    currentView = v;
+    $('viewStories').setAttribute('aria-pressed', v === 'stories' ? 'true' : 'false'); $('viewMap').setAttribute('aria-pressed', v === 'map' ? 'true' : 'false');
+    showView();
+    if (v === 'map') renderBigMap();
+  }
+  $('viewStories').onclick = function () { setView('stories'); };
+  $('viewMap').onclick = function () { setView('map'); };
+  function storyPoints(x) {   // σημεία με τοποθεσία: αρχεία (με τη σειρά τους) και η τοποθεσία δημιουργίας της ιστορίας
+    var pts = [];
+    x.media.slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0); }).forEach(function (m) { if (m.lat != null && m.lon != null) pts.push({ lat: m.lat, lon: m.lon, m: m }); });
+    return pts;
+  }
+  async function loadTermsForMap() {
+    if (mapTermsData) return mapTermsData;
+    var mediaToStory = {}; STORIES.forEach(function (x) { x.media.forEach(function (m) { mediaToStory[m.id] = x; }); });
+    var out = {};     // term_uri -> { label, stories: Set(dbId) }
+    var r = await sb.from('annotations').select('media_id,term_uri,label').eq('status', 'approved').limit(5000);
+    if (r.error) throw r.error;
+    r.data.forEach(function (a) {
+      var x = mediaToStory[a.media_id]; if (!x) return;
+      var e = out[a.term_uri] || (out[a.term_uri] = { label: a.label, stories: {} }); e.stories[x.dbId] = x;
+    });
+    mapTermsData = out; return out;
+  }
+  async function renderBigMap() {
+    if (!window.L) { $('mapInfo').textContent = 'Leaflet is not available.'; return; }
+    var st = $('mapStatusSel'); [['all', 'listAllF'], ['draft', 'listDraftF'], ['published', 'listPubF']].forEach(function (o, i) { st.options[i].textContent = t(o[1]); });
+    if (!bigMap) {
+      bigMap = L.map('bigMap', { zoomControl: true }).setView([39.1, 26.55], 8);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(bigMap);
+      mapLayer = L.layerGroup().addTo(bigMap);
+    }
+    mapLayer.clearLayers();
+    var list = STORIES.filter(function (x) { return $('mapStatusSel').value === 'all' || x.status === $('mapStatusSel').value; });
+    var users = {}, order = [];
+    list.forEach(function (x) { var k = x.ownerId || x.author || '?'; if (!users[k]) { users[k] = { name: x.author || '—', color: PALETTE[order.length % PALETTE.length], n: 0 }; order.push(k); } });
+    var nFiles = 0, nStories = 0, all = [], centroids = {};
+    list.forEach(function (x) {
+      var u = users[x.ownerId || x.author || '?'], pts = storyPoints(x), has = false;
+      var sp = (x.lat != null && x.lon != null) ? { lat: x.lat, lon: x.lon } : null;
+      // Τοποθεσία δημιουργίας της ιστορίας: μικρός κενός κύκλος
+      if (sp) { all.push([sp.lat, sp.lon]); L.circleMarker([sp.lat, sp.lon], { radius: 5, color: u.color, weight: 2, fillOpacity: 0 }).bindPopup(popupFor(x, null, t('mapStoryPoint'))).addTo(mapLayer); has = true; }
+      pts.forEach(function (p) {
+        nFiles++; all.push([p.lat, p.lon]);
+        L.circleMarker([p.lat, p.lon], { radius: 8, color: '#fff', weight: 2, fillColor: u.color, fillOpacity: .95 }).bindPopup(popupFor(x, p.m)).addTo(mapLayer);
+        has = true;
+      });
+      if (has) { nStories++; u.n++; }
+      var cpts = pts.length ? pts : (sp ? [sp] : []);
+      if (cpts.length) centroids[x.dbId] = { lat: cpts.reduce(function (a, p) { return a + p.lat; }, 0) / cpts.length, lon: cpts.reduce(function (a, p) { return a + p.lon; }, 0) / cpts.length, x: x };
+      // Σύνδεση των αρχείων της ίδιας ιστορίας με τη σειρά τους
+      if ($('mapFiles').checked && pts.length > 1) {
+        L.polyline(pts.map(function (p) { return [p.lat, p.lon]; }), { color: u.color, weight: 3, opacity: .75, dashArray: x.status === 'published' ? null : '6 6' }).addTo(mapLayer);
+      }
+    });
+    // Σύνδεση ιστοριών που μοιράζονται εγκεκριμένους όρους
+    $('mapMinWrap').hidden = !$('mapTerms').checked;
+    if ($('mapTerms').checked) {
+      $('mapInfo').textContent = t('mapLoadingTerms');
+      try {
+        var terms = await loadTermsForMap(), pairs = {};
+        Object.keys(terms).forEach(function (uri) {
+          var ids = Object.keys(terms[uri].stories).filter(function (id) { return centroids[id]; });
+          if (ids.length < 2 || ids.length > 12) return;          // πολύ κοινοί όροι δεν δίνουν νόημα
+          for (var i = 0; i < ids.length; i++) for (var j = i + 1; j < ids.length; j++) {
+            var k = ids[i] < ids[j] ? ids[i] + '|' + ids[j] : ids[j] + '|' + ids[i];
+            (pairs[k] = pairs[k] || []).push(terms[uri].label);
+          }
+        });
+        var min = +$('mapMin').value || 1;
+        Object.keys(pairs).filter(function (k) { return pairs[k].length >= min; }).sort(function (a, b) { return pairs[b].length - pairs[a].length; }).slice(0, 300).forEach(function (k) {
+          var ab = k.split('|'), A = centroids[ab[0]], B = centroids[ab[1]], n = pairs[k].length;
+          var pl = L.polyline([[A.lat, A.lon], [B.lat, B.lon]], { color: '#7B1FA2', weight: Math.min(2 + n, 8), opacity: .45 });
+          pl.bindPopup(function () { var d = document.createElement('div'); d.className = 'map-pop'; var h = document.createElement('strong'); h.textContent = st_(A.x) + ' ↔ ' + st_(B.x); d.appendChild(h); d.appendChild(document.createTextNode(t('mapShared', { n: n, t: pairs[k].slice(0, 8).join(', ') + (n > 8 ? '…' : '') }))); return d; });
+          pl.addTo(mapLayer);
+        });
+      } catch (e) { $('mapInfo').textContent = errText(e); return; }
+    }
+    $('mapInfo').textContent = nFiles || all.length ? t('mapCount', { f: nFiles, s: nStories, u: order.length }) : t('mapNoLoc');
+    var lg = $('mapLegend'); lg.innerHTML = '';
+    if (order.length) { var lh = document.createElement('strong'); lh.textContent = t('mapLegend') + ': '; lg.appendChild(lh); }
+    order.forEach(function (k) { var sp2 = document.createElement('span'); var dot = document.createElement('i'); dot.style.background = users[k].color; sp2.appendChild(dot); sp2.appendChild(document.createTextNode(users[k].name + ' (' + users[k].n + ')')); lg.appendChild(sp2); });
+    setTimeout(function () { bigMap.invalidateSize(); if (all.length === 1) bigMap.setView(all[0], 15); else if (all.length) bigMap.fitBounds(all, { padding: [40, 40], maxZoom: 16 }); }, 80);
+  }
+  function st_(x) { return x.t && x.t.el ? x.t.el.title : ''; }
+  function popupFor(x, m, note) {
+    var d = document.createElement('div'); d.className = 'map-pop';
+    var h = document.createElement('strong'); h.textContent = st_(x) + (x.author ? ' — ' + x.author : ''); d.appendChild(h);
+    if (m) {
+      var bits = [t('type_' + m.kind) + (m.title ? ': ' + m.title : '')];
+      if (m.about) bits.push(m.about); if (m.recorded) bits.push(t('miRecorded') + ' ' + m.recorded); if (m.period) bits.push(m.period);
+      var p = document.createElement('div'); p.textContent = bits.join(' · '); d.appendChild(p);
+    } else if (note) { var q = document.createElement('div'); q.textContent = note; d.appendChild(q); }
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = t('mapOpenStory');
+    b.onclick = function () { setView('stories'); openStory(x); };
+    d.appendChild(b); return d;
+  }
+  ['mapFiles', 'mapTerms', 'mapMin', 'mapStatusSel'].forEach(function (id) { $(id).addEventListener('change', function () { if (currentView === 'map') renderBigMap(); }); });
+
   function showView() {
     var annot = isAnnotator();
     $('loginView').hidden = !!currentUser;
     $('noAccess').hidden = !(currentUser && !annot);
-    $('appView').hidden = !annot;
+    $('appView').hidden = !annot || currentView !== 'stories';
+    $('mapView').hidden = !annot || currentView !== 'map';
+    $('viewSwitch').hidden = !annot;
     $('userBox').hidden = !currentUser;
     $('userName').textContent = currentUser ? userName(currentUser) : '';
   }
@@ -4061,7 +4252,7 @@
     });
   } else { $('authError').textContent = 'Supabase is not configured (config.js).'; }
   onLangChange(function () {
-    showView(); if (isAnnotator()) renderList(); $('authSubmitBtn').textContent = t('login');
+    showView(); if (isAnnotator()) renderList(); if (currentView === 'map') renderBigMap(); $('authSubmitBtn').textContent = t('login');
     $('suggestAllBtn').title = t('sugHint');
     var n = $('panelImg').children.length; $('tabRec').textContent = t('tabRec'); $('tabImg').textContent = t('tabImg') + ' (' + n + ')';
   });

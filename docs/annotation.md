@@ -64,6 +64,15 @@ Among several Wikidata matches for a name, the one nearest the location (or whos
 Unreviewed automatic suggestions are replaced on each run; approved, rejected and hand-made terms are kept.
 Re-run `supabase/roles.sql` once (it adds `annotations.reason`; suggestions work without it, but the "Why" text is then not saved).
 
+## Map of all locations (annotation website)
+The **Map** button in the header (next to **Stories**) shows every location that users uploaded:
+- a **filled dot** for each file with a location (colour = the user who uploaded it; the legend lists users), and a **hollow circle** for the
+  place where each story was created;
+- **Connect files of the same story** (on by default) draws a line through a story's files in their order (dashed = draft);
+- **Connect stories that share terms** (off by default) draws purple lines between stories that have approved terms in common
+  (thicker = more terms; the popup lists them; **Min. shared terms** filters weak links, and terms shared by very many stories are ignored);
+- **Show** filters drafts / published. Click a dot to see the file's details and **Open story**.
+
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
 - **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account
