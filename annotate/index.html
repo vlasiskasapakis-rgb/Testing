@@ -214,6 +214,20 @@
   .rec-wrap > summary { font-size: 16px; }
   .rec-wrap > .ann-media { border-top: 0; padding-top: 0; margin-top: 0; }
   .rec-info { padding: 8px 10px; background: var(--mist); border-radius: 10px; margin: 6px 0 8px; }
+  .table-wrap { overflow-x: auto; margin: 6px 0; border: 1px solid var(--line); border-radius: 10px; }
+  .note-table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: auto; min-width: 460px; }
+  .note-table th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); background: var(--mist); padding: 6px 8px; position: sticky; top: 0; }
+  .note-table td { padding: 5px 8px; border-top: 1px solid var(--line); vertical-align: middle; }
+  .note-table tr.grp-first td { border-top: 2px solid var(--line-strong); }
+  .note-table tr.grp-first:first-child td { border-top: 0; }
+  .note-table .c-line { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+  .note-table .c-time button, .note-table .c-area button { white-space: nowrap; padding: 2px 4px; min-height: 32px; }
+  .note-table .c-term { min-width: 120px; }
+  .note-table .cnt { color: var(--muted); font-size: 12px; }
+  .note-table .c-del { width: 40px; text-align: right; }
+  .note-table .x-btn { width: 32px; height: 32px; padding: 0; border-radius: 50%; background: var(--mist); color: var(--danger); font-weight: 700; }
+  .note-table .x-btn:hover { background: var(--danger); color: #fff; }
+  .sr-only-th { width: 40px; }
   .det-box h4 { margin: 0 0 4px; font-size: 14px; color: var(--petrol); }
   .ann-media > .media-cap { margin: 0 0 8px; }
   #sheetSub { display: none; }
@@ -743,6 +757,14 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      colTerm: "Όρος",
+      colArea: "Περιοχή",
+      colRec: "Ηχογράφηση",
+      colTime: "Χρόνος",
+      colLine: "Γραμμή απομαγνητοφώνησης",
+      noteView: "Προβολή",
+      noteDeleteAll: "Διαγραφή όλων",
+      noteDeleteAllConfirm: "Να διαγραφούν και οι {n} σημειώσεις για «{t}»;",
       recSummary: "{n} γραμμές · {a} εγκεκριμένοι όροι · {r} προς έλεγχο",
       recNoTr: "χωρίς απομαγνητοφώνηση",
       trRedo: "Όλες οι ηχογραφήσεις έχουν ήδη κείμενο. Να γίνει νέα μεταγραφή και αντικατάσταση του κειμένου;",
@@ -1065,6 +1087,14 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      colTerm: "Term",
+      colArea: "Area",
+      colRec: "Recording",
+      colTime: "Time",
+      colLine: "Transcript line",
+      noteView: "View",
+      noteDeleteAll: "Delete all",
+      noteDeleteAllConfirm: "Delete all {n} notes for “{t}”?",
       recSummary: "{n} lines · {a} approved · {r} to review",
       recNoTr: "no transcript yet",
       trRedo: "Every recording already has text. Transcribe again and replace the text?",
@@ -1390,6 +1420,14 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      colTerm: "Terme",
+      colArea: "Zone",
+      colRec: "Enregistrement",
+      colTime: "Temps",
+      colLine: "Ligne de transcription",
+      noteView: "Voir",
+      noteDeleteAll: "Tout supprimer",
+      noteDeleteAllConfirm: "Supprimer les {n} notes pour « {t} » ?",
       recSummary: "{n} lignes · {a} approuvés · {r} à vérifier",
       recNoTr: "pas encore de transcription",
       trRedo: "Chaque enregistrement a déjà du texte. Transcrire à nouveau et remplacer le texte ?",
@@ -1709,6 +1747,14 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      colTerm: "Termine",
+      colArea: "Area",
+      colRec: "Registrazione",
+      colTime: "Tempo",
+      colLine: "Riga di trascrizione",
+      noteView: "Mostra",
+      noteDeleteAll: "Elimina tutte",
+      noteDeleteAllConfirm: "Eliminare tutte le {n} note per «{t}»?",
       recSummary: "{n} righe · {a} approvati · {r} da rivedere",
       recNoTr: "nessuna trascrizione",
       trRedo: "Ogni registrazione ha già un testo. Trascrivere di nuovo e sostituire il testo?",
@@ -3478,31 +3524,75 @@
       if (links.some(function (l) { return l.av_media_id === mn.av && l.start_s <= mn.start + 0.05 && l.end_s >= mn.end - 0.05; })) return;
       await linkInsert({ story_id: s.dbId, image_media_id: m.id, av_media_id: mn.av, start_s: mn.start, end_s: mn.end });
     }
-    function lineText(avId, start) {
+    function lineFull(avId, start) {
       var g = segsOf(avId).filter(function (x) { return start >= x.start_s - 0.05 && start < x.end_s; })[0];
-      return g ? g.text.slice(0, 50) : '';
+      return g ? g.text : '';
+    }
+    function td(row, cls) { var c = document.createElement('td'); if (cls) c.className = cls; row.appendChild(c); return c; }
+    async function deleteNotes(list2) {
+      var d = await sb.from('annotations').delete().in('id', list2.map(function (a) { return a.id; }));
+      if (d.error) throw d.error;
+      list2.forEach(function (a) { var i = anns.indexOf(a); if (i >= 0) anns.splice(i, 1); });
+      paintList(); scheduleView();
     }
 
-    // ---- υπάρχουσες σημειώσεις: όρος · περιοχή · μέρος της απομαγνητοφώνησης ----
+    // ---- υπάρχουσες σημειώσεις σε πίνακα: όρος · περιοχή · [ηχογράφηση] · χρόνος · γραμμή απομαγνητοφώνησης ----
     function paintList() {
       list.innerHTML = '';
       var notes = anns.filter(function (a) { return a.status !== 'rejected' && (hasRegion(a) || isTimedNote(a)); });
       if (!notes.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('noteNone'); list.appendChild(p); return; }
-      notes.sort(function (a, b) { return (a.start_s || 0) - (b.start_s || 0); }).forEach(function (a) {
-        var row = document.createElement('div'); row.className = 'ann-row';
-        var tx = document.createElement('span');
-        var when = isTimedNote(a) ? (avs.length > 1 ? avLabel(a.av_media_id) + ' · ' : '') + mmss(a.start_s) + '–' + mmss(a.end_s) + (lineText(a.av_media_id, a.start_s) ? ' “' + lineText(a.av_media_id, a.start_s) + '”' : '') : t('imgAlways');
-        tx.textContent = a.label + ' · ' + (hasRegion(a) ? t('noteArea') : t('noteNoArea')) + ' · ' + when;
-        row.appendChild(tx);
-        var dl = document.createElement('button'); dl.type = 'button'; dl.textContent = t('noteDelete'); dl.setAttribute('aria-label', t('noteDelete') + ': ' + a.label);
-        dl.onclick = async function () {
-          dl.disabled = true;
-          var d = await sb.from('annotations').delete().eq('id', a.id);
-          if (d.error) { fail(d.error); dl.disabled = false; return; }
-          anns.splice(anns.indexOf(a), 1); paintList(); scheduleView();
-        };
-        row.appendChild(dl); list.appendChild(row);
+      // Ομαδοποίηση ανά όρο (και χρόνο μέσα στην ομάδα) ώστε οι πολλές σημειώσεις του ίδιου όρου να μένουν μαζί
+      var groups = {}, order = [];
+      notes.forEach(function (a) { var k = a.term_uri; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(a); });
+      order.sort(function (x, y) { return termLabel(groups[x][0]).localeCompare(termLabel(groups[y][0])); });
+      var multi = avs.length > 1;
+      var wrap = document.createElement('div'); wrap.className = 'table-wrap';
+      var tb = document.createElement('table'); tb.className = 'note-table';
+      var cap = document.createElement('caption'); cap.className = 'sr-only'; cap.textContent = t('noteListTitle'); tb.appendChild(cap);
+      var hd = document.createElement('thead'), hr = document.createElement('tr');
+      [['colTerm', ''], ['colArea', 'c-area'], multi ? ['colRec', 'c-rec'] : null, ['colTime', 'c-time'], ['colLine', 'c-line'], ['', 'c-del']].forEach(function (c) {
+        if (!c) return; var th = document.createElement('th'); th.scope = 'col'; if (c[1]) th.className = c[1]; th.textContent = c[0] ? t(c[0]) : ''; if (!c[0]) { th.className += ' sr-only-th'; th.setAttribute('aria-label', t('noteDelete')); } hr.appendChild(th);
       });
+      hd.appendChild(hr); tb.appendChild(hd);
+      var body = document.createElement('tbody');
+      order.forEach(function (k) {
+        var g = groups[k].sort(function (a, b) { return (a.av_media_id === b.av_media_id ? 0 : (a.av_media_id < b.av_media_id ? -1 : 1)) || (a.start_s || 0) - (b.start_s || 0); });
+        g.forEach(function (a, gi) {
+          var tr = document.createElement('tr'); if (gi === 0) tr.className = 'grp-first';
+          var c1 = td(tr, 'c-term');
+          if (gi === 0) {
+            var nm = document.createElement('strong'); nm.textContent = termLabel(a); c1.appendChild(nm);
+            if (g.length > 1) {
+              var cnt = document.createElement('span'); cnt.className = 'cnt'; cnt.textContent = ' ×' + g.length; c1.appendChild(cnt);
+              var all = document.createElement('button'); all.type = 'button'; all.className = 'link-btn'; all.textContent = t('noteDeleteAll');
+              all.setAttribute('aria-label', t('noteDeleteAll') + ': ' + termLabel(a) + ' (' + g.length + ')');
+              all.onclick = async function () { if (!window.confirm(t('noteDeleteAllConfirm', { n: g.length, t: termLabel(a) }))) return; all.disabled = true; try { await deleteNotes(g.slice()); } catch (e) { fail(e); all.disabled = false; } };
+              c1.appendChild(document.createElement('br')); c1.appendChild(all);
+            }
+          }
+          var c2 = td(tr, 'c-area');
+          if (hasRegion(a)) {
+            var vb = document.createElement('button'); vb.type = 'button'; vb.className = 'link-btn'; vb.textContent = t('noteView'); vb.setAttribute('aria-label', t('noteView') + ': ' + a.label);
+            vb.onclick = function () { openImagePopup({ url: m.url, alt: imgAlt, title: imgAlt + ' — ' + a.label, regions: [a] }); };
+            c2.appendChild(vb);
+          } else c2.textContent = '—';
+          if (multi) td(tr, 'c-rec').textContent = a.av_media_id ? avLabel(a.av_media_id) : '';
+          var c3 = td(tr, 'c-time');
+          if (isTimedNote(a)) {
+            var pb = document.createElement('button'); pb.type = 'button'; pb.className = 'link-btn'; pb.textContent = '▶ ' + mmss(a.start_s) + '–' + mmss(a.end_s);
+            pb.setAttribute('aria-label', t('trPlay', { t: mmss(a.start_s) }) + ': ' + a.label);
+            pb.onclick = function () { seekPlay(a.av_media_id, a.start_s); };
+            c3.appendChild(pb);
+          } else c3.textContent = t('imgAlways');
+          var c4 = td(tr, 'c-line'), full = a.av_media_id ? lineFull(a.av_media_id, a.start_s) : ''; c4.textContent = full; if (full) c4.title = full;
+          var c5 = td(tr, 'c-del');
+          var dl = document.createElement('button'); dl.type = 'button'; dl.className = 'x-btn'; dl.textContent = '✕'; dl.title = t('noteDelete'); dl.setAttribute('aria-label', t('noteDelete') + ': ' + a.label + ' ' + mmss(a.start_s || 0));
+          dl.onclick = async function () { dl.disabled = true; try { await deleteNotes([a]); } catch (e) { fail(e); dl.disabled = false; } };
+          c5.appendChild(dl);
+          body.appendChild(tr);
+        });
+      });
+      tb.appendChild(body); wrap.appendChild(tb); list.appendChild(wrap);
     }
 
     async function reload() {
