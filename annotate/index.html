@@ -196,6 +196,21 @@
   .story-media .img-frame { display: inline-block; max-width: 100%; }
   .story-media .img-frame img { display: block; width: auto; max-width: 100%; max-height: 42vh; height: auto; border-radius: 12px; background: #000; cursor: zoom-in; }
   #imgPopup { z-index: 80; }
+  #sheetSub { display: none; }
+  .story-head { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; margin: 2px 0 4px; }
+  .story-head > * { margin: 0 !important; font-size: 14px; }
+  .tabbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; position: sticky; top: 60px; z-index: 5; background: #fff; padding: 6px 0 8px; border-bottom: 2px solid var(--line); margin-bottom: 10px; }
+  .tabs { display: flex; gap: 6px; }
+  .tabs button { padding: 10px 18px; min-height: 44px; font-weight: 700; background: var(--mist); color: var(--petrol); border: 2px solid transparent; border-radius: 12px; }
+  .tabs button[aria-selected="true"] { background: var(--petrol); color: #fff; }
+  .follow { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); font-weight: 600; }
+  .follow input { width: 20px; height: 20px; }
+  .ann-seg { scroll-margin-top: 130px; border: 2px solid transparent; }
+  .ann-seg.now { border-color: var(--amber); background: var(--sky-soft); }
+  .ann-seg .when { display: inline-flex; align-items: center; gap: 6px; background: none; color: var(--amber-text); padding: 2px 8px 2px 0; min-height: 32px; border-radius: 6px; }
+  .ann-seg .when::before { content: '▶'; font-size: 11px; }
+  .ann-seg .when:hover { text-decoration: underline; }
+  #panelRec > .ann-media, #panelImg > .ann-step { margin-top: 0; }
   #imgPopup .sheet-inner { max-height: 96vh; }
   .popup-stage { display: flex; justify-content: center; }
   .popup-frame { position: relative; display: inline-block; line-height: 0; max-width: 100%; }
@@ -472,10 +487,12 @@
       <p id="workEmpty" class="work-empty" data-i18n="siteSelect"></p>
       <div id="storyView" hidden>
         <h2 id="sheetTitle"></h2>
-        <p id="sheetSub" class="sheet-sub"></p>
-        <p id="sheetAuthor" class="story-author"></p>
-        <p id="sheetStatus" class="story-status"></p>
-        <p id="sheetConsent" class="story-status" hidden></p>
+        <p id="sheetSub" class="sheet-sub" hidden></p>
+        <div class="story-head">
+          <span id="sheetAuthor" class="story-author"></span>
+          <span id="sheetStatus" class="story-status"></span>
+          <span id="sheetConsent" class="story-status" hidden></span>
+        </div>
         <div id="sheetTools" hidden>
           <button id="publishBtn" class="btn-primary" hidden></button>
           <button id="exportBtn" class="btn-secondary" hidden data-i18n="annExport"></button>
@@ -488,9 +505,15 @@
             <div id="sheetImages" class="story-media"></div>
           </div>
           <div class="col-ann">
-            <h2 data-i18n="annTitle"></h2>
-            <p class="sheet-sub" data-i18n="annNote"></p>
-            <div id="annBody"></div>
+            <div class="tabbar">
+              <div role="tablist" class="tabs">
+                <button type="button" role="tab" id="tabRec" aria-selected="true" aria-controls="panelRec"></button>
+                <button type="button" role="tab" id="tabImg" aria-selected="false" aria-controls="panelImg" tabindex="-1"></button>
+              </div>
+              <label class="follow"><input type="checkbox" id="followCb" checked><span data-i18n="followPb"></span></label>
+            </div>
+            <div id="panelRec" role="tabpanel" aria-labelledby="tabRec"></div>
+            <div id="panelImg" role="tabpanel" aria-labelledby="tabImg" hidden></div>
           </div>
         </div>
         <div id="sheetKnow" class="story-know"></div>
@@ -681,6 +704,9 @@
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
       siteTitle: "Walking Memory · Σχολιασμός",
+      tabRec: "Απομαγνητοφώνηση και όροι",
+      tabImg: "Εικόνες",
+      followPb: "Ακολούθησε την αναπαραγωγή",
       siteLoginTitle: "Είσοδος σχολιαστών",
       siteLoginHint: "Η σελίδα αυτή είναι μόνο για σχολιαστές. Οι διευκολυντές χρησιμοποιούν την εφαρμογή.",
       siteNoAccess: "Ο λογαριασμός σας δεν έχει ρόλο σχολιαστή. Ζητήστε από τον διαχειριστή να τον ορίσει.",
@@ -958,6 +984,12 @@
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
       siteTitle: "Walking Memory · Annotation",
+      tabRec: "Transcription et termes",
+      tabImg: "Images",
+      followPb: "Suivre la lecture",
+      tabRec: "Transcript & terms",
+      tabImg: "Images",
+      followPb: "Follow playback",
       siteLoginTitle: "Annotator login",
       siteLoginHint: "This site is for annotators only. Facilitators use the app.",
       siteNoAccess: "Your account does not have the annotator role. Ask the administrator to set it.",
@@ -1512,6 +1544,9 @@
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
       siteTitle: "Walking Memory · Annotazione",
+      tabRec: "Trascrizione e termini",
+      tabImg: "Immagini",
+      followPb: "Segui la riproduzione",
       siteLoginTitle: "Accesso annotatori",
       siteLoginHint: "Questo sito è solo per gli annotatori. I facilitatori usano l'app.",
       siteNoAccess: "Il tuo account non ha il ruolo di annotatore. Chiedi all'amministratore di impostarlo.",
@@ -2162,6 +2197,13 @@
     document.querySelectorAll('#sheetKnow .tr-line').forEach(function (b) {
       b.classList.toggle('now', b.dataset.mediaId === avId && now >= +b.dataset.start && now < +b.dataset.end);
     });
+    var follow = $('followCb') && $('followCb').checked, nowSeg = null;
+    document.querySelectorAll('#panelRec .ann-seg').forEach(function (b) {
+      var on = b.dataset.mediaId === avId && now >= +b.dataset.start && now < +b.dataset.end;
+      if (on && !b.classList.contains('now')) nowSeg = b;
+      b.classList.toggle('now', on);
+    });
+    if (nowSeg && follow && !avEl.paused && !$('panelRec').hidden) { try { nowSeg.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }
     // Δείκτης θέσης και ενεργά τμήματα στη γραμμή χρόνου
     var tl = $('sheetMedia').querySelector('.tl[data-media-id="' + avId + '"]');
     if (tl) {
@@ -2825,9 +2867,10 @@
     var uid = 'ann-' + m.id;
     var h = document.createElement('h3'); h.textContent = t('type_' + m.kind) + ' ' + n; sec.appendChild(h);
     var playerEl = document.createElement(m.kind === 'video' ? 'video' : 'audio');
-    playerEl.className = 'ann-player'; playerEl.controls = true; playerEl.preload = 'metadata'; playerEl.src = m.url;
-    playerEl.setAttribute('aria-label', t('type_' + m.kind) + ' ' + n); sec.appendChild(playerEl);
-    var ctx = { getTime: function () { return playerEl.currentTime || 0; }, seek: function (x) { try { playerEl.currentTime = x; } catch (e) {} },
+    playerEl.preload = 'metadata'; playerEl.src = m.url;
+    // Ένας μόνο αναπαραγωγέας (αριστερά): ο χρόνος και η μετακίνηση χρησιμοποιούν εκείνον· ο κρυφός είναι εφεδρικός
+    function mainPlayer() { return $('sheetMedia').querySelector('[data-media-id="' + m.id + '"]') || playerEl; }
+    var ctx = { getTime: function () { return mainPlayer().currentTime || 0; }, seek: function (x) { try { mainPlayer().currentTime = x; } catch (e) {} },
       locate: function (a) { var g = segByIdx[a.segment_idx]; return g ? locateMention(g, a.mention) : null; } };
     var status = document.createElement('p'); status.className = 'sheet-sub'; status.setAttribute('role', 'status'); sec.appendChild(status);
     var stepInit = false;
@@ -2894,7 +2937,10 @@
       tr.transcript_segments.forEach(function (seg) {
         var mine = anns.filter(function (a) { return a.segment_idx === seg.idx; });
         var box = document.createElement('div'); box.className = 'ann-seg';
-        var when = document.createElement('div'); when.className = 'when'; when.textContent = mmss(seg.start_s) + '–' + mmss(seg.end_s);
+        box.dataset.mediaId = m.id; box.dataset.start = seg.start_s; box.dataset.end = seg.end_s;
+        var when = document.createElement('button'); when.type = 'button'; when.className = 'when'; when.textContent = mmss(seg.start_s) + '–' + mmss(seg.end_s);
+        when.setAttribute('aria-label', t('trPlay', { t: mmss(seg.start_s) }) + ': ' + seg.text);
+        when.onclick = function () { seekPlay(m.id, seg.start_s); };
         var tx = document.createElement('div'); tx.textContent = seg.text;
         box.appendChild(when); box.appendChild(tx);
         mine.forEach(function (a) { box.appendChild(annRowEl(a, paint, ctx)); });
@@ -3207,28 +3253,41 @@
   function buildAnnotate() {
     var s = currentSheetStory;
     if (!s || !isAnnotator()) return;
-    var body = $('annBody'); body.innerHTML = '';
+    var rec = $('panelRec'), imgp = $('panelImg'); rec.innerHTML = ''; imgp.innerHTML = '';
     annListeners = [];
     var av = s.media.filter(function (m) { return m.kind !== 'image' && m.id; });
     var imgs = s.media.filter(function (m) { return m.kind === 'image' && m.id; });
-    if (!av.length && !imgs.length) { var p = document.createElement('p'); p.textContent = t('annNoMedia'); body.appendChild(p); }
-    av.forEach(function (m, i) { body.appendChild(annSection(s, m, i + 1)); });
-    if (imgs.length) {
-      // Όλες οι εικόνες σε μία αναδιπλούμενη ενότητα, και μέσα σε αυτήν κάθε εικόνα χωριστά (ανοίγει μία κάθε φορά)
-      var all = document.createElement('details'); all.className = 'ann-step'; all.open = !av.length;
-      var allSm = document.createElement('summary'); allSm.textContent = t('imgSection') + ' (' + imgs.length + ')'; all.appendChild(allSm);
-      var each = [];
-      imgs.forEach(function (m, i) {
-        var d = document.createElement('details'); d.className = 'ann-step'; each.push(d);
-        var sm = document.createElement('summary'); sm.textContent = t('type_image') + ' ' + (i + 1); d.appendChild(sm);
-        d.appendChild(imageSection(s, m, i + 1));
-        d.addEventListener('toggle', function () { if (d.open) each.forEach(function (o) { if (o !== d) o.open = false; }); });
-        all.appendChild(d);
-      });
-      if (each.length === 1) each[0].open = true;
-      body.appendChild(all);
-    }
+    if (!av.length && !imgs.length) { var p = document.createElement('p'); p.textContent = t('annNoMedia'); rec.appendChild(p); }
+    if (!av.length && imgs.length) { var p2 = document.createElement('p'); p2.className = 'sheet-sub'; p2.textContent = t('imgNoTranscript'); rec.appendChild(p2); }
+    av.forEach(function (m, i) { rec.appendChild(annSection(s, m, i + 1)); });
+    var each = [];
+    imgs.forEach(function (m, i) {
+      // Κάθε εικόνα χωριστά· ανοίγει μία κάθε φορά
+      var d = document.createElement('details'); d.className = 'ann-step'; each.push(d);
+      var sm = document.createElement('summary'); sm.textContent = t('type_image') + ' ' + (i + 1); d.appendChild(sm);
+      d.appendChild(imageSection(s, m, i + 1));
+      d.addEventListener('toggle', function () { if (d.open) each.forEach(function (o) { if (o !== d) o.open = false; }); });
+      imgp.appendChild(d);
+    });
+    if (each.length) each[0].open = true;
+    $('tabRec').textContent = t('tabRec');
+    $('tabImg').textContent = t('tabImg') + ' (' + imgs.length + ')';
+    $('tabImg').disabled = !imgs.length;
+    showTab(!av.length && imgs.length ? 'img' : 'rec');
   }
+  function showTab(which) {
+    var img = which === 'img';
+    $('tabRec').setAttribute('aria-selected', img ? 'false' : 'true'); $('tabRec').tabIndex = img ? -1 : 0;
+    $('tabImg').setAttribute('aria-selected', img ? 'true' : 'false'); $('tabImg').tabIndex = img ? 0 : -1;
+    $('panelRec').hidden = img; $('panelImg').hidden = !img;
+  }
+  $('tabRec').onclick = function () { showTab('rec'); };
+  $('tabImg').onclick = function () { showTab('img'); };
+  [$('tabRec'), $('tabImg')].forEach(function (b) {
+    b.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { var to = b === $('tabRec') ? 'tabImg' : 'tabRec'; if (!$(to).disabled) { showTab(to === 'tabImg' ? 'img' : 'rec'); $(to).focus(); } }
+    });
+  });
 
   // --- Εξαγωγή JSON-LD (HDT ontology + CIDOC-CRM + Web Annotation) ---
   // Το HDTO v0.1 δεν δημοσιεύει ακόμη επίσημο namespace· ορίστε WM_CONFIG.HDT_NS όταν υπάρξει.
@@ -3409,7 +3468,7 @@
   }
   function closeStory() {
     clearSheetMedia(); currentSheetStory = null; annListeners = [];
-    $('storyView').hidden = true; $('workEmpty').hidden = false; $('annBody').innerHTML = '';
+    $('storyView').hidden = true; $('workEmpty').hidden = false; $('panelRec').innerHTML = ''; $('panelImg').innerHTML = '';
   }
 
   function renderList() {
@@ -3487,7 +3546,10 @@
       });
     });
   } else { $('authError').textContent = 'Supabase is not configured (config.js).'; }
-  onLangChange(function () { showView(); if (isAnnotator()) renderList(); $('authSubmitBtn').textContent = t('login'); });
+  onLangChange(function () {
+    showView(); if (isAnnotator()) renderList(); $('authSubmitBtn').textContent = t('login');
+    var n = $('panelImg').children.length; $('tabRec').textContent = t('tabRec'); $('tabImg').textContent = t('tabImg') + ' (' + n + ')';
+  });
 
   setLang(LANG);
   showView();
