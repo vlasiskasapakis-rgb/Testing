@@ -203,21 +203,26 @@
   .tr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0; }
   .tr-row .btn-primary { padding: 10px 20px; min-height: 44px; }
   .ann-why { flex-basis: 100%; font-size: 13px; color: var(--muted); margin: 2px 0 0; }
-  .suggest-bar { position: sticky; bottom: 0; z-index: 6; box-shadow: 0 -6px 14px rgba(14,63,80,.12); margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 8px; padding: 10px 12px; background: var(--sky-soft); border-radius: 12px; }
-  .suggest-bar .btn-primary { padding: 10px 18px; min-height: 44px; }
-  .suggest-bar p { margin: 0; font-size: 13px; color: var(--muted); flex: 1 1 220px; }
+  .col-head { position: sticky; top: 60px; z-index: 7; background: #fff; padding-top: 2px; }
+  .steps-bar { padding: 8px 10px; background: var(--sky-soft); border-radius: 12px; margin-bottom: 6px; }
+  .steps-row { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; }
+  .steps-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .steps-meta .lang-select { min-height: 34px; padding: 2px 10px; font-size: 14px; }
+  .steps-row button { flex: 1 1 auto; padding: 8px 10px; min-height: 44px; font-size: 15px; font-weight: 700; white-space: nowrap; }
+  @media (max-width: 700px) { .steps-row { flex-wrap: wrap; } }
+  .steps-bar p { margin: 4px 2px 0; font-size: 13px; color: var(--muted); min-height: 1.3em; flex: 1 1 auto; }
   .det-box h4 { margin: 0 0 4px; font-size: 14px; color: var(--petrol); }
   .ann-media > .media-cap { margin: 0 0 8px; }
   #sheetSub { display: none; }
   .story-head { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; margin: 2px 0 4px; }
   .story-head > * { margin: 0 !important; font-size: 14px; }
-  .tabbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; position: sticky; top: 60px; z-index: 5; background: #fff; padding: 6px 0 8px; border-bottom: 2px solid var(--line); margin-bottom: 10px; }
+  .tabbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 4px 0 8px; border-bottom: 2px solid var(--line); margin-bottom: 10px; }
   .tabs { display: flex; gap: 6px; }
   .tabs button { padding: 10px 18px; min-height: 44px; font-weight: 700; background: var(--mist); color: var(--petrol); border: 2px solid transparent; border-radius: 12px; }
   .tabs button[aria-selected="true"] { background: var(--petrol); color: #fff; }
   .follow { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); font-weight: 600; }
   .follow input { width: 20px; height: 20px; }
-  .ann-seg { scroll-margin-top: 130px; border: 2px solid transparent; }
+  .ann-seg { scroll-margin-top: 230px; border: 2px solid transparent; }
   .ann-seg.now { border-color: var(--amber); background: var(--sky-soft); }
   .ann-seg .when { display: inline-flex; align-items: center; gap: 6px; background: none; color: var(--amber-text); padding: 2px 8px 2px 0; min-height: 32px; border-radius: 6px; }
   .ann-seg .when::before { content: '▶'; font-size: 11px; }
@@ -522,20 +527,28 @@
             <details id="locFold" class="fold" hidden open><summary data-i18n="locMapTitle"></summary><div id="locMap"></div></details>
           </div>
           <div class="col-ann">
-            <div class="tabbar">
+            <div class="col-head">
+              <div class="steps-bar">
+                <div class="steps-row">
+                  <button type="button" class="btn-primary" id="stepTranscribe" data-i18n="trBtn"></button>
+                  <button type="button" class="btn-secondary" id="stepSave" data-i18n="trSave"></button>
+                  <button type="button" class="btn-primary" id="suggestAllBtn" data-i18n="sugAll"></button>
+                </div>
+                <div class="steps-meta">
+                  <p id="suggestStatus" role="status"></p>
+                  <select id="trLang" class="lang-select" data-i18n-aria="annLangLabel"><option value="el">EL</option><option value="en">EN</option><option value="fr">FR</option><option value="it">IT</option></select>
+                </div>
+              </div>
+              <div class="tabbar">
               <div role="tablist" class="tabs">
                 <button type="button" role="tab" id="tabRec" aria-selected="true" aria-controls="panelRec"></button>
                 <button type="button" role="tab" id="tabImg" aria-selected="false" aria-controls="panelImg" tabindex="-1"></button>
               </div>
               <label class="follow"><input type="checkbox" id="followCb" checked><span data-i18n="followPb"></span></label>
             </div>
+            </div>
             <div id="panelRec" role="tabpanel" aria-labelledby="tabRec"></div>
             <div id="panelImg" role="tabpanel" aria-labelledby="tabImg" hidden></div>
-            <div class="suggest-bar">
-              <button type="button" class="btn-primary" id="suggestAllBtn" data-i18n="sugAll"></button>
-              <p data-i18n="sugHint"></p>
-              <p id="suggestStatus" role="status" style="flex-basis:100%"></p>
-            </div>
           </div>
         </div>
         <div id="sheetKnow" class="story-know"></div>
@@ -725,15 +738,17 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      trRedo: "Όλες οι ηχογραφήσεις έχουν ήδη κείμενο. Να γίνει νέα μεταγραφή και αντικατάσταση του κειμένου;",
+      trRunning: "Μεταγραφή: {n}…",
       trSave: "2 · Αποθήκευση απομαγνητοφώνησης",
-      trSaved: "Η απομαγνητοφώνηση αποθηκεύτηκε ({n} γραμμές). Τώρα πάτα «3 · Πρόταση όρων για όλη την ιστορία».",
+      trSaved: "Η απομαγνητοφώνηση αποθηκεύτηκε ({n} γραμμές). Τώρα πάτα «3 · Πρόταση όρων».",
       trNothingToSave: "Δεν υπάρχει αλλαγή για αποθήκευση.",
       sugSaveFirst: "Αποθήκευσε πρώτα την απομαγνητοφώνηση: {n} (κουμπί «2 · Αποθήκευση απομαγνητοφώνησης»).",
       annTrTitle: "Απομαγνητοφώνηση",
       annTermsTitle: "Όροι στις γραμμές",
       trBtn: "1 · Μεταγραφή",
-      trReady: "Η απομαγνητοφώνηση είναι έτοιμη. Διόρθωσέ τη αν θέλεις και πάτα «2 · Αποθήκευση απομαγνητοφώνησης».",
-      sugAll: "3 · Πρόταση όρων για όλη την ιστορία",
+      trReady: "Η μεταγραφή είναι έτοιμη. Διόρθωσέ τη αν θέλεις και πάτα «2 · Αποθήκευση απομαγνητοφώνησης».",
+      sugAll: "3 · Πρόταση όρων",
       sugHint: "Χρησιμοποιεί όλες τις αποθηκευμένες απομαγνητοφωνήσεις μαζί με τα στοιχεία της ιστορίας (τίτλος, ταυτότητα, περίοδος, τοποθεσία) και προτείνει όρους για ηχογραφήσεις και εικόνες, μία φορά.",
       sugRunning: "Αναζήτηση… {i}/{n}",
       sugDone: "{n} νέες προτάσεις ({h} υψηλής βεβαιότητας).",
@@ -1043,15 +1058,17 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      trRedo: "Every recording already has text. Transcribe again and replace the text?",
+      trRunning: "Transcribing: {n}…",
       trSave: "2 · Save transcript",
-      trSaved: "Transcript saved ({n} lines). Now press “3 · Suggest terms for the whole story”.",
+      trSaved: "Transcript saved ({n} lines). Now press “3 · Suggest terms”.",
       trNothingToSave: "Nothing new to save.",
       sugSaveFirst: "Save the transcript first: {n} (button “2 · Save transcript”).",
       annTrTitle: "Transcript",
       annTermsTitle: "Terms on the lines",
       trBtn: "1 · Transcribe",
       trReady: "Transcript ready. Edit it if you like, then press “2 · Save transcript”.",
-      sugAll: "3 · Suggest terms for the whole story",
+      sugAll: "3 · Suggest terms",
       sugHint: "Uses all saved transcripts together with the story's details (title, identity, period, location) and suggests terms for recordings and images, once.",
       sugRunning: "Searching… {i}/{n}",
       sugDone: "{n} new suggestions ({h} high confidence).",
@@ -1364,15 +1381,17 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      trRedo: "Chaque enregistrement a déjà du texte. Transcrire à nouveau et remplacer le texte ?",
+      trRunning: "Transcription : {n}…",
       trSave: "2 · Enregistrer la transcription",
-      trSaved: "Transcription enregistrée ({n} lignes). Appuyez maintenant sur « 3 · Suggérer des termes pour toute l'histoire ».",
+      trSaved: "Transcription enregistrée ({n} lignes). Appuyez maintenant sur « 3 · Suggérer ».",
       trNothingToSave: "Rien de nouveau à enregistrer.",
       sugSaveFirst: "Enregistrez d'abord la transcription : {n} (bouton « 2 · Enregistrer la transcription »).",
       annTrTitle: "Transcription",
       annTermsTitle: "Termes sur les lignes",
       trBtn: "1 · Transcrire",
       trReady: "Transcription prête. Corrigez-la si besoin, puis appuyez sur « 2 · Enregistrer la transcription ».",
-      sugAll: "3 · Suggérer des termes pour toute l'histoire",
+      sugAll: "3 · Suggérer",
       sugHint: "Utilise toutes les transcriptions enregistrées avec les détails de l'histoire (titre, identité, période, lieu) et suggère des termes pour les enregistrements et les images, en une fois.",
       sugRunning: "Recherche… {i}/{n}",
       sugDone: "{n} nouvelles suggestions ({h} de haute confiance).",
@@ -1679,15 +1698,17 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      trRedo: "Ogni registrazione ha già un testo. Trascrivere di nuovo e sostituire il testo?",
+      trRunning: "Trascrizione: {n}…",
       trSave: "2 · Salva la trascrizione",
-      trSaved: "Trascrizione salvata ({n} righe). Ora premi «3 · Suggerisci termini per tutta la storia».",
+      trSaved: "Trascrizione salvata ({n} righe). Ora premi «3 · Suggerisci».",
       trNothingToSave: "Niente di nuovo da salvare.",
       sugSaveFirst: "Salva prima la trascrizione: {n} (pulsante «2 · Salva la trascrizione»).",
       annTrTitle: "Trascrizione",
       annTermsTitle: "Termini sulle righe",
       trBtn: "1 · Trascrivi",
       trReady: "Trascrizione pronta. Correggila se vuoi, poi premi «2 · Salva la trascrizione».",
-      sugAll: "3 · Suggerisci termini per tutta la storia",
+      sugAll: "3 · Suggerisci",
       sugHint: "Usa tutte le trascrizioni salvate insieme ai dettagli della storia (titolo, identità, periodo, luogo) e suggerisce termini per registrazioni e immagini, una volta sola.",
       sugRunning: "Ricerca… {i}/{n}",
       sugDone: "{n} nuovi suggerimenti ({h} ad alta affidabilità).",
@@ -3204,12 +3225,8 @@
     var step1 = document.createElement('details'); step1.className = 'ann-step';
     var sm1 = document.createElement('summary'); sm1.textContent = t('annTrTitle'); step1.appendChild(sm1);
     var trRow = document.createElement('div'); trRow.className = 'tr-row';
-    var serverBtn = document.createElement('button'); serverBtn.type = 'button'; serverBtn.className = 'btn-primary'; serverBtn.textContent = t('trBtn'); trRow.appendChild(serverBtn);
-    var langSel = document.createElement('select'); langSel.id = uid + '-lang'; langSel.className = 'lang-select'; langSel.setAttribute('aria-label', t('annLangLabel'));
-    ['el', 'en', 'fr', 'it'].forEach(function (c) { var o = document.createElement('option'); o.value = c; o.textContent = c.toUpperCase(); langSel.appendChild(o); });
-    langSel.value = LANG; trRow.appendChild(langSel);
-    var saveBtn = document.createElement('button'); saveBtn.type = 'button'; saveBtn.className = 'btn-secondary'; saveBtn.textContent = t('trSave'); trRow.appendChild(saveBtn);
     var fileBtn = document.createElement('button'); fileBtn.type = 'button'; fileBtn.className = 'link-btn'; fileBtn.textContent = t('annUpload'); trRow.appendChild(fileBtn);
+    var trLang = function () { return $('trLang').value; };
     var fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.srt,.vtt,.txt,text/plain,text/vtt'; fileIn.hidden = true;
     var taWrap = document.createElement('div'); taWrap.className = 'input-group';
     var taLbl = document.createElement('label'); taLbl.htmlFor = uid + '-text'; taLbl.textContent = t('annTextLabel');
@@ -3234,7 +3251,7 @@
       });
     }
 
-    function busy(on) { [serverBtn, saveBtn, fileBtn, langSel, ta].forEach(function (el) { el.disabled = on; }); }
+    function busy(on) { [fileBtn, ta].forEach(function (el) { el.disabled = on; }); }
 
     function paint() {
       var tr = data && data.transcripts.filter(function (x) { return x.media_id === m.id; })[0];
@@ -3247,7 +3264,7 @@
         gen.forEach(function (a) { dbx.appendChild(annRowEl(a, paint, ctx)); });
         detList.appendChild(dbx);
       }
-      if (tr && !filled) { ta.value = segmentsToText(tr.transcript_segments); lastWords = tr.transcript_segments.map(function (g) { return { text: g.text, words: g.words || null }; }); if (tr.language) langSel.value = tr.language; filled = true; }
+      if (tr && !filled) { ta.value = segmentsToText(tr.transcript_segments); lastWords = tr.transcript_segments.map(function (g) { return { text: g.text, words: g.words || null }; }); if (tr.language) $('trLang').value = tr.language; filled = true; }
       segByIdx = {}; if (tr) tr.transcript_segments.forEach(function (g) { segByIdx[g.idx] = g; });
       if (!stepInit && data) { stepInit = true; step1.open = !tr; step2.open = !!tr; }
       if (!tr) return;
@@ -3261,7 +3278,7 @@
         var tx = document.createElement('div'); tx.textContent = seg.text;
         box.appendChild(when); box.appendChild(tx);
         mine.forEach(function (a) { box.appendChild(annRowEl(a, paint, ctx)); });
-        box.appendChild(addTermForm(seg, m, tr.language || langSel.value, function (row) { data.annotations.push(row); paint(); notifyAnn(); },
+        box.appendChild(addTermForm(seg, m, tr.language || trLang(), function (row) { data.annotations.push(row); paint(); notifyAnn(); },
           function (uri) { return data.annotations.some(function (a) { return a.media_id === m.id && a.segment_idx === seg.idx && a.term_uri === uri && a.status !== 'rejected'; }); }));
         list.appendChild(box);
       });
@@ -3269,15 +3286,14 @@
 
     async function reload() { data = await fetchKnowledge(s, true); paint(); }
 
-    serverBtn.onclick = async function () {
-      busy(true); status.textContent = t('annServerRun');
-      try {
-        var segs = await serverTranscribe(m.id, langSel.value);
-        ta.value = segmentsToText(segs); filled = true; dirty = true; lastWords = segs.map(function (g) { return { text: g.text, words: g.words || null }; });
-        step1.open = true; status.textContent = t('trReady');
-      } catch (e) { status.textContent = t('annServerErr', { e: e.message || e }); }
-      finally { busy(false); }
+    // 1 · Μεταγραφή: καλείται από τη γραμμή κουμπιών της ιστορίας· γεμίζει το πλαίσιο κειμένου (δεν αποθηκεύει)
+    sec.transcribe = async function () {
+      var segs = await serverTranscribe(m.id, trLang());
+      ta.value = segmentsToText(segs); filled = true; dirty = true; lastWords = segs.map(function (g) { return { text: g.text, words: g.words || null }; });
+      step1.open = true; status.textContent = '';
+      return segs.length;
     };
+    sec.hasText = function () { return !!ta.value.trim(); };
     fileBtn.onclick = function () { fileIn.click(); };
     fileIn.onchange = function () {
       var f = fileIn.files && fileIn.files[0];
@@ -3294,7 +3310,7 @@
       if (!ta.value.trim() || (hasTr && !dirty)) return 0;
       var segs = attachWords(textToSegments(ta.value).slice(0, 400));
       if (!segs.length) return 0;
-      var rows = await saveTranscript(m, langSel.value, segs);
+      var rows = await saveTranscript(m, trLang(), segs);
       dirty = false; filled = false; await reload();
       return rows.length;
     };
@@ -3304,18 +3320,7 @@
       return !!ta.value.trim() && (dirty || !hasTr);
     };
     sec.label = t('type_' + m.kind) + ' ' + n;
-    saveBtn.onclick = async function () {
-      if (!ta.value.trim()) { status.textContent = t('annEmpty'); ta.focus(); return; }
-      busy(true); status.textContent = t('annRunning');
-      try {
-        var nl = await sec.saveIfNeeded();
-        status.textContent = nl ? t('trSaved', { n: nl }) : t('trNothingToSave');
-        notifyAnn();
-      } catch (e) { status.textContent = t('annFailed', { e: errText(e) }); }
-      finally { busy(false); }
-    };
     sec.setBusy = busy;
-    sec.getLang = function () { return langSel.value; };
     annSections.push(sec);
     annListeners.push(function () { return reload(); });      // ανανέωση όταν αλλάζουν οι προτάσεις/εγκρίσεις αλλού (π.χ. από τις εικόνες)
     reload().catch(function (e) { status.textContent = t('annFailed', { e: errText(e) }); });
@@ -3529,27 +3534,58 @@
       imgp.appendChild(d);
     });
     if (each.length) each[0].open = true;
+    $('suggestStatus').textContent = ''; syncSteps();
+    $('suggestAllBtn').title = t('sugHint');
     $('tabRec').textContent = t('tabRec');
     $('tabImg').textContent = t('tabImg') + ' (' + imgs.length + ')';
     $('tabImg').disabled = !imgs.length;
     showTab(!av.length && imgs.length ? 'img' : 'rec');
   }
-  $('suggestAllBtn').onclick = async function () {
-    var s = currentSheetStory; if (!s || !isAnnotator()) return;
-    var b = this, st = $('suggestStatus'); b.disabled = true; st.textContent = '';
+  // ---- Γραμμή κουμπιών της ιστορίας: 1 · Μεταγραφή → 2 · Αποθήκευση → 3 · Πρόταση όρων ----
+  var STEP_BTNS = ['stepTranscribe', 'stepSave', 'suggestAllBtn'];
+  async function runStep(work) {
+    var st = $('suggestStatus');
+    STEP_BTNS.forEach(function (id) { $(id).disabled = true; }); $('trLang').disabled = true;
     annSections.forEach(function (x) { x.setBusy(true); });
+    try { await work(st); }
+    catch (e) { st.textContent = t('annFailed', { e: errText(e) }); }
+    finally { STEP_BTNS.forEach(function (id) { $(id).disabled = false; }); $('trLang').disabled = false; annSections.forEach(function (x) { x.setBusy(false); }); syncSteps(); }
+  }
+  function syncSteps() {     // χωρίς ηχογραφήσεις (μόνο εικόνες) τα βήματα 1 και 2 δεν έχουν νόημα
+    var none = !annSections.length;
+    $('stepTranscribe').disabled = none; $('stepSave').disabled = none; $('trLang').disabled = none;
+  }
+  $('stepTranscribe').onclick = function () {
+    if (!annSections.length) return;
+    var targets = annSections.filter(function (x) { return !x.hasText(); });
+    if (!targets.length) { if (!window.confirm(t('trRedo'))) return; targets = annSections.slice(); }
+    runStep(async function (st) {
+      for (var i = 0; i < targets.length; i++) {
+        st.textContent = t('trRunning', { n: targets[i].label });
+        try { await targets[i].transcribe(); }
+        catch (e) { st.textContent = t('annServerErr', { e: targets[i].label + ': ' + (e.message || e) }); return; }
+      }
+      st.textContent = t('trReady');
+    });
+  };
+  $('stepSave').onclick = function () {
+    if (!annSections.some(function (x) { return x.hasText(); })) { $('suggestStatus').textContent = t('annEmpty'); return; }
+    runStep(async function (st) {
+      st.textContent = t('annRunning'); var total = 0;
+      for (var i = 0; i < annSections.length; i++) total += await annSections[i].saveIfNeeded();
+      notifyAnn();
+      st.textContent = total ? t('trSaved', { n: total }) : t('trNothingToSave');
+    });
+  };
+  $('suggestAllBtn').onclick = function () {
+    var s = currentSheetStory; if (!s || !isAnnotator()) return;
     var unsaved = annSections.filter(function (x) { return x.isUnsaved(); });
-    if (unsaved.length) {        // η πρόταση χρησιμοποιεί μόνο αποθηκευμένες απομαγνητοφωνήσεις: πρώτα «2 · Αποθήκευση»
-      st.textContent = t('sugSaveFirst', { n: unsaved.map(function (x) { return x.label; }).join(', ') });
-      b.disabled = false; annSections.forEach(function (x) { x.setBusy(false); }); return;
-    }
-    try {
-      var lang = annSections.length ? annSections[0].getLang() : LANG;
-      var res = await suggestStory(s, lang, function (i2, total) { st.textContent = t('sugRunning', { i: i2, n: total }); });
+    if (unsaved.length) { $('suggestStatus').textContent = t('sugSaveFirst', { n: unsaved.map(function (x) { return x.label; }).join(', ') }); return; }   // μόνο αποθηκευμένες απομαγνητοφωνήσεις
+    runStep(async function (st) {
+      var res = await suggestStory(s, $('trLang').value, function (i2, total) { st.textContent = t('sugRunning', { i: i2, n: total }); });
       notifyAnn();
       st.textContent = res.empty ? t('sugNothing') : (res.n ? t('sugDone', { n: res.n, h: res.high }) : t('sugNone'));
-    } catch (e) { st.textContent = t('annFailed', { e: errText(e) }); }
-    finally { b.disabled = false; annSections.forEach(function (x) { x.setBusy(false); }); }
+    });
   };
   function showTab(which) {
     var img = which === 'img';
@@ -3844,6 +3880,7 @@
   } else { $('authError').textContent = 'Supabase is not configured (config.js).'; }
   onLangChange(function () {
     showView(); if (isAnnotator()) renderList(); $('authSubmitBtn').textContent = t('login');
+    $('suggestAllBtn').title = t('sugHint');
     var n = $('panelImg').children.length; $('tabRec').textContent = t('tabRec'); $('tabImg').textContent = t('tabImg') + ' (' + n + ')';
   });
 
