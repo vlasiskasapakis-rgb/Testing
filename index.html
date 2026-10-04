@@ -858,7 +858,8 @@
       annRefined: "Βελτιώθηκαν οι χρόνοι για {n} προτάσεις.",
       annRefineNone: "Δεν υπάρχει τίποτα προς βελτίωση.",
       imgEnlarge: "Μεγέθυνση εικόνας",
-      imgAreasCount: "Σημαδεμένες περιοχές: {n}"
+      imgAreasCount: "Σημαδεμένες περιοχές: {n}",
+      annAdded: "Ήδη προστέθηκε"
     },
     en: {
       pageTitle: "Walking Memory — Mytilene", language: "Language",
@@ -1056,7 +1057,8 @@
       annRefined: "Refined the times of {n} suggestions.",
       annRefineNone: "Nothing to refine.",
       imgEnlarge: "Enlarge image",
-      imgAreasCount: "Marked areas: {n}"
+      imgAreasCount: "Marked areas: {n}",
+      annAdded: "Already added"
     },
     fr: {
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
@@ -1254,7 +1256,8 @@
       annRefined: "Durées affinées pour {n} suggestions.",
       annRefineNone: "Rien à affiner.",
       imgEnlarge: "Agrandir l'image",
-      imgAreasCount: "Zones marquées : {n}"
+      imgAreasCount: "Zones marquées : {n}",
+      annAdded: "Déjà ajouté"
     },
     it: {
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
@@ -1452,7 +1455,8 @@
       annRefined: "Tempi precisati per {n} suggerimenti.",
       annRefineNone: "Niente da precisare.",
       imgEnlarge: "Ingrandisci l'immagine",
-      imgAreasCount: "Aree segnate: {n}"
+      imgAreasCount: "Aree segnate: {n}",
+      annAdded: "Già aggiunto"
     }
   };
 
@@ -2567,7 +2571,8 @@
     if (!r.ok) throw new Error('Wikidata ' + r.status);
     var d = await r.json();
     return (d.search || []).map(function (x) {
-      return { vocabulary: 'wikidata', id: x.id, uri: 'https://www.wikidata.org/entity/' + x.id, label: x.label || x.id, description: x.description || '' };
+      return { vocabulary: 'wikidata', id: x.id, uri: 'https://www.wikidata.org/entity/' + x.id, label: x.label || x.id, description: x.description || '',
+        matchText: x.match && x.match.text ? x.match.text : null };
     });
   }
 
@@ -2666,6 +2671,19 @@
         return wdSearch(ph, lang, 2).catch(function () { return []; }).then(function (r) { found[ph] = r; onProgress(++done, order.length); });
       }));
     }
+    // Μόνο αποτελέσματα που ταιριάζουν ολόκληρη τη φράση (το Wikidata ταιριάζει και με αρχή λέξης), και το καλύτερο ένα ανά φράση.
+    order.forEach(function (ph) {
+      var pt_ = tokensOf(ph);
+      found[ph] = found[ph].filter(function (c) {
+        if (!c.matchText) return true;
+        var ct = tokensOf(c.matchText);
+        return ct.length === pt_.length && pt_.every(function (x, i) { return sameTok(x, ct[i]); });
+      }).slice(0, 1);
+    });
+    // Ό,τι υπάρχει ήδη (εγκεκριμένο, απορριμμένο ή χειροκίνητο) για την ίδια γραμμή δεν προτείνεται ξανά.
+    var haveRes = await sb.from('annotations').select('term_uri,segment_idx').eq('media_id', m.id);
+    var have = {};
+    ((haveRes && haveRes.data) || []).forEach(function (a) { have[a.term_uri + '|' + a.segment_idx] = true; });
     var ids = [];
     order.forEach(function (ph) { found[ph].forEach(function (c) { ids.push(c.id); }); });
     var kinds = await wdKinds(ids.filter(function (x, k) { return ids.indexOf(x) === k; }));
@@ -2675,7 +2693,7 @@
       found[ph].forEach(function (c) {
         phrases[ph].forEach(function (g) {
           var key = c.uri + '|' + g.idx;
-          if (seen[key]) return;
+          if (seen[key] || have[key]) return;
           seen[key] = 1;
           var loc = locateMention(g, ph);
           rows.push({ media_id: m.id, segment_idx: g.idx, start_s: loc ? loc.start : g.start_s, end_s: loc ? loc.end : g.end_s, mention: ph, kind: kinds[c.id] || 'concept',
@@ -2892,7 +2910,7 @@
     return segs;
   }
 
-  function addTermForm(seg, m, lang, onAdded) {
+  function addTermForm(seg, m, lang, onAdded, hasTerm) {
     var wrap = document.createElement('div'); wrap.className = 'ann-add';
     var open = document.createElement('button'); open.type = 'button'; open.className = 'link-btn'; open.textContent = t('annAddTerm');
     var form = document.createElement('div'); form.hidden = true;
@@ -2917,6 +2935,7 @@
           var kind = c.kind;
           row.appendChild(kindSelect(kind, c.label, function (k) { kind = k; }));
           var add = document.createElement('button'); add.type = 'button'; add.textContent = t('annAdd'); add.setAttribute('aria-label', t('annAdd') + ': ' + c.label);
+          if (hasTerm && hasTerm(c.uri)) { add.disabled = true; add.textContent = t('annAdded'); }
           add.onclick = async function () {
             add.disabled = true;
             var loc = locateMention(seg, q);
@@ -3007,7 +3026,8 @@
         var tx = document.createElement('div'); tx.textContent = seg.text;
         box.appendChild(when); box.appendChild(tx);
         mine.forEach(function (a) { box.appendChild(annRowEl(a, paint, ctx)); });
-        box.appendChild(addTermForm(seg, m, tr.language || langSel.value, function (row) { data.annotations.push(row); paint(); notifyAnn(); }));
+        box.appendChild(addTermForm(seg, m, tr.language || langSel.value, function (row) { data.annotations.push(row); paint(); notifyAnn(); },
+          function (uri) { return data.annotations.some(function (a) { return a.media_id === m.id && a.segment_idx === seg.idx && a.term_uri === uri && a.status !== 'rejected'; }); }));
         list.appendChild(box);
       });
     }
