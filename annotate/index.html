@@ -9,6 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,600;1,700&display=swap" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../config.js"></script>
 <style>
@@ -196,6 +198,10 @@
   .story-media .img-frame { display: inline-block; max-width: 100%; }
   .story-media .img-frame img { display: block; width: auto; max-width: 100%; max-height: 42vh; height: auto; border-radius: 12px; background: #000; cursor: zoom-in; }
   #imgPopup { z-index: 80; }
+  #locMap { height: 260px; border-radius: 10px; margin: 6px 0; }
+  .det-box { margin: 8px 0; padding: 8px 10px; background: var(--sky-soft); border-radius: 10px; }
+  .det-box h4 { margin: 0 0 4px; font-size: 14px; color: var(--petrol); }
+  .ann-media > .media-cap { margin: 0 0 8px; }
   #sheetSub { display: none; }
   .story-head { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; margin: 2px 0 4px; }
   .story-head > * { margin: 0 !important; font-size: 14px; }
@@ -507,6 +513,7 @@
           <div class="col-media">
             <div id="sheetMedia" class="story-media"></div>
             <div id="sheetImages" class="story-media"></div>
+            <details id="locFold" class="fold" hidden open><summary data-i18n="locMapTitle"></summary><div id="locMap"></div></details>
           </div>
           <div class="col-ann">
             <div class="tabbar">
@@ -707,6 +714,16 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      detSuggest: "Πρότεινε όρους από τα στοιχεία (τίτλος, ταυτότητα, χρόνος, τόπος)",
+      detHeading: "Από τα στοιχεία του αρχείου",
+      detRunning: "Αναζήτηση στο Wikidata…",
+      detDone: "{n} νέες προτάσεις από τα στοιχεία.",
+      detNone: "Δεν βρέθηκαν νέες προτάσεις από τα στοιχεία.",
+      detNoInfo: "Δεν υπάρχουν στοιχεία (τίτλος, ταυτότητα, περίοδος ή τοποθεσία) για αυτό το αρχείο.",
+      detImgTitle: "Όροι από τα στοιχεία της εικόνας",
+      detAway: "{d} μακριά",
+      locMapTitle: "Χάρτης τοποθεσιών",
+      detViaPlace: "κοντά στην τοποθεσία του αρχείου",
       miRecorded: "Καταγράφηκε",
       miOpenMap: "Άνοιγμα στον χάρτη",
       siteTitle: "Walking Memory · Σχολιασμός",
@@ -989,6 +1006,16 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      detSuggest: "Suggest terms from the details (title, identity, time, place)",
+      detHeading: "From the file's details",
+      detRunning: "Searching Wikidata…",
+      detDone: "{n} new suggestions from the details.",
+      detNone: "No new suggestions from the details.",
+      detNoInfo: "This file has no details (title, identity, period or location).",
+      detImgTitle: "Terms from this image's details",
+      detAway: "{d} away",
+      locMapTitle: "Map of locations",
+      detViaPlace: "near the file's location",
       miRecorded: "Recorded",
       miOpenMap: "Open in map",
       siteTitle: "Walking Memory · Annotation",
@@ -1274,6 +1301,16 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      detSuggest: "Suggérer des termes d'après les détails (titre, identité, date, lieu)",
+      detHeading: "D'après les détails du fichier",
+      detRunning: "Recherche dans Wikidata…",
+      detDone: "{n} nouvelles suggestions d'après les détails.",
+      detNone: "Aucune nouvelle suggestion d'après les détails.",
+      detNoInfo: "Ce fichier n'a pas de détails (titre, identité, période ou lieu).",
+      detImgTitle: "Termes d'après les détails de l'image",
+      detAway: "à {d}",
+      locMapTitle: "Carte des lieux",
+      detViaPlace: "près du lieu du fichier",
       miRecorded: "Enregistré",
       miOpenMap: "Ouvrir dans la carte",
       siteTitle: "Walking Memory · Annotation",
@@ -1553,6 +1590,16 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      detSuggest: "Suggerisci termini dai dettagli (titolo, identità, data, luogo)",
+      detHeading: "Dai dettagli del file",
+      detRunning: "Ricerca su Wikidata…",
+      detDone: "{n} nuovi suggerimenti dai dettagli.",
+      detNone: "Nessun nuovo suggerimento dai dettagli.",
+      detNoInfo: "Questo file non ha dettagli (titolo, identità, periodo o luogo).",
+      detImgTitle: "Termini dai dettagli dell'immagine",
+      detAway: "a {d}",
+      locMapTitle: "Mappa dei luoghi",
+      detViaPlace: "vicino al luogo del file",
       miRecorded: "Registrato",
       miOpenMap: "Apri nella mappa",
       siteTitle: "Walking Memory · Annotazione",
@@ -2192,7 +2239,9 @@
       var info = document.createElement('div'); info.className = 'img-terms';
       info.appendChild(document.createTextNode(t('imgDepicts') + ' '));
       var ul = document.createElement('ul'); ul.className = 'term-list';
+      var shownUri = {};
       mine.forEach(function (a) {
+        if (shownUri[a.term_uri]) return; shownUri[a.term_uri] = 1;
         var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); });
         if (!ctx && isTimedNote(a)) { var tg = document.createElement('span'); tg.className = 'vocab-tag'; tg.textContent = mmss(a.start_s) + '–' + mmss(a.end_s); li.appendChild(tg); }
         ul.appendChild(li);
@@ -2506,6 +2555,13 @@
   }
 
   // Εικάζει το είδος από τα δεδομένα του Wikidata: P31=Q5 πρόσωπο, P625 τόπος, γνωστές κλάσεις γεγονότος.
+  var wdCoord = {};
+  function haversineKm(la1, lo1, la2, lo2) {
+    var r = Math.PI / 180, dla = (la2 - la1) * r, dlo = (lo2 - lo1) * r;
+    var a = Math.sin(dla / 2) * Math.sin(dla / 2) + Math.cos(la1 * r) * Math.cos(la2 * r) * Math.sin(dlo / 2) * Math.sin(dlo / 2);
+    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  function fmtDist(km) { return km < 1 ? Math.round(km * 1000) + ' m' : (km < 10 ? km.toFixed(1) : Math.round(km)) + ' km'; }
   async function wdKinds(ids) {
     var out = {};
     for (var i = 0; i < ids.length; i += 50) {
@@ -2515,6 +2571,8 @@
         var d = await r.json();
         Object.keys(d.entities || {}).forEach(function (id) {
           var c = d.entities[id].claims || {};
+          var pv = c.P625 && c.P625[0] && c.P625[0].mainsnak && c.P625[0].mainsnak.datavalue && c.P625[0].mainsnak.datavalue.value;
+          if (pv && pv.latitude != null) wdCoord[id] = { lat: pv.latitude, lon: pv.longitude };
           var p31 = (c.P31 || []).map(function (x) { return x.mainsnak && x.mainsnak.datavalue && x.mainsnak.datavalue.value && x.mainsnak.datavalue.value.id; });
           out[id] = p31.indexOf('Q5') >= 0 ? 'person' : c.P625 ? 'place' : p31.some(function (x) { return WD_EVENT_CLASSES[x]; }) ? 'event' : 'concept';
         });
@@ -2585,7 +2643,103 @@
     return rows;
   }
 
-  async function autoSuggest(m, lang, segs, onProgress) {
+  // Στοιχεία του αρχείου που βοηθούν στις προτάσεις: τίτλος, ταυτότητα, περίοδος, τοποθεσία (αλλιώς η τοποθεσία της ιστορίας)
+  function detailsContext(s, m) {
+    var lat = m.lat != null ? m.lat : (s.lat != null ? s.lat : null), lon = m.lon != null ? m.lon : (s.lon != null ? s.lon : null);
+    return { title: m.title || '', about: m.about || '', period: m.period || '', recorded: m.recorded || '', lat: lat, lon: lon, hasLoc: m.lat != null && m.lon != null,
+      hasText: !!(m.title || m.about || m.period) };
+  }
+  // Από πολλά αποτελέσματα επιλέγει το πιο πιθανό: κοντά στην τοποθεσία του αρχείου και με περιγραφή που ταιριάζει στα στοιχεία του
+  function pickBest(cands, cx) {
+    if (!cx || cands.length < 2) return cands[0];
+    var ctxTok = tokensOf([cx.title, cx.about, cx.period].join(' ')), best = null, bs = -1e9;
+    cands.forEach(function (c, i) {
+      var sc = -i * 0.01;
+      var co = wdCoord[c.id];
+      if (cx.lat != null && co) { var d = haversineKm(cx.lat, cx.lon, co.lat, co.lon); sc += d < 5 ? 30 : d < 50 ? 20 : d < 300 ? 10 : d > 2000 ? -20 : 0; }
+      var dt = tokensOf(c.description || '');
+      var ov = 0; dt.forEach(function (x) { if (ctxTok.some(function (y) { return sameTok(x, y); })) ov++; });
+      sc += 8 * Math.min(ov, 3);
+      if (sc > bs) { bs = sc; best = c; }
+    });
+    return best;
+  }
+  function exactOnly(list, phrase) {
+    var pt_ = tokensOf(phrase);
+    return list.filter(function (c) {
+      if (!c.matchText) return true;
+      var ct = tokensOf(c.matchText);
+      return ct.length === pt_.length && pt_.every(function (x, i) { return sameTok(x, ct[i]); });
+    });
+  }
+  async function nearbyPlaces(lat, lon, lang) {
+    var out = [], seen = {};
+    var radii = [[1000, 6], [10000, 4]];
+    for (var i = 0; i < radii.length; i++) {
+      try {
+        var r = await fetch(WD_API + '?action=query&list=geosearch&format=json&origin=*&gscoord=' + lat + '%7C' + lon + '&gsradius=' + radii[i][0] + '&gslimit=' + radii[i][1]);
+        if (!r.ok) continue;
+        var d = await r.json();
+        ((d.query && d.query.geosearch) || []).forEach(function (g) { if (/^Q\d+$/.test(g.title) && !seen[g.title]) { seen[g.title] = 1; out.push({ id: g.title, dist: (g.dist || 0) / 1000 }); } });
+      } catch (e) { /* χωρίς κοντινά μέρη */ }
+    }
+    if (!out.length) return [];
+    var res = [];
+    try {
+      var rr = await fetch(WD_API + '?action=wbgetentities&format=json&origin=*&props=labels%7Cdescriptions&languages=' + encodeURIComponent(lang) + '%7Cen&ids=' + out.map(function (x) { return x.id; }).join('%7C'));
+      var dd = await rr.json();
+      out.forEach(function (x) {
+        var e = (dd.entities || {})[x.id]; if (!e) return;
+        var lb = (e.labels && (e.labels[lang] || e.labels.en)), ds = (e.descriptions && (e.descriptions[lang] || e.descriptions.en));
+        if (lb) res.push({ id: x.id, uri: 'https://www.wikidata.org/entity/' + x.id, label: lb.value, description: ds ? ds.value : '', dist: x.dist });
+      });
+    } catch (e) { /* χωρίς ετικέτες */ }
+    return res;
+  }
+  var DATE_RE = /\b(1[0-9]{3}|20[0-2][0-9])('?s)?\b/g;
+  // Προτάσεις όρων από τα στοιχεία του αρχείου: ταυτότητα (ποιος/τι), περίοδος (έτη/δεκαετίες) και κοντινά μέρη. Δεν δένονται με χρόνο.
+  async function suggestFromDetails(m, lang, cx) {
+    if (!cx || (!cx.hasText && cx.lat == null)) return 0;
+    var cands = [];   // { id, uri, label, description, kind, via }
+    var phrases = [];
+    nameCandidates([cx.about, cx.title].filter(Boolean).join('. ')).forEach(function (x) { if (phrases.indexOf(x) < 0) phrases.push(x); });
+    [cx.about, cx.title].forEach(function (x) { x = (x || '').trim(); if (x && x.length <= 80 && phrases.indexOf(x) < 0) phrases.push(x); });
+    phrases = phrases.slice(0, 8);
+    var found = {};
+    await Promise.all(phrases.map(function (ph) { return wdSearch(ph, lang, 4).catch(function () { return []; }).then(function (r) { found[ph] = exactOnly(r, ph).slice(0, 4); }); }));
+    var years = [], mt;
+    DATE_RE.lastIndex = 0;
+    while ((mt = DATE_RE.exec(cx.period + ' ' + cx.about + ' ' + cx.title))) { var y = mt[1] + (mt[2] ? 's' : ''); if (years.indexOf(y) < 0) years.push(y); }
+    var yfound = {};
+    await Promise.all(years.slice(0, 4).map(function (y) { return wdSearch(y, 'en', 3).catch(function () { return []; }).then(function (r) { yfound[y] = exactOnly(r, y).slice(0, 1); }); }));
+    var near = cx.lat != null ? await nearbyPlaces(cx.lat, cx.lon, lang) : [];
+    var ids = [];
+    phrases.forEach(function (ph) { found[ph].forEach(function (c) { ids.push(c.id); }); });
+    years.forEach(function (y) { (yfound[y] || []).forEach(function (c) { ids.push(c.id); }); });
+    var kinds = await wdKinds(ids.filter(function (x, k) { return ids.indexOf(x) === k; }));
+    phrases.forEach(function (ph) {
+      if (!found[ph].length) return;
+      var c = pickBest(found[ph], cx);
+      cands.push({ c: c, kind: kinds[c.id] || 'concept', mention: ph, via: 'identity' });
+    });
+    years.forEach(function (y) { (yfound[y] || []).forEach(function (c) { cands.push({ c: c, kind: 'concept', mention: y, via: 'period' }); }); });
+    near.forEach(function (n) {
+      cands.push({ c: { id: n.id, uri: n.uri, label: n.label, description: (n.description ? n.description + ' · ' : '') + t('detAway', { d: fmtDist(n.dist) }) }, kind: 'place', mention: t('detViaPlace'), via: 'place' });
+    });
+    var haveRes = await sb.from('annotations').select('term_uri,segment_idx').eq('media_id', m.id);
+    var have = {};
+    ((haveRes && haveRes.data) || []).forEach(function (a) { if (a.segment_idx == null) have[a.term_uri] = true; });
+    var rows = [], seen = {};
+    cands.forEach(function (x) {
+      var uri = x.c.uri; if (seen[uri] || have[uri]) return; seen[uri] = 1;
+      rows.push({ media_id: m.id, segment_idx: null, start_s: null, end_s: null, mention: String(x.mention).slice(0, 200), kind: x.kind, vocabulary: 'wikidata', term_uri: uri,
+        label: x.c.label.slice(0, 200), description: (x.c.description || '').slice(0, 300), status: 'suggested', source: 'auto' });
+    });
+    if (rows.length) { var ins = await sb.from('annotations').insert(rows); if (ins.error) throw ins.error; }
+    return rows.length;
+  }
+
+  async function autoSuggest(m, lang, segs, onProgress, cx) {
     var phrases = {}, order = [];
     segs.forEach(function (g) {
       nameCandidates(g.text).forEach(function (ph) {
@@ -2597,17 +2751,13 @@
     var found = {}, done = 0;
     for (var i = 0; i < order.length; i += 4) {
       await Promise.all(order.slice(i, i + 4).map(function (ph) {
-        return wdSearch(ph, lang, 2).catch(function () { return []; }).then(function (r) { found[ph] = r; onProgress(++done, order.length); });
+        return wdSearch(ph, lang, 4).catch(function () { return []; }).then(function (r) { found[ph] = r; onProgress(++done, order.length); });
       }));
     }
     // Μόνο αποτελέσματα που ταιριάζουν ολόκληρη τη φράση (το Wikidata ταιριάζει και με αρχή λέξης), και το καλύτερο ένα ανά φράση.
     order.forEach(function (ph) {
       var pt_ = tokensOf(ph);
-      found[ph] = found[ph].filter(function (c) {
-        if (!c.matchText) return true;
-        var ct = tokensOf(c.matchText);
-        return ct.length === pt_.length && pt_.every(function (x, i) { return sameTok(x, ct[i]); });
-      }).slice(0, 1);
+      found[ph] = exactOnly(found[ph], ph).slice(0, 4);
     });
     // Ό,τι υπάρχει ήδη (εγκεκριμένο, απορριμμένο ή χειροκίνητο) για την ίδια γραμμή δεν προτείνεται ξανά.
     var haveRes = await sb.from('annotations').select('term_uri,segment_idx').eq('media_id', m.id);
@@ -2616,6 +2766,7 @@
     var ids = [];
     order.forEach(function (ph) { found[ph].forEach(function (c) { ids.push(c.id); }); });
     var kinds = await wdKinds(ids.filter(function (x, k) { return ids.indexOf(x) === k; }));
+    order.forEach(function (ph) { if (found[ph].length > 1) found[ph] = [pickBest(found[ph], cx)]; else if (found[ph].length) found[ph] = [found[ph][0]]; });   // το πιο πιθανό με βάση τα στοιχεία του αρχείου
     var rows = [], seen = {};
     // Οι συντομότερες φράσεις πρώτες: ο "Μυτιλήνη" υπερισχύει του "Στη Μυτιλήνη" όταν δίνουν την ίδια οντότητα
     order.slice().sort(function (a, b) { return tokensOf(a).length - tokensOf(b).length; }).forEach(function (ph) {
@@ -2631,7 +2782,9 @@
       });
     });
     if (rows.length) { var ins = await sb.from('annotations').insert(rows); if (ins.error) throw ins.error; }
-    return rows.length;
+    var extra = 0;
+    try { extra = await suggestFromDetails(m, lang, cx); } catch (e) { /* οι προτάσεις από τα στοιχεία είναι προαιρετικές */ }
+    return rows.length + extra;
   }
 
   function kindSelect(value, label, onChange) {
@@ -2816,6 +2969,8 @@
     var sec = document.createElement('section'); sec.className = 'ann-media';
     var uid = 'ann-' + m.id;
     var h = document.createElement('h3'); h.textContent = t('type_' + m.kind) + ' ' + n; sec.appendChild(h);
+    var capEl = mediaCaption(m); if (capEl) sec.appendChild(capEl);
+    var cx = detailsContext(s, m);
     var playerEl = document.createElement(m.kind === 'video' ? 'video' : 'audio');
     playerEl.preload = 'metadata'; playerEl.src = m.url;
     // Ένας μόνο αναπαραγωγέας (αριστερά): ο χρόνος και η μετακίνηση χρησιμοποιούν εκείνον· ο κρυφός είναι εφεδρικός
@@ -2849,6 +3004,8 @@
     var step2 = document.createElement('details'); step2.className = 'ann-step';
     var sm2 = document.createElement('summary'); sm2.textContent = t('annStep2'); step2.appendChild(sm2);
     var auto = document.createElement('button'); auto.type = 'button'; auto.className = 'btn-primary btn-wide'; auto.textContent = t('annAuto'); step2.appendChild(auto);
+    var detBtn = document.createElement('button'); detBtn.type = 'button'; detBtn.className = 'btn-secondary btn-wide'; detBtn.textContent = t('detSuggest'); step2.appendChild(detBtn);
+    var detList = document.createElement('div'); step2.appendChild(detList);
     var list = document.createElement('div'); step2.appendChild(list);
     var adv = document.createElement('details'); adv.className = 'ann-step';
     var sma = document.createElement('summary'); sma.textContent = t('annAdvanced'); adv.appendChild(sma);
@@ -2866,12 +3023,19 @@
       });
     }
 
-    function busy(on) { [serverBtn, fileBtn, save, auto, refine, langSel, ta].forEach(function (el) { el.disabled = on; }); }
+    function busy(on) { [serverBtn, fileBtn, save, auto, refine, detBtn, langSel, ta].forEach(function (el) { el.disabled = on; }); }
 
     function paint() {
       var tr = data && data.transcripts.filter(function (x) { return x.media_id === m.id; })[0];
       var anns = data ? data.annotations.filter(function (a) { return a.media_id === m.id; }) : [];
-      list.innerHTML = '';
+      list.innerHTML = ''; detList.innerHTML = '';
+      var gen = anns.filter(function (a) { return a.segment_idx == null && !hasRange(a); });
+      if (gen.length) {
+        var dbx = document.createElement('div'); dbx.className = 'det-box';
+        var dh = document.createElement('h4'); dh.textContent = t('detHeading'); dbx.appendChild(dh);
+        gen.forEach(function (a) { dbx.appendChild(annRowEl(a, paint, ctx)); });
+        detList.appendChild(dbx);
+      }
       if (tr && !filled) { ta.value = segmentsToText(tr.transcript_segments); lastWords = tr.transcript_segments.map(function (g) { return { text: g.text, words: g.words || null }; }); if (tr.language) langSel.value = tr.language; filled = true; }
       segByIdx = {}; if (tr) tr.transcript_segments.forEach(function (g) { segByIdx[g.idx] = g; });
       if (!stepInit && data) { stepInit = true; step1.open = !tr; step2.open = !!tr; }
@@ -2922,7 +3086,7 @@
         var msg = t('annSaved', { s: rows.length });
         if (withAuto) {
           var count = await autoSuggest(m, langSel.value, rows.map(function (r) { return { idx: r.idx, start_s: r.start_s, end_s: r.end_s, text: r.text, words: r.words || null }; }),
-            function (i, total) { status.textContent = t('annAutoProgress', { i: i, n: total }); });
+            function (i, total) { status.textContent = t('annAutoProgress', { i: i, n: total }); }, cx);
           msg = t('annAutoDone', { n: count });
         }
         filled = false;
@@ -2954,6 +3118,16 @@
       } catch (e) { status.textContent = t('annFailed', { e: errText(e) }); }
       finally { busy(false); }
     };
+    detBtn.onclick = async function () {
+      if (!cx.hasText && cx.lat == null) { status.textContent = t('detNoInfo'); return; }
+      busy(true); status.textContent = t('detRunning');
+      try {
+        var nn = await suggestFromDetails(m, langSel.value, cx);
+        await reload(); notifyAnn();
+        status.textContent = nn ? t('detDone', { n: nn }) : t('detNone');
+      } catch (e) { status.textContent = t('annFailed', { e: errText(e) }); }
+      finally { busy(false); }
+    };
     save.onclick = function () { saveFlow(false); };
     auto.onclick = function () { saveFlow(true); };
     reload().catch(function (e) { status.textContent = t('annFailed', { e: errText(e) }); });
@@ -2971,6 +3145,7 @@
     var h = document.createElement('h3'); h.textContent = t('type_image') + ' ' + n; sec.appendChild(h);
 
     var imgAlt = t('type_image') + ' ' + n;
+    var capEl = mediaCaption(m); if (capEl) sec.appendChild(capEl);
     var thumb = document.createElement('button'); thumb.type = 'button'; thumb.className = 'img-thumb'; thumb.setAttribute('aria-label', t('imgEnlarge') + ': ' + imgAlt);
     var timg = document.createElement('img'); timg.src = m.url; timg.alt = ''; thumb.appendChild(timg); sec.appendChild(thumb);
     thumb.onclick = function () {
@@ -2986,6 +3161,23 @@
       var tr = transcripts.filter(function (x) { return x.media_id === avId; })[0];
       return ((tr && tr.transcript_segments) || []).filter(function (g) { return g.end_s > g.start_s; });
     }
+
+    // ---- όροι από τα στοιχεία της εικόνας (τίτλος, ταυτότητα, περίοδος, τόπος) ----
+    var cx = detailsContext(s, m), detWrap = document.createElement('details'); detWrap.className = 'ann-step';
+    var detSm = document.createElement('summary'); detSm.textContent = t('detImgTitle'); detWrap.appendChild(detSm);
+    var detBtn = document.createElement('button'); detBtn.type = 'button'; detBtn.className = 'btn-secondary btn-wide'; detBtn.textContent = t('detSuggest'); detWrap.appendChild(detBtn);
+    var detList = document.createElement('div'); detWrap.appendChild(detList); sec.appendChild(detWrap);
+    function paintDet() {
+      detList.innerHTML = '';
+      anns.filter(function (a) { return !hasRegion(a) && !isTimedNote(a); }).forEach(function (a) { detList.appendChild(annRowEl(a, function () { paintDet(); }, null)); });
+    }
+    detBtn.onclick = async function () {
+      if (!cx.hasText && cx.lat == null) { status.textContent = t('detNoInfo'); return; }
+      detBtn.disabled = true; status.textContent = t('detRunning');
+      try { var nn = await suggestFromDetails(m, LANG, cx); await reload(); status.textContent = nn ? t('detDone', { n: nn }) : t('detNone'); }
+      catch (e) { status.textContent = t('annFailed', { e: errText(e) }); }
+      finally { detBtn.disabled = false; }
+    };
 
     // ---- φόρμα νέας σημείωσης ----
     var form = document.createElement('div'); form.className = 'note-form'; sec.appendChild(form);
@@ -3092,7 +3284,7 @@
     // ---- υπάρχουσες σημειώσεις: όρος · περιοχή · μέρος της απομαγνητοφώνησης ----
     function paintList() {
       list.innerHTML = '';
-      var notes = anns.filter(function (a) { return a.status !== 'rejected'; });
+      var notes = anns.filter(function (a) { return a.status !== 'rejected' && (hasRegion(a) || isTimedNote(a)); });
       if (!notes.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('noteNone'); list.appendChild(p); return; }
       notes.sort(function (a, b) { return (a.start_s || 0) - (b.start_s || 0); }).forEach(function (a) {
         var row = document.createElement('div'); row.className = 'ann-row';
@@ -3120,12 +3312,15 @@
         if (a.status !== 'approved' || imageIds[a.media_id] || seen[a.term_uri]) return false;
         seen[a.term_uri] = 1; return true;
       });
+      k.annotations.forEach(function (a) {      // και οι εγκεκριμένοι όροι από τα στοιχεία αυτής της εικόνας
+        if (a.media_id === m.id && a.status === 'approved' && !hasRegion(a) && !isTimedNote(a) && !seen[a.term_uri]) { seen[a.term_uri] = 1; terms.push(a); }
+      });
       allAnns = k.annotations;
       anns = k.annotations.filter(function (a) { return a.media_id === m.id; });
       links = k.links.filter(function (l) { return l.image_media_id === m.id; });
       transcripts = k.transcripts;
       if (pick.term && !terms.some(function (x) { return x.term_uri === pick.term.term_uri; })) pick.term = null;
-      paintForm(); paintList();
+      paintForm(); paintList(); paintDet();
     }
     annListeners.push(function () { return reload(); });
     reload().catch(function (e) { status.textContent = t('annFailed', { e: errText(e) }); });
@@ -3344,10 +3539,27 @@
     $('sheetAuthor').textContent = s.author ? t('byAuthor', { n: s.author }) : '';
     renderSheetMedia(s);
     renderKnowledge(s);
+    try { renderLocMap(s); } catch (e) { try { console.warn('map', e); } catch (_) {} }      // ο χάρτης δεν πρέπει να εμποδίζει τον σχολιασμό
     annListeners = [];
     buildAnnotate();
     renderList();
     try { $('storyView').scrollIntoView({ block: 'start' }); } catch (e) {}
+  }
+  var locMap = null, locLayer = null;
+  function renderLocMap(s) {
+    var pts = [];
+    s.media.forEach(function (m) { if (m.lat != null && m.lon != null) pts.push({ lat: m.lat, lon: m.lon, name: (m.title || t('type_' + m.kind)), kind: m.kind }); });
+    $('locFold').hidden = !pts.length;
+    if (!pts.length || !window.L) return;
+    if (!locMap) {
+      locMap = L.map('locMap', { zoomControl: true });
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(locMap);
+      locLayer = L.layerGroup().addTo(locMap);
+    }
+    locLayer.clearLayers();
+    var ll = [];
+    pts.forEach(function (p) { L.marker([p.lat, p.lon]).bindPopup(p.name).addTo(locLayer); ll.push([p.lat, p.lon]); });
+    setTimeout(function () { locMap.invalidateSize(); if (ll.length === 1) locMap.setView(ll[0], 15); else locMap.fitBounds(ll, { padding: [30, 30], maxZoom: 16 }); }, 80);
   }
   function closeStory() {
     clearSheetMedia(); currentSheetStory = null; annListeners = [];

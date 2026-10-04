@@ -19,6 +19,16 @@ starts as your GPS position; you can press **Pick on the map** and tap a place i
 each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` once: it adds the columns to `story_media`
 (an upload still works without them, but the details are then not saved).
 
+## Details help the term suggestions (annotation website)
+Each recording and image shows its details (title, identity, date, period, location) while you annotate, and a **Map of locations**
+shows where the files were recorded. The details also make suggestions richer and more accurate:
+- **Suggest terms from the details** (in step 2 of a recording, and in each image's "Terms from this image's details"):
+  searches Wikidata for the **identity** and **title** (names), the **years/decades** in the period (e.g. "1950s", "summer 1965"),
+  and **places near the location** (within 1 km and 10 km, with the distance). They appear as suggestions for the whole file;
+  approve or reject them as usual. Approved terms of an image can then be used in its three-step notes.
+- **Find terms automatically** (from the transcript) also picks, among several Wikidata matches for a name, the one nearest to the
+  file's location (or whose description matches the title/identity/period), and adds the suggestions from the details.
+
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
 - **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account
