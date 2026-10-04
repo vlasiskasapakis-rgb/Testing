@@ -19,9 +19,13 @@ starts as your GPS position; you can press **Pick on the map** and tap a place i
 each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` once: it adds the columns to `story_media`
 (an upload still works without them, but the details are then not saved).
 
+## Two buttons (annotation website)
+1. **1 · Transcribe** (on each recording): fills the transcript text (Groq server; or **Load a .srt / .vtt / .txt file**). Edit the text if needed.
+2. **2 · Save and suggest for the whole story** (above the tabs): saves every changed transcript and then suggests terms from the
+   transcript and the details together (below).
+
 ## One combined suggestion for the whole story (annotation website)
-**✨ Suggest terms for the whole story** (above the tabs; **Save and find terms automatically** does the same after saving a
-transcript) combines everything known about the story in one pass. The details are used **inside the transcript**, not as a
+**2 · Save and suggest for the whole story** (above the tabs) saves the transcripts and combines everything known about the story in one pass. The details are used **inside the transcript**, not as a
 separate list:
 - Names spoken in the transcript are looked up in Wikidata. The **title, identity, period and location** of the file decide which
   match is right and how confident the suggestion is.
