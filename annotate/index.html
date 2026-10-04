@@ -2421,7 +2421,7 @@
 
   // Εμφανίζει στη σκηνή τις εικόνες και τους όρους που αφορούν την τρέχουσα στιγμή του ήχου/βίντεο
   function updateStage(avEl) {
-    var stage = $('syncStage'), s = currentSheetStory;
+    var avWrap = avEl.closest('.av-wrap'), stage = avWrap && avWrap.querySelector('.sync-stage'), s = currentSheetStory;
     updateSubtitle(avEl);
     if (!stage || !s) return;
     var now = avEl.currentTime, avId = avEl.dataset.mediaId;
@@ -2453,7 +2453,7 @@
     }
     // Η σκηνή μένει σταθερή (ίδιο ύψος) όσο η ιστορία έχει εικόνες/όρους με χρόνο. Οι εικόνες ξαναφτιάχνονται μόνο όταν αλλάζει το σύνολο
     // των εικόνων/περιοχών· όταν αλλάζουν μόνο οι όροι, οι εικόνες μένουν ως έχουν (χωρίς αναβοσβήσιμο).
-    var used = currentLinks.length || (sheetK && sheetK.annotations.some(function (a) { return a.status === 'approved' && hasRange(a); }));
+    var used = currentLinks.some(function (l) { return l.av_media_id === avId; }) || (sheetK && sheetK.annotations.some(function (a) { return a.status === 'approved' && ((a.media_id === avId && hasRange(a)) || (a.av_media_id === avId && isTimedNote(a))); }));
     if (!used) { stage.hidden = true; stage.dataset.key = ''; return; }
     stage.hidden = false;
     var view = stage.querySelector('.stage-view'), row = stage.querySelector('.stage-terms');
@@ -2567,8 +2567,7 @@
     box.innerHTML = '';
     sheetK = k || null;
     currentLinks = k ? k.links : [];
-    var stage = document.createElement('div'); stage.id = 'syncStage'; stage.className = 'sync-stage'; stage.hidden = true;
-    stage.setAttribute('aria-live', 'polite'); box.appendChild(stage);
+    document.querySelectorAll('#sheetMedia .sync-stage').forEach(function (st) { st.innerHTML = ''; st.hidden = true; delete st.dataset.imgKey; delete st.dataset.termKey; });   // ξαναχτίζονται όταν φορτώσουν τα δεδομένα
     if (k) $('sheetMedia').querySelectorAll('audio, video').forEach(function (el) { paintTimeline(s, el); });
     var images = s.media.filter(function (m) { return m.kind === 'image'; });
     var linked = {};
@@ -3793,6 +3792,7 @@
       var wsm = document.createElement('summary'); wsm.textContent = t('type_' + m.kind) + ' ' + avN + (m.title ? ' · ' + m.title : ''); wrap.appendChild(wsm);
       var mcap = mediaCaption(m); if (mcap) wrap.appendChild(mcap);
       wrap.appendChild(el);
+      var stg = document.createElement('div'); stg.className = 'sync-stage'; stg.hidden = true; stg.setAttribute('aria-live', 'polite'); wrap.appendChild(stg);   // η δική της «οθόνη» εικόνων και όρων
       wrap.addEventListener('toggle', function () { if (wrap.open) avWraps.forEach(function (o) { if (o !== wrap) o.open = false; }); });   // ένα ανοιχτό κάθε φορά
       $('sheetMedia').appendChild(wrap);
     });

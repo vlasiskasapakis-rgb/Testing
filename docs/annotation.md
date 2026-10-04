@@ -21,7 +21,8 @@ each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` onc
 
 ## One dropdown per recording in the player area
 In the story view (the app and the annotation website) each audio or video is its own dropdown ("Audio 2 · Second tape") holding its
-details, player, subtitles and timeline. One is open at a time (the first by default); playing a recording, or pressing one of its
+details, player, subtitles, timeline and its own **screen** that shows the images and terms active at that moment of *that* recording.
+One is open at a time (the first by default); playing a recording, or pressing one of its
 timeline bars or ▶ buttons, opens its dropdown.
 
 ## One dropdown per recording (annotation website)
