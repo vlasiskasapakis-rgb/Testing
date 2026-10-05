@@ -306,7 +306,8 @@
   var CFG = window.WM_CONFIG || {}, sb = null;
   try { if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { sb = null; }
   function errText(e) { return (e && (e.message || e.error_description || e.details)) || String(e); }
-  function isMissingTable(e) { return !!e && (e.code === '42P01' || e.code === 'PGRST205' || /story_board|does not exist|schema cache/i.test(e.message || '')); }
+  // Μόνο «ο πίνακας δεν υπάρχει» (όχι π.χ. «δεν επιτρέπεται»), ώστε το μήνυμα να λέει το πραγματικό πρόβλημα
+  function isMissingTable(e) { return !!e && (e.code === '42P01' || e.code === 'PGRST205' || /could not find the table|relation .* does not exist/i.test(e.message || '')); }
 
   // ---- state ----
   var user = null, STORIES = [], byId = {}, BOARDS = [], boardId = null, items = {}, links = [], selLink = null;
@@ -359,7 +360,7 @@
     if (r.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('loadErr', { e: errText(r.error) }); return; }
     STORIES = r.data.map(storyFromRow); byId = {}; STORIES.forEach(function (s) { byId[s.id] = s; });
     var b = await sb.from('story_boards').select('id,title,created_at').order('created_at');
-    if (b.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = isMissingTable(b.error) ? t('notSetUp') : t('loadErr', { e: errText(b.error) }); BOARDS = []; renderAll(); return; }
+    if (b.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = (isMissingTable(b.error) ? t('notSetUp') + ' ' : t('loadErr', { e: '' })) + '[' + (b.error.code || '') + ' ' + errText(b.error) + ']'; BOARDS = []; renderAll(); return; }
     BOARDS = b.data;
     var keep = null; try { keep = localStorage.getItem('wm_board'); } catch (e) {}
     var pick = BOARDS.filter(function (x) { return x.id === boardId || x.id === keep; })[0] || BOARDS[0];
