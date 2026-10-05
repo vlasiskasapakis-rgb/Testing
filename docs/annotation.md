@@ -74,6 +74,24 @@ Among several Wikidata matches for a name, the one nearest the location (or whos
 Unreviewed automatic suggestions are replaced on each run; approved, rejected and hand-made terms are kept.
 Re-run `supabase/roles.sql` once (it adds `annotations.reason`; suggestions work without it, but the "Why" text is then not saved).
 
+## Story links (connect/ page)
+`…/connect/` (button **Story links** in the annotation site's header) is a board where annotators connect stories. Desktop only;
+annotators edit, administrators can read.
+- **Boards**: make as many as you need (a route, a theme, a family…): **+ New board**, **Rename**, **Delete board** (deleting a board
+  never deletes stories).
+- **Stories** (left): search, filter (drafts / published / not on this board), then **Add** or drag a story onto the board. Each story
+  is a box with its title, narrator, status and number of files; **Details** opens a dropdown with the first photo, narrator, location,
+  consent code, every file (title, identity, time) and a link that opens the story in the annotation site.
+- **Connect**: drag from the **●** on the right of a box to another box — the arrow means "this story, then that one". Or use
+  **Connect to…** at the bottom of a box (keyboard friendly). Click a line to **Label** it ("same village", "continues"…),
+  **Reverse** it or **Delete** it; the same actions are in the **Links** list on the left.
+- Boxes are **numbered** in order along the lines (1 → 2 → 3 …); the Links list shows the whole order. Branches are numbered top to
+  bottom.
+- Move boxes by dragging their title bar (or focus a box and use the arrow keys, Shift for bigger steps). Drag the empty board to
+  pan, mouse wheel to zoom, **Fit to screen**, **Tidy up** (each chain left to right, unconnected stories in a row below).
+- Everything is saved immediately (status at the top right). Removing a box removes its lines; deleting a story removes it from all
+  boards. Tables: `story_boards`, `story_board_items` (position of each story), `story_board_links` — re-run `supabase/roles.sql` once.
+
 ## Deleting a story (annotation website)
 Annotators can delete **any** story (the person who uploaded it can still delete their own in the app). Open the story and press
 **Delete story** (top right). A dialog lists what goes with it — its files, transcripts, terms and image notes, and its view

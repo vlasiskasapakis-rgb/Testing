@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Walking Memory · Story links</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,700&display=swap" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+  :root {
+    --petrol: #186078; --petrol-deep: #0E3F50; --sky: #249CCC; --sky-soft: #E7F4FA; --amber: #E0904F; --amber-text: #9A5413;
+    --ink: #12303B; --muted: #4B6470; --line: #D3E3EA; --line-strong: #6F8D99; --mist: #F2F7F9; --danger: #B3261E;
+    --wire: #186078; --wire-sel: #E0904F;
+    --font: "Exo 2", "Segoe UI", Roboto, system-ui, sans-serif;
+    --box-w: 250px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--mist); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.4; }
+  body { display: flex; flex-direction: column; }
+  button, input, select { font-family: inherit; font-size: inherit; }
+  button { cursor: pointer; border: 0; border-radius: 999px; }
+  [hidden] { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+
+  header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 20px; background: var(--petrol); color: #fff; flex: none; }
+  header h1 { margin: 0; font-size: 22px; font-style: italic; flex: 1 1 auto; }
+  header select, header button, header a.hbtn { min-height: 38px; padding: 6px 14px; border-radius: 999px; border: 0; font-weight: 700; color: var(--petrol); background: #fff; text-decoration: none; display: inline-flex; align-items: center; }
+  header a.hbtn { background: rgba(255,255,255,.15); color: #fff; }
+  #userName { font-weight: 600; }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  .login { max-width: 420px; margin: 40px auto; }
+  .login h2 { margin: 0 0 6px; color: var(--petrol); font-style: italic; }
+  .login label { display: block; font-weight: 600; color: var(--petrol); margin: 10px 0 4px; }
+  .login input { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 10px; }
+  .btn { background: var(--petrol); color: #fff; font-weight: 700; padding: 10px 20px; min-height: 44px; }
+  .btn-sec { background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); font-weight: 700; padding: 6px 14px; min-height: 38px; }
+  .btn-danger { background: #fff; color: var(--danger); border: 2px solid var(--danger); font-weight: 700; padding: 6px 14px; min-height: 38px; }
+  .btn-sm { padding: 3px 10px; min-height: 30px; font-size: 13px; }
+  .err { color: var(--danger); font-weight: 600; }
+  .note { color: var(--muted); font-size: 14px; }
+  code { background: var(--mist); padding: 1px 5px; border-radius: 4px; }
+
+  /* ---------- layout ---------- */
+  .app { flex: 1 1 auto; display: grid; grid-template-columns: 320px 1fr; min-height: 0; }
+  .side { background: #fff; border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; overflow: auto; }
+  .side-sec { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .side h2 { margin: 0 0 8px; font-size: 17px; color: var(--petrol); }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .side select, .side input[type=search] { width: 100%; min-height: 38px; padding: 6px 10px; border: 2px solid var(--line-strong); border-radius: 10px; background: #fff; }
+  .side .row select { flex: 1 1 140px; width: auto; }
+  .stories { flex: 1 1 auto; min-height: 200px; display: flex; flex-direction: column; }
+  #storyList { list-style: none; margin: 8px 0 0; padding: 0; overflow: auto; flex: 1 1 auto; }
+  #storyList li { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; background: #fff; cursor: grab; }
+  #storyList li.on { background: var(--sky-soft); }
+  #storyList .st-t { flex: 1 1 auto; min-width: 0; }
+  #storyList .st-t b { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #storyList .st-t span { font-size: 12px; color: var(--muted); }
+  .chip-draft { color: var(--amber-text); font-weight: 700; } .chip-pub { color: var(--petrol); font-weight: 700; }
+  #linkList { margin: 6px 0 0; padding-left: 0; list-style: none; font-size: 14px; }
+  #linkList li { padding: 5px 0; border-top: 1px solid var(--line); }
+  #linkList li .lk { display: block; }
+  #linkList li .lb { color: var(--muted); font-style: italic; }
+  #linkList li .row { margin-top: 3px; }
+  #orderLine { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+  details.fold > summary { cursor: pointer; font-weight: 700; color: var(--petrol); font-size: 17px; }
+
+  .stage { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .toolbar { display: flex; align-items: center; gap: 8px; min-height: 56px; padding: 8px 14px; background: #fff; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .toolbar .zoom { min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--muted); }
+  #saveStatus { margin-left: auto; font-size: 14px; color: var(--muted); }
+  #saveStatus.bad { color: var(--danger); font-weight: 600; }
+  .canvas { position: relative; flex: 1 1 auto; overflow: hidden; cursor: grab; touch-action: none;
+    background-color: var(--mist); background-image: radial-gradient(#c5d6de 1.2px, transparent 1.2px); background-size: 24px 24px; }
+  .canvas.panning { cursor: grabbing; }
+  .layer { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .wires { position: absolute; left: -5000px; top: -5000px; width: 20000px; height: 20000px; overflow: visible; pointer-events: none; }
+  .wires .w { fill: none; stroke: var(--wire); stroke-width: 2.5; }
+  .wires .w.sel { stroke: var(--wire-sel); stroke-width: 3.5; }
+  .wires .hit { fill: none; stroke: transparent; stroke-width: 16; pointer-events: stroke; cursor: pointer; }
+  .wires .lbl-bg { fill: #fff; stroke: var(--line-strong); stroke-width: 1; }
+  .wires .lbl { font-size: 13px; fill: var(--ink); font-family: var(--font); }
+  .wires .temp { fill: none; stroke: var(--wire-sel); stroke-width: 2.5; stroke-dasharray: 6 5; }
+  .empty-hint { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); max-width: 460px; text-align: center; color: var(--muted); background: rgba(255,255,255,.85); border-radius: 14px; padding: 16px 20px; pointer-events: none; }
+
+  /* ---------- story boxes ---------- */
+  .sbox { position: absolute; width: var(--box-w); background: #fff; border: 2px solid var(--line-strong); border-radius: 14px; box-shadow: 0 2px 10px rgba(14,63,80,.12); cursor: default; }
+  .sbox:focus-visible, .sbox.flash { outline: 3px solid var(--amber); outline-offset: 2px; }
+  .sbox.draft { border-style: dashed; }
+  .sbox.target { border-color: var(--amber); box-shadow: 0 0 0 4px rgba(224,144,79,.35); }
+  .sbox-head { display: flex; align-items: flex-start; gap: 8px; padding: 10px 10px 8px 12px; cursor: move; user-select: none; }
+  .sbox-head .ord { flex: none; min-width: 26px; height: 26px; border-radius: 13px; background: var(--petrol); color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
+  .sbox-head .tt { flex: 1 1 auto; min-width: 0; }
+  .sbox-head .tt b { display: block; font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
+  .sbox-head .tt span { font-size: 12px; color: var(--muted); }
+  .sbox-head .x { flex: none; width: 28px; height: 28px; padding: 0; background: var(--mist); color: var(--muted); font-size: 18px; line-height: 1; }
+  .sbox-head .x:hover { background: #fde8e7; color: var(--danger); }
+  .sbox-det { border-top: 1px solid var(--line); padding: 6px 12px; font-size: 13px; }
+  .sbox-det > summary { cursor: pointer; font-weight: 700; color: var(--petrol); }
+  .sbox-det .thumb { display: block; width: 100%; max-height: 130px; object-fit: cover; border-radius: 8px; margin: 6px 0; background: var(--mist); }
+  .sbox-det ul { margin: 6px 0; padding-left: 0; list-style: none; }
+  .sbox-det li { padding: 3px 0; border-top: 1px dashed var(--line); }
+  .sbox-det li .d { display: block; color: var(--muted); }
+  .sbox-det .kv { margin: 3px 0; color: var(--muted); }
+  .sbox-det a { color: var(--petrol); font-weight: 700; }
+  .sbox-foot { border-top: 1px solid var(--line); padding: 6px 10px 8px; }
+  .sbox-foot select { width: 100%; min-height: 30px; font-size: 13px; border: 1px solid var(--line-strong); border-radius: 8px; background: #fff; padding: 2px 6px; }
+  .port { position: absolute; top: 20px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid var(--petrol); }
+  .port.out { right: -11px; cursor: crosshair; }
+  .port.out:hover { background: var(--amber); border-color: var(--amber); }
+  .port.in { left: -11px; pointer-events: none; border-color: var(--line-strong); }
+
+  .wire-menu { display: inline-flex; align-items: center; gap: 6px; background: #FFF4EA; border: 1px solid var(--amber); border-radius: 999px; padding: 3px 4px 3px 12px; }
+  .wire-menu #wmText { font-size: 14px; font-weight: 600; color: var(--amber-text); max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+</head>
+<body>
+<header>
+  <h1 data-i="title"></h1>
+  <a class="hbtn" href="../annotate/" data-i="toAnnotate"></a>
+  <select id="lang" aria-label="Language"><option value="el">EL</option><option value="en">EN</option><option value="fr">FR</option><option value="it">IT</option></select>
+  <span id="userName"></span>
+  <button id="logout" type="button" hidden data-i="logout"></button>
+</header>
+
+<section id="loginView" class="card login" hidden>
+  <h2 data-i="login"></h2>
+  <p class="note" data-i="loginHint"></p>
+  <form id="loginForm" novalidate>
+    <label for="email" data-i="email"></label><input id="email" type="email" autocomplete="email" required>
+    <label for="pass" data-i="password"></label><input id="pass" type="password" autocomplete="current-password" required>
+    <p id="loginErr" class="err" role="alert"></p>
+    <button class="btn" type="submit" data-i="login" style="margin-top:12px"></button>
+  </form>
+</section>
+<section id="noAccess" class="card login" hidden><p class="err" data-i="noAccess"></p></section>
+
+<div id="app" class="app" hidden>
+  <aside class="side" aria-label="Boards and stories">
+    <div class="side-sec">
+      <h2 id="hBoards" data-i="boards"></h2>
+      <div class="row">
+        <select id="boardSel" aria-labelledby="hBoards"></select>
+        <button id="boardNew" type="button" class="btn-sec btn-sm" data-i="newBoard"></button>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button id="boardRename" type="button" class="btn-sec btn-sm" data-i="rename"></button>
+        <button id="boardDelete" type="button" class="btn-danger btn-sm" data-i="deleteBoard"></button>
+      </div>
+    </div>
+    <div class="side-sec stories">
+      <h2 id="hStories" data-i="stories"></h2>
+      <p class="note" data-i="storiesHint" style="margin:0 0 6px"></p>
+      <input id="search" type="search" data-i-ph="search" aria-labelledby="hStories">
+      <div class="row" style="margin-top:6px">
+        <select id="filter" aria-label="Filter"><option value="all"></option><option value="draft"></option><option value="published"></option><option value="off"></option></select>
+      </div>
+      <ul id="storyList"></ul>
+    </div>
+    <details id="linksFold" class="side-sec fold" open>
+      <summary id="linksHead"></summary>
+      <p id="orderLine"></p>
+      <ol id="linkList"></ol>
+    </details>
+  </aside>
+  <section class="stage">
+    <div class="toolbar">
+      <button id="zoomOut" type="button" class="btn-sec btn-sm" data-i-label="zoomOut">−</button>
+      <span id="zoomVal" class="zoom" aria-live="polite"></span>
+      <button id="zoomIn" type="button" class="btn-sec btn-sm" data-i-label="zoomIn">+</button>
+      <button id="fitBtn" type="button" class="btn-sec btn-sm" data-i="fit"></button>
+      <button id="tidyBtn" type="button" class="btn-sec btn-sm" data-i="tidy"></button>
+      <span id="howTo" class="note" data-i="howTo"></span>
+      <span id="wireMenu" class="wire-menu" role="group" hidden>
+        <span id="wmText"></span>
+        <button id="wmLabel" type="button" class="btn-sec btn-sm" data-i="label"></button>
+        <button id="wmReverse" type="button" class="btn-sec btn-sm" data-i="reverse"></button>
+        <button id="wmDelete" type="button" class="btn-danger btn-sm" data-i="removeLink"></button>
+      </span>
+      <span id="saveStatus" role="status"></span>
+    </div>
+    <div id="canvas" class="canvas" aria-label="Board">
+      <div id="layer" class="layer">
+        <svg id="wires" class="wires" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#186078"/></marker>
+            <marker id="arrowSel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#E0904F"/></marker>
+          </defs>
+          <g id="wireG" transform="translate(5000,5000)"></g>
+          <path id="tempWire" class="temp" transform="translate(5000,5000)" d="" />
+        </svg>
+        <div id="boxes"></div>
+      </div>
+      <div id="emptyHint" class="empty-hint" hidden></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var I18N = {
+    el: {
+      title: 'Walking Memory · Συνδέσεις ιστοριών', toAnnotate: 'Σχολιασμός', logout: 'Αποσύνδεση', login: 'Σύνδεση', email: 'E-mail', password: 'Κωδικός',
+      loginHint: 'Για σχολιαστές του Walking Memory.', loginFail: 'Η σύνδεση απέτυχε: {e}', noAccess: 'Αυτός ο λογαριασμός δεν είναι σχολιαστής.',
+      boards: 'Πίνακες', newBoard: '+ Νέος πίνακας', rename: 'Μετονομασία', deleteBoard: 'Διαγραφή πίνακα', boardName: 'Όνομα πίνακα:', boardDefault: 'Πίνακας {n}',
+      deleteBoardQ: 'Διαγραφή του πίνακα «{t}»; Οι ιστορίες δεν διαγράφονται, μόνο οι θέσεις και οι συνδέσεις τους σε αυτόν τον πίνακα.',
+      stories: 'Ιστορίες', storiesHint: 'Σύρε μια ιστορία στον πίνακα ή πάτα «Προσθήκη».', search: 'Αναζήτηση…',
+      fAll: 'Όλες', fDraft: 'Πρόχειρες', fPub: 'Δημοσιευμένες', fOff: 'Όχι σε αυτόν τον πίνακα',
+      add: 'Προσθήκη', show: 'Εμφάνιση', onBoard: 'στον πίνακα', draft: 'πρόχειρη', published: 'δημοσιευμένη', files: '{n} αρχεία',
+      links: 'Συνδέσεις ({n})', order: 'Σειρά: {o}', noLinks: 'Δεν υπάρχουν ακόμη συνδέσεις.',
+      zoomIn: 'Μεγέθυνση', zoomOut: 'Σμίκρυνση', fit: 'Όλα στην οθόνη', tidy: 'Τακτοποίηση',
+      howTo: 'Σύρε από τον κύκλο ● μιας ιστορίας σε άλλη για να τις συνδέσεις.',
+      saving: 'Αποθήκευση…', saved: 'Όλες οι αλλαγές αποθηκεύτηκαν', saveErr: 'Δεν αποθηκεύτηκε: {e}',
+      notSetUp: 'Οι πίνακες συνδέσεων δεν υπάρχουν ακόμη στη βάση. Τρέξε μία φορά το supabase/roles.sql στο Supabase (Run as: postgres).',
+      noBoards: 'Δημιούργησε έναν πίνακα («+ Νέος πίνακας») για να αρχίσεις.',
+      emptyBoard: 'Πρόσθεσε ιστορίες από τη λίστα αριστερά (σύρε τες εδώ). Μετά σύρε από τον κύκλο ● δεξιά σε μια ιστορία προς μια άλλη: η γραμμή δείχνει «αυτή, μετά εκείνη».',
+      removeBox: 'Αφαίρεση από τον πίνακα', details: 'Λεπτομέρειες', connectTo: 'Σύνδεση με…', alreadyLinked: '(ήδη συνδεδεμένη)',
+      label: 'Ετικέτα', reverse: 'Αντιστροφή', removeLink: 'Διαγραφή γραμμής', labelQ: 'Ετικέτα της σύνδεσης (π.χ. «ίδιο χωριό», «συνέχεια»):',
+      location: 'Τοποθεσία', consent: 'Κωδικός συναίνεσης', author: 'Αφηγητής/τρια', openAnn: 'Άνοιγμα στον σχολιασμό',
+      noFiles: 'Χωρίς αρχεία', loading: 'Φόρτωση…', loadErr: 'Δεν φορτώθηκαν τα δεδομένα: {e}', linkExists: 'Αυτές οι ιστορίες είναι ήδη συνδεδεμένες με αυτή τη σειρά.',
+      image: 'φωτογραφία', audio: 'ήχος', video: 'βίντεο', untitled: 'Χωρίς τίτλο'
+    },
+    en: {
+      title: 'Walking Memory · Story links', toAnnotate: 'Annotation', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password',
+      loginHint: 'For Walking Memory annotators.', loginFail: 'Login failed: {e}', noAccess: 'This account is not an annotator.',
+      boards: 'Boards', newBoard: '+ New board', rename: 'Rename', deleteBoard: 'Delete board', boardName: 'Board name:', boardDefault: 'Board {n}',
+      deleteBoardQ: 'Delete the board “{t}”? The stories are not deleted, only their places and links on this board.',
+      stories: 'Stories', storiesHint: 'Drag a story onto the board or press “Add”.', search: 'Search…',
+      fAll: 'All', fDraft: 'Drafts', fPub: 'Published', fOff: 'Not on this board',
+      add: 'Add', show: 'Show', onBoard: 'on the board', draft: 'draft', published: 'published', files: '{n} files',
+      links: 'Links ({n})', order: 'Order: {o}', noLinks: 'No links yet.',
+      zoomIn: 'Zoom in', zoomOut: 'Zoom out', fit: 'Fit to screen', tidy: 'Tidy up',
+      howTo: 'Drag from a story’s ● to another story to connect them.',
+      saving: 'Saving…', saved: 'All changes saved', saveErr: 'Not saved: {e}',
+      notSetUp: 'The story-link tables are not in the database yet. Run supabase/roles.sql once in Supabase (Run as: postgres).',
+      noBoards: 'Create a board (“+ New board”) to start.',
+      emptyBoard: 'Add stories from the list on the left (drag them here). Then drag from the ● on the right of a story to another one: the line means “this one, then that one”.',
+      removeBox: 'Remove from board', details: 'Details', connectTo: 'Connect to…', alreadyLinked: '(already linked)',
+      label: 'Label', reverse: 'Reverse', removeLink: 'Delete line', labelQ: 'Label for this link (e.g. “same village”, “continues”):',
+      location: 'Location', consent: 'Consent code', author: 'Narrator', openAnn: 'Open in the annotation site',
+      noFiles: 'No files', loading: 'Loading…', loadErr: 'Could not load the data: {e}', linkExists: 'These stories are already linked in this order.',
+      image: 'photo', audio: 'audio', video: 'video', untitled: 'Untitled'
+    },
+    fr: {
+      title: 'Walking Memory · Liens entre histoires', toAnnotate: 'Annotation', logout: 'Déconnexion', login: 'Connexion', email: 'E-mail', password: 'Mot de passe',
+      loginHint: 'Pour les annotateurs de Walking Memory.', loginFail: 'Échec de connexion : {e}', noAccess: 'Ce compte n’est pas annotateur.',
+      boards: 'Tableaux', newBoard: '+ Nouveau tableau', rename: 'Renommer', deleteBoard: 'Supprimer le tableau', boardName: 'Nom du tableau :', boardDefault: 'Tableau {n}',
+      deleteBoardQ: 'Supprimer le tableau « {t} » ? Les histoires ne sont pas supprimées, seulement leurs places et liens sur ce tableau.',
+      stories: 'Histoires', storiesHint: 'Glissez une histoire sur le tableau ou cliquez « Ajouter ».', search: 'Rechercher…',
+      fAll: 'Toutes', fDraft: 'Brouillons', fPub: 'Publiées', fOff: 'Pas sur ce tableau',
+      add: 'Ajouter', show: 'Afficher', onBoard: 'sur le tableau', draft: 'brouillon', published: 'publiée', files: '{n} fichiers',
+      links: 'Liens ({n})', order: 'Ordre : {o}', noLinks: 'Pas encore de liens.',
+      zoomIn: 'Zoom avant', zoomOut: 'Zoom arrière', fit: 'Tout afficher', tidy: 'Ranger',
+      howTo: 'Glissez depuis le ● d’une histoire vers une autre pour les relier.',
+      saving: 'Enregistrement…', saved: 'Toutes les modifications sont enregistrées', saveErr: 'Non enregistré : {e}',
+      notSetUp: 'Les tables des liens ne sont pas encore dans la base. Exécutez une fois supabase/roles.sql dans Supabase (Run as: postgres).',
+      noBoards: 'Créez un tableau (« + Nouveau tableau ») pour commencer.',
+      emptyBoard: 'Ajoutez des histoires depuis la liste à gauche (glissez-les ici). Puis glissez depuis le ● à droite d’une histoire vers une autre : la ligne signifie « celle-ci, puis celle-là ».',
+      removeBox: 'Retirer du tableau', details: 'Détails', connectTo: 'Relier à…', alreadyLinked: '(déjà reliée)',
+      label: 'Étiquette', reverse: 'Inverser', removeLink: 'Supprimer la ligne', labelQ: 'Étiquette du lien (p. ex. « même village », « suite ») :',
+      location: 'Lieu', consent: 'Code de consentement', author: 'Narrateur·rice', openAnn: 'Ouvrir dans le site d’annotation',
+      noFiles: 'Aucun fichier', loading: 'Chargement…', loadErr: 'Impossible de charger les données : {e}', linkExists: 'Ces histoires sont déjà reliées dans cet ordre.',
+      image: 'photo', audio: 'audio', video: 'vidéo', untitled: 'Sans titre'
+    },
+    it: {
+      title: 'Walking Memory · Collegamenti tra storie', toAnnotate: 'Annotazione', logout: 'Esci', login: 'Accedi', email: 'E-mail', password: 'Password',
+      loginHint: 'Per gli annotatori di Walking Memory.', loginFail: 'Accesso non riuscito: {e}', noAccess: 'Questo account non è un annotatore.',
+      boards: 'Lavagne', newBoard: '+ Nuova lavagna', rename: 'Rinomina', deleteBoard: 'Elimina lavagna', boardName: 'Nome della lavagna:', boardDefault: 'Lavagna {n}',
+      deleteBoardQ: 'Eliminare la lavagna «{t}»? Le storie non vengono eliminate, solo le loro posizioni e i collegamenti su questa lavagna.',
+      stories: 'Storie', storiesHint: 'Trascina una storia sulla lavagna o premi «Aggiungi».', search: 'Cerca…',
+      fAll: 'Tutte', fDraft: 'Bozze', fPub: 'Pubblicate', fOff: 'Non su questa lavagna',
+      add: 'Aggiungi', show: 'Mostra', onBoard: 'sulla lavagna', draft: 'bozza', published: 'pubblicata', files: '{n} file',
+      links: 'Collegamenti ({n})', order: 'Ordine: {o}', noLinks: 'Ancora nessun collegamento.',
+      zoomIn: 'Ingrandisci', zoomOut: 'Riduci', fit: 'Adatta allo schermo', tidy: 'Riordina',
+      howTo: 'Trascina dal ● di una storia a un’altra per collegarle.',
+      saving: 'Salvataggio…', saved: 'Tutte le modifiche salvate', saveErr: 'Non salvato: {e}',
+      notSetUp: 'Le tabelle dei collegamenti non sono ancora nel database. Esegui una volta supabase/roles.sql in Supabase (Run as: postgres).',
+      noBoards: 'Crea una lavagna («+ Nuova lavagna») per iniziare.',
+      emptyBoard: 'Aggiungi storie dall’elenco a sinistra (trascinale qui). Poi trascina dal ● a destra di una storia verso un’altra: la linea significa «questa, poi quella».',
+      removeBox: 'Togli dalla lavagna', details: 'Dettagli', connectTo: 'Collega a…', alreadyLinked: '(già collegata)',
+      label: 'Etichetta', reverse: 'Inverti', removeLink: 'Elimina linea', labelQ: 'Etichetta del collegamento (es. «stesso paese», «continua»):',
+      location: 'Luogo', consent: 'Codice di consenso', author: 'Narratore/trice', openAnn: 'Apri nel sito di annotazione',
+      noFiles: 'Nessun file', loading: 'Caricamento…', loadErr: 'Impossibile caricare i dati: {e}', linkExists: 'Queste storie sono già collegate in quest’ordine.',
+      image: 'foto', audio: 'audio', video: 'video', untitled: 'Senza titolo'
+    }
+  };
+  var LANG = 'el';
+  try { var sv = localStorage.getItem('dm_lang'); if (I18N[sv]) LANG = sv; else if (/^en/i.test(navigator.language || '')) LANG = 'en'; } catch (e) {}
+  function t(k, v) { var s = (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k; if (v) Object.keys(v).forEach(function (x) { s = s.split('{' + x + '}').join(v[x]); }); return s; }
+  function applyLang() {
+    document.documentElement.lang = LANG; $('lang').value = LANG; document.title = t('title');
+    document.querySelectorAll('[data-i]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i')); });
+    document.querySelectorAll('[data-i-ph]').forEach(function (el) { el.placeholder = t(el.getAttribute('data-i-ph')); });
+    document.querySelectorAll('[data-i-label]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i-label'))); el.title = t(el.getAttribute('data-i-label')); });
+    var f = $('filter'); ['fAll', 'fDraft', 'fPub', 'fOff'].forEach(function (k, i) { f.options[i].textContent = t(k); });
+  }
+  $('lang').onchange = function () { LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang(); renderAll(); };
+
+  var CFG = window.WM_CONFIG || {}, sb = null;
+  try { if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { sb = null; }
+  function errText(e) { return (e && (e.message || e.error_description || e.details)) || String(e); }
+  function isMissingTable(e) { return !!e && (e.code === '42P01' || e.code === 'PGRST205' || /story_board|does not exist|schema cache/i.test(e.message || '')); }
+
+  // ---- state ----
+  var user = null, STORIES = [], byId = {}, BOARDS = [], boardId = null, items = {}, links = [], selLink = null;
+  var view = { x: 40, y: 40, s: 1 }, BOX_W = 250, ANCHOR_Y = 29;
+  var KIND_ICON = { image: '🖼', audio: '🎙', video: '🎬' };
+
+  // ---- saving status ----
+  var pending = 0;
+  function saveStart() { pending++; $('saveStatus').className = ''; $('saveStatus').textContent = t('saving'); }
+  function saveEnd(err) {
+    pending = Math.max(0, pending - 1);
+    if (err) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = isMissingTable(err) ? t('notSetUp') : t('saveErr', { e: errText(err) }); return false; }
+    if (!pending && $('saveStatus').className !== 'bad') $('saveStatus').textContent = t('saved');
+    return true;
+  }
+  async function write(q) { saveStart(); var r; try { r = await q; } catch (e) { r = { error: e }; } saveEnd(r.error); return r; }
+
+  // ---- login ----
+  function showView(v) { $('loginView').hidden = v !== 'login'; $('noAccess').hidden = v !== 'noaccess'; $('app').hidden = v !== 'app'; $('logout').hidden = !user; }
+  $('loginForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault(); $('loginErr').textContent = '';
+    var r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pass').value });
+    if (r.error) $('loginErr').textContent = t('loginFail', { e: errText(r.error) });
+  });
+  $('logout').onclick = function () { if (sb) sb.auth.signOut(); };
+  var loadedFor = null;
+  async function onSession(session) {
+    if (session && loadedFor === session.user.id) { user = session.user; return; }   // ανανέωση token: τίποτα δεν αλλάζει
+    user = session ? session.user : null; loadedFor = null;
+    $('userName').textContent = user ? ((user.user_metadata && user.user_metadata.display_name) || (user.email || '').split('@')[0]) : '';
+    if (!user) { showView('login'); return; }
+    var role = null;
+    try { var r = await sb.from('profiles').select('role').eq('user_id', user.id).maybeSingle(); role = r.data && r.data.role; } catch (e) {}
+    if (role !== 'annotator') { showView('noaccess'); return; }
+    showView('app'); loadedFor = user.id;
+    await loadAll();
+  }
+
+  // ---- data ----
+  function storyFromRow(r) {
+    return { id: r.id, title: r.title || t('untitled'), author: r.author_name || '', status: r.status || 'published', lat: r.lat, lon: r.lon,
+      consent: (r.consents && r.consents.code) || '',
+      media: (r.story_media || []).slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0); }) };
+  }
+  async function loadAll() {
+    $('saveStatus').className = ''; $('saveStatus').textContent = t('loading');
+    var cols = 'id,title,lat,lon,author_name,status,story_media(id,kind,path,position)';
+    var r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');
+    if (r.error) r = await sb.from('stories').select(cols).order('created_at');
+    if (r.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('loadErr', { e: errText(r.error) }); return; }
+    STORIES = r.data.map(storyFromRow); byId = {}; STORIES.forEach(function (s) { byId[s.id] = s; });
+    var b = await sb.from('story_boards').select('id,title,created_at').order('created_at');
+    if (b.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = isMissingTable(b.error) ? t('notSetUp') : t('loadErr', { e: errText(b.error) }); BOARDS = []; renderAll(); return; }
+    BOARDS = b.data;
+    var keep = null; try { keep = localStorage.getItem('wm_board'); } catch (e) {}
+    var pick = BOARDS.filter(function (x) { return x.id === boardId || x.id === keep; })[0] || BOARDS[0];
+    await openBoard(pick ? pick.id : null);
+    $('saveStatus').textContent = '';
+  }
+  async function openBoard(id) {
+    boardId = id; items = {}; links = []; selLink = null; hideWireMenu();
+    try { if (id) localStorage.setItem('wm_board', id); } catch (e) {}
+    if (id) {
+      var r = await Promise.all([
+        sb.from('story_board_items').select('story_id,x,y').eq('board_id', id),
+        sb.from('story_board_links').select('id,from_story,to_story,label').eq('board_id', id)
+      ]);
+      if (r[0].error || r[1].error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('loadErr', { e: errText(r[0].error || r[1].error) }); }
+      (r[0].data || []).forEach(function (it) { if (byId[it.story_id]) items[it.story_id] = { x: +it.x, y: +it.y }; });
+      links = (r[1].data || []).filter(function (l) { return items[l.from_story] && items[l.to_story]; }).map(function (l) { return { id: l.id, from: l.from_story, to: l.to_story, label: l.label || '' }; });
+    }
+    $('boxes').innerHTML = ''; boxEls = {};
+    renderAll();
+    if (id && Object.keys(items).length) fitView();
+  }
+
+  // ---- boards ----
+  function renderBoards() {
+    var sel = $('boardSel'); sel.innerHTML = '';
+    BOARDS.forEach(function (b) { var o = document.createElement('option'); o.value = b.id; o.textContent = b.title; sel.appendChild(o); });
+    sel.value = boardId || ''; sel.disabled = !BOARDS.length;
+    $('boardRename').disabled = $('boardDelete').disabled = !boardId;
+  }
+  $('boardSel').onchange = function () { openBoard(this.value); };
+  $('boardNew').onclick = async function () {
+    var name = window.prompt(t('boardName'), t('boardDefault', { n: BOARDS.length + 1 }));
+    if (name == null) return; name = name.trim().slice(0, 200); if (!name) return;
+    var r = await write(sb.from('story_boards').insert({ title: name }).select('id,title,created_at').single());
+    if (r.error) return;
+    BOARDS.push(r.data); await openBoard(r.data.id);
+  };
+  $('boardRename').onclick = async function () {
+    var b = BOARDS.filter(function (x) { return x.id === boardId; })[0]; if (!b) return;
+    var name = window.prompt(t('boardName'), b.title); if (name == null) return; name = name.trim().slice(0, 200); if (!name) return;
+    var r = await write(sb.from('story_boards').update({ title: name, updated_at: new Date().toISOString() }).eq('id', b.id));
+    if (!r.error) { b.title = name; renderBoards(); }
+  };
+  $('boardDelete').onclick = async function () {
+    var b = BOARDS.filter(function (x) { return x.id === boardId; })[0]; if (!b) return;
+    if (!window.confirm(t('deleteBoardQ', { t: b.title }))) return;
+    var r = await write(sb.from('story_boards').delete().eq('id', b.id));
+    if (r.error) return;
+    BOARDS = BOARDS.filter(function (x) { return x !== b; });
+    await openBoard(BOARDS[0] ? BOARDS[0].id : null);
+  };
+  function touchBoard() { if (boardId) sb.from('story_boards').update({ updated_at: new Date().toISOString() }).eq('id', boardId).then(function () {}, function () {}); }
+
+  // ---- story list ----
+  function storyMeta(s) { return [s.author, t(s.status === 'published' ? 'published' : 'draft'), t('files', { n: s.media.length })].filter(Boolean).join(' · '); }
+  function renderList() {
+    var ul = $('storyList'); ul.innerHTML = '';
+    var q = ($('search').value || '').trim().toLowerCase(), f = $('filter').value;
+    STORIES.filter(function (s) {
+      if (f === 'draft' && s.status === 'published') return false;
+      if (f === 'published' && s.status !== 'published') return false;
+      if (f === 'off' && items[s.id]) return false;
+      return !q || (s.title + ' ' + s.author + ' ' + s.consent).toLowerCase().indexOf(q) >= 0;
+    }).forEach(function (s) {
+      var li = document.createElement('li'); li.className = items[s.id] ? 'on' : ''; li.draggable = !!boardId && !items[s.id];
+      var tt = document.createElement('div'); tt.className = 'st-t';
+      var b = document.createElement('b'); b.textContent = s.title; tt.appendChild(b);
+      var sp = document.createElement('span'); sp.textContent = storyMeta(s) + (items[s.id] ? ' · ' + t('onBoard') : ''); tt.appendChild(sp);
+      li.appendChild(tt);
+      var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn-sec btn-sm';
+      btn.textContent = items[s.id] ? t('show') : t('add'); btn.disabled = !boardId;
+      btn.setAttribute('aria-label', btn.textContent + ': ' + s.title);
+      btn.onclick = function () { if (items[s.id]) showBox(s.id); else { var c = viewCenter(); addItem(s.id, c.x - BOX_W / 2 + (Object.keys(items).length % 5) * 24, c.y - 60 + (Object.keys(items).length % 5) * 24); } };
+      li.appendChild(btn);
+      li.addEventListener('dragstart', function (ev) { ev.dataTransfer.setData('text/plain', 'story:' + s.id); ev.dataTransfer.effectAllowed = 'copy'; });
+      ul.appendChild(li);
+    });
+  }
+  $('search').oninput = renderList; $('filter').onchange = renderList;
+
+  // ---- board view (pan / zoom) ----
+  var canvas = $('canvas'), layer = $('layer');
+  function applyView() { layer.style.transform = 'translate(' + view.x + 'px,' + view.y + 'px) scale(' + view.s + ')'; $('zoomVal').textContent = Math.round(view.s * 100) + '%'; }
+  function toBoard(clientX, clientY) { var r = canvas.getBoundingClientRect(); return { x: (clientX - r.left - view.x) / view.s, y: (clientY - r.top - view.y) / view.s }; }
+  function viewCenter() { var r = canvas.getBoundingClientRect(); return toBoard(r.left + r.width / 2, r.top + r.height / 2); }
+  function zoomAt(f, cx, cy) {
+    var r = canvas.getBoundingClientRect(); if (cx == null) { cx = r.width / 2; cy = r.height / 2; }
+    var ns = Math.min(2, Math.max(0.25, view.s * f)), wx = (cx - view.x) / view.s, wy = (cy - view.y) / view.s;
+    view.s = ns; view.x = cx - wx * ns; view.y = cy - wy * ns; applyView();
+  }
+  canvas.addEventListener('wheel', function (ev) { ev.preventDefault(); var r = canvas.getBoundingClientRect(); zoomAt(Math.exp(-ev.deltaY * 0.0015), ev.clientX - r.left, ev.clientY - r.top); }, { passive: false });
+  $('zoomIn').onclick = function () { zoomAt(1.2); }; $('zoomOut').onclick = function () { zoomAt(1 / 1.2); };
+  function boxH(id) { var el = boxEls[id]; return el ? el.offsetHeight : 120; }
+  function fitView() {
+    var ids = Object.keys(items); if (!ids.length) { view = { x: 40, y: 40, s: 1 }; applyView(); return; }
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    ids.forEach(function (id) { var p = items[id]; x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y); x1 = Math.max(x1, p.x + BOX_W); y1 = Math.max(y1, p.y + boxH(id)); });
+    var r = canvas.getBoundingClientRect(), pad = 60;
+    var s = Math.min(1.2, Math.max(0.25, Math.min((r.width - pad * 2) / (x1 - x0), (r.height - pad * 2) / (y1 - y0))));
+    view.s = s; view.x = (r.width - (x1 - x0) * s) / 2 - x0 * s; view.y = (r.height - (y1 - y0) * s) / 2 - y0 * s; applyView();
+  }
+  $('fitBtn').onclick = fitView;
+  var pan = null;
+  canvas.addEventListener('pointerdown', function (ev) {
+    if (ev.button !== 0) return;
+    if (ev.target !== canvas && ev.target !== layer && ev.target !== $('boxes') && ev.target.id !== 'wires') return;
+    selectLink(null);
+    pan = { x: ev.clientX, y: ev.clientY, vx: view.x, vy: view.y }; canvas.classList.add('panning'); canvas.setPointerCapture(ev.pointerId);
+  });
+  canvas.addEventListener('pointermove', function (ev) { if (!pan) return; view.x = pan.vx + ev.clientX - pan.x; view.y = pan.vy + ev.clientY - pan.y; applyView(); });
+  canvas.addEventListener('pointerup', function () { pan = null; canvas.classList.remove('panning'); });
+  canvas.addEventListener('dragover', function (ev) { if (boardId) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy'; } });
+  canvas.addEventListener('drop', function (ev) {
+    var d = ev.dataTransfer.getData('text/plain') || ''; if (!boardId || d.indexOf('story:') !== 0) return;
+    ev.preventDefault(); var id = d.slice(6), p = toBoard(ev.clientX, ev.clientY);
+    if (byId[id] && !items[id]) addItem(id, p.x - BOX_W / 2, p.y - 20);
+  });
+
+  // ---- boxes ----
+  var boxEls = {};
+  async function addItem(id, x, y) {
+    x = Math.round(x); y = Math.round(y);
+    items[id] = { x: x, y: y }; renderAll(); flashBox(id);
+    var r = await write(sb.from('story_board_items').insert({ board_id: boardId, story_id: id, x: x, y: y }));
+    if (r.error) { delete items[id]; renderAll(); } else touchBoard();
+  }
+  async function removeItem(id) {
+    delete items[id];
+    links = links.filter(function (l) { return l.from !== id && l.to !== id; });
+    if (selLink && !links.some(function (l) { return l === selLink; })) selectLink(null);
+    renderAll();
+    var r = await write(sb.from('story_board_items').delete().eq('board_id', boardId).eq('story_id', id));   // its links go with it (database)
+    if (r.error) await openBoard(boardId); else touchBoard();
+  }
+  function savePos(id) {
+    var p = items[id]; if (!p) return;
+    write(sb.from('story_board_items').update({ x: Math.round(p.x), y: Math.round(p.y) }).eq('board_id', boardId).eq('story_id', id)).then(function (r) { if (!r.error) touchBoard(); });
+  }
+  function flashBox(id) { var el = boxEls[id]; if (!el) return; el.classList.add('flash'); setTimeout(function () { el.classList.remove('flash'); }, 1200); }
+  function showBox(id) {
+    var p = items[id], r = canvas.getBoundingClientRect(); if (!p) return;
+    view.x = r.width / 2 - (p.x + BOX_W / 2) * view.s; view.y = r.height / 2 - (p.y + 60) * view.s; applyView();
+    var el = boxEls[id]; if (el) { el.focus({ preventScroll: true }); flashBox(id); }
+  }
+  function fileLine(m) {
+    var li = document.createElement('li');
+    li.appendChild(document.createTextNode((KIND_ICON[m.kind] || '•') + ' ' + (m.title || t(m.kind))));
+    var d = [m.about, m.period, m.recorded_at].filter(Boolean).join(' · ');
+    if (d) { var sp = document.createElement('span'); sp.className = 'd'; sp.textContent = d; li.appendChild(sp); }
+    return li;
+  }
+  function fillDetails(det, s) {
+    if (det.dataset.filled) return; det.dataset.filled = '1';
+    var img = s.media.filter(function (m) { return m.kind === 'image' && m.path; })[0];
+    if (img && sb) { var im = document.createElement('img'); im.className = 'thumb'; im.alt = img.title || s.title; im.loading = 'lazy'; im.src = sb.storage.from('story-media').getPublicUrl(img.path).data.publicUrl; det.appendChild(im); }
+    function kv(k, v) { if (!v) return; var p = document.createElement('div'); p.className = 'kv'; p.textContent = t(k) + ': ' + v; det.appendChild(p); }
+    kv('author', s.author);
+    kv('location', s.lat != null && s.lon != null ? (+s.lat).toFixed(5) + ', ' + (+s.lon).toFixed(5) : '');
+    kv('consent', s.consent);
+    var ul = document.createElement('ul');
+    if (s.media.length) s.media.forEach(function (m) { ul.appendChild(fileLine(m)); });
+    else { var li = document.createElement('li'); li.textContent = t('noFiles'); ul.appendChild(li); }
+    det.appendChild(ul);
+    var a = document.createElement('a'); a.href = '../annotate/#story=' + encodeURIComponent(s.id); a.target = '_blank'; a.rel = 'noopener'; a.textContent = t('openAnn') + ' ↗'; det.appendChild(a);
+  }
+  function makeBox(id) {
+    var s = byId[id], el = document.createElement('div');
+    el.className = 'sbox' + (s.status === 'published' ? '' : ' draft'); el.dataset.id = id; el.tabIndex = 0; el.setAttribute('role', 'group');
+    var head = document.createElement('div'); head.className = 'sbox-head';
+    var ord = document.createElement('span'); ord.className = 'ord'; ord.hidden = true; head.appendChild(ord);
+    var tt = document.createElement('div'); tt.className = 'tt';
+    var b = document.createElement('b'); tt.appendChild(b); var sp = document.createElement('span'); tt.appendChild(sp); head.appendChild(tt);
+    var x = document.createElement('button'); x.type = 'button'; x.className = 'x'; x.textContent = '×'; x.onclick = function () { removeItem(id); }; head.appendChild(x);
+    el.appendChild(head);
+    var det = document.createElement('details'); det.className = 'sbox-det';
+    var sm = document.createElement('summary'); det.appendChild(sm);
+    det.addEventListener('toggle', function () { if (det.open) fillDetails(det, s); renderWires(); });
+    el.appendChild(det);
+    var foot = document.createElement('div'); foot.className = 'sbox-foot';
+    var sel = document.createElement('select'); sel.onchange = function () { if (sel.value) addLink(id, sel.value); sel.value = ''; };
+    foot.appendChild(sel); el.appendChild(foot);
+    var pin = document.createElement('span'); pin.className = 'port in'; el.appendChild(pin);
+    var pout = document.createElement('span'); pout.className = 'port out'; el.appendChild(pout);
+    // μετακίνηση από την κεφαλίδα
+    head.addEventListener('pointerdown', function (ev) {
+      if (ev.button !== 0 || ev.target.closest('button')) return;
+      ev.stopPropagation(); selectLink(null);
+      var st = { x: ev.clientX, y: ev.clientY, px: items[id].x, py: items[id].y, moved: false };
+      head.setPointerCapture(ev.pointerId);
+      function mv(e) { var dx = (e.clientX - st.x) / view.s, dy = (e.clientY - st.y) / view.s; if (Math.abs(dx) + Math.abs(dy) > 2) st.moved = true; items[id].x = st.px + dx; items[id].y = st.py + dy; placeBox(id); renderWires(); }
+      function up() { head.removeEventListener('pointermove', mv); head.removeEventListener('pointerup', up); head.removeEventListener('pointercancel', up); if (st.moved) savePos(id); }
+      head.addEventListener('pointermove', mv); head.addEventListener('pointerup', up); head.addEventListener('pointercancel', up);
+    });
+    // σύνδεση: σύρσιμο από τον κύκλο ●
+    pout.addEventListener('pointerdown', function (ev) {
+      if (ev.button !== 0) return; ev.stopPropagation(); ev.preventDefault(); selectLink(null);
+      pout.setPointerCapture(ev.pointerId);
+      var from = anchorOut(id), over = null;
+      function mv(e) {
+        var p = toBoard(e.clientX, e.clientY); $('tempWire').setAttribute('d', curve(from, p));
+        var hit = document.elementFromPoint(e.clientX, e.clientY), box = hit && hit.closest ? hit.closest('.sbox') : null, tid = box && box.dataset.id !== id ? box.dataset.id : null;
+        if (over !== tid) { if (over && boxEls[over]) boxEls[over].classList.remove('target'); over = tid; if (over) boxEls[over].classList.add('target'); }
+      }
+      function up() {
+        pout.removeEventListener('pointermove', mv); pout.removeEventListener('pointerup', up); pout.removeEventListener('pointercancel', up);
+        $('tempWire').setAttribute('d', ''); if (over && boxEls[over]) boxEls[over].classList.remove('target');
+        if (over) addLink(id, over);
+      }
+      pout.addEventListener('pointermove', mv); pout.addEventListener('pointerup', up); pout.addEventListener('pointercancel', up);
+    });
+    // πληκτρολόγιο: βέλη μετακινούν το κουτί
+    var keyTimer = null;
+    el.addEventListener('keydown', function (ev) {
+      if (ev.target !== el) return;
+      var d = ev.shiftKey ? 50 : 10, mv = { ArrowLeft: [-d, 0], ArrowRight: [d, 0], ArrowUp: [0, -d], ArrowDown: [0, d] }[ev.key];
+      if (!mv) return; ev.preventDefault();
+      items[id].x += mv[0]; items[id].y += mv[1]; placeBox(id); renderWires();
+      clearTimeout(keyTimer); keyTimer = setTimeout(function () { savePos(id); }, 500);
+    });
+    boxEls[id] = el; $('boxes').appendChild(el);
+    return el;
+  }
+  function placeBox(id) { var el = boxEls[id], p = items[id]; el.style.left = p.x + 'px'; el.style.top = p.y + 'px'; }
+  function renderBoxes(order) {
+    Object.keys(boxEls).forEach(function (id) { if (!items[id]) { boxEls[id].remove(); delete boxEls[id]; } });
+    Object.keys(items).forEach(function (id) {
+      var s = byId[id], el = boxEls[id] || makeBox(id);
+      placeBox(id);
+      el.setAttribute('aria-label', s.title);
+      el.querySelector('.tt b').textContent = s.title;
+      el.querySelector('.tt span').textContent = storyMeta(s);
+      var ord = el.querySelector('.ord'); ord.hidden = !order[id]; ord.textContent = order[id] || '';
+      el.querySelector('.x').setAttribute('aria-label', t('removeBox') + ': ' + s.title); el.querySelector('.x').title = t('removeBox');
+      el.querySelector('summary').textContent = t('details');
+      el.querySelector('.port.out').title = t('howTo');
+      var sel = el.querySelector('.sbox-foot select'); sel.innerHTML = '';
+      sel.setAttribute('aria-label', t('connectTo') + ' ' + s.title);
+      var o0 = document.createElement('option'); o0.value = ''; o0.textContent = t('connectTo'); sel.appendChild(o0);
+      Object.keys(items).filter(function (o) { return o !== id; }).sort(function (a, b) { return byId[a].title.localeCompare(byId[b].title); }).forEach(function (o) {
+        var op = document.createElement('option'); op.value = o; var has = linkBetween(id, o);
+        op.textContent = '→ ' + byId[o].title + (has ? ' ' + t('alreadyLinked') : ''); op.disabled = !!has; sel.appendChild(op);
+      });
+      sel.disabled = Object.keys(items).length < 2;
+    });
+  }
+
+  // ---- links ----
+  function linkBetween(a, b) { return links.filter(function (l) { return l.from === a && l.to === b; })[0]; }
+  async function addLink(from, to) {
+    if (from === to || !items[from] || !items[to]) return;
+    if (linkBetween(from, to)) { $('saveStatus').className = ''; $('saveStatus').textContent = t('linkExists'); return; }
+    var l = { id: null, from: from, to: to, label: '' }; links.push(l); renderAll();
+    var r = await write(sb.from('story_board_links').insert({ board_id: boardId, from_story: from, to_story: to }).select('id').single());
+    if (r.error) { links = links.filter(function (x) { return x !== l; }); renderAll(); return; }
+    l.id = r.data.id; touchBoard();
+  }
+  async function deleteLink(l) {
+    links = links.filter(function (x) { return x !== l; }); selectLink(null); renderAll();
+    if (!l.id) return;
+    var r = await write(sb.from('story_board_links').delete().eq('id', l.id));
+    if (r.error) { links.push(l); renderAll(); } else touchBoard();
+  }
+  async function reverseLink(l) {
+    if (linkBetween(l.to, l.from)) { $('saveStatus').className = ''; $('saveStatus').textContent = t('linkExists'); return; }
+    var f = l.from; l.from = l.to; l.to = f; renderAll();
+    var r = await write(sb.from('story_board_links').update({ from_story: l.from, to_story: l.to }).eq('id', l.id));
+    if (r.error) { f = l.from; l.from = l.to; l.to = f; renderAll(); } else touchBoard();
+  }
+  async function labelLink(l) {
+    var v = window.prompt(t('labelQ'), l.label || ''); if (v == null) return;
+    v = v.trim().slice(0, 200); var old = l.label; l.label = v; renderAll();
+    var r = await write(sb.from('story_board_links').update({ label: v || null }).eq('id', l.id));
+    if (r.error) { l.label = old; renderAll(); } else touchBoard();
+  }
+  function anchorOut(id) { var p = items[id]; return { x: p.x + BOX_W + 8, y: p.y + ANCHOR_Y }; }
+  function curve(a, b) {             // γραμμή που σέρνεται: από τον κύκλο ● προς τον δείκτη
+    var dx = Math.max(60, Math.abs(b.x - a.x) / 2);
+    return 'M' + a.x + ',' + a.y + ' C' + (a.x + dx) + ',' + a.y + ' ' + (b.x - dx) + ',' + b.y + ' ' + b.x + ',' + b.y;
+  }
+  // Διαδρομή γραμμής ανάλογα με το πού βρίσκονται οι δύο ιστορίες, ώστε να μη περνά κάτω από τα κουτιά:
+  // επόμενη δεξιά: δεξιά πλευρά → αριστερή· επόμενη αριστερά: αριστερή → δεξιά· η μία κάτω από την άλλη: γύρω από τη δεξιά πλευρά.
+  function geom(l) {
+    var A = items[l.from], B = items[l.to], y1 = A.y + ANCHOR_Y, y2 = B.y + ANCHOR_Y, a, b, c1, c2;
+    if (B.x >= A.x + BOX_W + 16) { a = { x: A.x + BOX_W + 8, y: y1 }; b = { x: B.x - 8, y: y2 }; var d1 = Math.max(50, (b.x - a.x) / 2); c1 = { x: a.x + d1, y: y1 }; c2 = { x: b.x - d1, y: y2 }; }
+    else if (B.x + BOX_W + 16 <= A.x) { a = { x: A.x - 8, y: y1 }; b = { x: B.x + BOX_W + 8, y: y2 }; var d2 = Math.max(50, (a.x - b.x) / 2); c1 = { x: a.x - d2, y: y1 }; c2 = { x: b.x + d2, y: y2 }; }
+    else { a = { x: A.x + BOX_W + 8, y: y1 }; b = { x: B.x + BOX_W + 8, y: y2 }; var cx = Math.max(a.x, b.x) + 70; c1 = { x: cx, y: y1 }; c2 = { x: cx, y: y2 }; }
+    return { d: 'M' + a.x + ',' + a.y + ' C' + c1.x + ',' + c1.y + ' ' + c2.x + ',' + c2.y + ' ' + b.x + ',' + b.y,
+      mid: { x: 0.125 * a.x + 0.375 * c1.x + 0.375 * c2.x + 0.125 * b.x, y: 0.125 * a.y + 0.375 * c1.y + 0.375 * c2.y + 0.125 * b.y } };
+  }
+  var NS = 'http://www.w3.org/2000/svg';
+  function renderWires() {
+    var g = $('wireG'); while (g.firstChild) g.removeChild(g.firstChild);
+    links.forEach(function (l) {
+      if (!items[l.from] || !items[l.to]) return;
+      var gm = geom(l), d = gm.d, sel = l === selLink;
+      var p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('class', 'w' + (sel ? ' sel' : '')); p.setAttribute('marker-end', sel ? 'url(#arrowSel)' : 'url(#arrow)'); g.appendChild(p);
+      var h = document.createElementNS(NS, 'path'); h.setAttribute('d', d); h.setAttribute('class', 'hit');
+      h.addEventListener('pointerdown', function (ev) { ev.stopPropagation(); });
+      h.addEventListener('click', function (ev) { ev.stopPropagation(); selectLink(l); });
+      g.appendChild(h);
+      if (l.label) {
+        var m = gm.mid, tx = document.createElementNS(NS, 'text'); tx.setAttribute('class', 'lbl'); tx.setAttribute('x', m.x); tx.setAttribute('y', m.y + 4); tx.setAttribute('text-anchor', 'middle'); tx.textContent = l.label;
+        var bg = document.createElementNS(NS, 'rect'); bg.setAttribute('class', 'lbl-bg'); g.appendChild(bg); g.appendChild(tx);
+        try { var bb = tx.getBBox(); bg.setAttribute('x', bb.x - 6); bg.setAttribute('y', bb.y - 3); bg.setAttribute('width', bb.width + 12); bg.setAttribute('height', bb.height + 6); bg.setAttribute('rx', 8); } catch (e) {}
+      }
+    });
+  }
+  function selectLink(l) {
+    selLink = l; renderWires();
+    if (!l) { hideWireMenu(); return; }
+    $('wmText').textContent = byId[l.from].title + ' → ' + byId[l.to].title + (l.label ? ' · ' + l.label : '');
+    $('wireMenu').hidden = false; $('howTo').hidden = true;
+    $('wmLabel').focus();
+  }
+  function hideWireMenu() { $('wireMenu').hidden = true; $('howTo').hidden = false; }
+  $('wmLabel').onclick = function () { if (selLink) labelLink(selLink); };
+  $('wmReverse').onclick = function () { if (selLink) { var l = selLink; reverseLink(l).then(function () { selectLink(l); }); } };
+  $('wmDelete').onclick = function () { if (selLink) deleteLink(selLink); };
+  // Πάτημα οπουδήποτε αλλού κλείνει το μενού της γραμμής
+  document.addEventListener('pointerdown', function (ev) {
+    if (!selLink || ev.target.closest('#wireMenu') || !ev.target.closest('#canvas') || (ev.target.classList && ev.target.classList.contains('hit'))) return;
+    selectLink(null);
+  }, true);
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') selectLink(null);
+    if ((ev.key === 'Delete' || ev.key === 'Backspace') && selLink && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { ev.preventDefault(); deleteLink(selLink); }
+  });
+
+  // Σειρά: από κάθε ιστορία χωρίς εισερχόμενη γραμμή, ακολουθώντας τις γραμμές (διακλαδώσεις από πάνω προς τα κάτω)
+  function computeOrder() {
+    var inc = {}, out = {}, ord = {}, n = 0, chains = [];
+    links.forEach(function (l) { inc[l.to] = (inc[l.to] || 0) + 1; (out[l.from] = out[l.from] || []).push(l.to); });
+    function byPos(a, b) { return items[a].y - items[b].y || items[a].x - items[b].x; }
+    var starts = Object.keys(out).filter(function (id) { return !inc[id]; }).sort(byPos);
+    links.forEach(function (l) { if (starts.indexOf(l.from) < 0 && !inc[l.from]) starts.push(l.from); });
+    function visit(id, chain) { if (ord[id]) return; ord[id] = ++n; chain.push(id); (out[id] || []).slice().sort(function (a, b) { return items[a].x - items[b].x || byPos(a, b); }).forEach(function (x) { visit(x, chain); }); }
+    starts.forEach(function (id) { var c = []; visit(id, c); if (c.length) chains.push(c); });
+    links.forEach(function (l) { if (!ord[l.from]) { var c = []; visit(l.from, c); if (c.length) chains.push(c); } });     // κύκλοι χωρίς αρχή
+    return { ord: ord, chains: chains };
+  }
+  function renderLinkList(o) {
+    $('linksHead').textContent = t('links', { n: links.length });
+    // «→» μόνο ανάμεσα σε ιστορίες που ενώνονται πράγματι· σε διακλάδωση τα κλαδιά χωρίζονται με κόμμα
+    $('orderLine').textContent = o.chains.length ? t('order', { o: o.chains.map(function (c) {
+      return c.map(function (id, i) { return (i ? (linkBetween(c[i - 1], id) ? ' → ' : ', ') : '') + o.ord[id] + '. ' + byId[id].title; }).join('');
+    }).join('  |  ') }) : t('noLinks');
+    var ol = $('linkList'); ol.innerHTML = '';
+    links.slice().sort(function (a, b) { return (o.ord[a.from] || 0) - (o.ord[b.from] || 0) || (o.ord[a.to] || 0) - (o.ord[b.to] || 0); }).forEach(function (l) {
+      var li = document.createElement('li');
+      var lk = document.createElement('span'); lk.className = 'lk'; lk.textContent = byId[l.from].title + ' → ' + byId[l.to].title; li.appendChild(lk);
+      if (l.label) { var lb = document.createElement('span'); lb.className = 'lb'; lb.textContent = l.label; li.appendChild(lb); }
+      var row = document.createElement('div'); row.className = 'row';
+      [['label', labelLink, 'btn-sec'], ['reverse', reverseLink, 'btn-sec'], ['removeLink', deleteLink, 'btn-danger']].forEach(function (x) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = x[2] + ' btn-sm'; b.textContent = t(x[0]);
+        b.setAttribute('aria-label', t(x[0]) + ': ' + lk.textContent); b.disabled = !l.id; b.onclick = function () { x[1](l); }; row.appendChild(b);
+      });
+      li.appendChild(row); ol.appendChild(li);
+    });
+  }
+
+  // Τακτοποίηση: κάθε αλυσίδα σε στήλες από αριστερά προς τα δεξιά, οι ασύνδετες ιστορίες σε γραμμή από κάτω
+  $('tidyBtn').onclick = async function () {
+    var ids = Object.keys(items); if (!ids.length) return;
+    var level = {}, out = {}, inc = {};
+    links.forEach(function (l) { (out[l.from] = out[l.from] || []).push(l.to); inc[l.to] = 1; });
+    var linked = ids.filter(function (id) { return out[id] || inc[id]; });
+    linked.forEach(function (id) { level[id] = 0; });
+    for (var it = 0; it < linked.length; it++) {
+      var changed = false;
+      links.forEach(function (l) { if (level[l.to] < level[l.from] + 1 && level[l.from] + 1 < linked.length) { level[l.to] = level[l.from] + 1; changed = true; } });
+      if (!changed) break;
+    }
+    var cols = {}, maxY = 0, o = computeOrder();
+    linked.slice().sort(function (a, b) { return (o.ord[a] || 0) - (o.ord[b] || 0); }).forEach(function (id) { (cols[level[id]] = cols[level[id]] || []).push(id); });
+    Object.keys(cols).forEach(function (c) { cols[c].forEach(function (id, i) { items[id].x = 40 + c * (BOX_W + 170); items[id].y = 40 + i * 200; maxY = Math.max(maxY, items[id].y + 190); }); });
+    ids.filter(function (id) { return linked.indexOf(id) < 0; }).forEach(function (id, i) { items[id].x = 40 + (i % 5) * (BOX_W + 140); items[id].y = (linked.length ? maxY + 40 : 40) + Math.floor(i / 5) * 190; });
+    renderAll(); fitView();
+    var rows = ids.map(function (id) { return { board_id: boardId, story_id: id, x: Math.round(items[id].x), y: Math.round(items[id].y) }; });
+    var r = await write(sb.from('story_board_items').upsert(rows, { onConflict: 'board_id,story_id' }));
+    if (!r.error) touchBoard();
+  };
+
+  function renderAll() {
+    renderBoards();
+    var o = computeOrder();
+    renderBoxes(o.ord); renderWires(); renderList(); renderLinkList(o);
+    var hint = $('emptyHint');
+    if (!BOARDS.length) { hint.hidden = false; hint.textContent = t('noBoards'); }
+    else if (!Object.keys(items).length) { hint.hidden = false; hint.textContent = t('emptyBoard'); }
+    else hint.hidden = true;
+    $('tidyBtn').disabled = $('fitBtn').disabled = !Object.keys(items).length;
+  }
+
+  applyLang(); applyView();
+  if (!sb) { showView('login'); $('loginErr').textContent = 'Supabase is not configured (config.js).'; return; }
+  sb.auth.onAuthStateChange(function (_e, session) { setTimeout(function () { onSession(session); }, 0); });
+})();
+</script>
+</body>
+</html>
