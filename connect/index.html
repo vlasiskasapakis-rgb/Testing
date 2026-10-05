@@ -68,6 +68,11 @@
   #linkList li .lb { color: var(--muted); font-style: italic; }
   #linkList li .row { margin-top: 3px; }
   #orderLine { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+  .walk-box { margin-top: 10px; padding: 8px 10px; border-radius: 10px; background: var(--mist); }
+  .walk-chk { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--petrol); }
+  .walk-chk input { width: 20px; height: 20px; }
+  #walkDesc { width: 100%; margin-top: 6px; padding: 6px 8px; border: 2px solid var(--line-strong); border-radius: 8px; font: inherit; font-size: 14px; resize: vertical; }
+  .walk-box .note { margin: 4px 0 0; font-size: 12px; }
   details.fold > summary { cursor: pointer; font-weight: 700; color: var(--petrol); font-size: 17px; }
 
   .stage { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
@@ -152,6 +157,12 @@
         <button id="boardRename" type="button" class="btn-sec btn-sm" data-i="rename"></button>
         <button id="boardDelete" type="button" class="btn-danger btn-sm" data-i="deleteBoard"></button>
       </div>
+      <div id="walkBox" class="walk-box">
+        <label class="walk-chk"><input type="checkbox" id="walkChk"><span data-i="isWalk"></span></label>
+        <label for="walkDesc" class="sr-only" data-i="walkDescLbl"></label>
+        <textarea id="walkDesc" rows="2" maxlength="1000" data-i-ph="walkDescPh"></textarea>
+        <p class="note" data-i="walkNote"></p>
+      </div>
     </div>
     <div class="side-sec stories">
       <h2 id="hStories" data-i="stories"></h2>
@@ -207,6 +218,10 @@
   var $ = function (id) { return document.getElementById(id); };
   var I18N = {
     el: {
+      isWalk: "Διαδρομή στην εφαρμογή AR",
+      walkDescLbl: "Περιγραφή διαδρομής",
+      walkDescPh: "Σύντομη περιγραφή για τους επισκέπτες (προαιρετικά)",
+      walkNote: "Οι επισκέπτες βλέπουν τις ιστορίες με τη σειρά των γραμμών. Οι πρόχειρες ιστορίες δεν εμφανίζονται.",
       title: 'Walking Memory · Συνδέσεις ιστοριών', toAnnotate: 'Σχολιασμός', logout: 'Αποσύνδεση', login: 'Σύνδεση', email: 'E-mail', password: 'Κωδικός',
       loginHint: 'Για σχολιαστές του Walking Memory.', loginFail: 'Η σύνδεση απέτυχε: {e}', noAccess: 'Αυτός ο λογαριασμός δεν είναι σχολιαστής.',
       boards: 'Πίνακες', newBoard: '+ Νέος πίνακας', rename: 'Μετονομασία', deleteBoard: 'Διαγραφή πίνακα', boardName: 'Όνομα πίνακα:', boardDefault: 'Πίνακας {n}',
@@ -228,6 +243,10 @@
       image: 'φωτογραφία', audio: 'ήχος', video: 'βίντεο', untitled: 'Χωρίς τίτλο'
     },
     en: {
+      isWalk: "Walk in the AR app",
+      walkDescLbl: "Walk description",
+      walkDescPh: "Short description for visitors (optional)",
+      walkNote: "Visitors follow the stories in the order of the lines. Draft stories are not shown.",
       title: 'Walking Memory · Story links', toAnnotate: 'Annotation', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password',
       loginHint: 'For Walking Memory annotators.', loginFail: 'Login failed: {e}', noAccess: 'This account is not an annotator.',
       boards: 'Boards', newBoard: '+ New board', rename: 'Rename', deleteBoard: 'Delete board', boardName: 'Board name:', boardDefault: 'Board {n}',
@@ -249,6 +268,10 @@
       image: 'photo', audio: 'audio', video: 'video', untitled: 'Untitled'
     },
     fr: {
+      isWalk: "Parcours dans l’application AR",
+      walkDescLbl: "Description du parcours",
+      walkDescPh: "Courte description pour les visiteurs (facultatif)",
+      walkNote: "Les visiteurs suivent les histoires dans l’ordre des lignes. Les brouillons ne sont pas affichés.",
       title: 'Walking Memory · Liens entre histoires', toAnnotate: 'Annotation', logout: 'Déconnexion', login: 'Connexion', email: 'E-mail', password: 'Mot de passe',
       loginHint: 'Pour les annotateurs de Walking Memory.', loginFail: 'Échec de connexion : {e}', noAccess: 'Ce compte n’est pas annotateur.',
       boards: 'Tableaux', newBoard: '+ Nouveau tableau', rename: 'Renommer', deleteBoard: 'Supprimer le tableau', boardName: 'Nom du tableau :', boardDefault: 'Tableau {n}',
@@ -270,6 +293,10 @@
       image: 'photo', audio: 'audio', video: 'vidéo', untitled: 'Sans titre'
     },
     it: {
+      isWalk: "Percorso nell’app AR",
+      walkDescLbl: "Descrizione del percorso",
+      walkDescPh: "Breve descrizione per i visitatori (facoltativa)",
+      walkNote: "I visitatori seguono le storie nell’ordine delle linee. Le bozze non vengono mostrate.",
       title: 'Walking Memory · Collegamenti tra storie', toAnnotate: 'Annotazione', logout: 'Esci', login: 'Accedi', email: 'E-mail', password: 'Password',
       loginHint: 'Per gli annotatori di Walking Memory.', loginFail: 'Accesso non riuscito: {e}', noAccess: 'Questo account non è un annotatore.',
       boards: 'Lavagne', newBoard: '+ Nuova lavagna', rename: 'Rinomina', deleteBoard: 'Elimina lavagna', boardName: 'Nome della lavagna:', boardDefault: 'Lavagna {n}',
@@ -306,7 +333,8 @@
   var CFG = window.WM_CONFIG || {}, sb = null;
   try { if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { sb = null; }
   function errText(e) { return (e && (e.message || e.error_description || e.details)) || String(e); }
-  function isMissingTable(e) { return !!e && (e.code === '42P01' || e.code === 'PGRST205' || /story_board|does not exist|schema cache/i.test(e.message || '')); }
+  // Μόνο «ο πίνακας δεν υπάρχει» (όχι π.χ. «δεν επιτρέπεται»), ώστε το μήνυμα να λέει το πραγματικό πρόβλημα
+  function isMissingTable(e) { return !!e && (e.code === '42P01' || e.code === 'PGRST205' || /could not find the table|relation .* does not exist/i.test(e.message || '')); }
 
   // ---- state ----
   var user = null, STORIES = [], byId = {}, BOARDS = [], boardId = null, items = {}, links = [], selLink = null;
@@ -358,8 +386,9 @@
     if (r.error) r = await sb.from('stories').select(cols).order('created_at');
     if (r.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('loadErr', { e: errText(r.error) }); return; }
     STORIES = r.data.map(storyFromRow); byId = {}; STORIES.forEach(function (s) { byId[s.id] = s; });
-    var b = await sb.from('story_boards').select('id,title,created_at').order('created_at');
-    if (b.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = isMissingTable(b.error) ? t('notSetUp') : t('loadErr', { e: errText(b.error) }); BOARDS = []; renderAll(); return; }
+    var b = await sb.from('story_boards').select('id,title,created_at,is_walk,description').order('created_at');
+    if (b.error && /is_walk|description/i.test(b.error.message || '')) b = await sb.from('story_boards').select('id,title,created_at').order('created_at');   // βάση χωρίς διαδρομές
+    if (b.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = (isMissingTable(b.error) ? t('notSetUp') + ' ' : t('loadErr', { e: '' })) + '[' + (b.error.code || '') + ' ' + errText(b.error) + ']'; BOARDS = []; renderAll(); return; }
     BOARDS = b.data;
     var keep = null; try { keep = localStorage.getItem('wm_board'); } catch (e) {}
     var pick = BOARDS.filter(function (x) { return x.id === boardId || x.id === keep; })[0] || BOARDS[0];
@@ -389,7 +418,21 @@
     BOARDS.forEach(function (b) { var o = document.createElement('option'); o.value = b.id; o.textContent = b.title; sel.appendChild(o); });
     sel.value = boardId || ''; sel.disabled = !BOARDS.length;
     $('boardRename').disabled = $('boardDelete').disabled = !boardId;
+    var cur = BOARDS.filter(function (x) { return x.id === boardId; })[0];
+    $('walkBox').hidden = !cur;
+    if (cur) { $('walkChk').checked = !!cur.is_walk; if (document.activeElement !== $('walkDesc')) $('walkDesc').value = cur.description || ''; }
   }
+  // Διαδρομή στην εφαρμογή: αποθηκεύεται αμέσως
+  $('walkChk').onchange = async function () {
+    var b = BOARDS.filter(function (x) { return x.id === boardId; })[0]; if (!b) return;
+    var v = this.checked, r = await write(sb.from('story_boards').update({ is_walk: v, updated_at: new Date().toISOString() }).eq('id', b.id));
+    if (r.error) this.checked = !v; else b.is_walk = v;
+  };
+  $('walkDesc').onchange = async function () {
+    var b = BOARDS.filter(function (x) { return x.id === boardId; })[0]; if (!b) return;
+    var v = this.value.trim().slice(0, 1000), r = await write(sb.from('story_boards').update({ description: v || null, updated_at: new Date().toISOString() }).eq('id', b.id));
+    if (!r.error) b.description = v;
+  };
   $('boardSel').onchange = function () { openBoard(this.value); };
   $('boardNew').onclick = async function () {
     var name = window.prompt(t('boardName'), t('boardDefault', { n: BOARDS.length + 1 }));

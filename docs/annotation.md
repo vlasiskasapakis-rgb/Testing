@@ -92,6 +92,19 @@ annotators edit, administrators can read.
 - Everything is saved immediately (status at the top right). Removing a box removes its lines; deleting a story removes it from all
   boards. Tables: `story_boards`, `story_board_items` (position of each story), `story_board_links` — re-run `supabase/roles.sql` once.
 
+### Walks in the AR app
+Tick **Walk in the AR app** under a board (and optionally write a short description) to offer it to visitors as a walk.
+In the app, the start screen asks **How do you want to explore?**:
+- **Free roam** — all stories around you, as before;
+- **Follow a walk** — pick a walk (with its number of stops and description). Only its stories are shown, numbered in the order of
+  the lines (the same order as the numbers on the board; stories without lines are left out, and if a board has no lines at all its
+  stories are taken left to right). **Draft stories are skipped.** The map shows the route with numbered stops (✓ = seen, orange =
+  next); the card at the bottom says "Stop 2 of 5 · 120 m away" and announces when you arrive. Opening a stop's story marks it as
+  seen; progress is kept on the phone. At the end the card says the walk is completed.
+The button under the language (🧭 Free roam / 🚶 walk name · 2/5) switches mode at any time, lists the stops with distances and
+can **restart the walk**. Without any published walk the app works exactly as before. Openings from the walk card are counted in
+the analytics as "Walk (next stop)". Needs `supabase/roles.sql` re-run (columns `is_walk`, `description`; visitors may read walks).
+
 ## Deleting a story (annotation website)
 Annotators can delete **any** story (the person who uploaded it can still delete their own in the app). Open the story and press
 **Delete story** (top right). A dialog lists what goes with it — its files, transcripts, terms and image notes, and its view
