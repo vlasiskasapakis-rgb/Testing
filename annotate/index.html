@@ -2653,9 +2653,9 @@
   // ctx = { avId, now }: στη σκηνή δείχνει μόνο τις σημειώσεις που ισχύουν τώρα· χωρίς ctx (λίστα, μεγέθυνση) δείχνει όλες
   function osmLink(lat, lon) { return 'https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lon + '#map=17/' + lat + '/' + lon; }
   // Λεζάντα αρχείου: τίτλος, ταυτότητα, ημερομηνία/περίοδος, τοποθεσία (titleOnly: μόνο ο τίτλος, για τη σκηνή)
-  function mediaCaption(m, titleOnly) {
+  function mediaCaption(m, titleOnly, skipTitle) {   // skipTitle: ο τίτλος φαίνεται ήδη στην επικεφαλίδα
     var box = document.createElement('div'); box.className = 'media-cap';
-    if (m.title) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
+    if (m.title && !skipTitle) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
     if (!titleOnly) {
       var bits = [];
       if (m.about) bits.push(m.about);
@@ -2671,10 +2671,18 @@
     return box.children.length ? box : null;
   }
 
+  // Όνομα αρχείου: ο τίτλος που έδωσε ο χρήστης· αλλιώς «Ήχος 2», «Εικόνα 1» (αρίθμηση ανά είδος)
+  var KIND_ICON = { image: '🖼', audio: '🎙', video: '🎬' };
+  function mediaName(s, m) {
+    if (!m) return '';
+    if (m.title) return m.title;
+    var same = ((s && s.media) || []).filter(function (x) { return x.kind === m.kind; }), i = same.indexOf(m);
+    return t('type_' + m.kind) + (i >= 0 ? ' ' + (i + 1) : '');
+  }
   function figureFor(s, m, n, ctx) {
     var wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.dataset.mediaId = m.id || '';
     var frame = document.createElement('div'); frame.className = 'img-frame';
-    var img = document.createElement('img'); img.alt = tr_(s) + ' ' + n; if (!ctx) img.loading = 'lazy'; img.src = m.url;
+    var img = document.createElement('img'); img.alt = mediaName(s, m); if (!ctx) img.loading = 'lazy'; img.src = m.url;
     frame.appendChild(img);
     var mine = annsForImage(m.id);
     if (ctx) mine = mine.filter(function (a) { return !isTimedNote(a) || noteActive(a, ctx); });
@@ -2801,15 +2809,13 @@
     if (!sheetK) return out;
     var imgs = s.media.filter(function (x) { return x.kind === 'image'; });
     sheetK.links.filter(function (l) { return l.av_media_id === avId; }).forEach(function (l) {
-      var n = imgs.indexOf(mediaById(s, l.image_media_id)) + 1;
-      out.push({ type: 'img', start: l.start_s, end: l.end_s, label: t('tlItemImg', { n: n }) });
+      out.push({ type: 'img', start: l.start_s, end: l.end_s, label: mediaName(s, mediaById(s, l.image_media_id)) });
     });
     sheetK.annotations.filter(function (a) { return a.status === 'approved' && a.media_id === avId && hasRange(a); }).forEach(function (a) {
       out.push({ type: 'term', start: a.start_s, end: a.end_s, label: termLabel(a) });
     });
     sheetK.annotations.filter(function (a) { return a.status === 'approved' && a.av_media_id === avId && isTimedNote(a); }).forEach(function (a) {
-      var n = imgs.indexOf(mediaById(s, a.media_id)) + 1;
-      out.push({ type: 'imgnote', start: a.start_s, end: a.end_s, label: termLabel(a) + ' · ' + t('tlItemImg', { n: n }) });
+      out.push({ type: 'imgnote', start: a.start_s, end: a.end_s, label: termLabel(a) + ' · ' + mediaName(s, mediaById(s, a.media_id)) });
     });
     return out;
   }
@@ -2934,7 +2940,7 @@
       k.transcripts.filter(function (tr) { return tr.status === 'done' && tr.text; }).forEach(function (tr) {
         var d = document.createElement('details');
         var avL = s.media.filter(function (x) { return x.kind !== 'image'; }), avI = avL.findIndex(function (x) { return x.id === tr.media_id; });
-        var sm = document.createElement('summary'); sm.textContent = t('annTranscript') + (avI >= 0 ? ' · ' + t('type_' + avL[avI].kind) + ' ' + (avI + 1) + (avL[avI].title ? ' · ' + avL[avI].title : '') : ''); d.appendChild(sm);
+        var sm = document.createElement('summary'); sm.textContent = t('annTranscript') + (avI >= 0 ? ' · ' + mediaName(s, avL[avI]) : ''); d.appendChild(sm);
         var timed = tr.transcript_segments.filter(function (g) { return g.end_s > g.start_s; });
         if (timed.length) {
           var ul = document.createElement('ul'); ul.className = 'tr-lines';
@@ -3521,7 +3527,7 @@
   function annSection(s, m, n) {
     var sec = document.createElement('section'); sec.className = 'ann-media';
     var uid = 'ann-' + m.id;
-    var capEl = mediaCaption(m); if (capEl) { capEl.classList.add('rec-info'); sec.appendChild(capEl); }
+    var capEl = mediaCaption(m, false, true); if (capEl) { capEl.classList.add('rec-info'); sec.appendChild(capEl); }
     var cx = detailsContext(s, m);
     var playerEl = document.createElement(m.kind === 'video' ? 'video' : 'audio');
     playerEl.preload = 'metadata'; playerEl.src = m.url;
@@ -3631,7 +3637,7 @@
       var hasTr = !!(data && data.transcripts.some(function (x) { return x.media_id === m.id; }));
       return !!ta.value.trim() && (dirty || !hasTr);
     };
-    sec.label = t('type_' + m.kind) + ' ' + n;
+    sec.label = mediaName(s, m);
     sec.setBusy = busy;
     annSections.push(sec);
     annListeners.push(function () { return reload(); });      // ανανέωση όταν αλλάζουν οι προτάσεις/εγκρίσεις αλλού (π.χ. από τις εικόνες)
@@ -3648,8 +3654,8 @@
   function imageSection(s, m, n) {
     var sec = document.createElement('section'); sec.className = 'ann-media';
 
-    var imgAlt = t('type_image') + ' ' + n;
-    var capEl = mediaCaption(m); if (capEl) sec.appendChild(capEl);
+    var imgAlt = mediaName(s, m);
+    var capEl = mediaCaption(m, false, true); if (capEl) sec.appendChild(capEl);
     var thumb = document.createElement('button'); thumb.type = 'button'; thumb.className = 'img-thumb'; thumb.setAttribute('aria-label', t('imgEnlarge') + ': ' + imgAlt); thumb.title = t('imgClickEnlarge');
     var timg = document.createElement('img'); timg.src = m.url; timg.alt = ''; thumb.appendChild(timg); sec.appendChild(thumb);
     thumb.onclick = function () {
@@ -3659,7 +3665,7 @@
     var terms = [], anns = [], links = [], transcripts = [];
     var avs = s.media.filter(function (x) { return x.kind !== 'image' && x.id; });
     var pick = { term: null, area: null, av: avs.length ? avs[0].id : null };
-    function avLabel(id) { var i = avs.findIndex(function (x) { return x.id === id; }); return i < 0 ? '' : t('type_' + avs[i].kind) + ' ' + (i + 1); }
+    function avLabel(id) { var i = avs.findIndex(function (x) { return x.id === id; }); return i < 0 ? '' : mediaName(s, avs[i]); }
     function fail(e) { alert(t('annSaveError', { e: errText(e) })); }
     function segsOf(avId) {
       var tr = transcripts.filter(function (x) { return x.media_id === avId; })[0];
@@ -3721,7 +3727,7 @@
       var s3 = step(3, t('noteStepPart'), Object.keys(checkedIdx).length > 0);
       if (avs.length > 1) {
         var avSel = document.createElement('select'); avSel.className = 'lang-select'; avSel.setAttribute('aria-label', t('lnkMedia'));
-        avs.forEach(function (x, i) { var o = document.createElement('option'); o.value = x.id; o.textContent = t('type_' + x.kind) + ' ' + (i + 1); avSel.appendChild(o); });
+        avs.forEach(function (x, i) { var o = document.createElement('option'); o.value = x.id; o.textContent = mediaName(s, x); avSel.appendChild(o); });
         avSel.value = pick.av; avSel.onchange = function () { pick.av = avSel.value; checkedIdx = {}; paintForm(); };
         form.appendChild(avSel);
       }
@@ -3891,14 +3897,14 @@
     var recs = [];
     av.forEach(function (m, i) {
       // Κάθε ηχογράφηση σε δικό της αναδιπλούμενο πλαίσιο με τα στοιχεία της· ανοίγει μία κάθε φορά
-      var label = t('type_' + m.kind) + ' ' + (i + 1);
+      var label = KIND_ICON[m.kind] + ' ' + mediaName(s, m);
       var d = document.createElement('details'); d.className = 'ann-step rec-wrap'; d.dataset.mediaId = m.id; recs.push(d);
-      var sm = document.createElement('summary'); sm.textContent = label + (m.title ? ' · ' + m.title : ''); d.appendChild(sm);
+      var sm = document.createElement('summary'); sm.textContent = label; d.appendChild(sm);
       var sec = annSection(s, m, i + 1);
       sec.onPaint = function (tr, anns) {
         var mine = anns.filter(function (a) { return a.status !== 'rejected'; });
         var appr = mine.filter(function (a) { return a.status === 'approved'; }).length, rev = mine.filter(function (a) { return a.status === 'suggested'; }).length;
-        sm.textContent = label + (m.title ? ' · ' + m.title : '') + ' — ' + (tr ? t('recSummary', { n: tr.transcript_segments.length, a: appr, r: rev }) : t('recNoTr'));
+        sm.textContent = label + ' — ' + (tr ? t('recSummary', { n: tr.transcript_segments.length, a: appr, r: rev }) : t('recNoTr'));
       };
       d.appendChild(sec);
       d.addEventListener('toggle', function () { if (d.open) recs.forEach(function (o) { if (o !== d) o.open = false; }); });
@@ -3909,7 +3915,7 @@
     imgs.forEach(function (m, i) {
       // Κάθε εικόνα χωριστά· ανοίγει μία κάθε φορά
       var d = document.createElement('details'); d.className = 'ann-step'; each.push(d);
-      var sm = document.createElement('summary'); sm.textContent = t('type_image') + ' ' + (i + 1); d.appendChild(sm);
+      var sm = document.createElement('summary'); sm.textContent = KIND_ICON.image + ' ' + mediaName(s, m); d.appendChild(sm);
       d.appendChild(imageSection(s, m, i + 1));
       d.addEventListener('toggle', function () { if (d.open) each.forEach(function (o) { if (o !== d) o.open = false; }); });
       imgp.appendChild(d);
@@ -4127,7 +4133,7 @@
       var el;
       if (m.kind === 'video') { el = document.createElement('video'); el.controls = true; el.playsInline = true; el.preload = 'metadata'; }
       else { el = document.createElement('audio'); el.controls = true; el.preload = 'metadata'; }
-      el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1));
+      el.setAttribute('aria-label', mediaName(s, m));
       el.dataset.mediaId = m.id || '';
       el.src = m.url;
       el.addEventListener('timeupdate', function () { updateStage(el); });
@@ -4139,8 +4145,8 @@
         var w = el.closest('.av-wrap'); if (w && !w.open) w.open = true;          // ανοίγει το πλαίσιο της ηχογράφησης που παίζει
       });
       var wrap = document.createElement('details'); wrap.className = 'fold av-wrap'; wrap.dataset.avWrap = m.id || ''; avWraps.push(wrap);
-      var wsm = document.createElement('summary'); wsm.textContent = t('type_' + m.kind) + ' ' + avN + (m.title ? ' · ' + m.title : ''); wrap.appendChild(wsm);
-      var mcap = mediaCaption(m); if (mcap) wrap.appendChild(mcap);
+      var wsm = document.createElement('summary'); wsm.textContent = KIND_ICON[m.kind] + ' ' + mediaName(s, m); wrap.appendChild(wsm);
+      var mcap = mediaCaption(m, false, true); if (mcap) wrap.appendChild(mcap);
       wrap.appendChild(el);
       var stg = document.createElement('div'); stg.className = 'sync-stage'; stg.hidden = true; stg.setAttribute('aria-live', 'polite'); wrap.appendChild(stg);   // η δική της «οθόνη» εικόνων και όρων
       wrap.addEventListener('toggle', function () { if (wrap.open) avWraps.forEach(function (o) { if (o !== wrap) o.open = false; }); });   // ένα ανοιχτό κάθε φορά
@@ -4194,7 +4200,7 @@
     var ol = $('orderList'); ol.innerHTML = ''; $('orderErr').textContent = '';
     av.forEach(function (m, i) {
       var li = document.createElement('li'); li.className = 'order-item';
-      var lb = document.createElement('span'); lb.textContent = t('type_' + m.kind) + ' ' + (i + 1) + (m.title ? ' · ' + m.title : ''); li.appendChild(lb);
+      var lb = document.createElement('span'); lb.textContent = KIND_ICON[m.kind] + ' ' + mediaName(s, m); li.appendChild(lb);
       [['↑', -1, 'moveUp'], ['↓', 1, 'moveDown']].forEach(function (d) {
         var b = document.createElement('button'); b.type = 'button'; b.textContent = d[0]; b.className = 'x-btn';
         b.setAttribute('aria-label', t(d[2], { name: lb.textContent })); b.disabled = (d[1] < 0 && i === 0) || (d[1] > 0 && i === av.length - 1);
@@ -4389,7 +4395,7 @@
     items.slice(0, 12).forEach(function (i) {
       var row = document.createElement('div'); row.className = 'map-row';
       var bits = [st_(i.x) + (i.x.author ? ' — ' + i.x.author : '')];
-      if (i.m) { bits.push(t('type_' + i.m.kind) + (i.m.title ? ': ' + i.m.title : '')); if (i.m.about) bits.push(i.m.about); if (i.m.recorded) bits.push(i.m.recorded); if (i.m.period) bits.push(i.m.period); }
+      if (i.m) { bits.push((KIND_ICON[i.m.kind] || '') + ' ' + mediaName(i.x, i.m)); if (i.m.about) bits.push(i.m.about); if (i.m.recorded) bits.push(i.m.recorded); if (i.m.period) bits.push(i.m.period); }
       var tx = document.createElement('span'); tx.textContent = bits.join(' · '); row.appendChild(tx);
       var b = document.createElement('button'); b.type = 'button'; b.textContent = t('mapOpenStory'); b.onclick = function () { if (i.x !== currentSheetStory && !okToLeave()) return; setView('stories'); openStory(i.x); };
       row.appendChild(b); d.appendChild(row);

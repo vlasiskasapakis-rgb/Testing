@@ -12,6 +12,11 @@
 Every new account is a facilitator. This is enforced by the database rules, not only by hiding
 buttons. A story reaches the public only when an annotator presses **Publish for everyone**.
 
+## File names
+When a file has a **title** (📍 details in the upload form), that title is its name everywhere: the upload list, the story view in the
+app (🎙 / 🎬 / 🖼 dropdowns), the timeline, the transcripts, and all of the annotation website. Files without a title keep
+"Audio 2", "Image 1" (numbered per type).
+
 ## Order of the files
 The order of a story's files is the order they appear in the story (and in the app): the first audio is listed and played first.
 - **While uploading** each file has ↑ and ↓ buttons in the list; the list order is the saved order. Numbers ("Audio 1, 2…") follow the new order.

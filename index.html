@@ -2179,7 +2179,7 @@
       var el;
       if (m.kind === 'video') { el = document.createElement('video'); el.controls = true; el.playsInline = true; el.preload = 'metadata'; }
       else { el = document.createElement('audio'); el.controls = true; el.preload = 'metadata'; }
-      el.setAttribute('aria-label', tr_(s) + ' ' + (i + 1));
+      el.setAttribute('aria-label', mediaName(s, m));
       el.dataset.mediaId = m.id || '';
       el.src = m.url;
       el.addEventListener('timeupdate', function () { updateStage(el); });
@@ -2191,8 +2191,8 @@
         var w = el.closest('.av-wrap'); if (w && !w.open) w.open = true;          // ανοίγει το πλαίσιο της ηχογράφησης που παίζει
       });
       var wrap = document.createElement('details'); wrap.className = 'fold av-wrap'; wrap.dataset.avWrap = m.id || ''; avWraps.push(wrap);
-      var wsm = document.createElement('summary'); wsm.textContent = t('type_' + m.kind) + ' ' + avN + (m.title ? ' · ' + m.title : ''); wrap.appendChild(wsm);
-      var mcap = mediaCaption(m); if (mcap) wrap.appendChild(mcap);
+      var wsm = document.createElement('summary'); wsm.textContent = KIND_ICON[m.kind] + ' ' + mediaName(s, m); wrap.appendChild(wsm);
+      var mcap = mediaCaption(m, false, true); if (mcap) wrap.appendChild(mcap);
       wrap.appendChild(el);
       var stg = document.createElement('div'); stg.className = 'sync-stage'; stg.hidden = true; stg.setAttribute('aria-live', 'polite'); wrap.appendChild(stg);   // η δική της «οθόνη» εικόνων και όρων
       wrap.addEventListener('toggle', function () { if (wrap.open) avWraps.forEach(function (o) { if (o !== wrap) o.open = false; }); });   // ένα ανοιχτό κάθε φορά
@@ -2958,9 +2958,9 @@
   // ctx = { avId, now }: στη σκηνή δείχνει μόνο τις σημειώσεις που ισχύουν τώρα· χωρίς ctx (λίστα, μεγέθυνση) δείχνει όλες
   function osmLink(lat, lon) { return 'https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lon + '#map=17/' + lat + '/' + lon; }
   // Λεζάντα αρχείου: τίτλος, ταυτότητα, ημερομηνία/περίοδος, τοποθεσία (titleOnly: μόνο ο τίτλος, για τη σκηνή)
-  function mediaCaption(m, titleOnly) {
+  function mediaCaption(m, titleOnly, skipTitle) {   // skipTitle: ο τίτλος φαίνεται ήδη στην επικεφαλίδα
     var box = document.createElement('div'); box.className = 'media-cap';
-    if (m.title) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
+    if (m.title && !skipTitle) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
     if (!titleOnly) {
       var bits = [];
       if (m.about) bits.push(m.about);
@@ -2976,10 +2976,18 @@
     return box.children.length ? box : null;
   }
 
+  // Όνομα αρχείου: ο τίτλος που έδωσε ο χρήστης· αλλιώς «Ήχος 2», «Εικόνα 1» (αρίθμηση ανά είδος)
+  var KIND_ICON = { image: '🖼', audio: '🎙', video: '🎬' };
+  function mediaName(s, m) {
+    if (!m) return '';
+    if (m.title) return m.title;
+    var same = ((s && s.media) || []).filter(function (x) { return x.kind === m.kind; }), i = same.indexOf(m);
+    return t('type_' + m.kind) + (i >= 0 ? ' ' + (i + 1) : '');
+  }
   function figureFor(s, m, n, ctx) {
     var wrap = document.createElement('div'); wrap.className = 'img-wrap'; wrap.dataset.mediaId = m.id || '';
     var frame = document.createElement('div'); frame.className = 'img-frame';
-    var img = document.createElement('img'); img.alt = tr_(s) + ' ' + n; if (!ctx) img.loading = 'lazy'; img.src = m.url;
+    var img = document.createElement('img'); img.alt = mediaName(s, m); if (!ctx) img.loading = 'lazy'; img.src = m.url;
     frame.appendChild(img);
     var mine = annsForImage(m.id);
     if (ctx) mine = mine.filter(function (a) { return !isTimedNote(a) || noteActive(a, ctx); });
@@ -3095,15 +3103,13 @@
     if (!sheetK) return out;
     var imgs = s.media.filter(function (x) { return x.kind === 'image'; });
     sheetK.links.filter(function (l) { return l.av_media_id === avId; }).forEach(function (l) {
-      var n = imgs.indexOf(mediaById(s, l.image_media_id)) + 1;
-      out.push({ type: 'img', start: l.start_s, end: l.end_s, label: t('tlItemImg', { n: n }) });
+      out.push({ type: 'img', start: l.start_s, end: l.end_s, label: mediaName(s, mediaById(s, l.image_media_id)) });
     });
     sheetK.annotations.filter(function (a) { return a.status === 'approved' && a.media_id === avId && hasRange(a); }).forEach(function (a) {
       out.push({ type: 'term', start: a.start_s, end: a.end_s, label: termLabel(a) });
     });
     sheetK.annotations.filter(function (a) { return a.status === 'approved' && a.av_media_id === avId && isTimedNote(a); }).forEach(function (a) {
-      var n = imgs.indexOf(mediaById(s, a.media_id)) + 1;
-      out.push({ type: 'imgnote', start: a.start_s, end: a.end_s, label: termLabel(a) + ' · ' + t('tlItemImg', { n: n }) });
+      out.push({ type: 'imgnote', start: a.start_s, end: a.end_s, label: termLabel(a) + ' · ' + mediaName(s, mediaById(s, a.media_id)) });
     });
     return out;
   }
@@ -3225,7 +3231,7 @@
       k.transcripts.filter(function (tr) { return tr.status === 'done' && tr.text; }).forEach(function (tr) {
         var d = document.createElement('details');
         var avL = s.media.filter(function (x) { return x.kind !== 'image'; }), avI = avL.findIndex(function (x) { return x.id === tr.media_id; });
-        var sm = document.createElement('summary'); sm.textContent = t('annTranscript') + (avI >= 0 ? ' · ' + t('type_' + avL[avI].kind) + ' ' + (avI + 1) + (avL[avI].title ? ' · ' + avL[avI].title : '') : ''); d.appendChild(sm);
+        var sm = document.createElement('summary'); sm.textContent = t('annTranscript') + (avI >= 0 ? ' · ' + mediaName(s, avL[avI]) : ''); d.appendChild(sm);
         var timed = tr.transcript_segments.filter(function (g) { return g.end_s > g.start_s; });
         if (timed.length) {
           var ul = document.createElement('ul'); ul.className = 'tr-lines';
@@ -3312,7 +3318,7 @@
     if (ty.startsWith('video/')) return 'video';
     return 'audio';
   }
-  function nameOf(f) { return t('type_' + f.kind) + ' ' + f.num; }
+  function nameOf(f) { return (f.info && f.info.title) ? f.info.title : t('type_' + f.kind) + ' ' + f.num; }   // ο τίτλος του αρχείου, αν δόθηκε
 
   var progressOn = false, lastPctAnnounce = -1;
   function showProgress(on, msg, pct, title) {
