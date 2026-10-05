@@ -234,6 +234,25 @@
   .map-pop { max-width: 320px; }
   .map-pop strong { display: block; color: var(--petrol); }
   .map-pop button { margin-top: 6px; padding: 6px 12px; min-height: 34px; background: var(--petrol); color: #fff; font-weight: 700; }
+  .ann-step > summary, .fold > summary { list-style: none; }
+  .ann-step > summary::-webkit-details-marker, .fold > summary::-webkit-details-marker { display: none; }
+  .ann-step > summary::before, .fold > summary::before { content: '▸'; display: inline-block; width: 1.1em; flex: none; color: var(--amber-text); }
+  .ann-step[open] > summary::before, .fold[open] > summary::before { content: '▾'; }
+  .help-btn { background: #fff; color: var(--petrol); font-weight: 700; padding: 6px 14px; min-height: 36px; }
+  .help-btn[hidden] { display: none; }
+  .work-empty { text-align: left; }
+  .work-empty .we-lead { text-align: center; font-size: 17px; margin: 0 0 14px; }
+  .guide { text-align: left; max-width: 640px; margin: 0 auto; background: var(--sky-soft); border-radius: 12px; padding: 12px 18px; color: var(--ink); }
+  .guide h3 { margin: 0 0 6px; color: var(--petrol); }
+  .guide ol, .guide-list { margin: 0; padding-left: 22px; line-height: 1.5; }
+  .guide li, .guide-list li { margin: 4px 0; }
+  .lang-lbl { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  .ann-add > .link-btn { font-size: 13px; opacity: .85; }
+  .note-step.done { color: var(--petrol); font-weight: 700; }
+  .note-step.done::before { content: '✓ '; color: #2E7D32; }
+  .note-missing { font-size: 13px; color: var(--amber-text); margin: 4px 0 0; }
+  .note-form .step-btn { padding: 8px 18px; min-height: 40px; font-weight: 700; }
+  .img-thumb { cursor: zoom-in; }
   .rec-wrap > summary { font-size: 16px; }
   .rec-wrap > .ann-media { border-top: 0; padding-top: 0; margin-top: 0; }
   .rec-info { padding: 8px 10px; background: var(--mist); border-radius: 10px; margin: 6px 0 8px; }
@@ -519,6 +538,7 @@
   <select id="langSel" class="lang-select">
     <option value="el" lang="el">EL</option><option value="en" lang="en">EN</option><option value="fr" lang="fr">FR</option><option value="it" lang="it">IT</option>
   </select>
+  <button type="button" id="helpBtn" class="help-btn" hidden data-i18n="helpBtn"></button>
   <nav id="viewSwitch" class="view-switch" hidden aria-label="View">
     <button type="button" id="viewStories" aria-pressed="true" data-i18n="viewStories"></button>
     <button type="button" id="viewMap" aria-pressed="false" data-i18n="viewMap"></button>
@@ -566,7 +586,12 @@
       <div id="listBody"></div>
     </aside>
     <section class="work" aria-live="polite">
-      <p id="workEmpty" class="work-empty" data-i18n="siteSelect"></p>
+      <div id="workEmpty" class="work-empty">
+        <p class="we-lead" data-i18n="siteSelect"></p>
+        <div class="guide"><h3 data-i18n="guideTitle"></h3><ol>
+          <li data-i18n="guide1"></li><li data-i18n="guide2"></li><li data-i18n="guide3"></li><li data-i18n="guide4"></li><li data-i18n="guide5"></li><li data-i18n="guide6"></li>
+        </ol></div>
+      </div>
       <div id="storyView" hidden>
         <h2 id="sheetTitle"></h2>
         <p id="sheetSub" class="sheet-sub" hidden></p>
@@ -583,9 +608,9 @@
         </div>
         <div class="cols">
           <div class="col-media">
-            <details id="orderFold" class="fold" hidden><summary data-i18n="orderTitle"></summary><ol id="orderList" class="order-list"></ol><p id="orderErr" class="field-error" role="alert"></p></details>
             <div id="sheetMedia" class="story-media"></div>
             <div id="sheetImages" class="story-media"></div>
+            <details id="orderFold" class="fold" hidden><summary data-i18n="orderTitle"></summary><ol id="orderList" class="order-list"></ol><p id="orderErr" class="field-error" role="alert"></p></details>
             <details id="locFold" class="fold" hidden open><summary data-i18n="locMapTitle"></summary><div id="locMap"></div></details>
           </div>
           <div class="col-ann">
@@ -598,7 +623,7 @@
                 </div>
                 <div class="steps-meta">
                   <p id="suggestStatus" role="status"></p>
-                  <select id="trLang" class="lang-select" data-i18n-aria="annLangLabel"><option value="el">EL</option><option value="en">EN</option><option value="fr">FR</option><option value="it">IT</option></select>
+                  <label class="lang-lbl"><span data-i18n="trLangLbl"></span><select id="trLang" class="lang-select" data-i18n-aria="annLangLabel"><option value="el">EL</option><option value="en">EN</option><option value="fr">FR</option><option value="it">IT</option></select></label>
                 </div>
               </div>
               <div class="tabbar">
@@ -618,6 +643,14 @@
     </section>
   </div>
 </main>
+
+<div id="helpSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="sheet-inner">
+    <h2 id="helpTitle" data-i18n="guideTitle"></h2>
+    <ol class="guide-list"><li data-i18n="guide1"></li><li data-i18n="guide2"></li><li data-i18n="guide3"></li><li data-i18n="guide4"></li><li data-i18n="guide5"></li><li data-i18n="guide6"></li></ol>
+    <button id="helpClose" class="btn-primary" style="margin-top:14px" data-i18n="close"></button>
+  </div>
+</div>
 
 <div id="imgPopup" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="imgPopupTitle">
   <div class="sheet-inner">
@@ -800,6 +833,25 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      guideTitle: "Πώς δουλεύει",
+      guide1: "Διάλεξε μια ιστορία από τη λίστα αριστερά. Τα πρόχειρα (Draft) δεν είναι ακόμα δημόσια.",
+      guide2: "Άκου τις ηχογραφήσεις και δες τα στοιχεία τους (τίτλος, ταυτότητα, ημερομηνία, τοποθεσία) στη μέση.",
+      guide3: "Πάτα «1 · Μεταγραφή», διόρθωσε το κείμενο αν χρειάζεται και πάτα «2 · Αποθήκευση απομαγνητοφώνησης».",
+      guide4: "Πάτα «3 · Πρόταση όρων». Σε κάθε γραμμή, Έγκριση ή Απόρριψη για κάθε πρόταση (η γραμμή «Γιατί» εξηγεί την πρόταση).",
+      guide5: "Στην καρτέλα «Εικόνες»: διάλεξε όρο, σημάδεψε την περιοχή στην εικόνα, τσέκαρε τις γραμμές και πάτα «Προσθήκη σημείωσης».",
+      guide6: "Όταν όλα είναι έτοιμα, πάτα «Δημοσίευση για όλους». Μόνο οι εγκεκριμένοι όροι γίνονται δημόσιοι.",
+      helpBtn: "Βοήθεια",
+      pubConfirm: "Να δημοσιευτεί η «{t}» για όλους;",
+      pubConfirmOpen: "\n\nΥπάρχουν ακόμα {n} προτάσεις χωρίς έλεγχο. Δεν θα εμφανιστούν μέχρι να εγκριθούν.",
+      unpubConfirm: "Να γίνει ξανά πρόχειρη η «{t}»; Οι επισκέπτες δεν θα τη βλέπουν πια.",
+      unsavedLeave: "Υπάρχει απομαγνητοφώνηση που δεν αποθηκεύτηκε. Να φύγεις χωρίς αποθήκευση;",
+      trLangLbl: "Γλώσσα ηχογράφησης",
+      noteChooseTerm: "— διάλεξε όρο —",
+      noteStillNeeded: "Λείπει ακόμα: {x}",
+      needTerm: "όρος",
+      needArea: "περιοχή στην εικόνα",
+      needLines: "τουλάχιστον μία γραμμή",
+      imgClickEnlarge: "Πάτα για μεγέθυνση",
       mapLegendKey: "● αρχείο (🖼 φωτογραφία, 🎙 ήχος, 🎬 βίντεο) · ○ τόπος δημιουργίας ιστορίας",
       mapLinkUsers: "Σύνδεση ιστοριών κάθε χρήστη με τη σειρά",
       mapNoFileLoc: "Κανένα αρχείο δεν έχει δική του τοποθεσία (παλιότερες καταχωρίσεις ή δεν έχει τρέξει το roles.sql). Εμφανίζονται μόνο οι τοποθεσίες των ιστοριών.",
@@ -838,7 +890,7 @@
       trSaved: "Η απομαγνητοφώνηση αποθηκεύτηκε ({n} γραμμές). Τώρα πάτα «3 · Πρόταση όρων».",
       trNothingToSave: "Δεν υπάρχει αλλαγή για αποθήκευση.",
       sugSaveFirst: "Αποθήκευσε πρώτα την απομαγνητοφώνηση: {n} (κουμπί «2 · Αποθήκευση απομαγνητοφώνησης»).",
-      annTrTitle: "Απομαγνητοφώνηση",
+      annTrTitle: "Κείμενο απομαγνητοφώνησης (άνοιγμα για προβολή ή διόρθωση)",
       annTermsTitle: "Όροι στις γραμμές",
       trBtn: "1 · Μεταγραφή",
       trReady: "Η μεταγραφή είναι έτοιμη. Διόρθωσέ τη αν θέλεις και πάτα «2 · Αποθήκευση απομαγνητοφώνησης».",
@@ -1152,6 +1204,25 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      guideTitle: "How it works",
+      guide1: "Choose a story from the list on the left. Drafts are not public yet.",
+      guide2: "Listen to the recordings and check their details (title, identity, date, location) in the middle.",
+      guide3: "Press “1 · Transcribe”, correct the text if needed, then press “2 · Save transcript”.",
+      guide4: "Press “3 · Suggest terms”. On each line, Approve or Reject every suggestion (the “Why” line explains it).",
+      guide5: "In the “Images” tab: choose a term, mark the area on the image, tick the transcript lines and press “Add note”.",
+      guide6: "When everything is ready, press “Publish for everyone”. Only approved terms become public.",
+      helpBtn: "Help",
+      pubConfirm: "Publish “{t}” for everyone?",
+      pubConfirmOpen: "\n\n{n} suggestions are still unreviewed. They stay hidden until approved.",
+      unpubConfirm: "Make “{t}” a draft again? Visitors will no longer see it.",
+      unsavedLeave: "There is a transcript that has not been saved. Leave without saving?",
+      trLangLbl: "Recording language",
+      noteChooseTerm: "— choose a term —",
+      noteStillNeeded: "Still needed: {x}",
+      needTerm: "a term",
+      needArea: "an area on the image",
+      needLines: "at least one line",
+      imgClickEnlarge: "Click to enlarge",
       mapLegendKey: "● file (🖼 photo, 🎙 audio, 🎬 video) · ○ place where the story was created",
       mapLinkUsers: "Connect each user's stories in order",
       mapNoFileLoc: "None of the files has its own location (older uploads, or roles.sql has not been run). Only story locations are shown.",
@@ -1190,7 +1261,7 @@
       trSaved: "Transcript saved ({n} lines). Now press “3 · Suggest terms”.",
       trNothingToSave: "Nothing new to save.",
       sugSaveFirst: "Save the transcript first: {n} (button “2 · Save transcript”).",
-      annTrTitle: "Transcript",
+      annTrTitle: "Transcript text (open to view or correct)",
       annTermsTitle: "Terms on the lines",
       trBtn: "1 · Transcribe",
       trReady: "Transcript ready. Edit it if you like, then press “2 · Save transcript”.",
@@ -1507,6 +1578,25 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      guideTitle: "Comment ça marche",
+      guide1: "Choisissez une histoire dans la liste à gauche. Les brouillons ne sont pas encore publics.",
+      guide2: "Écoutez les enregistrements et vérifiez leurs détails (titre, identité, date, lieu) au milieu.",
+      guide3: "Appuyez sur « 1 · Transcrire », corrigez le texte si besoin, puis « 2 · Enregistrer la transcription ».",
+      guide4: "Appuyez sur « 3 · Suggérer ». Sur chaque ligne, approuvez ou rejetez chaque suggestion (la ligne « Pourquoi » l'explique).",
+      guide5: "Dans l'onglet « Images » : choisissez un terme, marquez la zone, cochez les lignes et appuyez sur « Ajouter la note ».",
+      guide6: "Quand tout est prêt, appuyez sur « Publier pour tous ». Seuls les termes approuvés deviennent publics.",
+      helpBtn: "Aide",
+      pubConfirm: "Publier « {t} » pour tous ?",
+      pubConfirmOpen: "\n\n{n} suggestions ne sont pas encore vérifiées. Elles restent masquées tant qu'elles ne sont pas approuvées.",
+      unpubConfirm: "Remettre « {t} » en brouillon ? Les visiteurs ne la verront plus.",
+      unsavedLeave: "Une transcription n'est pas enregistrée. Quitter sans enregistrer ?",
+      trLangLbl: "Langue de l'enregistrement",
+      noteChooseTerm: "— choisir un terme —",
+      noteStillNeeded: "Il manque encore : {x}",
+      needTerm: "un terme",
+      needArea: "une zone sur l'image",
+      needLines: "au moins une ligne",
+      imgClickEnlarge: "Cliquez pour agrandir",
       mapLegendKey: "● fichier (🖼 photo, 🎙 audio, 🎬 vidéo) · ○ lieu de création de l'histoire",
       mapLinkUsers: "Relier les histoires de chaque utilisateur dans l'ordre",
       mapNoFileLoc: "Aucun fichier n'a son propre lieu (anciens envois, ou roles.sql n'a pas été exécuté). Seuls les lieux des histoires sont affichés.",
@@ -1545,7 +1635,7 @@
       trSaved: "Transcription enregistrée ({n} lignes). Appuyez maintenant sur « 3 · Suggérer ».",
       trNothingToSave: "Rien de nouveau à enregistrer.",
       sugSaveFirst: "Enregistrez d'abord la transcription : {n} (bouton « 2 · Enregistrer la transcription »).",
-      annTrTitle: "Transcription",
+      annTrTitle: "Texte de la transcription (ouvrir pour voir ou corriger)",
       annTermsTitle: "Termes sur les lignes",
       trBtn: "1 · Transcrire",
       trReady: "Transcription prête. Corrigez-la si besoin, puis appuyez sur « 2 · Enregistrer la transcription ».",
@@ -1856,6 +1946,25 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      guideTitle: "Come funziona",
+      guide1: "Scegli una storia dalla lista a sinistra. Le bozze non sono ancora pubbliche.",
+      guide2: "Ascolta le registrazioni e controlla i dettagli (titolo, identità, data, luogo) al centro.",
+      guide3: "Premi «1 · Trascrivi», correggi il testo se serve, poi «2 · Salva la trascrizione».",
+      guide4: "Premi «3 · Suggerisci». Su ogni riga approva o rifiuta ogni suggerimento (la riga «Perché» lo spiega).",
+      guide5: "Nella scheda «Immagini»: scegli un termine, segna l'area, spunta le righe e premi «Aggiungi nota».",
+      guide6: "Quando tutto è pronto, premi «Pubblica per tutti». Solo i termini approvati diventano pubblici.",
+      helpBtn: "Aiuto",
+      pubConfirm: "Pubblicare «{t}» per tutti?",
+      pubConfirmOpen: "\n\n{n} suggerimenti non sono ancora stati rivisti. Restano nascosti finché non vengono approvati.",
+      unpubConfirm: "Riportare «{t}» in bozza? I visitatori non la vedranno più.",
+      unsavedLeave: "C'è una trascrizione non salvata. Uscire senza salvare?",
+      trLangLbl: "Lingua della registrazione",
+      noteChooseTerm: "— scegli un termine —",
+      noteStillNeeded: "Manca ancora: {x}",
+      needTerm: "un termine",
+      needArea: "un'area sull'immagine",
+      needLines: "almeno una riga",
+      imgClickEnlarge: "Clicca per ingrandire",
       mapLegendKey: "● file (🖼 foto, 🎙 audio, 🎬 video) · ○ luogo di creazione della storia",
       mapLinkUsers: "Collega le storie di ogni utente in ordine",
       mapNoFileLoc: "Nessun file ha un proprio luogo (caricamenti vecchi o roles.sql non eseguito). Sono mostrati solo i luoghi delle storie.",
@@ -1894,7 +2003,7 @@
       trSaved: "Trascrizione salvata ({n} righe). Ora premi «3 · Suggerisci».",
       trNothingToSave: "Niente di nuovo da salvare.",
       sugSaveFirst: "Salva prima la trascrizione: {n} (pulsante «2 · Salva la trascrizione»).",
-      annTrTitle: "Trascrizione",
+      annTrTitle: "Testo della trascrizione (apri per vedere o correggere)",
       annTermsTitle: "Termini sulle righe",
       trBtn: "1 · Trascrivi",
       trReady: "Trascrizione pronta. Correggila se vuoi, poi premi «2 · Salva la trascrizione».",
@@ -2320,6 +2429,16 @@
     var s = currentSheetStory;
     if (!sb || !s || !isAnnotator()) return;
     var next = s.status === 'published' ? 'draft' : 'published', b = this;
+    var msg = t(next === 'published' ? 'pubConfirm' : 'unpubConfirm', { t: st(s).title });
+    if (next === 'published') {           // προειδοποίηση για προτάσεις που δεν έχουν ελεγχθεί
+      try {
+        var ids = s.media.map(function (m) { return m.id; }).filter(Boolean);
+        var q = ids.length ? await sb.from('annotations').select('id').in('media_id', ids).eq('status', 'suggested') : null;
+        var nOpen = q && !q.error && q.data ? q.data.length : 0;
+        if (nOpen) msg += t('pubConfirmOpen', { n: nOpen });
+      } catch (e) {}
+    }
+    if (!window.confirm(msg)) return;
     b.disabled = true;
     try {
       var r = await sb.from('stories').update({ status: next }).eq('id', s.dbId).select('id');
@@ -2814,7 +2933,8 @@
       }
       k.transcripts.filter(function (tr) { return tr.status === 'done' && tr.text; }).forEach(function (tr) {
         var d = document.createElement('details');
-        var sm = document.createElement('summary'); sm.textContent = t('annTranscript'); d.appendChild(sm);
+        var avL = s.media.filter(function (x) { return x.kind !== 'image'; }), avI = avL.findIndex(function (x) { return x.id === tr.media_id; });
+        var sm = document.createElement('summary'); sm.textContent = t('annTranscript') + (avI >= 0 ? ' · ' + t('type_' + avL[avI].kind) + ' ' + (avI + 1) + (avL[avI].title ? ' · ' + avL[avI].title : '') : ''); d.appendChild(sm);
         var timed = tr.transcript_segments.filter(function (g) { return g.end_s > g.start_s; });
         if (timed.length) {
           var ul = document.createElement('ul'); ul.className = 'tr-lines';
@@ -3527,11 +3647,10 @@
   // Εικόνα: τρία βήματα — 1) όρος, 2) περιοχή στην εικόνα, 3) μέρος της απομαγνητοφώνησης (οι χρόνοι προκύπτουν από τις γραμμές).
   function imageSection(s, m, n) {
     var sec = document.createElement('section'); sec.className = 'ann-media';
-    var h = document.createElement('h3'); h.textContent = t('type_image') + ' ' + n; sec.appendChild(h);
 
     var imgAlt = t('type_image') + ' ' + n;
     var capEl = mediaCaption(m); if (capEl) sec.appendChild(capEl);
-    var thumb = document.createElement('button'); thumb.type = 'button'; thumb.className = 'img-thumb'; thumb.setAttribute('aria-label', t('imgEnlarge') + ': ' + imgAlt);
+    var thumb = document.createElement('button'); thumb.type = 'button'; thumb.className = 'img-thumb'; thumb.setAttribute('aria-label', t('imgEnlarge') + ': ' + imgAlt); thumb.title = t('imgClickEnlarge');
     var timg = document.createElement('img'); timg.src = m.url; timg.alt = ''; thumb.appendChild(timg); sec.appendChild(thumb);
     thumb.onclick = function () {
       openImagePopup({ url: m.url, alt: imgAlt, title: imgAlt, regions: anns.filter(function (a) { return a.status !== 'rejected' && hasRegion(a); }) });
@@ -3564,16 +3683,16 @@
     var listHead = document.createElement('h3'); listHead.textContent = t('noteListTitle'); sec.appendChild(listHead);
     var list = document.createElement('div'); sec.appendChild(list);
 
-    function step(num, label) { var p = document.createElement('p'); p.className = 'note-step'; p.textContent = num + '. ' + label; form.appendChild(p); return p; }
+    function step(num, label, done) { var p = document.createElement('p'); p.className = 'note-step' + (done ? ' done' : ''); p.textContent = num + '. ' + label; form.appendChild(p); return p; }
     var checkedIdx = {};
     function paintForm() {
       form.innerHTML = '';
       if (!terms.length) { var p0 = document.createElement('p'); p0.textContent = t('imgNoTerms'); form.appendChild(p0); return; }
       if (!avs.length) { var p1 = document.createElement('p'); p1.textContent = t('lnkNoAV'); form.appendChild(p1); return; }
       // 1. όρος
-      step(1, t('noteStepTerm'));
+      step(1, t('noteStepTerm'), !!pick.term);
       var sel = document.createElement('select'); sel.className = 'lang-select'; sel.setAttribute('aria-label', t('noteStepTerm'));
-      var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+      var o0 = document.createElement('option'); o0.value = ''; o0.textContent = t('noteChooseTerm'); sel.appendChild(o0);
       terms.forEach(function (tm) { var o = document.createElement('option'); o.value = tm.term_uri; o.textContent = tm.label; sel.appendChild(o); });
       sel.value = pick.term ? pick.term.term_uri : '';
       sel.onchange = function () {
@@ -3586,8 +3705,8 @@
       };
       form.appendChild(sel);
       // 2. περιοχή
-      step(2, t('noteStepArea'));
-      var ab = document.createElement('button'); ab.type = 'button'; ab.className = 'btn-secondary';
+      step(2, t('noteStepArea'), !!pick.area);
+      var ab = document.createElement('button'); ab.type = 'button'; ab.className = (pick.area ? 'btn-secondary' : 'btn-primary') + ' step-btn';
       ab.textContent = pick.area ? t('imgAreaSet') : t('imgMark');
       ab.onclick = function () {
         openImagePopup({
@@ -3599,7 +3718,7 @@
       form.appendChild(ab);
       if (pick.area) { var ok = document.createElement('span'); ok.className = 'ann-when'; ok.textContent = ' ✓'; form.appendChild(ok); }
       // 3. μέρος της απομαγνητοφώνησης
-      step(3, t('noteStepPart'));
+      var s3 = step(3, t('noteStepPart'), Object.keys(checkedIdx).length > 0);
       if (avs.length > 1) {
         var avSel = document.createElement('select'); avSel.className = 'lang-select'; avSel.setAttribute('aria-label', t('lnkMedia'));
         avs.forEach(function (x, i) { var o = document.createElement('option'); o.value = x.id; o.textContent = t('type_' + x.kind) + ' ' + (i + 1); avSel.appendChild(o); });
@@ -3611,11 +3730,21 @@
       var box = document.createElement('div'); box.className = 'ann-lines';
       segs.forEach(function (g) {
         var lb = document.createElement('label'); var cb = document.createElement('input'); cb.type = 'checkbox'; cb.dataset.idx = g.idx; cb.checked = !!checkedIdx[g.idx];
-        cb.onchange = function () { if (cb.checked) checkedIdx[g.idx] = true; else delete checkedIdx[g.idx]; };
+        cb.onchange = function () { if (cb.checked) checkedIdx[g.idx] = true; else delete checkedIdx[g.idx]; refreshAdd(); };
         lb.appendChild(cb); lb.appendChild(document.createTextNode('[' + mmss(g.start_s) + '] ' + g.text)); box.appendChild(lb);
       });
       form.appendChild(box);
       var add = document.createElement('button'); add.type = 'button'; add.className = 'btn-primary btn-wide'; add.id = 'noteAdd'; add.textContent = t('noteAdd');
+      var miss = document.createElement('p'); miss.className = 'note-missing'; miss.setAttribute('aria-live', 'polite');
+      function refreshAdd() {          // το κουμπί ενεργοποιείται μόλις συμπληρωθούν και τα τρία βήματα· αλλιώς λέει τι λείπει
+        var need = [];
+        if (!pick.term) need.push(t('needTerm'));
+        if (!pick.area) need.push(t('needArea'));
+        if (!Object.keys(checkedIdx).length) need.push(t('needLines'));
+        add.disabled = need.length > 0;
+        miss.textContent = need.length ? t('noteStillNeeded', { x: need.join(', ') }) : '';
+        s3.className = 'note-step' + (Object.keys(checkedIdx).length ? ' done' : '');
+      }
       add.onclick = async function () {
         if (!pick.term) { status.textContent = t('noteNeedTerm'); return; }
         if (!pick.area) { status.textContent = t('noteNeedArea'); return; }
@@ -3642,7 +3771,7 @@
         } catch (e) { fail(e); }
         paintForm(); paintList();
       };
-      form.appendChild(add);
+      form.appendChild(add); form.appendChild(miss); refreshAdd();
     }
     function allAnnsFor(tm) { return allAnns.filter(function (a) { return a.term_uri === tm.term_uri && a.status === 'approved' && a.media_id !== m.id; }); }
     var allAnns = [];
@@ -4040,7 +4169,7 @@
     annListeners = [];
     buildAnnotate();
     renderList();
-    try { $('storyView').scrollIntoView({ block: 'start' }); } catch (e) {}
+    try { window.scrollTo(0, 0); } catch (e) {}
   }
   var locMap = null, locLayer = null;
   function renderLocMap(s) {
@@ -4101,6 +4230,7 @@
     var q = ($('listSearch').value || '').trim().toLowerCase();
     var items = STORIES.filter(function (x) { return f.value === 'all' || x.status === f.value; })
       .filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.consentCode || '')).toLowerCase().indexOf(q) >= 0; }).reverse();
+    items.sort(function (a, b) { return (a.status === 'published') - (b.status === 'published'); });   // πρώτα τα πρόχειρα (αυτά θέλουν δουλειά)
     if (!items.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('listEmpty'); body.appendChild(p); return; }
     items.forEach(function (x) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item' + (currentSheetStory === x ? ' current' : '');
@@ -4110,7 +4240,7 @@
       me_.appendChild(chip);
       me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length + (x.consentCode ? ' · ' + x.consentCode : '')));
       b.appendChild(ti); b.appendChild(me_);
-      b.onclick = function () { openStory(x); };
+      b.onclick = function () { if (x !== currentSheetStory && !okToLeave()) return; openStory(x); };
       body.appendChild(b);
     });
   }
@@ -4261,7 +4391,7 @@
       var bits = [st_(i.x) + (i.x.author ? ' — ' + i.x.author : '')];
       if (i.m) { bits.push(t('type_' + i.m.kind) + (i.m.title ? ': ' + i.m.title : '')); if (i.m.about) bits.push(i.m.about); if (i.m.recorded) bits.push(i.m.recorded); if (i.m.period) bits.push(i.m.period); }
       var tx = document.createElement('span'); tx.textContent = bits.join(' · '); row.appendChild(tx);
-      var b = document.createElement('button'); b.type = 'button'; b.textContent = t('mapOpenStory'); b.onclick = function () { setView('stories'); openStory(i.x); };
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = t('mapOpenStory'); b.onclick = function () { if (i.x !== currentSheetStory && !okToLeave()) return; setView('stories'); openStory(i.x); };
       row.appendChild(b); d.appendChild(row);
     });
     if (items.length > 12) { var more = document.createElement('div'); more.textContent = t('mapMore', { n: items.length - 12 }); d.appendChild(more); }
@@ -4270,6 +4400,15 @@
   function st_(x) { return x.t && x.t.el ? x.t.el.title : ''; }
   ['mapFiles', 'mapUsers', 'mapTerms', 'mapMin', 'mapStatusSel'].forEach(function (id) { $(id).addEventListener('change', function () { if (currentView === 'map') renderBigMap(); }); });
 
+  $('helpBtn').onclick = function () { openDialog('helpSheet', $('helpClose')); };
+  $('helpClose').onclick = function () { closeDialog('helpSheet'); };
+  escHandlers.helpSheet = function () { closeDialog('helpSheet'); };
+
+  // ---- Προστασία από απώλεια: απομαγνητοφώνηση που δεν αποθηκεύτηκε ----
+  function hasUnsaved() { return annSections.some(function (x) { return x.isUnsaved && x.isUnsaved(); }); }
+  function okToLeave() { return !hasUnsaved() || window.confirm(t('unsavedLeave')); }
+  window.addEventListener('beforeunload', function (e) { if (hasUnsaved()) { e.preventDefault(); e.returnValue = ''; } });
+
   function showView() {
     var annot = isAnnotator();
     $('loginView').hidden = !!currentUser;
@@ -4277,6 +4416,7 @@
     $('appView').hidden = !annot || currentView !== 'stories';
     $('mapView').hidden = !annot || currentView !== 'map';
     $('viewSwitch').hidden = !annot;
+    $('helpBtn').hidden = !annot;
     $('userBox').hidden = !currentUser;
     $('userName').textContent = currentUser ? userName(currentUser) : '';
   }
@@ -4293,7 +4433,7 @@
     } catch (e) { $('authError').textContent = t('authFailed', { e: e.message || e }); }
     finally { $('authSubmitBtn').disabled = false; }
   });
-  $('logoutBtn').onclick = $('logoutBtn2').onclick = function () { if (sb) sb.auth.signOut(); };
+  $('logoutBtn').onclick = $('logoutBtn2').onclick = function () { if (!okToLeave()) return; if (sb) sb.auth.signOut(); };
 
   if (sb) {
     sb.auth.onAuthStateChange(function (_event, session) {

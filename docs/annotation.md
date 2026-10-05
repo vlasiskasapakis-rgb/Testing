@@ -78,6 +78,13 @@ and for each story:
 - **Show** filters drafts / published.
 If no file has its own location (older uploads, or `supabase/roles.sql` not yet re-run) the map says so and shows only the story places.
 
+## Help for new annotators (annotation website)
+- The start page and the **Help** button in the header show a 6-step "How it works" guide.
+- Drafts are listed first. Collapsible boxes show ▸ / ▾. The transcription language picker is labelled "Recording language".
+- **Publish** and **Unpublish** ask for confirmation; publishing also says how many suggestions are still unreviewed.
+- Leaving a story, logging out or closing the tab with an unsaved transcript asks first.
+- Image notes: each step gets a ✓ when done, and **Add note** stays disabled with a "Still needed: …" hint until all three are done.
+
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
 - **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account

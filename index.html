@@ -3224,7 +3224,8 @@
       }
       k.transcripts.filter(function (tr) { return tr.status === 'done' && tr.text; }).forEach(function (tr) {
         var d = document.createElement('details');
-        var sm = document.createElement('summary'); sm.textContent = t('annTranscript'); d.appendChild(sm);
+        var avL = s.media.filter(function (x) { return x.kind !== 'image'; }), avI = avL.findIndex(function (x) { return x.id === tr.media_id; });
+        var sm = document.createElement('summary'); sm.textContent = t('annTranscript') + (avI >= 0 ? ' · ' + t('type_' + avL[avI].kind) + ' ' + (avI + 1) + (avL[avI].title ? ' · ' + avL[avI].title : '') : ''); d.appendChild(sm);
         var timed = tr.transcript_segments.filter(function (g) { return g.end_s > g.start_s; });
         if (timed.length) {
           var ul = document.createElement('ul'); ul.className = 'tr-lines';
