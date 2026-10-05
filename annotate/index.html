@@ -253,6 +253,8 @@
   .note-missing { font-size: 13px; color: var(--amber-text); margin: 4px 0 0; }
   .note-form .step-btn { padding: 8px 18px; min-height: 40px; font-weight: 700; }
   .img-thumb { cursor: zoom-in; }
+  .export-all { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .export-all button { width: 100%; padding: 8px 12px; min-height: 40px; font-weight: 700; font-size: 14px; }
   .rec-wrap > summary { font-size: 16px; }
   .rec-wrap > .ann-media { border-top: 0; padding-top: 0; margin-top: 0; }
   .rec-info { padding: 8px 10px; background: var(--mist); border-radius: 10px; margin: 6px 0 8px; }
@@ -584,6 +586,7 @@
       <div class="input-group"><label for="listSearch" data-i18n="listSearch"></label><input type="text" id="listSearch" autocomplete="off"></div>
       <div class="input-group"><label for="listFilter" data-i18n="listFilter"></label><select id="listFilter" class="lang-select"></select></div>
       <div id="listBody"></div>
+      <div class="export-all"><button type="button" id="exportAllBtn" class="btn-secondary" data-i18n="exportAllRdf"></button><p id="exportAllStatus" class="sheet-sub" role="status"></p></div>
     </aside>
     <section class="work" aria-live="polite">
       <div id="workEmpty" class="work-empty">
@@ -603,6 +606,7 @@
         <div id="sheetTools" hidden>
           <button id="publishBtn" class="btn-primary" hidden></button>
           <button id="exportBtn" class="btn-secondary" hidden data-i18n="annExport"></button>
+          <button id="exportRdfBtn" class="btn-secondary" hidden data-i18n="exportRdf"></button>
           <button id="annotateBtn" hidden></button>
           <button id="deleteBtn" hidden></button>
         </div>
@@ -833,6 +837,10 @@
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
+      exportRdf: "Εξαγωγή RDF (Turtle)",
+      exportAllRdf: "Εξαγωγή όλων των δημοσιευμένων σε RDF",
+      exportingN: "Εξαγωγή… {i}/{n}",
+      exportDone: "Έτοιμο: {n} ιστορίες.",
       guideTitle: "Πώς δουλεύει",
       guide1: "Διάλεξε μια ιστορία από τη λίστα αριστερά. Τα πρόχειρα (Draft) δεν είναι ακόμα δημόσια.",
       guide2: "Άκου τις ηχογραφήσεις και δες τα στοιχεία τους (τίτλος, ταυτότητα, ημερομηνία, τοποθεσία) στη μέση.",
@@ -1204,6 +1212,10 @@
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
+      exportRdf: "Export RDF (Turtle)",
+      exportAllRdf: "Export all published stories as RDF",
+      exportingN: "Exporting… {i}/{n}",
+      exportDone: "Done: {n} stories.",
       guideTitle: "How it works",
       guide1: "Choose a story from the list on the left. Drafts are not public yet.",
       guide2: "Listen to the recordings and check their details (title, identity, date, location) in the middle.",
@@ -1578,6 +1590,10 @@
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
+      exportRdf: "Exporter en RDF (Turtle)",
+      exportAllRdf: "Exporter toutes les histoires publiées en RDF",
+      exportingN: "Export… {i}/{n}",
+      exportDone: "Terminé : {n} histoires.",
       guideTitle: "Comment ça marche",
       guide1: "Choisissez une histoire dans la liste à gauche. Les brouillons ne sont pas encore publics.",
       guide2: "Écoutez les enregistrements et vérifiez leurs détails (titre, identité, date, lieu) au milieu.",
@@ -1946,6 +1962,10 @@
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
+      exportRdf: "Esporta RDF (Turtle)",
+      exportAllRdf: "Esporta tutte le storie pubblicate in RDF",
+      exportingN: "Esportazione… {i}/{n}",
+      exportDone: "Fatto: {n} storie.",
       guideTitle: "Come funziona",
       guide1: "Scegli una storia dalla lista a sinistra. Le bozze non sono ancora pubbliche.",
       guide2: "Ascolta le registrazioni e controlla i dettagli (titolo, identità, data, luogo) al centro.",
@@ -2909,6 +2929,7 @@
     $('annotateBtn').hidden = !(ann && annotatable);
     $('deleteBtn').hidden = !(owner && hasDbMedia(s));
     $('exportBtn').hidden = !hasDbMedia(s);
+    $('exportRdfBtn').hidden = $('exportBtn').hidden;
     renderPublishUI(s);
     renderConsentUI(s);
     $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden && $('deleteBtn').hidden && $('publishBtn').hidden;
@@ -4028,7 +4049,8 @@
     var narr = { '@id': narrative, '@type': 'nont:Narrative', 'hdt:HP10_tells_about': [], 'crm:P67_refers_to': [] };
     var ent = {
       '@id': entity, '@type': 'hdt:HC1_Heritage_Entity', 'rdfs:label': st(s).title,
-      'crm:P168_place_is_defined_by': { '@type': 'crm:E94_Space_Primitive', '@value': 'POINT(' + s.lon + ' ' + s.lat + ')' },
+      'crm:P168_place_is_defined_by': { '@type': 'geo:wktLiteral', '@value': 'POINT(' + s.lon + ' ' + s.lat + ')' },
+      'dcterms:creator': s.author || undefined, 'dcterms:identifier': s.dbId,
       'hdt:HP1_has_digital_twin': { '@id': twin }, 'hdt:HP2_has_story': { '@id': narrative }
     };
     graph.push(ent, { '@id': twin, '@type': 'hdt:HC2_Heritage_Digital_Twin', 'crm:P67_refers_to': { '@id': entity } }, narr);
@@ -4036,7 +4058,15 @@
     var repById = {};
     s.media.forEach(function (m) {
       if (!m.id) return;
-      var rep = { '@id': m.url, '@type': m.kind === 'audio' ? 'hdt:HC5_Digital_Representation' : 'hdt:HC7_Digital_Visual_Object', 'hdt:HP22_represents': { '@id': entity } };
+      var rep = { '@id': m.url, '@type': m.kind === 'audio' ? 'hdt:HC5_Digital_Representation' : 'hdt:HC7_Digital_Visual_Object', 'hdt:HP22_represents': { '@id': entity },
+        'dcterms:format': m.kind };
+      // στοιχεία αρχείου: τίτλος, ταυτότητα, ημερομηνία καταγραφής, περίοδος, τοποθεσία
+      if (m.title) rep['rdfs:label'] = m.title;
+      if (m.about) rep['crm:P3_has_note'] = m.about;
+      if (m.recorded) rep['dcterms:created'] = { '@type': 'xsd:date', '@value': m.recorded };
+      if (m.period) rep['dcterms:temporal'] = m.period;
+      if (m.lat != null && m.lon != null) rep['dcterms:spatial'] = { '@type': 'crm:E53_Place', 'crm:P168_place_is_defined_by': { '@type': 'geo:wktLiteral', '@value': 'POINT(' + m.lon + ' ' + m.lat + ')' } };
+
       if (m.kind === 'image') rep['hdt:HP9_is_visual_representation_of'] = { '@id': entity };
       repById[m.id] = rep;
       graph.push(rep);
@@ -4104,11 +4134,97 @@
       '@context': {
         crm: 'http://www.cidoc-crm.org/cidoc-crm/', hdt: CFG.HDT_NS || 'urn:echoes:hdto:', nont: 'https://dlnarratives.eu/ontology/',
         oa: 'http://www.w3.org/ns/oa#', skos: 'http://www.w3.org/2004/02/skos/core#', dcterms: 'http://purl.org/dc/terms/',
-        rdfs: 'http://www.w3.org/2000/01/rdf-schema#', rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+        rdfs: 'http://www.w3.org/2000/01/rdf-schema#', rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+        geo: 'http://www.opengis.net/ont/geosparql#', xsd: 'http://www.w3.org/2001/XMLSchema#'
       },
       '@graph': graph
     };
   }
+
+  // ---- RDF (Turtle) από το ίδιο γράφημα JSON-LD: για ενσωμάτωση στο ECHOES / ECCCH ----
+  function toTurtle(doc) {
+    var ctx = doc['@context'] || {}, out = [];
+    Object.keys(ctx).forEach(function (p) { out.push('@prefix ' + p + ': <' + ctx[p] + '> .'); });
+    out.push('');
+    function iri(v) {
+      var m = /^([A-Za-z][\w-]*):(.*)$/.exec(v);
+      if (m && ctx[m[1]] !== undefined && /^[A-Za-z0-9_](?:[A-Za-z0-9_.-]*[A-Za-z0-9_-])?$/.test(m[2])) return v;   // prefixed name
+      var full = m && ctx[m[1]] !== undefined ? ctx[m[1]] + m[2] : v;
+      return '<' + full.replace(/[\u0000- <>"{}|^`\\]/g, function (c) { return '%' + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0'); }) + '>';
+    }
+    function lit(v) { return '"' + String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t') + '"'; }
+    function obj(v, ind) {
+      if (v === null || v === undefined) return null;
+      if (typeof v === 'number') return Number.isInteger(v) ? String(v) : lit(v) + '^^xsd:decimal';
+      if (typeof v === 'boolean') return String(v);
+      if (typeof v === 'string') return lit(v);
+      if (v['@value'] !== undefined) return lit(v['@value']) + (v['@language'] ? '@' + v['@language'] : (v['@type'] ? '^^' + iri(v['@type']) : ''));
+      if (v['@id'] !== undefined && Object.keys(v).length === 1) return iri(v['@id']);
+      if (v['@id'] === undefined) return '[\n' + body(v, ind + '    ') + '\n' + ind + ']';   // κόμβος χωρίς IRI
+      return iri(v['@id']);
+    }
+    function body(n, ind) {
+      var parts = [];
+      var types = [].concat(n['@type'] || []);
+      if (types.length) parts.push(ind + 'a ' + types.map(iri).join(', '));
+      Object.keys(n).forEach(function (k) {
+        if (k[0] === '@') return;
+        var vals = [].concat(n[k]).map(function (v) { return obj(v, ind); }).filter(function (x) { return x !== null; });
+        if (vals.length) parts.push(ind + iri(k) + ' ' + vals.join(', '));
+      });
+      return parts.join(' ;\n');
+    }
+    // κόμβοι με το ίδιο @id (π.χ. ένας όρος σε πολλές σημειώσεις) γράφονται μία φορά, με όλες τους τις ιδιότητες
+    var merged = {}, order = [];
+    (doc['@graph'] || []).forEach(function (n) {
+      var id = n['@id'];
+      if (!merged[id]) { merged[id] = {}; order.push(id); }
+      Object.keys(n).forEach(function (k) {
+        if (k === '@id') { merged[id]['@id'] = id; return; }
+        var cur = merged[id][k], add = [].concat(n[k]);
+        if (cur === undefined) { merged[id][k] = add; return; }
+        add.forEach(function (v) { if (!cur.some(function (c) { return JSON.stringify(c) === JSON.stringify(v); })) cur.push(v); });
+      });
+    });
+    order.forEach(function (id) {
+      var b = body(merged[id], '    ');
+      if (b) out.push(iri(id) + '\n' + b + ' .\n');
+    });
+    return out.join('\n');
+  }
+  function download(text, name, type) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: type })); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+  }
+  $('exportRdfBtn').onclick = async function () {
+    var s = currentSheetStory;
+    if (!s || !hasDbMedia(s)) return;
+    var b = this; b.disabled = true;
+    try {
+      var k = await fetchKnowledge(s, false);
+      download(toTurtle(buildJsonLd(s, k)), 'story-' + s.dbId + '.ttl', 'text/turtle');
+    } catch (e) { alert(t('annSaveError', { e: errText(e) })); }
+    finally { b.disabled = false; }
+  };
+  // Όλες οι δημοσιευμένες ιστορίες σε ένα αρχείο Turtle (ένα σύνολο δεδομένων για το ECCCH)
+  $('exportAllBtn').onclick = async function () {
+    var b = this, st_ = $('exportAllStatus'), list = STORIES.filter(function (x) { return x.status === 'published' && x.media.some(function (m) { return m.id; }); });
+    b.disabled = true;
+    try {
+      var all = null;
+      for (var i = 0; i < list.length; i++) {
+        st_.textContent = t('exportingN', { i: i + 1, n: list.length });
+        var d = buildJsonLd(list[i], await fetchKnowledge(list[i], false));
+        if (!all) all = { '@context': d['@context'], '@graph': [] };
+        all['@graph'] = all['@graph'].concat(d['@graph']);
+      }
+      if (all) download(toTurtle(all), 'walking-memory-' + new Date().toISOString().slice(0, 10) + '.ttl', 'text/turtle');
+      st_.textContent = t('exportDone', { n: list.length });
+    } catch (e) { st_.textContent = t('annFailed', { e: errText(e) }); }
+    finally { b.disabled = false; }
+  };
 
   $('exportBtn').onclick = async function () {
     var s = currentSheetStory;

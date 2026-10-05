@@ -106,6 +106,17 @@ It shows, for the chosen period (7 / 30 / 90 days / all):
 Everything is shown as charts on the page (most opened stories, where stories were opened from, opening → playing → listening to the end, what each annotator did, words corrected per annotator, approved vs rejected suggestions, corrections per story); the detailed tables sit underneath in collapsed "Table …" sections and can be sorted and downloaded as CSV. Requires the analytics part of `supabase/roles.sql` (re-run it once); counting
 starts from then on.
 
+## RDF export for ECHOES / ECCCH (annotation website)
+- **Export RDF (Turtle)** next to **Export JSON-LD** on each story downloads `story-<id>.ttl`; **Export all published stories as RDF**
+  (under the story list) downloads one `.ttl` file with every published story, ready to load into a triple store.
+- Same graph as the JSON-LD (checked: both parse to the identical set of triples): HDT ontology (HC1 Heritage Entity, HC2 Digital Twin,
+  HC5/HC6/HC7, HP1/HP2/HP4/HP8/HP9/HP10/HP11/HP22), CIDOC-CRM, Narrative ontology, W3C Web Annotation (time and
+  `xywh=percent` fragment selectors), SKOS terms from Wikidata/Getty, GeoSPARQL `wktLiteral` points, Dublin Core terms.
+- Each file also carries its details: title (`rdfs:label`), identity (`crm:P3_has_note`), date recorded (`dcterms:created`),
+  period (`dcterms:temporal`) and location (`dcterms:spatial` → `crm:E53_Place` with a WKT point).
+- The HDT ontology v0.1 has no published namespace yet, so `hdt:` is `urn:echoes:hdto:`. When ECHOES publishes the official IRI, set
+  `HDT_NS` in `config.js` and every export uses it.
+
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
 - **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account
