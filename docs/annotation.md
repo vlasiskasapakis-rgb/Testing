@@ -83,6 +83,17 @@ and for each story:
 - **Show** filters drafts / published.
 If no file has its own location (older uploads, or `supabase/roles.sql` not yet re-run) the map says so and shows only the story places.
 
+### One story at a time, in transcript order
+Choose a story in **Story** (or press **Show only this story on the map** in a marker's popup) to see only that story's files at
+their own locations, joined **in the order they appear in the transcripts**:
+- each recording (audio/video) comes in the story's order, followed by the photos shown or noted on its transcript
+  (image links and image notes with a time), in time order; a file counts at its **first** appearance;
+- markers are **numbered** in that order (several numbers on one marker = same place), and the line joins them 1 → 2 → 3 …;
+- a marker's popup gives the file details and every moment it appears (“in *recording* at mm:ss”) with the transcript line spoken then;
+- the list under the map shows the full order, marking files with **no location** (left out of the line) and files **not linked to any
+  recording** (grey markers, no line). Rejected notes are ignored; suggested and approved ones count.
+Choose **All stories** to go back to the overview.
+
 ## Help for new annotators (annotation website)
 - The start page and the **Help** button in the header show a 6-step "How it works" guide.
 - Drafts are listed first. Collapsible boxes show ▸ / ▾. The transcription language picker is labelled "Recording language".
