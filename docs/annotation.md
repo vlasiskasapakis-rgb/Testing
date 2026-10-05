@@ -120,6 +120,14 @@ chosen place in the app (and is opened there, like any story, within 100 m). The
 can be added indoors by choosing its place on the map; finishing without a GPS fix or a chosen place asks for one. Each file keeps its
 own location (📍 details) as before.
 
+## Stories website for visitors
+`…/stories/` (it opens `index.html?view=1`; the app's start screen links to it: "No phone at hand? See the stories on the website")
+lets anyone see the stories without logging in, on a computer or a phone: a map of all **published** stories and a list with a
+photo, narrator and number of recordings/photos, with search. **Show** offers the published walks: choosing one lists its stops in
+order (1, 2, 3…) and draws the route on the map. Clicking a story (map or list) opens the same story view as the app — recordings
+with the photos appearing as they are mentioned, subtitles and terms. There is no AR distance lock here. Openings are counted in the
+analytics like the app's map/list.
+
 ## Uploading stories from a computer (facilitator website)
 `…/upload/` (it opens `index.html?web=1`; the app's start screen also links to it: "On a computer? Upload stories from the
 website") is the same story upload as in the app, for a desktop browser: log in, **+ New story**, the narrator's consent, title,
