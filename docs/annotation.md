@@ -103,7 +103,7 @@ It shows, for the chosen period (7 / 30 / 90 days / all):
 - **Annotators' corrections**: transcript words and lines corrected (counted on every save against the previous version or the
   automatic transcription), suggestions approved / rejected and the acceptance rate, terms added / edited / deleted by hand, image
   notes; corrections per day; tables per annotator and per story. Term changes are recorded by a database trigger.
-Every table can be sorted and downloaded as CSV. Requires the analytics part of `supabase/roles.sql` (re-run it once); counting
+Everything is shown as charts on the page (most opened stories, where stories were opened from, opening → playing → listening to the end, what each annotator did, words corrected per annotator, approved vs rejected suggestions, corrections per story); the detailed tables sit underneath in collapsed "Table …" sections and can be sorted and downloaded as CSV. Requires the analytics part of `supabase/roles.sql` (re-run it once); counting
 starts from then on.
 
 ## Two places to work
