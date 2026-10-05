@@ -2151,7 +2151,24 @@
     }
   });
 
-  function openStorySheet(s) {
+  // ---- Στατιστικά χρήσης (ανώνυμα): ποιες ιστορίες ανοίγονται/ακούγονται. Τυχαίο id στη συσκευή, χωρίς όνομα, e-mail ή IP.
+  // Αν ο browser ζητά «Do Not Track», δεν καταγράφεται τίποτα.
+  function visitorId() {
+    try {
+      var v = localStorage.getItem('wm_vid');
+      if (!v) { v = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()); localStorage.setItem('wm_vid', v); }
+      return /^[0-9a-f-]{36}$/i.test(v) ? v : null;
+    } catch (e) { return null; }
+  }
+  function trackView(s, event, mediaId, via) {
+    if (!sb || !s || !s.dbId || navigator.doNotTrack === '1' || window.doNotTrack === '1') return;
+    var vid = visitorId(); if (!vid) return;
+    var row = { visitor_id: vid, user_id: currentUser ? currentUser.id : null, story_id: s.dbId, event: event, media_id: mediaId || null, via: via || null };
+    try { sb.from('story_views').insert(row).then(function () {}, function () {}); } catch (e) { /* τα στατιστικά δεν επηρεάζουν την εφαρμογή */ }
+  }
+
+  function openStorySheet(s, via) {
+    trackView(s, 'open', null, via);
     var tr = st(s);
     $('sheetTitle').textContent = tr.title;
     $('sheetSub').textContent = tr.sub;
@@ -2186,7 +2203,10 @@
       el.addEventListener('seeked', function () { updateStage(el); });
       el.addEventListener('loadedmetadata', function () { if (sheetK) paintTimeline(s, el); });
       el.addEventListener('durationchange', function () { if (sheetK) paintTimeline(s, el); });
+      var played = false, ended = false;
+      el.addEventListener('ended', function () { if (!ended) { ended = true; trackView(s, 'complete', m.id); } });
       el.addEventListener('play', function () {
+        if (!played) { played = true; trackView(s, 'play', m.id); }
         $('sheetMedia').querySelectorAll('audio, video').forEach(function (o) { if (o !== el) o.pause(); });
         var w = el.closest('.av-wrap'); if (w && !w.open) w.open = true;          // ανοίγει το πλαίσιο της ηχογράφησης που παίζει
       });
@@ -2221,7 +2241,7 @@
         var d = distanceMetres(me.lat, me.lon, s.lat, s.lon);
         if (d > 100) { alert(t('lockedAlert', { m: Math.round(d) })); return; }
       }
-      openStorySheet(s);
+      openStorySheet(s, 'ar');
     };
     container.appendChild(btn);
   }
@@ -2319,7 +2339,7 @@
     var m = L.marker([s.lat, s.lon], {
       icon: L.divIcon({ html: '<div class="poi-dot"></div>', iconSize: [24, 24], iconAnchor: [12, 12], className: '' }),
       title: st(s).title, alt: st(s).title, keyboard: true
-    }).on('click', function () { openStorySheet(s); });
+    }).on('click', function () { openStorySheet(s, 'map'); });
     poiLayers.push({ m: m, s: s });
     markerCluster.addLayer(m);
   }
@@ -2392,7 +2412,7 @@
     btn.querySelector('.dist').textContent = here ? t('youAreHere') : t('mAway', { m: Math.round(ranked.d) });
     btn.querySelector('.name').textContent = st(ranked.s).title;
     btn.classList.add('on');
-    btn.onclick = function () { openStorySheet(ranked.s); };
+    btn.onclick = function () { openStorySheet(ranked.s, 'nearest'); };
 
     var key = ranked.s.id + (here ? ':here' : '');
     if (announceChange && key !== lastNearestId) {
@@ -2796,7 +2816,7 @@
       me_.appendChild(chip);
       me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length + (x.consentCode ? ' · ' + x.consentCode : '')));
       b.appendChild(ti); b.appendChild(me_);
-      b.onclick = function () { closeDialog('listSheet', true); openStorySheet(x); };
+      b.onclick = function () { closeDialog('listSheet', true); openStorySheet(x, 'list'); };
       body.appendChild(b);
     });
   }

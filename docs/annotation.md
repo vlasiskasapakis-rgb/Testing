@@ -90,6 +90,22 @@ If no file has its own location (older uploads, or `supabase/roles.sql` not yet 
 - Leaving a story, logging out or closing the tab with an unsaved transcript asks first.
 - Image notes: each step gets a ✓ when done, and **Add note** stays disabled with a "Still needed: …" hint until all three are done.
 
+## Analytics website (`analytics/`, address `…/analytics/`)
+For the project owner. Log in with an account that has `is_admin = true` (run once in the SQL editor, Run as: postgres):
+```sql
+update public.profiles set is_admin = true where user_id = (select id from auth.users where email = 'you@example.com');
+```
+It shows, for the chosen period (7 / 30 / 90 days / all):
+- **Story consumption in the app**: visitors, story openings, different stories per visitor (average and most), recordings played
+  and listened to the end, openings from the AR view; openings per day; visitors by number of stories opened; a table per story
+  (openings, visitors, plays, to the end, from AR / map / list) and per anonymous visitor (how many stories each person opened).
+  Visitors are a random id kept in the browser - no name, e-mail or IP; browsers that send "Do Not Track" are not counted.
+- **Annotators' corrections**: transcript words and lines corrected (counted on every save against the previous version or the
+  automatic transcription), suggestions approved / rejected and the acceptance rate, terms added / edited / deleted by hand, image
+  notes; corrections per day; tables per annotator and per story. Term changes are recorded by a database trigger.
+Every table can be sorted and downloaded as CSV. Requires the analytics part of `supabase/roles.sql` (re-run it once); counting
+starts from then on.
+
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
 - **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account

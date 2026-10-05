@@ -3524,6 +3524,32 @@
     return wrap;
   }
 
+  // ---- Στατιστικά διορθώσεων απομαγνητοφώνησης: πόσες λέξεις/γραμμές άλλαξε ο σχολιαστής σε σχέση με την προηγούμενη μορφή ----
+  function lcsLen(A, B, eq) {
+    var n = A.length, m = B.length, prev = new Uint32Array(m + 1), cur = new Uint32Array(m + 1);
+    for (var i = 1; i <= n; i++) {
+      for (var j = 1; j <= m; j++) cur[j] = eq(A[i - 1], B[j - 1]) ? prev[j - 1] + 1 : Math.max(prev[j], cur[j - 1]);
+      var tmp = prev; prev = cur; cur = tmp; cur.fill(0);
+    }
+    return prev[m];
+  }
+  function transcriptDiff(oldText, newText) {
+    var same = function (a, b) { return a === b; };
+    var oL = oldText.split('\n').map(function (x) { return x.trim(); }).filter(Boolean), nL = newText.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+    var linesChanged = nL.length - lcsLen(oL, nL, same);
+    var oW = tokensOf(oldText), nW = tokensOf(newText), words;
+    if (oW.length * nW.length <= 4e6) { var l = lcsLen(oW, nW, same); words = Math.max(oW.length - l, nW.length - l); }
+    else words = Math.max(oW.length, nW.length) - Math.min(oW.length, nW.length) + linesChanged;   // πολύ μεγάλο: εκτίμηση
+    return { lines: Math.max(0, linesChanged), words: words, total: nW.length };
+  }
+  function logTranscriptSave(s, m, oldText, newText, origin) {
+    if (!sb || !currentUser) return;
+    var d = transcriptDiff(oldText || '', newText), typed = origin === 'typed' || !oldText;
+    var row = { user_id: currentUser.id, user_name: userName(currentUser), story_id: s.dbId, media_id: m.id, kind: 'transcript_save',
+      amount: typed ? 0 : d.words, detail: { origin: origin, words_corrected: typed ? 0 : d.words, lines_corrected: typed ? 0 : d.lines, words_total: d.total } };
+    try { sb.from('annotation_activity').insert(row).then(function () {}, function () {}); } catch (e) { /* τα στατιστικά δεν εμποδίζουν την αποθήκευση */ }
+  }
+
   function annSection(s, m, n) {
     var sec = document.createElement('section'); sec.className = 'ann-media';
     var uid = 'ann-' + m.id;
@@ -3556,7 +3582,7 @@
     var detList = document.createElement('div'); step2.appendChild(detList);
     var list = document.createElement('div'); step2.appendChild(list);
     sec.appendChild(trRow); sec.appendChild(fileIn); sec.appendChild(step1); sec.appendChild(step2);
-    var data = null, filled = false, dirty = false, lastWords = [], segByIdx = {};
+    var data = null, filled = false, dirty = false, lastWords = [], segByIdx = {}, baseText = '', baseOrigin = 'typed';
     ta.addEventListener('input', function () { dirty = true; });
 
     function attachWords(segs) {
@@ -3581,7 +3607,7 @@
         gen.forEach(function (a) { dbx.appendChild(annRowEl(a, paint, ctx)); });
         detList.appendChild(dbx);
       }
-      if (tr && !filled) { ta.value = segmentsToText(tr.transcript_segments); lastWords = tr.transcript_segments.map(function (g) { return { text: g.text, words: g.words || null }; }); if (tr.language) $('trLang').value = tr.language; filled = true; }
+      if (tr && !filled) { baseText = tr.transcript_segments.map(function (g) { return g.text; }).join('\n'); baseOrigin = 'edit'; ta.value = segmentsToText(tr.transcript_segments); lastWords = tr.transcript_segments.map(function (g) { return { text: g.text, words: g.words || null }; }); if (tr.language) $('trLang').value = tr.language; filled = true; }
       segByIdx = {}; if (tr) tr.transcript_segments.forEach(function (g) { segByIdx[g.idx] = g; });
       if (!stepInit && data) { stepInit = true; step1.open = !tr; step2.open = !!tr; }
       if (sec.onPaint) sec.onPaint(tr, anns);
@@ -3608,6 +3634,7 @@
     sec.transcribe = async function () {
       var segs = await serverTranscribe(m.id, trLang());
       ta.value = segmentsToText(segs); filled = true; dirty = true; lastWords = segs.map(function (g) { return { text: g.text, words: g.words || null }; });
+      baseText = segs.map(function (g) { return g.text; }).join('\n'); baseOrigin = 'server';   // οι διορθώσεις μετριούνται από εδώ
       step1.open = true; status.textContent = '';
       return segs.length;
     };
@@ -3617,7 +3644,7 @@
       var f = fileIn.files && fileIn.files[0];
       if (!f) return;
       var rd = new FileReader();
-      rd.onload = function () { ta.value = parseSubtitleFile(String(rd.result || '')); filled = true; dirty = true; lastWords = []; step1.open = true; status.textContent = t('trReady'); };
+      rd.onload = function () { ta.value = parseSubtitleFile(String(rd.result || '')); baseText = textToSegments(ta.value).map(function (g) { return g.text; }).join('\n'); baseOrigin = 'file'; filled = true; dirty = true; lastWords = []; step1.open = true; status.textContent = t('trReady'); };
       rd.readAsText(f);
       fileIn.value = '';
     };
@@ -3629,6 +3656,8 @@
       var segs = attachWords(textToSegments(ta.value).slice(0, 400));
       if (!segs.length) return 0;
       var rows = await saveTranscript(m, trLang(), segs);
+      logTranscriptSave(s, m, baseText, segs.map(function (g) { return g.text; }).join('\n'), baseOrigin);
+      baseText = segs.map(function (g) { return g.text; }).join('\n'); baseOrigin = 'edit';
       dirty = false; filled = false; await reload();
       return rows.length;
     };
