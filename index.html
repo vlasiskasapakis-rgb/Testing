@@ -358,6 +358,16 @@
   .browse-side select { width: 100%; }
   .browse-side a { color: var(--petrol); font-weight: 600; }
   .browse-map { min-height: 0; }
+  .browse-conn { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--petrol); margin: 4px 0 8px; }
+  .browse-conn[hidden] { display: none; }
+  .browse-conn input { width: 22px; height: 22px; accent-color: var(--petrol); }
+  .story-links:empty { display: none; }
+  .story-links h3 { margin: 14px 0 6px; font-size: 16px; font-style: italic; color: var(--petrol); }
+  .story-links ul { list-style: none; margin: 0; padding: 0; }
+  .story-links li { margin-bottom: 6px; }
+  .story-links button { display: block; width: 100%; text-align: left; padding: 10px 14px; min-height: 48px; border-radius: 14px; background: var(--sky-soft); color: var(--ink); }
+  .story-links button b { color: var(--petrol); font-style: italic; }
+  .story-links button small { display: block; color: var(--muted); font-size: 13px; }
   .browse-list { list-style: none; margin: 8px 0 14px; padding: 0; }
   .browse-list li { margin-bottom: 8px; }
   .browse-list button { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; padding: 10px; border-radius: 14px; background: #fff; color: var(--ink); border: 1px solid var(--line); }
@@ -524,6 +534,7 @@
         <label for="browseSearch" class="sr-only" data-i18n="browseSearchPh"></label>
         <input type="search" id="browseSearch" data-i18n-ph="browseSearchPh" autocomplete="off">
       </div>
+      <label id="browseConnWrap" class="browse-conn" hidden><input type="checkbox" id="browseConn"><span data-i18n="browseConn"></span></label>
       <p id="browseCount" class="sheet-sub" role="status"></p>
       <ol id="browseList" class="browse-list"></ol>
       <p class="sheet-sub"><a href="./" data-i18n="browseToApp"></a></p>
@@ -642,6 +653,7 @@
     <div id="sheetMedia" class="story-media"></div>
     <div id="sheetImages" class="story-media"></div>
     <div id="sheetKnow" class="story-know"></div>
+    <div id="sheetLinks" class="story-links"></div>
     <div id="sheetTools" hidden>
       <button id="deleteBtn" class="btn-danger" hidden data-i18n="deleteStory"></button>
     </div>
@@ -1181,6 +1193,11 @@
       browseToApp: "Άνοιγμα της εφαρμογής AR (σε κινητό)",
       gateBrowse: "Χωρίς κινητό; Δες τις ιστορίες στην ιστοσελίδα",
       browseByAuthor: "από {n}",
+      connTitle: "Συνδεδεμένες ιστορίες",
+      connNext: "Επόμενη",
+      connPrev: "Προηγούμενη",
+      connIn: "στη διαδρομή «{w}»",
+      browseConn: "Εμφάνιση συνδέσεων ανάμεσα στις ιστορίες",
       miLocNone: "Δεν έχει οριστεί τοποθεσία",
       miSave: "Αποθήκευση στοιχείων",
       miEmpty: "Πρόσθεσε τίτλο, ημερομηνία και τοποθεσία",
@@ -1526,6 +1543,11 @@
       browseToApp: "Open the AR app (on a phone)",
       gateBrowse: "No phone at hand? See the stories on the website",
       browseByAuthor: "by {n}",
+      connTitle: "Connected stories",
+      connNext: "Next",
+      connPrev: "Before",
+      connIn: "in the walk “{w}”",
+      browseConn: "Show connections between stories",
       miLocNone: "No location set",
       miSave: "Save details",
       miEmpty: "Add a title, date and location",
@@ -1871,6 +1893,11 @@
       browseToApp: "Ouvrir l’application AR (sur un téléphone)",
       gateBrowse: "Pas de téléphone ? Voir les histoires sur le site",
       browseByAuthor: "par {n}",
+      connTitle: "Histoires liées",
+      connNext: "Suivante",
+      connPrev: "Précédente",
+      connIn: "dans le parcours « {w} »",
+      browseConn: "Afficher les liens entre les histoires",
       miLocNone: "Aucun lieu défini",
       miSave: "Enregistrer les détails",
       miEmpty: "Ajoutez un titre, une date et un lieu",
@@ -2216,6 +2243,11 @@
       browseToApp: "Apri l’app AR (su un telefono)",
       gateBrowse: "Niente telefono? Guarda le storie sul sito",
       browseByAuthor: "di {n}",
+      connTitle: "Storie collegate",
+      connNext: "Successiva",
+      connPrev: "Precedente",
+      connIn: "nel percorso «{w}»",
+      browseConn: "Mostra i collegamenti tra le storie",
       miLocNone: "Nessun luogo impostato",
       miSave: "Salva i dettagli",
       miEmpty: "Aggiungi titolo, data e luogo",
@@ -2548,13 +2580,45 @@
     $('sheetAuthor').textContent = s.author ? t('byAuthor', { n: s.author }) : '';
     renderSheetMedia(s);
     renderKnowledge(s);
+    renderConnections(s, via);
     openDialog('infoSheet');
+  }
+  // Ιστορίες συνδεδεμένες με αυτή σε δημοσιευμένες διαδρομές (σελίδα «Συνδέσεις ιστοριών»): προηγούμενες και επόμενες
+  function connectionsOf(s) {
+    var out = [], seen = {};
+    if (!s.dbId) return out;
+    WALKS.forEach(function (w) {
+      (w.links || []).forEach(function (l) {
+        var dir = l.from === s.dbId ? 'next' : l.to === s.dbId ? 'prev' : null; if (!dir) return;
+        var o = storyByDb(dir === 'next' ? l.to : l.from);
+        if (!o || o.status !== 'published' || seen[dir + o.dbId + w.id]) return;
+        seen[dir + o.dbId + w.id] = 1;
+        out.push({ dir: dir, s: o, label: l.label, walk: w });
+      });
+    });
+    return out.sort(function (a, b) { return (a.dir === 'prev' ? 0 : 1) - (b.dir === 'prev' ? 0 : 1); });
+  }
+  function renderConnections(s, via) {
+    var box = $('sheetLinks'); box.innerHTML = '';
+    var list = connectionsOf(s); if (!list.length) return;
+    var h = document.createElement('h3'); h.textContent = t('connTitle'); box.appendChild(h);
+    var ul = document.createElement('ul');
+    list.forEach(function (c) {
+      var li = document.createElement('li'), b = document.createElement('button'); b.type = 'button';
+      b.appendChild(document.createTextNode((c.dir === 'next' ? '→ ' + t('connNext') : '← ' + t('connPrev')) + ': '));
+      var tb = document.createElement('b'); tb.textContent = st(c.s).title; b.appendChild(tb);
+      var sm = document.createElement('small'); sm.textContent = [t('connIn', { w: c.walk.title }), c.label ? '“' + c.label + '”' : ''].filter(Boolean).join(' · '); b.appendChild(sm);
+      b.onclick = function () { openStorySheet(c.s, via === 'map' || via === 'ar' ? 'map' : 'list'); var sh = $('infoSheet').querySelector('.sheet-inner'); if (sh) sh.scrollTop = 0; };
+      li.appendChild(b); ul.appendChild(li);
+    });
+    box.appendChild(ul);
   }
   function clearSheetMedia() {
     var box = $('sheetMedia');
     box.querySelectorAll('video, audio').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); });
     box.innerHTML = '';
     $('sheetImages').innerHTML = '';
+    $('sheetLinks').innerHTML = '';
     imagesFoldOpen = undefined; termsFoldOpen = undefined;
     clearSubtitles();
     sheetK = null; currentLinks = [];
@@ -3016,11 +3080,12 @@
       var ids = b.data.map(function (x) { return x.id; });
       var r = await Promise.all([
         sb.from('story_board_items').select('board_id,story_id,x,y').in('board_id', ids),
-        sb.from('story_board_links').select('board_id,from_story,to_story').in('board_id', ids)
+        sb.from('story_board_links').select('board_id,from_story,to_story,label').in('board_id', ids)
       ]);
       if (r[0].error || r[1].error) { WALKS = []; renderChoosers(); return; }
       WALKS = b.data.map(function (x) {
         return { id: x.id, title: x.title, description: x.description || '',
+          links: r[1].data.filter(function (l) { return l.board_id === x.id; }).map(function (l) { return { from: l.from_story, to: l.to_story, label: l.label || '' }; }),
           order: walkOrder(r[0].data.filter(function (i) { return i.board_id === x.id; }), r[1].data.filter(function (l) { return l.board_id === x.id; })) };
       }).filter(function (w) { return w.order.length; });
     } catch (e) { WALKS = []; }
@@ -5419,7 +5484,7 @@
     document.querySelector('[data-i18n="locHint"]').setAttribute('data-i18n', 'locHintWeb');
   }
   // ---- Ιστοσελίδα επισκεπτών: χάρτης + λίστα δημοσιευμένων ιστοριών, προαιρετικά μια διαδρομή με τη σειρά της ----
-  var browseMap = null, browseLayer = null, browseFitKey = '';
+  var browseMap = null, browseLayer = null, connLayer = null, browseFitKey = '';
   if (BROWSE) {
     document.body.classList.add('web');
     $('gate').style.display = 'none';
@@ -5427,6 +5492,7 @@
     browseMap = L.map('browseMap', { zoomControl: true }).setView(DEFAULT_CENTER, 14);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(browseMap);
     $('browseWalk').onchange = function () { renderBrowse(); };
+    $('browseConn').onchange = function () { renderBrowse(true); };
     $('browseSearch').oninput = function () { renderBrowse(true); };
     $('langBrowse').addEventListener('change', function () { setLang(this.value); });
     onLangChange(function () { $('langBrowse').value = LANG; renderBrowse(true); });
@@ -5473,6 +5539,23 @@
       browseLayer.addLayer(mk);
     });
     browseMap.addLayer(browseLayer);
+    // Συνδέσεις όλων των διαδρομών ανάμεσα στις ιστορίες που φαίνονται (μόνο στην προβολή «Όλες οι ιστορίες»)
+    $('browseConnWrap').hidden = !!w || !WALKS.some(function (x) { return x.links && x.links.length; });
+    if (connLayer) { browseMap.removeLayer(connLayer); connLayer = null; }
+    if (!w && $('browseConn').checked) {
+      connLayer = L.layerGroup(); var shown = {}, drawn = {};
+      list.forEach(function (x) { shown[x.dbId] = x; });
+      WALKS.forEach(function (wk) {
+        (wk.links || []).forEach(function (l) {
+          var A = shown[l.from], B = shown[l.to], k2 = l.from + '>' + l.to; if (!A || !B || drawn[k2]) return; drawn[k2] = 1;
+          var pl = L.polyline([[A.lat, A.lon], [B.lat, B.lon]], { color: '#7B1FA2', weight: 3, opacity: .7, dashArray: '6 6' });
+          var tip = st(A).title + ' → ' + st(B).title + ' · ' + wk.title + (l.label ? ' · “' + l.label + '”' : '');
+          if (pl.bindTooltip) pl.bindTooltip(tip, { sticky: true });
+          connLayer.addLayer(pl);
+        });
+      });
+      browseMap.addLayer(connLayer);
+    }
     var key = (w ? w.id : 'all') + ':' + all.length;
     if (!keepView && key !== browseFitKey && list.length) {
       browseFitKey = key;

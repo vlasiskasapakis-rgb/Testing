@@ -127,6 +127,9 @@ photo, narrator and number of recordings/photos, with search. **Show** offers th
 order (1, 2, 3…) and draws the route on the map. Clicking a story (map or list) opens the same story view as the app — recordings
 with the photos appearing as they are mentioned, subtitles and terms. There is no AR distance lock here. Openings are counted in the
 analytics like the app's map/list.
+**Connected stories**: a story's view (website and app) lists the stories it is connected to in published walks — "→ Next" /
+"← Before", the walk's name and the line's label — and opens them with a tap. On the website, **Show connections between stories**
+(in "All stories") draws those lines on the map (hover for the walk and label). Only published walks and published stories are shown.
 
 ## Uploading stories from a computer (facilitator website)
 `…/upload/` (it opens `index.html?web=1`; the app's start screen also links to it: "On a computer? Upload stories from the
