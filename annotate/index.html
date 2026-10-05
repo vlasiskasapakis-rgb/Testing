@@ -218,6 +218,9 @@
   .x-btn:disabled { opacity: .35; }
   .view-switch { display: flex; gap: 4px; background: rgba(255,255,255,.15); border-radius: 999px; padding: 3px; }
   .view-switch[hidden] { display: none; }
+  .head-link { color: #fff; font-weight: 700; text-decoration: none; padding: 6px 16px; min-height: 36px; border-radius: 999px; background: rgba(255,255,255,.15); display: inline-flex; align-items: center; }
+  .head-link[hidden] { display: none; }
+  .head-link:hover { background: rgba(255,255,255,.28); }
   .view-switch button { background: transparent; color: #fff; font-weight: 700; padding: 6px 16px; min-height: 36px; }
   .view-switch button[aria-pressed="true"] { background: #fff; color: var(--petrol); }
   .map-view { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
@@ -564,6 +567,7 @@
     <button type="button" id="viewStories" aria-pressed="true" data-i18n="viewStories"></button>
     <button type="button" id="viewMap" aria-pressed="false" data-i18n="viewMap"></button>
   </nav>
+  <a id="linksPage" class="head-link" href="../connect/" hidden data-i18n="navLinks"></a>
   <div id="userBox" hidden><span id="userName"></span><button id="logoutBtn" type="button" data-i18n="logout"></button></div>
 </header>
 
@@ -951,6 +955,7 @@
       mapNoFileLoc: "Κανένα αρχείο δεν έχει δική του τοποθεσία (παλιότερες καταχωρίσεις ή δεν έχει τρέξει το roles.sql). Εμφανίζονται μόνο οι τοποθεσίες των ιστοριών.",
       mapHere: "{n} αρχεία σε αυτή την τοποθεσία",
       mapMore: "… και {n} ακόμα",
+      navLinks: "Συνδέσεις ιστοριών",
       viewStories: "Ιστορίες",
       viewMap: "Χάρτης",
       mapLinkFiles: "Σύνδεση αρχείων της ίδιας ιστορίας",
@@ -1369,6 +1374,7 @@
       mapNoFileLoc: "None of the files has its own location (older uploads, or roles.sql has not been run). Only story locations are shown.",
       mapHere: "{n} files at this location",
       mapMore: "… and {n} more",
+      navLinks: "Story links",
       viewStories: "Stories",
       viewMap: "Map",
       mapLinkFiles: "Connect files of the same story",
@@ -1790,6 +1796,7 @@
       mapNoFileLoc: "Aucun fichier n'a son propre lieu (anciens envois, ou roles.sql n'a pas été exécuté). Seuls les lieux des histoires sont affichés.",
       mapHere: "{n} fichiers à ce lieu",
       mapMore: "… et {n} de plus",
+      navLinks: "Liens entre histoires",
       viewStories: "Histoires",
       viewMap: "Carte",
       mapLinkFiles: "Relier les fichiers d'une même histoire",
@@ -2205,6 +2212,7 @@
       mapNoFileLoc: "Nessun file ha un proprio luogo (caricamenti vecchi o roles.sql non eseguito). Sono mostrati solo i luoghi delle storie.",
       mapHere: "{n} file in questo luogo",
       mapMore: "… e altri {n}",
+      navLinks: "Collegamenti tra storie",
       viewStories: "Storie",
       viewMap: "Mappa",
       mapLinkFiles: "Collega i file della stessa storia",
@@ -4808,6 +4816,14 @@
     }
   };
 
+  // Σύνδεσμος «…/annotate/#story=<id>» (π.χ. από τη σελίδα συνδέσεων ιστοριών) ανοίγει κατευθείαν την ιστορία
+  function openFromHash() {
+    var m = /^#story=([\w-]{1,64})$/.exec(location.hash || ''); if (!m) return;
+    var x = STORIES.filter(function (y) { return y.dbId === m[1]; })[0];
+    if (x && x !== currentSheetStory) { if (currentView !== 'stories') setView('stories'); openStory(x); }
+  }
+  window.addEventListener('hashchange', function () { if (isAnnotator() && STORIES.length && okToLeave()) openFromHash(); });
+
   function closeStory() {
     clearSheetMedia(); currentSheetStory = null; annListeners = [];
     $('storyView').hidden = true; $('workEmpty').hidden = false; $('panelRec').innerHTML = ''; $('panelImg').innerHTML = '';
@@ -4857,6 +4873,7 @@
     mapTermsData = null;
     renderList();
     if (currentView === 'map') renderBigMap();
+    openFromHash();
   }
 
   // ---- Σύνδεση ----
@@ -5164,7 +5181,7 @@
     $('noAccess').hidden = !(currentUser && !annot);
     $('appView').hidden = !annot || currentView !== 'stories';
     $('mapView').hidden = !annot || currentView !== 'map';
-    $('viewSwitch').hidden = !annot;
+    $('viewSwitch').hidden = !annot; $('linksPage').hidden = !annot;
     $('helpBtn').hidden = !annot;
     $('userBox').hidden = !currentUser;
     $('userName').textContent = currentUser ? userName(currentUser) : '';

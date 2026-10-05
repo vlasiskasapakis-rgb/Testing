@@ -343,5 +343,53 @@ drop trigger if exists annotations_activity on public.annotations;
 create trigger annotations_activity after insert or update or delete on public.annotations
   for each row execute function public.log_annotation_change();
 
+-- ---------- story links (connect/ page): boards where annotators place stories and connect them ----------
+-- A board holds stories (with their position on the board) and directed links "this story, then that one".
+create table if not exists public.story_boards (
+  id          uuid primary key default gen_random_uuid(),
+  title       text not null check (char_length(title) between 1 and 200),
+  created_by  uuid default auth.uid() references auth.users(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create table if not exists public.story_board_items (
+  board_id    uuid not null references public.story_boards(id) on delete cascade,
+  story_id    uuid not null references public.stories(id) on delete cascade,
+  x           real not null default 0,
+  y           real not null default 0,
+  primary key (board_id, story_id)
+);
+-- Links can only join stories that are on the same board; removing a story from the board (or deleting the story) removes its links.
+create table if not exists public.story_board_links (
+  id          uuid primary key default gen_random_uuid(),
+  board_id    uuid not null references public.story_boards(id) on delete cascade,
+  from_story  uuid not null,
+  to_story    uuid not null,
+  label       text check (label is null or char_length(label) <= 200),
+  created_by  uuid default auth.uid() references auth.users(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  check (from_story <> to_story),
+  unique (board_id, from_story, to_story),
+  foreign key (board_id, from_story) references public.story_board_items(board_id, story_id) on delete cascade,
+  foreign key (board_id, to_story)   references public.story_board_items(board_id, story_id) on delete cascade
+);
+create index if not exists story_board_links_board_idx on public.story_board_links(board_id);
+alter table public.story_boards      enable row level security;
+alter table public.story_board_items enable row level security;
+alter table public.story_board_links enable row level security;
+drop policy if exists "read boards"        on public.story_boards;
+drop policy if exists "annotators boards"  on public.story_boards;
+drop policy if exists "read board items"   on public.story_board_items;
+drop policy if exists "annotators items"   on public.story_board_items;
+drop policy if exists "read board links"   on public.story_board_links;
+drop policy if exists "annotators links"   on public.story_board_links;
+create policy "read boards"       on public.story_boards      for select to authenticated using (public.is_annotator() or public.is_admin());
+create policy "annotators boards" on public.story_boards      for all    to authenticated using (public.is_annotator()) with check (public.is_annotator());
+create policy "read board items"  on public.story_board_items for select to authenticated using (public.is_annotator() or public.is_admin());
+create policy "annotators items"  on public.story_board_items for all    to authenticated using (public.is_annotator()) with check (public.is_annotator());
+create policy "read board links"  on public.story_board_links for select to authenticated using (public.is_annotator() or public.is_admin());
+create policy "annotators links"  on public.story_board_links for all    to authenticated using (public.is_annotator()) with check (public.is_annotator());
+grant select, insert, update, delete on public.story_boards, public.story_board_items, public.story_board_links to authenticated;
+
 -- Make the API pick up new columns immediately (avoids "could not find the column ... in the schema cache")
 notify pgrst, 'reload schema';
