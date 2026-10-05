@@ -12,6 +12,11 @@
 Every new account is a facilitator. This is enforced by the database rules, not only by hiding
 buttons. A story reaches the public only when an annotator presses **Publish for everyone**.
 
+## File names
+When a file has a **title** (📍 details in the upload form), that title is its name everywhere: the upload list, the story view in the
+app (🎙 / 🎬 / 🖼 dropdowns), the timeline, the transcripts, and all of the annotation website. Files without a title keep
+"Audio 2", "Image 1" (numbered per type).
+
 ## Order of the files
 The order of a story's files is the order they appear in the story (and in the app): the first audio is listed and played first.
 - **While uploading** each file has ↑ and ↓ buttons in the list; the list order is the saved order. Numbers ("Audio 1, 2…") follow the new order.
@@ -77,6 +82,13 @@ and for each story:
   **Min. shared terms** filters weak links; terms shared by very many stories are ignored);
 - **Show** filters drafts / published.
 If no file has its own location (older uploads, or `supabase/roles.sql` not yet re-run) the map says so and shows only the story places.
+
+## Help for new annotators (annotation website)
+- The start page and the **Help** button in the header show a 6-step "How it works" guide.
+- Drafts are listed first. Collapsible boxes show ▸ / ▾. The transcription language picker is labelled "Recording language".
+- **Publish** and **Unpublish** ask for confirmation; publishing also says how many suggestions are still unreviewed.
+- Leaving a story, logging out or closing the tab with an unsaved transcript asks first.
+- Image notes: each step gets a ✓ when done, and **Add note** stays disabled with a "Still needed: …" hint until all three are done.
 
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
