@@ -991,6 +991,7 @@
       sugAll: "3 · Πρόταση όρων",
       sugHint: "Χρησιμοποιεί όλες τις αποθηκευμένες απομαγνητοφωνήσεις μαζί με τα στοιχεία της ιστορίας (τίτλος, ταυτότητα, περίοδος, τοποθεσία) και προτείνει όρους για ηχογραφήσεις και εικόνες, μία φορά.",
       sugRunning: "Αναζήτηση… {i}/{n}",
+      sugSkipped: "({k} λιγότερο συχνά ονόματα δεν ελέγχθηκαν.)",
       sugDone: "{n} νέες προτάσεις ({h} υψηλής βεβαιότητας).",
       sugNone: "Δεν βρέθηκαν νέες προτάσεις.",
       sugNothing: "Δεν υπάρχει απομαγνητοφώνηση ούτε στοιχεία (τίτλος, ταυτότητα, περίοδος, τοποθεσία) για να γίνουν προτάσεις.",
@@ -1401,6 +1402,7 @@
       sugAll: "3 · Suggest terms",
       sugHint: "Uses all saved transcripts together with the story's details (title, identity, period, location) and suggests terms for recordings and images, once.",
       sugRunning: "Searching… {i}/{n}",
+      sugSkipped: "({k} less frequent names were not checked.)",
       sugDone: "{n} new suggestions ({h} high confidence).",
       sugNone: "No new suggestions found.",
       sugNothing: "There is no transcript and no details (title, identity, period, location) to suggest from.",
@@ -1814,6 +1816,7 @@
       sugAll: "3 · Suggérer",
       sugHint: "Utilise toutes les transcriptions enregistrées avec les détails de l'histoire (titre, identité, période, lieu) et suggère des termes pour les enregistrements et les images, en une fois.",
       sugRunning: "Recherche… {i}/{n}",
+      sugSkipped: "({k} noms moins fréquents n'ont pas été vérifiés.)",
       sugDone: "{n} nouvelles suggestions ({h} de haute confiance).",
       sugNone: "Aucune nouvelle suggestion.",
       sugNothing: "Il n'y a ni transcription ni détails (titre, identité, période, lieu) pour suggérer.",
@@ -2221,6 +2224,7 @@
       sugAll: "3 · Suggerisci",
       sugHint: "Usa tutte le trascrizioni salvate insieme ai dettagli della storia (titolo, identità, periodo, luogo) e suggerisce termini per registrazioni e immagini, una volta sola.",
       sugRunning: "Ricerca… {i}/{n}",
+      sugSkipped: "({k} nomi meno frequenti non sono stati controllati.)",
       sugDone: "{n} nuovi suggerimenti ({h} ad alta affidabilità).",
       sugNone: "Nessun nuovo suggerimento.",
       sugNothing: "Non ci sono né trascrizione né dettagli (titolo, identità, periodo, luogo) da cui suggerire.",
@@ -3218,7 +3222,14 @@
   var KIND_NAMES = ['person', 'place', 'event', 'object', 'material', 'concept'];
   var WD_EVENT_CLASSES = { Q1190554: 1, Q1656682: 1, Q198: 1, Q178561: 1, Q13418847: 1, Q350604: 1 };
 
-  async function wdSearch(q, lang, limit) {
+  // Τα αποτελέσματα μένουν στη μνήμη όσο είναι ανοιχτή η σελίδα: ξανά «Πρόταση» ή ιστορίες με ίδια ονόματα δεν ξαναρωτούν το Wikidata.
+  var wdSearchCache = {};
+  function wdSearch(q, lang, limit) {
+    var key = lang + '|' + limit + '|' + q;
+    if (!wdSearchCache[key]) wdSearchCache[key] = wdSearchNet(q, lang, limit).catch(function (e) { delete wdSearchCache[key]; throw e; });
+    return wdSearchCache[key];
+  }
+  async function wdSearchNet(q, lang, limit) {
     var r = await fetch(WD_API + '?action=wbsearchentities&format=json&origin=*&limit=' + limit +
       '&language=' + encodeURIComponent(lang) + '&uselang=' + encodeURIComponent(lang) + '&search=' + encodeURIComponent(q));
     if (!r.ok) throw new Error('Wikidata ' + r.status);
@@ -3237,8 +3248,11 @@
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
   function fmtDist(km) { return km < 1 ? Math.round(km * 1000) + ' m' : (km < 10 ? km.toFixed(1) : Math.round(km)) + ' km'; }
+  var wdKindCache = {};
   async function wdKinds(ids) {
     var out = {};
+    ids.forEach(function (id) { if (wdKindCache[id]) out[id] = wdKindCache[id]; });
+    ids = ids.filter(function (id) { return !wdKindCache[id]; });
     for (var i = 0; i < ids.length; i += 50) {
       try {
         var r = await fetch(WD_API + '?action=wbgetentities&format=json&origin=*&props=claims&ids=' + ids.slice(i, i + 50).join('|'));
@@ -3249,7 +3263,7 @@
           var pv = c.P625 && c.P625[0] && c.P625[0].mainsnak && c.P625[0].mainsnak.datavalue && c.P625[0].mainsnak.datavalue.value;
           if (pv && pv.latitude != null) wdCoord[id] = { lat: pv.latitude, lon: pv.longitude };
           var p31 = (c.P31 || []).map(function (x) { return x.mainsnak && x.mainsnak.datavalue && x.mainsnak.datavalue.value && x.mainsnak.datavalue.value.id; });
-          out[id] = p31.indexOf('Q5') >= 0 ? 'person' : c.P625 ? 'place' : p31.some(function (x) { return WD_EVENT_CLASSES[x]; }) ? 'event' : 'concept';
+          out[id] = wdKindCache[id] = p31.indexOf('Q5') >= 0 ? 'person' : c.P625 ? 'place' : p31.some(function (x) { return WD_EVENT_CLASSES[x]; }) ? 'event' : 'concept';
         });
       } catch (e) { /* χωρίς είδος -> 'concept' */ }
     }
@@ -3280,6 +3294,15 @@
     return all;
   }
 
+  var MAX_PHRASES = 300;      // όριο ασφαλείας για πολύ μεγάλες ιστορίες (οι πιο σημαντικές φράσεις ψάχνονται πρώτες)
+  // Άρθρα/προθέσεις στην αρχή μιας φράσης («Στη Μυτιλήνη», «Η Μαρία», «The Harbour») δεν είναι μέρος του ονόματος.
+  var LEAD_TOK = {}; ['στη','στην','στο','στον','στα','στις','στους','σε','απο','απ','με','για','προς','του','της','των','τον','την','το','τα','τη','η','ο','οι','και',
+    'the','in','at','on','of','from','to','and','la','le','les','il','lo','gli','di','de','du','des','da','del','della','en','au','aux','a'].forEach(function (x) { LEAD_TOK[normTok(x)] = 1; });
+  function stripLead(ph) {
+    var w = String(ph).trim().split(/\s+/);
+    while (w.length > 1 && LEAD_TOK[normTok(w[0])]) w.shift();
+    return w.join(' ');
+  }
   // Φράσεις που μοιάζουν με ονόματα (κεφαλαία)· μονές λέξεις στην αρχή πρότασης αγνοούνται.
   function nameCandidates(text) {
     var re = /\p{Lu}[\p{L}\u0300-\u036f'’-]*(?:\s+\p{Lu}[\p{L}\u0300-\u036f'’-]*)*/gu, out = [], m;
@@ -3347,7 +3370,13 @@
       return ct.length === pt_.length && pt_.every(function (x, i) { return sameTok(x, ct[i]); });
     });
   }
-  async function nearbyPlaces(lat, lon, lang) {
+  var nearbyCache = {};
+  function nearbyPlaces(lat, lon, lang) {
+    var key = (+lat).toFixed(4) + ',' + (+lon).toFixed(4) + '|' + lang;
+    if (!nearbyCache[key]) nearbyCache[key] = nearbyPlacesNet(lat, lon, lang);
+    return nearbyCache[key];
+  }
+  async function nearbyPlacesNet(lat, lon, lang) {
     var out = [], seen = {};
     var radii = [[1000, 6], [10000, 4]];
     for (var i = 0; i < radii.length; i++) {
@@ -3405,12 +3434,32 @@
     function ctxFor(mid) { var c = Object.assign({}, cxOf[mid]); c.about = (c.about + ' ' + anyText).trim(); return c; }
 
     // 1. Φράσεις από την απομαγνητοφώνηση και από τα στοιχεία
-    var phr = {};
+    // Παραλλαγές του ίδιου ονόματος («Στη Μυτιλήνη», «Μυτιλήνη», «Μυτιλήνης») γίνονται μία ομάδα = μία αναζήτηση.
+    // Οι ομάδες ταξινομούνται κατά σημασία (πόσες φορές λέγονται, αν υπάρχουν και στα στοιχεία) και ψάχνονται έως MAX_PHRASES.
+    var groups = [];
     avs.forEach(function (m) {
       var tr = trOf[m.id]; if (!tr) return;
-      tr.transcript_segments.forEach(function (g) { nameCandidates(g.text).forEach(function (ph) { (phr[ph] = phr[ph] || []).push({ m: m, g: g }); }); });
+      tr.transcript_segments.forEach(function (g) {
+        nameCandidates(g.text).forEach(function (raw) {
+          var ph = stripLead(raw), tk = tokensOf(ph); if (!tk.length) return;
+          var gr = groups.filter(function (x) { return x.tk.length === tk.length && x.tk.every(function (a, i) { return sameTok(a, tk[i]); }); })[0];
+          if (!gr) { gr = { tk: tk, forms: {}, occ: [], first: groups.length }; groups.push(gr); }
+          gr.forms[ph] = (gr.forms[ph] || 0) + 1;
+          var dup = gr.occ.filter(function (o) { return o.m === m && o.g === g; })[0];
+          if (!dup) gr.occ.push({ m: m, g: g, ph: ph });
+          else if (ph.length < dup.ph.length) dup.ph = ph;
+        });
+      });
     });
-    var phrases = Object.keys(phr).slice(0, 40);
+    var detTok = tokensOf(anyText);
+    groups.forEach(function (gr) {
+      gr.rep = Object.keys(gr.forms).sort(function (a, b) { return gr.forms[b] - gr.forms[a] || a.length - b.length; })[0];
+      gr.rank = gr.occ.length + (findSeq(detTok, gr.tk) >= 0 ? 3 : 0) + (gr.tk.length > 1 ? 0.5 : 0);
+    });
+    groups.sort(function (a, b) { return b.rank - a.rank || a.first - b.first; });
+    var phr = {};
+    groups.slice(0, MAX_PHRASES).forEach(function (gr) { phr[gr.rep] = gr.occ; });
+    var phrases = Object.keys(phr), skipped = Math.max(0, groups.length - MAX_PHRASES);
     var detPhr = {};    // mid -> [φράσεις ταυτότητας/τίτλου]
     var years = {};     // mid -> [έτη/δεκαετίες]
     media.forEach(function (m) {
@@ -3430,7 +3479,7 @@
 
     // 2. Αναζητήσεις στο Wikidata (παράλληλα, ανά 4)
     var found = {}, foundDet = {}, foundYear = {}, nearOf = {};
-    async function inBatches(items, fn) { for (var i = 0; i < items.length; i += 4) await Promise.all(items.slice(i, i + 4).map(fn)); }
+    async function inBatches(items, fn) { for (var i = 0; i < items.length; i += 6) await Promise.all(items.slice(i, i + 6).map(fn)); }
     await inBatches(phrases, function (ph) { return wdSearch(ph, lang, 4).catch(function () { return []; }).then(function (r) { found[ph] = exactOnly(r, ph).slice(0, 4); tick(); }); });
     await inBatches(allDet, function (ph) { return wdSearch(ph, lang, 4).catch(function () { return []; }).then(function (r) { foundDet[ph] = exactOnly(r, ph).slice(0, 4); tick(); }); });
     await inBatches(allYears, function (y) { return wdSearch(y, 'en', 3).catch(function () { return []; }).then(function (r) { foundYear[y] = exactOnly(r, y).slice(0, 1); tick(); }); });
@@ -3458,7 +3507,7 @@
       if (!found[ph].length) return;
       var first = phr[ph][0], best = pickBest(found[ph], ctxFor(first.m.id)), e = ent(best);
       e.phrase = e.phrase || ph;
-      phr[ph].forEach(function (o) { e.lines.push({ mid: o.m.id, seg: o.g, phrase: ph }); });
+      phr[ph].forEach(function (o) { e.lines.push({ mid: o.m.id, seg: o.g, phrase: o.ph || ph }); });
     });
     media.forEach(function (m) {
       var cx = cxOf[m.id];
@@ -3561,7 +3610,7 @@
       }
       if (ins.error) throw ins.error;
     }
-    return { n: rows.length, high: high };
+    return { n: rows.length, high: high, skipped: skipped };
   }
 
   function kindSelect(value, label, onChange) {
@@ -4298,7 +4347,7 @@
     runStep(async function (st) {
       var res = await suggestStory(s, $('trLang').value, function (i2, total) { st.textContent = t('sugRunning', { i: i2, n: total }); });
       notifyAnn();
-      st.textContent = res.empty ? t('sugNothing') : (res.n ? t('sugDone', { n: res.n, h: res.high }) : t('sugNone'));
+      st.textContent = (res.empty ? t('sugNothing') : (res.n ? t('sugDone', { n: res.n, h: res.high }) : t('sugNone'))) + (res.skipped ? ' ' + t('sugSkipped', { k: res.skipped }) : '');
     });
   };
   function showTab(which) {
