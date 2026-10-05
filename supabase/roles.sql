@@ -42,6 +42,14 @@ language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.profiles where user_id = auth.uid() and role = 'annotator');
 $$;
 
+-- Analytics viewers (see the analytics section at the end): independent of facilitator/annotator.
+alter table public.profiles add column if not exists is_admin boolean not null default false;
+create or replace function public.is_admin() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.profiles where user_id = auth.uid() and is_admin);
+$$;
+grant execute on function public.is_admin() to anon, authenticated;
+
 -- ---------- consent ----------
 -- Before a facilitator can add a story, the participant consents on the facilitator's device; the app
 -- generates a short code (WM-XXXX-XXXX) from the record's id. The participant signs a paper form that
@@ -95,7 +103,7 @@ drop policy if exists "owners add drafts"     on public.stories;
 drop policy if exists "annotators publish"    on public.stories;
 drop policy if exists "owners delete own stories" on public.stories;
 create policy "read visible stories" on public.stories for select
-  using (status = 'published' or user_id = auth.uid() or public.is_annotator());
+  using (status = 'published' or user_id = auth.uid() or public.is_annotator() or public.is_admin());
 create policy "owners add drafts" on public.stories for insert to authenticated
   with check (
     user_id = auth.uid() and status = 'draft'
@@ -231,6 +239,96 @@ alter table public.story_media
 
 -- Why a suggested term was proposed (confidence and evidence from the transcript, details and location)
 alter table public.annotations add column if not exists reason text;
+
+-- ---------- analytics ----------
+-- Who may see the analytics website: accounts with is_admin = true (independent of facilitator/annotator).
+--   update public.profiles set is_admin = true
+--   where user_id = (select id from auth.users where email = 'you@example.com');
+
+-- 1) Story consumption in the app. visitor_id is a random id kept in the visitor's browser (no name, e-mail or IP).
+create table if not exists public.story_views (
+  id         bigserial primary key,
+  created_at timestamptz not null default now(),
+  visitor_id uuid not null,
+  user_id    uuid,
+  story_id   uuid not null references public.stories(id) on delete cascade,
+  media_id   uuid references public.story_media(id) on delete cascade,
+  event      text not null check (event in ('open', 'play', 'complete')),
+  via        text check (via in ('ar', 'map', 'list', 'nearest'))
+);
+create index if not exists story_views_story_idx on public.story_views(story_id, created_at);
+create index if not exists story_views_time_idx  on public.story_views(created_at);
+alter table public.story_views enable row level security;
+drop policy if exists "anyone records views" on public.story_views;
+create policy "anyone records views" on public.story_views for insert to anon, authenticated
+  with check ((user_id is null or user_id = auth.uid()) and exists (select 1 from public.stories s where s.id = story_id));
+drop policy if exists "admins read views" on public.story_views;
+create policy "admins read views" on public.story_views for select to authenticated using (public.is_admin());
+grant insert on public.story_views to anon, authenticated;
+grant select on public.story_views to authenticated;
+grant usage on sequence public.story_views_id_seq to anon, authenticated;
+
+-- 2) Annotators' corrections. Term changes are recorded by a trigger (cannot be skipped by the page);
+--    transcript saves are recorded by the annotation website with the number of corrected words/lines.
+create table if not exists public.annotation_activity (
+  id         bigserial primary key,
+  created_at timestamptz not null default now(),
+  user_id    uuid default auth.uid(),
+  user_name  text,
+  story_id   uuid,          -- no foreign keys: the history stays when a story is deleted
+  media_id   uuid,
+  kind       text not null check (kind in ('transcript_save', 'term_approve', 'term_reject', 'term_undo',
+                                           'term_add', 'term_edit', 'term_delete', 'note_add', 'note_delete')),
+  source     text,
+  amount     integer not null default 1,
+  detail     jsonb
+);
+create index if not exists annotation_activity_time_idx on public.annotation_activity(created_at);
+alter table public.annotation_activity enable row level security;
+drop policy if exists "annotators record activity" on public.annotation_activity;
+create policy "annotators record activity" on public.annotation_activity for insert to authenticated
+  with check (public.is_annotator() and user_id = auth.uid() and kind = 'transcript_save');
+drop policy if exists "admins read activity" on public.annotation_activity;
+create policy "admins read activity" on public.annotation_activity for select to authenticated using (public.is_admin());
+grant insert, select on public.annotation_activity to authenticated;
+grant usage on sequence public.annotation_activity_id_seq to authenticated;
+
+create or replace function public.log_annotation_change() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  r public.annotations; k text; mkind text; sid uuid; uname text;
+begin
+  if auth.uid() is null then                                       -- not a person using the website
+    return coalesce(new, old);
+  end if;
+  r := coalesce(new, old);
+  if tg_op = 'INSERT' then
+    if new.source <> 'user' then return new; end if;              -- machine suggestions are not corrections
+  elsif tg_op = 'DELETE' then
+    if old.source = 'auto' and old.status = 'suggested' then return old; end if;   -- replaced suggestions
+  end if;
+  select m.kind, m.story_id into mkind, sid from public.story_media m where m.id = r.media_id;
+  if mkind is null then return coalesce(new, old); end if;          -- the file itself is being deleted (story removed)
+  if tg_op = 'INSERT' then
+    k := case when mkind = 'image' then 'note_add' else 'term_add' end;
+  elsif tg_op = 'DELETE' then
+    k := case when mkind = 'image' then 'note_delete' else 'term_delete' end;
+  elsif old.status is distinct from new.status then
+    k := case new.status when 'approved' then 'term_approve' when 'rejected' then 'term_reject' else 'term_undo' end;
+  elsif (old.start_s, old.end_s, old.kind, old.region_x, old.region_y, old.region_w, old.region_h)
+        is distinct from (new.start_s, new.end_s, new.kind, new.region_x, new.region_y, new.region_w, new.region_h) then
+    k := 'term_edit';
+  else
+    return new;
+  end if;
+  select coalesce(u.raw_user_meta_data->>'display_name', split_part(u.email, '@', 1)) into uname from auth.users u where u.id = auth.uid();
+  insert into public.annotation_activity (user_id, user_name, story_id, media_id, kind, source, detail)
+  values (auth.uid(), uname, sid, r.media_id, k, r.source, jsonb_build_object('term', r.label, 'term_uri', r.term_uri));
+  return coalesce(new, old);
+end $$;
+drop trigger if exists annotations_activity on public.annotations;
+create trigger annotations_activity after insert or update or delete on public.annotations
+  for each row execute function public.log_annotation_change();
 
 -- Make the API pick up new columns immediately (avoids "could not find the column ... in the schema cache")
 notify pgrst, 'reload schema';

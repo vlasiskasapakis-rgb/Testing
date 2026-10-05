@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Walking Memory · Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,700&display=swap" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+  :root {
+    --petrol: #186078; --petrol-deep: #0E3F50; --sky-soft: #E7F4FA; --amber-text: #9A5413;
+    --ink: #12303B; --muted: #4B6470; --line: #D3E3EA; --line-strong: #6F8D99; --mist: #F2F7F9; --danger: #B3261E;
+    /* chart roles (validated categorical slot 1 of the reference palette, light mode) */
+    --surface-1: #ffffff; --series-1: #2a78d6; --grid: #e6ecef; --text-primary: #12303B; --text-secondary: #4B6470;
+    --font: "Exo 2", "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--mist); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.45; }
+  button, input, select { font-family: inherit; font-size: inherit; }
+  button { cursor: pointer; border: 0; border-radius: 999px; }
+  [hidden] { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :focus-visible { outline: 3px solid #249CCC; outline-offset: 2px; }
+
+  header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 24px; background: var(--petrol); color: #fff; }
+  header h1 { margin: 0; font-size: 22px; font-style: italic; flex: 1 1 auto; }
+  header select, header button { min-height: 38px; padding: 6px 14px; border-radius: 999px; border: 0; font-weight: 700; color: var(--petrol); background: #fff; }
+  header label { font-size: 14px; font-weight: 600; }
+  #userName { font-weight: 600; }
+  main { max-width: 1280px; margin: 0 auto; padding: 20px 24px 60px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; }
+  .login { max-width: 420px; margin: 40px auto; }
+  .login label { display: block; font-weight: 600; color: var(--petrol); margin: 10px 0 4px; }
+  .login input { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 10px; }
+  .btn { background: var(--petrol); color: #fff; font-weight: 700; padding: 10px 20px; min-height: 44px; margin-top: 14px; }
+  .btn-sm { background: var(--mist); color: var(--petrol); border: 1px solid var(--line-strong); font-weight: 700; padding: 4px 12px; min-height: 32px; font-size: 13px; }
+  .err { color: var(--danger); font-weight: 600; }
+  .note { color: var(--muted); font-size: 14px; }
+  code { background: var(--mist); padding: 1px 5px; border-radius: 4px; }
+
+  h2 { margin: 0 0 4px; color: var(--petrol); font-size: 22px; font-style: italic; }
+  h3 { margin: 18px 0 8px; color: var(--petrol); font-size: 17px; }
+  .lead { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .kpi { background: var(--mist); border-radius: 12px; padding: 10px 14px; }
+  .kpi .v { font-size: 30px; font-weight: 700; color: var(--text-primary); line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .kpi .l { font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+  .kpi .s { font-size: 12px; color: var(--text-secondary); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: 220px; }
+  .chart .tick { font-size: 11px; fill: var(--text-secondary); }
+  .chart .gl { stroke: var(--grid); stroke-width: 1; }
+  .chart .bar { fill: var(--series-1); }
+  .chart .hit { fill: transparent; }
+  .chart .hit:hover + .bar, .chart .bar.on { fill: #1c5cab; }
+  .tip { position: absolute; pointer-events: none; background: #fff; color: var(--text-primary); border: 1px solid var(--line-strong); border-radius: 8px; padding: 4px 8px; font-size: 13px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,.12); transform: translate(-50%, -110%); }
+  .empty { color: var(--muted); font-size: 14px; padding: 20px 0; }
+  details.tbl > summary { cursor: pointer; color: var(--petrol); font-size: 13px; font-weight: 600; margin-top: 4px; }
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; background: var(--mist); color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: .03em; padding: 7px 10px; white-space: nowrap; cursor: pointer; user-select: none; }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  th[aria-sort="descending"]::after { content: ' ▾'; } th[aria-sort="ascending"]::after { content: ' ▴'; }
+  td { padding: 6px 10px; border-top: 1px solid var(--line); }
+  td.muted { color: var(--muted); }
+  .chip { font-size: 12px; font-weight: 700; } .chip.draft { color: var(--amber-text); } .chip.pub { color: var(--petrol); }
+  .tbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 18px 0 8px; }
+  .tbar h3 { margin: 0; }
+  #tVisitors { max-height: 440px; overflow: auto; }
+  #tVisitors th { position: sticky; top: 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1 data-i="title"></h1>
+  <label><span data-i="range"></span>
+    <select id="range"><option value="7"></option><option value="30" selected></option><option value="90"></option><option value="all"></option></select></label>
+  <select id="lang" aria-label="Language"><option value="el">EL</option><option value="en">EN</option></select>
+  <button id="refresh" type="button" hidden data-i="refresh"></button>
+  <span id="userName"></span>
+  <button id="logout" type="button" hidden data-i="logout"></button>
+</header>
+
+<main>
+  <section id="loginView" class="card login" hidden>
+    <h2 data-i="login"></h2>
+    <p class="note" data-i="loginHint"></p>
+    <form id="loginForm" novalidate>
+      <label for="email" data-i="email"></label><input id="email" type="email" autocomplete="email" required>
+      <label for="pass" data-i="password"></label><input id="pass" type="password" autocomplete="current-password" required>
+      <p id="loginErr" class="err" role="alert"></p>
+      <button class="btn" type="submit" data-i="login"></button>
+    </form>
+  </section>
+
+  <section id="noAccess" class="card login" hidden>
+    <p class="err" data-i="noAccess"></p>
+    <p class="note"><span data-i="noAccessHow"></span><br><code>update public.profiles set is_admin = true where user_id = (select id from auth.users where email = '…');</code></p>
+  </section>
+
+  <div id="dash" hidden>
+    <p id="loadStatus" class="note" role="status"></p>
+
+    <section class="card" aria-labelledby="h-use">
+      <h2 id="h-use" data-i="useTitle"></h2>
+      <p class="lead" data-i="useLead"></p>
+      <div class="kpis" id="useKpis"></div>
+      <div class="grid2">
+        <div><h3 data-i="opensPerDay"></h3><div class="chart" id="chOpens"></div></div>
+        <div><h3 data-i="storiesPerVisitor"></h3><div class="chart" id="chPerVisitor"></div></div>
+      </div>
+      <div class="tbar"><h3 data-i="perStory"></h3><button class="btn-sm" type="button" data-csv="tStories" data-i="csv"></button></div>
+      <div class="tablewrap" id="tStories"></div>
+      <div class="tbar"><h3 data-i="perVisitor"></h3><button class="btn-sm" type="button" data-csv="tVisitors" data-i="csv"></button></div>
+      <p class="lead" data-i="perVisitorLead"></p>
+      <div class="tablewrap" id="tVisitors"></div>
+    </section>
+
+    <section class="card" aria-labelledby="h-ann">
+      <h2 id="h-ann" data-i="annTitle"></h2>
+      <p class="lead" data-i="annLead"></p>
+      <div class="kpis" id="annKpis"></div>
+      <h3 data-i="corrPerDay"></h3>
+      <div class="chart" id="chCorr"></div>
+      <div class="tbar"><h3 data-i="perAnnotator"></h3><button class="btn-sm" type="button" data-csv="tAnnotators" data-i="csv"></button></div>
+      <div class="tablewrap" id="tAnnotators"></div>
+      <div class="tbar"><h3 data-i="perStoryAnn"></h3><button class="btn-sm" type="button" data-csv="tAnnStories" data-i="csv"></button></div>
+      <div class="tablewrap" id="tAnnStories"></div>
+    </section>
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var I18N = {
+    en: {
+      title: 'Walking Memory · Analytics', range: 'Period', d7: 'Last 7 days', d30: 'Last 30 days', d90: 'Last 90 days', dall: 'All time',
+      refresh: 'Refresh', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password',
+      loginHint: 'For administrators of Walking Memory.', loginFail: 'Login failed: {e}',
+      noAccess: 'This account cannot see the analytics.', noAccessHow: 'The project owner can allow it in the Supabase SQL editor (Run as: postgres):',
+      loading: 'Loading…', loaded: 'Updated {t}.', loadFail: 'Could not load the data: {e}', notSetUp: 'The analytics tables are missing. Run supabase/roles.sql once in the Supabase SQL editor (Run as: postgres).',
+      useTitle: 'Story consumption in the app', useLead: 'Each visitor is an anonymous id kept in their browser (no name, e-mail or IP). Opening a story counts once per opening; a play counts the first time a recording starts in that opening.',
+      kVisitors: 'Visitors', kOpens: 'Story openings', kPerVisitor: 'Different stories per visitor', kPlays: 'Recordings played', kComplete: 'Listened to the end', kViaAR: 'Opened from the AR view',
+      ofOpens: '{p}% of openings', avgMax: 'average · most: {m}',
+      opensPerDay: 'Story openings per day', opensPerWeek: 'Story openings per week', storiesPerVisitor: 'Visitors by number of different stories opened',
+      perStory: 'Per story', perVisitor: 'Per visitor (anonymous)', perVisitorLead: 'How many stories each person opened. The id is a random code, not a person’s identity.',
+      cStory: 'Story', cStatus: 'Status', cOpens: 'Openings', cVisitors: 'Visitors', cPlays: 'Plays', cComplete: 'To the end', cAR: 'From AR', cMap: 'From map', cList: 'From list',
+      cVisitor: 'Visitor', cStories: 'Different stories', cLast: 'Last visit', cLastAct: 'Last activity', cLoggedIn: 'Logged in',
+      annTitle: 'Annotators’ corrections', annLead: 'Transcript corrections are counted on every save, against the previous version (or the automatic transcription). Term changes are recorded by the database.',
+      kWords: 'Transcript words corrected', kLines: 'Transcript lines corrected', kSaves: 'Transcripts saved', kApproved: 'Suggestions approved', kRejected: 'Suggestions rejected', kAccept: 'Suggestions accepted',
+      kAdded: 'Terms added by hand', kEdited: 'Terms edited', kDeleted: 'Terms deleted', kNotes: 'Image notes added', kCorrections: 'Corrections in total',
+      corrHint: 'rejected + added + edited + deleted terms + corrected lines', acceptHint: 'approved ÷ (approved + rejected)',
+      corrPerDay: 'Corrections per day', corrPerWeek: 'Corrections per week',
+      perAnnotator: 'Per annotator', perStoryAnn: 'Per story',
+      cAnnotator: 'Annotator', cSaves: 'Saves', cWords: 'Words corr.', cLines: 'Lines corr.', cApproved: 'Approved', cRejected: 'Rejected', cAdded: 'Added', cEdited: 'Edited', cDeleted: 'Deleted', cNotes: 'Image notes', cCorr: 'Corrections',
+      draft: 'Draft', published: 'Published', deleted: '(deleted story)', none: 'No data in this period.', csv: 'Download CSV', showTable: 'Show as table', day: 'Day', week: 'Week of', value: 'Value', yes: 'yes', no: '—'
+    },
+    el: {
+      title: 'Walking Memory · Στατιστικά', range: 'Περίοδος', d7: 'Τελευταίες 7 ημέρες', d30: 'Τελευταίες 30 ημέρες', d90: 'Τελευταίες 90 ημέρες', dall: 'Από την αρχή',
+      refresh: 'Ανανέωση', logout: 'Αποσύνδεση', login: 'Σύνδεση', email: 'E-mail', password: 'Κωδικός',
+      loginHint: 'Για τους διαχειριστές του Walking Memory.', loginFail: 'Η σύνδεση απέτυχε: {e}',
+      noAccess: 'Αυτός ο λογαριασμός δεν έχει πρόσβαση στα στατιστικά.', noAccessHow: 'Ο υπεύθυνος του έργου μπορεί να τη δώσει στο SQL editor του Supabase (Run as: postgres):',
+      loading: 'Φόρτωση…', loaded: 'Ενημερώθηκε {t}.', loadFail: 'Τα δεδομένα δεν φόρτωσαν: {e}', notSetUp: 'Λείπουν οι πίνακες στατιστικών. Τρέξτε μία φορά το supabase/roles.sql στο SQL editor του Supabase (Run as: postgres).',
+      useTitle: 'Χρήση των ιστοριών στην εφαρμογή', useLead: 'Κάθε επισκέπτης είναι ένα ανώνυμο id στη συσκευή του (χωρίς όνομα, e-mail ή IP). Κάθε άνοιγμα ιστορίας μετράει μία φορά· η αναπαραγωγή μετράει την πρώτη φορά που ξεκινά μια ηχογράφηση σε εκείνο το άνοιγμα.',
+      kVisitors: 'Επισκέπτες', kOpens: 'Ανοίγματα ιστοριών', kPerVisitor: 'Διαφορετικές ιστορίες ανά επισκέπτη', kPlays: 'Αναπαραγωγές', kComplete: 'Ακούστηκαν ως το τέλος', kViaAR: 'Ανοίχτηκαν από την προβολή AR',
+      ofOpens: '{p}% των ανοιγμάτων', avgMax: 'μέσος όρος · μέγιστο: {m}',
+      opensPerDay: 'Ανοίγματα ιστοριών ανά ημέρα', opensPerWeek: 'Ανοίγματα ιστοριών ανά εβδομάδα', storiesPerVisitor: 'Επισκέπτες ανά πλήθος διαφορετικών ιστοριών',
+      perStory: 'Ανά ιστορία', perVisitor: 'Ανά επισκέπτη (ανώνυμα)', perVisitorLead: 'Πόσες ιστορίες άνοιξε κάθε άτομο. Το id είναι τυχαίος κωδικός, όχι ταυτότητα.',
+      cStory: 'Ιστορία', cStatus: 'Κατάσταση', cOpens: 'Ανοίγματα', cVisitors: 'Επισκέπτες', cPlays: 'Αναπαραγωγές', cComplete: 'Ως το τέλος', cAR: 'Από AR', cMap: 'Από χάρτη', cList: 'Από λίστα',
+      cVisitor: 'Επισκέπτης', cStories: 'Διαφορετικές ιστορίες', cLast: 'Τελευταία επίσκεψη', cLastAct: 'Τελευταία δραστηριότητα', cLoggedIn: 'Συνδεδεμένος',
+      annTitle: 'Διορθώσεις των σχολιαστών', annLead: 'Οι διορθώσεις της απομαγνητοφώνησης μετριούνται σε κάθε αποθήκευση, σε σχέση με την προηγούμενη μορφή (ή την αυτόματη μεταγραφή). Οι αλλαγές στους όρους καταγράφονται από τη βάση.',
+      kWords: 'Λέξεις απομαγνητοφώνησης που διορθώθηκαν', kLines: 'Γραμμές που διορθώθηκαν', kSaves: 'Αποθηκεύσεις απομαγνητοφώνησης', kApproved: 'Προτάσεις που εγκρίθηκαν', kRejected: 'Προτάσεις που απορρίφθηκαν', kAccept: 'Αποδοχή προτάσεων',
+      kAdded: 'Όροι που προστέθηκαν με το χέρι', kEdited: 'Όροι που διορθώθηκαν', kDeleted: 'Όροι που διαγράφηκαν', kNotes: 'Σημειώσεις σε εικόνες', kCorrections: 'Σύνολο διορθώσεων',
+      corrHint: 'απορρίψεις + προσθήκες + διορθώσεις + διαγραφές όρων + γραμμές', acceptHint: 'εγκρίσεις ÷ (εγκρίσεις + απορρίψεις)',
+      corrPerDay: 'Διορθώσεις ανά ημέρα', corrPerWeek: 'Διορθώσεις ανά εβδομάδα',
+      perAnnotator: 'Ανά σχολιαστή', perStoryAnn: 'Ανά ιστορία',
+      cAnnotator: 'Σχολιαστής', cSaves: 'Αποθηκ.', cWords: 'Λέξεις διορθ.', cLines: 'Γραμμές διορθ.', cApproved: 'Εγκρίσεις', cRejected: 'Απορρίψεις', cAdded: 'Προσθήκες', cEdited: 'Διορθώσεις', cDeleted: 'Διαγραφές', cNotes: 'Σημειώσεις εικόνων', cCorr: 'Διορθώσεις συνολικά',
+      draft: 'Πρόχειρη', published: 'Δημοσιευμένη', deleted: '(διαγραμμένη ιστορία)', none: 'Δεν υπάρχουν δεδομένα σε αυτή την περίοδο.', csv: 'Λήψη CSV', showTable: 'Προβολή ως πίνακας', day: 'Ημέρα', week: 'Εβδομάδα από', value: 'Τιμή', yes: 'ναι', no: '—'
+    }
+  };
+  var LANG = (function () { try { var l = localStorage.getItem('dm_lang'); if (I18N[l]) return l; } catch (e) {} return (navigator.language || 'el').slice(0, 2) === 'el' ? 'el' : 'en'; })();
+  function t(k, v) { var s = (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k; if (v) Object.keys(v).forEach(function (x) { s = s.split('{' + x + '}').join(v[x]); }); return s; }
+  function applyLang() {
+    document.documentElement.lang = LANG; document.title = t('title'); $('lang').value = LANG;
+    document.querySelectorAll('[data-i]').forEach(function (el) { el.textContent = t(el.dataset.i); });
+    var r = $('range'); ['d7', 'd30', 'd90', 'dall'].forEach(function (k, i) { r.options[i].textContent = t(k); });
+  }
+  var nf = function (n) { return Number(n || 0).toLocaleString(LANG === 'el' ? 'el-GR' : 'en-GB'); };
+  function fmtDate(d) { return d.toLocaleDateString(LANG === 'el' ? 'el-GR' : 'en-GB', { day: 'numeric', month: 'short' }); }
+
+  // ---------------- Supabase ----------------
+  var CFG = window.WM_CONFIG || {}, sb = null, user = null;
+  try { if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { sb = null; }
+
+  // PostgREST returns at most ~1000 rows per request: read page by page
+  async function fetchAll(make) {
+    var out = [], size = 1000;
+    for (var from = 0; from < 200000; from += size) {
+      var r = await make().range(from, from + size - 1);
+      if (r.error) throw r.error;
+      out = out.concat(r.data || []);
+      if (!r.data || r.data.length < size) break;
+    }
+    return out;
+  }
+
+  // ---------------- charts: one-series columns with hover tooltip and a table view ----------------
+  function columnChart(box, data, opt) {
+    box.innerHTML = '';
+    if (!data.length || !data.some(function (d) { return d.v > 0; })) { var e = document.createElement('p'); e.className = 'empty'; e.textContent = t('none'); box.appendChild(e); return; }
+    var W = Math.max(320, box.clientWidth || 600), H = 220, L = 40, R = 8, T = 10, B = 26;
+    var max = Math.max.apply(null, data.map(function (d) { return d.v; }));
+    var step = niceStep(max), top = Math.ceil(max / step) * step || 1;
+    var n = data.length, band = (W - L - R) / n, bw = Math.max(2, Math.min(36, band - 2));
+    var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', opt.label + ': ' + data.map(function (d) { return d.l + ' ' + d.v; }).join(', '));
+    function el(tag, a) { var x = document.createElementNS(NS, tag); Object.keys(a).forEach(function (k) { x.setAttribute(k, a[k]); }); svg.appendChild(x); return x; }
+    var y = function (v) { return T + (H - T - B) * (1 - v / top); };
+    for (var g = 0; g <= top; g += step) {
+      el('line', { x1: L, x2: W - R, y1: y(g), y2: y(g), class: 'gl' });
+      var tx = el('text', { x: L - 6, y: y(g) + 4, 'text-anchor': 'end', class: 'tick' }); tx.textContent = nf(g);
+    }
+    var every = Math.ceil(n / Math.max(1, Math.floor((W - L - R) / 56)));
+    var tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true;
+    data.forEach(function (d, i) {
+      var cx = L + band * i + band / 2, x0 = cx - bw / 2, yt = y(d.v), yb = y(0), r = Math.min(4, bw / 2, yb - yt);
+      var hit = el('rect', { x: L + band * i, y: T, width: band, height: H - T - B, class: 'hit' });
+      if (d.v > 0) el('path', { class: 'bar', d: 'M' + x0 + ',' + yb + 'V' + (yt + r) + 'Q' + x0 + ',' + yt + ' ' + (x0 + r) + ',' + yt + 'H' + (x0 + bw - r) + 'Q' + (x0 + bw) + ',' + yt + ' ' + (x0 + bw) + ',' + (yt + r) + 'V' + yb + 'Z' });
+      if (i % every === 0) { var lx = el('text', { x: cx, y: H - 8, 'text-anchor': 'middle', class: 'tick' }); lx.textContent = d.l; }
+      hit.addEventListener('mousemove', function () { tip.hidden = false; tip.textContent = d.l + ': ' + nf(d.v); tip.style.left = (cx / W * 100) + '%'; tip.style.top = (yt / H * 220) + 'px'; });
+      hit.addEventListener('mouseleave', function () { tip.hidden = true; });
+    });
+    box.appendChild(svg); box.appendChild(tip);
+    var det = document.createElement('details'); det.className = 'tbl';
+    var sm = document.createElement('summary'); sm.textContent = t('showTable'); det.appendChild(sm);
+    det.appendChild(makeTable([{ k: 'l', h: opt.xLabel }, { k: 'v', h: opt.label, num: true }], data, null));
+    box.appendChild(det);
+  }
+  function niceStep(max) { var raw = max / 4, p = Math.pow(10, Math.floor(Math.log10(Math.max(raw, 1)))); var m = raw / p; return Math.max(1, (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p); }
+
+  // ---------------- tables (sortable) with CSV ----------------
+  var tableData = {};
+  function makeTable(cols, rows, id, sortKey) {
+    var tb = document.createElement('table'), state = { k: sortKey || null, dir: -1 };
+    function paint() {
+      tb.innerHTML = '';
+      var thead = document.createElement('thead'), hr = document.createElement('tr');
+      cols.forEach(function (c) {
+        var th = document.createElement('th'); th.scope = 'col'; th.textContent = c.h; if (c.num) th.className = 'num';
+        if (state.k === c.k) th.setAttribute('aria-sort', state.dir < 0 ? 'descending' : 'ascending');
+        th.tabIndex = 0;
+        var sortBy = function () { state.dir = state.k === c.k ? -state.dir : -1; state.k = c.k; paint(); };
+        th.onclick = sortBy; th.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sortBy(); } };
+        hr.appendChild(th);
+      });
+      thead.appendChild(hr); tb.appendChild(thead);
+      var list = rows.slice();
+      if (state.k) list.sort(function (a, b) { var x = a[state.k], y = b[state.k]; return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y))) * state.dir; });
+      var body = document.createElement('tbody');
+      if (!list.length) { var tr0 = document.createElement('tr'), td0 = document.createElement('td'); td0.colSpan = cols.length; td0.className = 'muted'; td0.textContent = t('none'); tr0.appendChild(td0); body.appendChild(tr0); }
+      list.forEach(function (r) {
+        var tr = document.createElement('tr');
+        cols.forEach(function (c) {
+          var td = document.createElement('td'); if (c.num) td.className = 'num';
+          if (c.render) c.render(td, r); else td.textContent = c.num ? nf(r[c.k]) : (r[c.k] == null ? '' : r[c.k]);
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+      tb.appendChild(body);
+    }
+    paint();
+    if (id) tableData[id] = { cols: cols, rows: rows };
+    return tb;
+  }
+  function putTable(id, cols, rows, sortKey) {
+    if (sortKey) rows.sort(function (a, b) { return (b[sortKey] || 0) - (a[sortKey] || 0); });   // the CSV keeps the same order
+    var box = $(id); box.innerHTML = ''; box.appendChild(makeTable(cols, rows, id, sortKey)); }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-csv]'); if (!b) return;
+    var d = tableData[b.dataset.csv]; if (!d) return;
+    var esc = function (v) { v = v == null ? '' : String(v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var csv = [d.cols.map(function (c) { return esc(c.h); }).join(',')].concat(d.rows.map(function (r) { return d.cols.map(function (c) { return esc(c.csv ? c.csv(r) : r[c.k]); }).join(','); })).join('\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' }));
+    a.download = 'walking-memory-' + b.dataset.csv + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+
+  function kpis(box, items) {
+    box.innerHTML = '';
+    items.forEach(function (k) {
+      var d = document.createElement('div'); d.className = 'kpi';
+      var v = document.createElement('div'); v.className = 'v'; v.textContent = k.v; d.appendChild(v);
+      var l = document.createElement('div'); l.className = 'l'; l.textContent = k.l; d.appendChild(l);
+      if (k.s) { var s = document.createElement('div'); s.className = 's'; s.textContent = k.s; d.appendChild(s); }
+      box.appendChild(d);
+    });
+  }
+
+  // ---------------- time buckets ----------------
+  function dayKey(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function buckets(since, rows, valueOf) {
+    var start = since ? new Date(since) : (rows.length ? new Date(rows.reduce(function (a, r) { return r.created_at < a ? r.created_at : a; }, rows[0].created_at)) : new Date());
+    start.setHours(0, 0, 0, 0);
+    var days = Math.max(1, Math.ceil((Date.now() - start) / 864e5)), weekly = days > 120, sz = weekly ? 7 : 1;
+    var out = [], idx = {};
+    for (var d = new Date(start); d <= new Date(); d.setDate(d.getDate() + sz)) { idx[dayKey(d)] = out.length; out.push({ l: fmtDate(d), v: 0, key: dayKey(d) }); }
+    rows.forEach(function (r) {
+      var d = new Date(r.created_at); d.setHours(0, 0, 0, 0);
+      var off = Math.floor((d - start) / 864e5 / sz); if (off >= 0 && off < out.length) out[off].v += valueOf(r);
+    });
+    return { data: out, weekly: weekly };
+  }
+
+  // ---------------- load & render ----------------
+  var lastData = null;
+  function renderAll() { if (!lastData) return; renderUse(lastData.views, lastData.byId, lastData.since); renderAnn(lastData.acts, lastData.byId, lastData.since); }
+  async function load() {
+    $('loadStatus').textContent = t('loading');
+    var r = $('range').value, since = r === 'all' ? null : new Date(Date.now() - (+r) * 864e5).toISOString();
+    try {
+      var stories = await fetchAll(function () { return sb.from('stories').select('id,title,status,author_name').order('created_at'); });
+      var views = await fetchAll(function () { var q = sb.from('story_views').select('created_at,visitor_id,user_id,story_id,media_id,event,via').order('created_at'); return since ? q.gte('created_at', since) : q; });
+      var acts = await fetchAll(function () { var q = sb.from('annotation_activity').select('created_at,user_id,user_name,story_id,media_id,kind,source,amount,detail').order('created_at'); return since ? q.gte('created_at', since) : q; });
+      var byId = {}; stories.forEach(function (s) { byId[s.id] = s; });
+      lastData = { views: views, acts: acts, byId: byId, since: since };
+      renderAll();
+      $('loadStatus').textContent = t('loaded', { t: new Date().toLocaleTimeString(LANG === 'el' ? 'el-GR' : 'en-GB', { hour: '2-digit', minute: '2-digit' }) });
+    } catch (e) {
+      var m = (e && e.message) || String(e);
+      $('loadStatus').textContent = /story_views|annotation_activity|does not exist|schema cache/i.test(m) ? t('notSetUp') : t('loadFail', { e: m });
+    }
+  }
+  function storyCell(byId) {
+    return function (td, r) {
+      var s = byId[r.id]; td.textContent = s ? s.title : t('deleted');
+      if (s) { var c = document.createElement('span'); c.className = 'chip ' + (s.status === 'published' ? 'pub' : 'draft'); c.textContent = ' · ' + t(s.status === 'published' ? 'published' : 'draft'); td.appendChild(c); }
+    };
+  }
+
+  function renderUse(views, byId, since) {
+    var opens = views.filter(function (v) { return v.event === 'open'; });
+    var visitors = {}, per = {};
+    opens.forEach(function (v) {
+      var x = visitors[v.visitor_id] || (visitors[v.visitor_id] = { id: v.visitor_id, stories: {}, opens: 0, last: v.created_at, logged: false });
+      x.stories[v.story_id] = 1; x.opens++; if (v.created_at > x.last) x.last = v.created_at; if (v.user_id) x.logged = true;
+    });
+    views.forEach(function (v) {
+      var p = per[v.story_id] || (per[v.story_id] = { id: v.story_id, opens: 0, vis: {}, plays: 0, complete: 0, ar: 0, map: 0, list: 0 });
+      if (v.event === 'open') { p.opens++; p.vis[v.visitor_id] = 1; if (v.via === 'ar' || v.via === 'nearest') p.ar++; else if (v.via === 'map') p.map++; else if (v.via === 'list') p.list++; }
+      else if (v.event === 'play') p.plays++; else if (v.event === 'complete') p.complete++;
+    });
+    var vList = Object.keys(visitors).map(function (k) { var x = visitors[k]; return { id: x.id.slice(0, 8), stories: Object.keys(x.stories).length, opens: x.opens, last: x.last.slice(0, 16).replace('T', ' '), logged: x.logged ? t('yes') : t('no') }; });
+    var nV = vList.length, distinct = vList.reduce(function (a, x) { return a + x.stories; }, 0), maxS = vList.reduce(function (a, x) { return Math.max(a, x.stories); }, 0);
+    var plays = views.filter(function (v) { return v.event === 'play'; }).length, comp = views.filter(function (v) { return v.event === 'complete'; }).length;
+    var viaAR = opens.filter(function (v) { return v.via === 'ar' || v.via === 'nearest'; }).length;
+    kpis($('useKpis'), [
+      { v: nf(nV), l: t('kVisitors') },
+      { v: nf(opens.length), l: t('kOpens') },
+      { v: nV ? (distinct / nV).toLocaleString(LANG === 'el' ? 'el-GR' : 'en-GB', { maximumFractionDigits: 1 }) : '0', l: t('kPerVisitor'), s: t('avgMax', { m: maxS }) },
+      { v: nf(plays), l: t('kPlays') },
+      { v: nf(comp), l: t('kComplete') },
+      { v: nf(viaAR), l: t('kViaAR'), s: opens.length ? t('ofOpens', { p: Math.round(viaAR / opens.length * 100) }) : '' }
+    ]);
+    var b = buckets(since, opens, function () { return 1; });
+    document.querySelector('[data-i="opensPerDay"]').textContent = t(b.weekly ? 'opensPerWeek' : 'opensPerDay');
+    columnChart($('chOpens'), b.data, { label: t(b.weekly ? 'opensPerWeek' : 'opensPerDay'), xLabel: t(b.weekly ? 'week' : 'day') });
+    var hist = [['1', 1, 1], ['2', 2, 2], ['3', 3, 3], ['4', 4, 4], ['5–9', 5, 9], ['10+', 10, 1e9]].map(function (h) { return { l: h[0], v: vList.filter(function (x) { return x.stories >= h[1] && x.stories <= h[2]; }).length }; });
+    columnChart($('chPerVisitor'), hist, { label: t('storiesPerVisitor'), xLabel: t('cStories') });
+    var sRows = Object.keys(per).map(function (k) { var p = per[k]; return { id: k, story: byId[k] ? byId[k].title : t('deleted'), opens: p.opens, visitors: Object.keys(p.vis).length, plays: p.plays, complete: p.complete, ar: p.ar, map: p.map, list: p.list }; });
+    putTable('tStories', [
+      { k: 'story', h: t('cStory'), render: storyCell(byId) }, { k: 'opens', h: t('cOpens'), num: true }, { k: 'visitors', h: t('cVisitors'), num: true },
+      { k: 'plays', h: t('cPlays'), num: true }, { k: 'complete', h: t('cComplete'), num: true }, { k: 'ar', h: t('cAR'), num: true }, { k: 'map', h: t('cMap'), num: true }, { k: 'list', h: t('cList'), num: true }
+    ], sRows, 'opens');
+    putTable('tVisitors', [
+      { k: 'id', h: t('cVisitor') }, { k: 'stories', h: t('cStories'), num: true }, { k: 'opens', h: t('cOpens'), num: true }, { k: 'last', h: t('cLast') }, { k: 'logged', h: t('cLoggedIn') }
+    ], vList, 'stories');
+  }
+
+  var CORR = { term_reject: 1, term_add: 1, term_edit: 1, term_delete: 1 };
+  function corrValue(a) { return a.kind === 'transcript_save' ? ((a.detail && a.detail.lines_corrected) || 0) : (CORR[a.kind] ? 1 : 0); }
+  function renderAnn(acts, byId, since) {
+    var sum = function (f) { return acts.reduce(function (n, a) { return n + f(a); }, 0); };
+    var count = function (k) { return acts.filter(function (a) { return a.kind === k; }).length; };
+    var words = sum(function (a) { return a.kind === 'transcript_save' ? (a.amount || 0) : 0; });
+    var lines = sum(function (a) { return a.kind === 'transcript_save' ? ((a.detail && a.detail.lines_corrected) || 0) : 0; });
+    var appr = acts.filter(function (a) { return a.kind === 'term_approve' && a.source !== 'user'; }).length, rej = count('term_reject');
+    kpis($('annKpis'), [
+      { v: nf(sum(corrValue)), l: t('kCorrections'), s: t('corrHint') },
+      { v: nf(words), l: t('kWords') }, { v: nf(lines), l: t('kLines') }, { v: nf(count('transcript_save')), l: t('kSaves') },
+      { v: nf(appr), l: t('kApproved') }, { v: nf(rej), l: t('kRejected') },
+      { v: appr + rej ? Math.round(appr / (appr + rej) * 100) + '%' : '—', l: t('kAccept'), s: t('acceptHint') },
+      { v: nf(count('term_add')), l: t('kAdded') }, { v: nf(count('term_edit')), l: t('kEdited') }, { v: nf(count('term_delete')), l: t('kDeleted') },
+      { v: nf(count('note_add')), l: t('kNotes') }
+    ]);
+    var b = buckets(since, acts, corrValue);
+    document.querySelector('[data-i="corrPerDay"]').textContent = t(b.weekly ? 'corrPerWeek' : 'corrPerDay');
+    columnChart($('chCorr'), b.data, { label: t(b.weekly ? 'corrPerWeek' : 'corrPerDay'), xLabel: t(b.weekly ? 'week' : 'day') });
+    function group(keyOf, nameOf) {
+      var g = {};
+      acts.forEach(function (a) {
+        var k = keyOf(a); if (!k) return;
+        var x = g[k] || (g[k] = { id: k, name: nameOf(a), saves: 0, words: 0, lines: 0, approved: 0, rejected: 0, added: 0, edited: 0, deleted: 0, notes: 0, corr: 0, last: a.created_at });
+        if (a.kind === 'transcript_save') { x.saves++; x.words += a.amount || 0; x.lines += (a.detail && a.detail.lines_corrected) || 0; }
+        else if (a.kind === 'term_approve') x.approved++; else if (a.kind === 'term_reject') x.rejected++; else if (a.kind === 'term_add') x.added++;
+        else if (a.kind === 'term_edit') x.edited++; else if (a.kind === 'term_delete') x.deleted++; else if (a.kind === 'note_add') x.notes++;
+        x.corr += corrValue(a); if (a.created_at > x.last) x.last = a.created_at;
+        if (!x.name && nameOf(a)) x.name = nameOf(a);
+      });
+      return Object.keys(g).map(function (k) { var x = g[k]; x.last = x.last.slice(0, 16).replace('T', ' '); return x; });
+    }
+    var cols = [{ k: 'corr', h: t('cCorr'), num: true }, { k: 'saves', h: t('cSaves'), num: true }, { k: 'words', h: t('cWords'), num: true }, { k: 'lines', h: t('cLines'), num: true },
+      { k: 'approved', h: t('cApproved'), num: true }, { k: 'rejected', h: t('cRejected'), num: true }, { k: 'added', h: t('cAdded'), num: true },
+      { k: 'edited', h: t('cEdited'), num: true }, { k: 'deleted', h: t('cDeleted'), num: true }, { k: 'notes', h: t('cNotes'), num: true }];
+    putTable('tAnnotators', [{ k: 'name', h: t('cAnnotator') }].concat(cols, [{ k: 'last', h: t('cLastAct') }]),
+      group(function (a) { return a.user_id; }, function (a) { return a.user_name || (a.user_id || '').slice(0, 8); }), 'corr');
+    var sRows = group(function (a) { return a.story_id; }, function (a) { return byId[a.story_id] ? byId[a.story_id].title : t('deleted'); });
+    putTable('tAnnStories', [{ k: 'name', h: t('cStory'), render: function (td, r) { storyCell(byId)(td, r); } }].concat(cols), sRows, 'corr');
+  }
+
+  // ---------------- login / access ----------------
+  async function showState() {
+    $('loginView').hidden = !!user; $('logout').hidden = !user; $('userName').textContent = user ? (user.email || '') : '';
+    $('noAccess').hidden = true; $('dash').hidden = true; $('refresh').hidden = true;
+    if (!user) return;
+    var ok = false;
+    try { var r = await sb.rpc('is_admin'); ok = !r.error && r.data === true; } catch (e) { ok = false; }
+    $('noAccess').hidden = ok; $('dash').hidden = !ok; $('refresh').hidden = !ok;
+    if (ok) load();
+  }
+  $('loginForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault(); $('loginErr').textContent = '';
+    try { var r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pass').value }); if (r.error) throw r.error; }
+    catch (e) { $('loginErr').textContent = t('loginFail', { e: e.message || e }); }
+  });
+  $('logout').onclick = function () { sb.auth.signOut(); };
+  $('refresh').onclick = load;
+  $('range').onchange = function () { if (!$('dash').hidden) load(); };
+  $('lang').onchange = function () { LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang(); if (!$('dash').hidden) renderAll(); };
+  var resizeT; window.addEventListener('resize', function () { clearTimeout(resizeT); resizeT = setTimeout(function () { if (!$('dash').hidden) renderAll(); }, 300); });
+
+  applyLang();
+  if (!sb) { $('loginView').hidden = false; $('loginErr').textContent = 'Supabase is not configured (config.js).'; return; }
+  sb.auth.onAuthStateChange(function (_e, session) { user = session ? session.user : null; showState(); });
+})();
+</script>
+</body>
+</html>
