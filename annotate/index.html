@@ -506,6 +506,13 @@
   /* ---------- Διάταξη ιστοσελίδας ---------- */
   html, body { height: auto; overflow: visible; background: var(--mist); }
   #annotateBtn, #deleteBtn { display: none !important; }
+  #siteDeleteBtn { margin-left: auto; }
+  #delSheet .del-list { margin: 8px 0 12px; padding-left: 22px; }
+  #delSheet .del-ok { display: flex; gap: 10px; align-items: center; font-weight: 600; margin: 10px 0 14px; }
+  #delSheet .del-ok input { width: 22px; height: 22px; }
+  #delSheet .del-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  #delSheet .del-btns button { padding: 12px 22px; min-height: 48px; font-weight: 700; }
+  #delSheet .btn-danger:not(:disabled) { background: var(--danger); color: #fff; }
   .site-head { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 20px; background: var(--petrol); color: #fff; }
   .site-head h1 { color: #fff; font-size: 22px; margin: 0; flex: 1 1 auto; }
   .site-head .lang-select { min-height: 40px; }
@@ -623,6 +630,7 @@
           <button id="exportRdfBtn" class="btn-secondary" hidden data-i18n="exportRdf"></button>
           <button id="annotateBtn" hidden></button>
           <button id="deleteBtn" hidden></button>
+          <button id="siteDeleteBtn" type="button" class="btn-danger" hidden data-i18n="delStoryBtn"></button>
         </div>
         <div class="cols">
           <div class="col-media">
@@ -670,6 +678,19 @@
   </div>
 </div>
 
+<div id="delSheet" class="edit-sheet" role="alertdialog" aria-modal="true" aria-labelledby="delTitle" aria-describedby="delText">
+  <div class="sheet-inner">
+    <h2 id="delTitle"></h2>
+    <p id="delText"></p>
+    <ul id="delList" class="del-list"></ul>
+    <label class="del-ok"><input type="checkbox" id="delOk"><span data-i18n="delUnderstand"></span></label>
+    <p id="delErr" class="field-error" role="alert"></p>
+    <div class="del-btns">
+      <button type="button" id="delGo" class="btn-danger" data-i18n="delGo" disabled></button>
+      <button type="button" id="delCancel" class="btn-secondary" data-i18n="cancel"></button>
+    </div>
+  </div>
+</div>
 <div id="geoSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="geoTitle">
   <div class="sheet-inner">
     <h2 id="geoTitle"></h2>
@@ -913,6 +934,18 @@
       geoAuto: "Συμπληρώθηκε από το Wikidata",
       geoNeedSql: "Η βάση δεν έχει ακόμη τοποθεσίες όρων: τρέξε μία φορά το supabase/roles.sql.",
       mapTermStop: "📍 {t}",
+      delStoryBtn: "Διαγραφή ιστορίας",
+      delTitle: "Διαγραφή «{t}»;",
+      delText: "Η ιστορία θα διαγραφεί οριστικά για όλους (εφαρμογή, χάρτης, ιστοσελίδα σχολιασμού). Μαζί της διαγράφονται:",
+      delFiles: "{n} αρχεία (φωτογραφίες, ήχοι, βίντεο)",
+      delTrs: "οι απομαγνητοφωνήσεις",
+      delAnns: "όλοι οι όροι και οι σημειώσεις εικόνων",
+      delViews: "τα στατιστικά προβολών της",
+      delUnderstand: "Καταλαβαίνω ότι η διαγραφή δεν αναιρείται",
+      delGo: "Οριστική διαγραφή",
+      delDone: "Η ιστορία «{t}» διαγράφηκε.",
+      delDenied: "Η βάση δεν επέτρεψε τη διαγραφή. Τρέξε μία φορά το supabase/roles.sql ώστε οι σχολιαστές να μπορούν να διαγράφουν ιστορίες.",
+      delFailed: "Η διαγραφή απέτυχε: {e}",
       mapLegendKey: "● αρχείο (🖼 φωτογραφία, 🎙 ήχος, 🎬 βίντεο) · ○ τόπος δημιουργίας ιστορίας",
       mapLinkUsers: "Σύνδεση ιστοριών κάθε χρήστη με τη σειρά",
       mapNoFileLoc: "Κανένα αρχείο δεν έχει δική του τοποθεσία (παλιότερες καταχωρίσεις ή δεν έχει τρέξει το roles.sql). Εμφανίζονται μόνο οι τοποθεσίες των ιστοριών.",
@@ -1311,6 +1344,18 @@
       geoAuto: "Filled in from Wikidata",
       geoNeedSql: "The database does not have term locations yet: run supabase/roles.sql once.",
       mapTermStop: "📍 {t}",
+      delStoryBtn: "Delete story",
+      delTitle: "Delete “{t}”?",
+      delText: "The story will be deleted permanently for everyone (app, map, annotation website). This also deletes:",
+      delFiles: "{n} files (photos, audio, video)",
+      delTrs: "its transcripts",
+      delAnns: "all its terms and image notes",
+      delViews: "its view statistics",
+      delUnderstand: "I understand this cannot be undone",
+      delGo: "Delete permanently",
+      delDone: "The story “{t}” was deleted.",
+      delDenied: "The database did not allow the deletion. Run supabase/roles.sql once so annotators can delete stories.",
+      delFailed: "Deleting failed: {e}",
       mapLegendKey: "● file (🖼 photo, 🎙 audio, 🎬 video) · ○ place where the story was created",
       mapLinkUsers: "Connect each user's stories in order",
       mapNoFileLoc: "None of the files has its own location (older uploads, or roles.sql has not been run). Only story locations are shown.",
@@ -1712,6 +1757,18 @@
       geoAuto: "Rempli depuis Wikidata",
       geoNeedSql: "La base n'a pas encore de lieux pour les termes : exécutez une fois supabase/roles.sql.",
       mapTermStop: "📍 {t}",
+      delStoryBtn: "Supprimer l'histoire",
+      delTitle: "Supprimer « {t} » ?",
+      delText: "L'histoire sera supprimée définitivement pour tout le monde (application, carte, site d'annotation). Sont aussi supprimés :",
+      delFiles: "{n} fichiers (photos, audio, vidéo)",
+      delTrs: "ses transcriptions",
+      delAnns: "tous ses termes et notes d'image",
+      delViews: "ses statistiques de consultation",
+      delUnderstand: "Je comprends que c'est irréversible",
+      delGo: "Supprimer définitivement",
+      delDone: "L'histoire « {t} » a été supprimée.",
+      delDenied: "La base n'a pas autorisé la suppression. Exécutez une fois supabase/roles.sql pour que les annotateurs puissent supprimer des histoires.",
+      delFailed: "La suppression a échoué : {e}",
       mapLegendKey: "● fichier (🖼 photo, 🎙 audio, 🎬 vidéo) · ○ lieu de création de l'histoire",
       mapLinkUsers: "Relier les histoires de chaque utilisateur dans l'ordre",
       mapNoFileLoc: "Aucun fichier n'a son propre lieu (anciens envois, ou roles.sql n'a pas été exécuté). Seuls les lieux des histoires sont affichés.",
@@ -2107,6 +2164,18 @@
       geoAuto: "Compilato da Wikidata",
       geoNeedSql: "Il database non ha ancora i luoghi dei termini: esegui una volta supabase/roles.sql.",
       mapTermStop: "📍 {t}",
+      delStoryBtn: "Elimina la storia",
+      delTitle: "Eliminare «{t}»?",
+      delText: "La storia sarà eliminata definitivamente per tutti (app, mappa, sito di annotazione). Vengono eliminati anche:",
+      delFiles: "{n} file (foto, audio, video)",
+      delTrs: "le sue trascrizioni",
+      delAnns: "tutti i suoi termini e le note delle immagini",
+      delViews: "le sue statistiche di visualizzazione",
+      delUnderstand: "Capisco che non si può annullare",
+      delGo: "Elimina definitivamente",
+      delDone: "La storia «{t}» è stata eliminata.",
+      delDenied: "Il database non ha permesso l'eliminazione. Esegui una volta supabase/roles.sql perché gli annotatori possano eliminare le storie.",
+      delFailed: "Eliminazione non riuscita: {e}",
       mapLegendKey: "● file (🖼 foto, 🎙 audio, 🎬 video) · ○ luogo di creazione della storia",
       mapLinkUsers: "Collega le storie di ogni utente in ordine",
       mapNoFileLoc: "Nessun file ha un proprio luogo (caricamenti vecchi o roles.sql non eseguito). Sono mostrati solo i luoghi delle storie.",
@@ -3053,11 +3122,12 @@
     var annotatable = !!(s.media && s.media.some(function (m) { return m.id; }));
     $('annotateBtn').hidden = !(ann && annotatable);
     $('deleteBtn').hidden = !(owner && hasDbMedia(s));
+    $('siteDeleteBtn').hidden = !(sb && s.dbId && (ann || owner));
     $('exportBtn').hidden = !hasDbMedia(s);
     $('exportRdfBtn').hidden = $('exportBtn').hidden;
     renderPublishUI(s);
     renderConsentUI(s);
-    $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden && $('deleteBtn').hidden && $('publishBtn').hidden;
+    $('sheetTools').hidden = $('annotateBtn').hidden && $('exportBtn').hidden && $('deleteBtn').hidden && $('publishBtn').hidden && $('siteDeleteBtn').hidden;
     if (!hasDbMedia(s)) return;
     function loadNotice(msg) {
       var n = document.createElement('p'); n.className = 'field-error'; n.textContent = t('annLoadFail', { e: msg });
@@ -4576,6 +4646,45 @@
       ol.appendChild(li);
     });
   }
+  // ---- Διαγραφή ιστορίας (σχολιαστές, ή ο δημιουργός της) ----
+  var delStory = null;
+  $('siteDeleteBtn').onclick = function () {
+    var s = currentSheetStory; if (!s || !s.dbId) return;
+    if (!okToLeave()) return;
+    delStory = s;
+    $('delTitle').textContent = t('delTitle', { t: st(s).title });
+    $('delText').textContent = t('delText');
+    var ul = $('delList'); ul.innerHTML = '';
+    var n = s.media.filter(function (m) { return m.id; }).length;
+    [n ? t('delFiles', { n: n }) : null, t('delTrs'), t('delAnns'), t('delViews')].filter(Boolean).forEach(function (x) { var li = document.createElement('li'); li.textContent = x; ul.appendChild(li); });
+    $('delOk').checked = false; $('delGo').disabled = true; $('delErr').textContent = '';
+    openDialog('delSheet', $('delOk'));
+  };
+  $('delOk').onchange = function () { $('delGo').disabled = !this.checked; };
+  $('delCancel').onclick = function () { closeDialog('delSheet'); };
+  escHandlers.delSheet = function () { closeDialog('delSheet'); };
+  $('delGo').onclick = async function () {
+    var s = delStory, b = this; if (!s || !$('delOk').checked) return;
+    b.disabled = true; $('delErr').textContent = '';
+    try {
+      // Η γραμμή σβήνεται πρώτη (μαζί και αρχεία-γραμμές, απομαγνητοφωνήσεις, όροι, συνδέσεις)· τα αρχεία της αποθήκης μετά.
+      var r = await sb.from('stories').delete().eq('id', s.dbId).select('id');
+      if (r.error) throw r.error;
+      if (!r.data || !r.data.length) { $('delErr').textContent = t('delDenied'); b.disabled = false; return; }
+      var paths = s.media.map(function (m) { return m.path; }).filter(Boolean);
+      if (paths.length) { try { await sb.storage.from('story-media').remove(paths); } catch (e) { /* ορφανά αρχεία δεν επηρεάζουν τίποτα */ } }
+      closeDialog('delSheet', true);
+      STORIES = STORIES.filter(function (x) { return x !== s; });
+      mapTermsData = null; delStory = null;
+      closeStory(); renderList();
+      if (currentView === 'map') renderBigMap();
+      announce(t('delDone', { t: st(s).title }));
+      $('exportAllStatus').textContent = t('delDone', { t: st(s).title });
+    } catch (e) {
+      $('delErr').textContent = t('delFailed', { e: errText(e) }); b.disabled = false;
+    }
+  };
+
   function closeStory() {
     clearSheetMedia(); currentSheetStory = null; annListeners = [];
     $('storyView').hidden = true; $('workEmpty').hidden = false; $('panelRec').innerHTML = ''; $('panelImg').innerHTML = '';

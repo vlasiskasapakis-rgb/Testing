@@ -69,6 +69,14 @@ Among several Wikidata matches for a name, the one nearest the location (or whos
 Unreviewed automatic suggestions are replaced on each run; approved, rejected and hand-made terms are kept.
 Re-run `supabase/roles.sql` once (it adds `annotations.reason`; suggestions work without it, but the "Why" text is then not saved).
 
+## Deleting a story (annotation website)
+Annotators can delete **any** story (the person who uploaded it can still delete their own in the app). Open the story and press
+**Delete story** (top right). A dialog lists what goes with it — its files, transcripts, terms and image notes, and its view
+statistics — and the button only works after ticking **I understand this cannot be undone**. The story disappears for everyone
+(app, map, annotation website); its uploaded files are removed from storage. The analytics history of annotators' corrections is kept.
+This needs `supabase/roles.sql` to be re-run once (it lets annotators delete stories and their files); until then the site says
+the database did not allow the deletion and nothing is removed.
+
 ## Map of all locations (annotation website)
 The **Map** button in the header (next to **Stories**) shows every location that users uploaded, **for each file** (photo, audio, video)
 and for each story:

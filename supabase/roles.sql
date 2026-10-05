@@ -113,7 +113,7 @@ create policy "owners add drafts" on public.stories for insert to authenticated
 create policy "annotators publish" on public.stories for update to authenticated
   using (public.is_annotator()) with check (public.is_annotator());
 create policy "owners delete own stories" on public.stories for delete to authenticated
-  using (user_id = auth.uid());
+  using (user_id = auth.uid() or public.is_annotator());   -- annotators may delete any story (annotation website)
 
 -- ---------- media rows inherit the visibility of their story ----------
 drop policy if exists "media is public"      on public.story_media;
@@ -121,6 +121,11 @@ drop policy if exists "read visible media"   on public.story_media;
 create policy "read visible media" on public.story_media for select
   using (exists (select 1 from public.stories s where s.id = story_media.story_id));
 -- "owners insert media" / "owners delete media" from schema.sql stay as they are.
+
+-- Annotators who delete a story also remove its uploaded files from storage.
+drop policy if exists "annotators delete files" on storage.objects;
+create policy "annotators delete files" on storage.objects for delete to authenticated
+  using (bucket_id = 'story-media' and public.is_annotator());
 
 -- Reordering recordings: the owner of a story or an annotator may change the position of its media (nothing else).
 drop policy if exists "reorder media" on public.story_media;
