@@ -240,6 +240,14 @@ alter table public.story_media
 -- Why a suggested term was proposed (confidence and evidence from the transcript, details and location)
 alter table public.annotations add column if not exists reason text;
 
+-- Where a term on a transcript line took place (optional; filled from Wikidata when known, or picked on the map by an annotator)
+alter table public.annotations
+  add column if not exists lat double precision,
+  add column if not exists lon double precision;
+alter table public.annotations drop constraint if exists annotations_geo_check;
+alter table public.annotations add  constraint annotations_geo_check check (
+  (lat is null) = (lon is null) and (lat is null or (lat between -90 and 90 and lon between -180 and 180)));
+
 -- ---------- analytics ----------
 -- Who may see the analytics website: accounts with is_admin = true (independent of facilitator/annotator).
 --   update public.profiles set is_admin = true
@@ -315,8 +323,8 @@ begin
     k := case when mkind = 'image' then 'note_delete' else 'term_delete' end;
   elsif old.status is distinct from new.status then
     k := case new.status when 'approved' then 'term_approve' when 'rejected' then 'term_reject' else 'term_undo' end;
-  elsif (old.start_s, old.end_s, old.kind, old.region_x, old.region_y, old.region_w, old.region_h)
-        is distinct from (new.start_s, new.end_s, new.kind, new.region_x, new.region_y, new.region_w, new.region_h) then
+  elsif (old.start_s, old.end_s, old.kind, old.region_x, old.region_y, old.region_w, old.region_h, old.lat, old.lon)
+        is distinct from (new.start_s, new.end_s, new.kind, new.region_x, new.region_y, new.region_w, new.region_h, new.lat, new.lon) then
     k := 'term_edit';
   else
     return new;
