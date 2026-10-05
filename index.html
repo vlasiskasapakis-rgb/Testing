@@ -350,6 +350,29 @@
   .web-steps { margin: 18px 0 8px; padding-left: 22px; color: var(--muted); }
   .web-steps li { margin: 4px 0; }
   .web-card a { color: var(--petrol); font-weight: 600; }
+  .browse-home { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--mist); z-index: 10; }
+  .browse-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 380px 1fr; }
+  .browse-side { overflow: auto; padding: 18px 20px 30px; background: var(--paper); border-right: 1px solid var(--line); }
+  .browse-intro { color: var(--muted); margin: 0 0 12px; }
+  .browse-side input[type=search] { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 16px; }
+  .browse-side select { width: 100%; }
+  .browse-side a { color: var(--petrol); font-weight: 600; }
+  .browse-map { min-height: 0; }
+  .browse-list { list-style: none; margin: 8px 0 14px; padding: 0; }
+  .browse-list li { margin-bottom: 8px; }
+  .browse-list button { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; padding: 10px; border-radius: 14px; background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .browse-list button:hover, .browse-list button.on { border-color: var(--petrol); background: var(--sky-soft); }
+  .browse-list .th { flex: none; width: 64px; height: 64px; border-radius: 10px; background: var(--mist) center/cover no-repeat; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+  .browse-list .no { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 3px solid var(--petrol); color: var(--petrol); font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .browse-list .tx { min-width: 0; }
+  .browse-list .tx b { display: block; color: var(--petrol); font-style: italic; font-size: 17px; }
+  .browse-list .tx span { display: block; font-size: 13px; color: var(--muted); }
+  @media (max-width: 820px) {
+    .browse-body { grid-template-columns: 1fr; grid-template-rows: 45vh auto; overflow: auto; }
+    .browse-map { order: -1; height: 45vh; }
+    .browse-side { border-right: 0; overflow: visible; }
+    .browse-home { overflow: auto; }
+  }
   body.web .edit-sheet { justify-content: center; align-items: center; }
   body.web .sheet-inner { width: min(780px, 94vw); border-radius: 22px; max-height: 92vh; }
   body.web #hud, body.web #ar-overlay-container, body.web #addBtn, body.web #drawer { display: none !important; }
@@ -479,6 +502,36 @@
 <!-- Ανακοινώσεις για αναγνώστες οθόνης (WCAG 4.1.3) -->
 <div id="srLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
+<!-- Ιστοσελίδα για επισκέπτες (index.html?view=1 ή stories/): χάρτης και λίστα ιστοριών, διαδρομές, χωρίς σύνδεση -->
+<div id="browseHome" class="browse-home" hidden>
+  <header class="web-head">
+    <h1 data-i18n="browseTitle"></h1>
+    <label for="langBrowse" class="sr-only" data-i18n="language"></label>
+    <select id="langBrowse" class="lang-select">
+      <option value="el" lang="el">EL</option><option value="en" lang="en">EN</option><option value="fr" lang="fr">FR</option><option value="it" lang="it">IT</option>
+    </select>
+  </header>
+  <div class="browse-body">
+    <aside class="browse-side" aria-labelledby="browseHead">
+      <h2 id="browseHead" class="sr-only" data-i18n="browseTitle"></h2>
+      <p class="browse-intro" data-i18n="browseIntro"></p>
+      <div id="browseWalkWrap" class="input-group" hidden>
+        <label for="browseWalk" data-i18n="browseShow"></label>
+        <select id="browseWalk" class="lang-select"></select>
+        <p id="browseWalkDesc" class="sheet-sub"></p>
+      </div>
+      <div class="input-group">
+        <label for="browseSearch" class="sr-only" data-i18n="browseSearchPh"></label>
+        <input type="search" id="browseSearch" data-i18n-ph="browseSearchPh" autocomplete="off">
+      </div>
+      <p id="browseCount" class="sheet-sub" role="status"></p>
+      <ol id="browseList" class="browse-list"></ol>
+      <p class="sheet-sub"><a href="./" data-i18n="browseToApp"></a></p>
+    </aside>
+    <div id="browseMap" class="browse-map" role="region" data-i18n-aria="map"></div>
+  </div>
+</div>
+
 <!-- Ιστοσελίδα για διευκολυντές (index.html?web=1 ή upload/): ίδιο ανέβασμα ιστοριών, χωρίς AR/GPS -->
 <div id="webHome" class="web-home" hidden>
   <header class="web-head">
@@ -531,6 +584,7 @@
   <div id="gateMode" class="mode-choose"></div>
   <button id="startBtn" data-i18n="start"></button>
   <button id="authBtnGate" class="link-btn" hidden></button>
+  <p class="gate-web"><a href="?view=1" data-i18n="gateBrowse"></a></p>
   <p class="gate-web"><a href="?web=1" data-i18n="gateWeb"></a></p>
 </div>
 </main>
@@ -1117,6 +1171,16 @@
       placeSearchGo: "Αναζήτηση",
       placeNone: "Δεν βρέθηκε τίποτα.",
       placeErr: "Η αναζήτηση απέτυχε: {e}",
+      browseTitle: "Walking Memory · Ιστορίες",
+      browseIntro: "Άκου τις ιστορίες του τόπου. Διάλεξε μια ιστορία στον χάρτη ή στη λίστα.",
+      browseShow: "Εμφάνιση",
+      browseAll: "Όλες οι ιστορίες",
+      browseSearchPh: "Αναζήτηση ιστοριών…",
+      browseCount: "{n} ιστορίες", browseCount1: "1 ιστορία",
+      browseEmpty: "Δεν βρέθηκαν ιστορίες.",
+      browseToApp: "Άνοιγμα της εφαρμογής AR (σε κινητό)",
+      gateBrowse: "Χωρίς κινητό; Δες τις ιστορίες στην ιστοσελίδα",
+      browseByAuthor: "από {n}",
       miLocNone: "Δεν έχει οριστεί τοποθεσία",
       miSave: "Αποθήκευση στοιχείων",
       miEmpty: "Πρόσθεσε τίτλο, ημερομηνία και τοποθεσία",
@@ -1452,6 +1516,16 @@
       placeSearchGo: "Search",
       placeNone: "Nothing found.",
       placeErr: "Search failed: {e}",
+      browseTitle: "Walking Memory · Stories",
+      browseIntro: "Listen to the stories of the place. Choose a story on the map or in the list.",
+      browseShow: "Show",
+      browseAll: "All stories",
+      browseSearchPh: "Search stories…",
+      browseCount: "{n} stories", browseCount1: "1 story",
+      browseEmpty: "No stories found.",
+      browseToApp: "Open the AR app (on a phone)",
+      gateBrowse: "No phone at hand? See the stories on the website",
+      browseByAuthor: "by {n}",
       miLocNone: "No location set",
       miSave: "Save details",
       miEmpty: "Add a title, date and location",
@@ -1787,6 +1861,16 @@
       placeSearchGo: "Rechercher",
       placeNone: "Aucun résultat.",
       placeErr: "La recherche a échoué : {e}",
+      browseTitle: "Walking Memory · Histoires",
+      browseIntro: "Écoutez les histoires du lieu. Choisissez une histoire sur la carte ou dans la liste.",
+      browseShow: "Afficher",
+      browseAll: "Toutes les histoires",
+      browseSearchPh: "Rechercher des histoires…",
+      browseCount: "{n} histoires", browseCount1: "1 histoire",
+      browseEmpty: "Aucune histoire trouvée.",
+      browseToApp: "Ouvrir l’application AR (sur un téléphone)",
+      gateBrowse: "Pas de téléphone ? Voir les histoires sur le site",
+      browseByAuthor: "par {n}",
       miLocNone: "Aucun lieu défini",
       miSave: "Enregistrer les détails",
       miEmpty: "Ajoutez un titre, une date et un lieu",
@@ -2122,6 +2206,16 @@
       placeSearchGo: "Cerca",
       placeNone: "Nessun risultato.",
       placeErr: "Ricerca non riuscita: {e}",
+      browseTitle: "Walking Memory · Storie",
+      browseIntro: "Ascolta le storie del luogo. Scegli una storia sulla mappa o nell’elenco.",
+      browseShow: "Mostra",
+      browseAll: "Tutte le storie",
+      browseSearchPh: "Cerca storie…",
+      browseCount: "{n} storie", browseCount1: "1 storia",
+      browseEmpty: "Nessuna storia trovata.",
+      browseToApp: "Apri l’app AR (su un telefono)",
+      gateBrowse: "Niente telefono? Guarda le storie sul sito",
+      browseByAuthor: "di {n}",
       miLocNone: "Nessun luogo impostato",
       miSave: "Salva i dettagli",
       miEmpty: "Aggiungi titolo, data e luogo",
@@ -2708,6 +2802,7 @@
   var storyLoc = null;     // τοποθεσία ιστορίας από τον χάρτη (αλλιώς το στίγμα GPS)
   // Ιστοσελίδα για υπολογιστή: ίδιο ανέβασμα, χωρίς AR και GPS (η τοποθεσία επιλέγεται πάντα στον χάρτη)
   var WEB = /[?&]web=1\b/.test(location.search);
+  var BROWSE = !WEB && /[?&]view=1\b/.test(location.search);    // ιστοσελίδα επισκεπτών
   function renderLoc() {
     var c = function (p) { return (+p.lat).toFixed(5) + ', ' + (+p.lon).toFixed(5); };
     $('locDisplay').textContent = storyLoc ? '🗺 ' + t('locFromMap', { c: c(storyLoc) }) : me ? '📍 ' + t('locFromGps', { c: c(me) }) : t(WEB ? 'locNeededWeb' : 'locNeeded');
@@ -3049,6 +3144,7 @@
   }
   function savedWalk() { try { var v = localStorage.getItem('wm_mode') || ''; return v.indexOf('walk:') === 0 ? v.slice(5) : ''; } catch (e) { return ''; } }
   function renderChoosers() {
+    renderBrowse();
     if (!gateChooser) gateChooser = buildChooser($('gateMode'), 'gateModeR'); else if ($('gate').style.display !== 'none') gateChooser.render();
     $('gateMode').hidden = !WALKS.length;      // χωρίς διαδρομές δεν χρειάζεται επιλογή
     if ($('modeSheet').classList.contains('on')) renderModeSheet();
@@ -5322,6 +5418,70 @@
     $('storyLocGps').hidden = true; $('miLocGps').hidden = true;      // χωρίς GPS
     document.querySelector('[data-i18n="locHint"]').setAttribute('data-i18n', 'locHintWeb');
   }
+  // ---- Ιστοσελίδα επισκεπτών: χάρτης + λίστα δημοσιευμένων ιστοριών, προαιρετικά μια διαδρομή με τη σειρά της ----
+  var browseMap = null, browseLayer = null, browseFitKey = '';
+  if (BROWSE) {
+    document.body.classList.add('web');
+    $('gate').style.display = 'none';
+    $('browseHome').hidden = false;
+    browseMap = L.map('browseMap', { zoomControl: true }).setView(DEFAULT_CENTER, 14);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(browseMap);
+    $('browseWalk').onchange = function () { renderBrowse(); };
+    $('browseSearch').oninput = function () { renderBrowse(true); };
+    $('langBrowse').addEventListener('change', function () { setLang(this.value); });
+    onLangChange(function () { $('langBrowse').value = LANG; renderBrowse(true); });
+  }
+  function browseWalk() { var v = $('browseWalk').value; return v ? WALKS.filter(function (w) { return w.id === v; })[0] || null : null; }
+  function renderBrowse(keepView) {
+    if (!BROWSE || !browseMap) return;
+    var sel = $('browseWalk'), cur = sel.value;
+    sel.innerHTML = '';
+    var o0 = document.createElement('option'); o0.value = ''; o0.textContent = t('browseAll'); sel.appendChild(o0);
+    WALKS.forEach(function (w) { var o = document.createElement('option'); o.value = w.id; o.textContent = '🚶 ' + w.title + ' · ' + t('walkStops', { n: walkStopsOf(w).length }); sel.appendChild(o); });
+    sel.value = WALKS.some(function (w) { return w.id === cur; }) ? cur : '';
+    $('browseWalkWrap').hidden = !WALKS.length;
+    var w = browseWalk();
+    $('browseWalkDesc').textContent = w ? w.description : '';
+    var all = w ? walkStopsOf(w) : STORIES.filter(function (x) { return x.dbId && x.status === 'published'; }).sort(function (a, b) { return st(a).title.localeCompare(st(b).title); });
+    var q = ($('browseSearch').value || '').trim().toLowerCase();
+    var list = all.filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '')).toLowerCase().indexOf(q) >= 0; });
+    $('browseCount').textContent = list.length === 1 ? t('browseCount1') : list.length ? t('browseCount', { n: list.length }) : t('browseEmpty');
+    var ol = $('browseList'); ol.innerHTML = '';
+    list.forEach(function (x) {
+      var li = document.createElement('li'), b = document.createElement('button'); b.type = 'button';
+      if (w) { var no = document.createElement('span'); no.className = 'no'; no.textContent = all.indexOf(x) + 1; no.setAttribute('aria-hidden', 'true'); b.appendChild(no); }
+      var img = x.media.filter(function (m) { return m.kind === 'image'; })[0], th = document.createElement('span'); th.className = 'th'; th.setAttribute('aria-hidden', 'true');
+      if (img) th.style.backgroundImage = 'url("' + String(img.url).replace(/"/g, '%22') + '")'; else th.textContent = x.media.some(function (m) { return m.kind === 'video'; }) ? '🎬' : '🎙';
+      b.appendChild(th);
+      var tx = document.createElement('span'); tx.className = 'tx';
+      var tb = document.createElement('b'); tb.textContent = (w ? (all.indexOf(x) + 1) + '. ' : '') + st(x).title; tx.appendChild(tb);
+      var cnt = {}; x.media.forEach(function (m) { cnt[m.kind] = (cnt[m.kind] || 0) + 1; });
+      var meta = document.createElement('span'); meta.textContent = [x.author ? t('browseByAuthor', { n: x.author }) : '', ['audio', 'video', 'image'].filter(function (k) { return cnt[k]; }).map(function (k) { return KIND_ICON[k] + ' ' + cnt[k]; }).join('  ')].filter(Boolean).join(' · ');
+      tx.appendChild(meta); b.appendChild(tx);
+      b.onclick = function () { browseMap.setView([x.lat, x.lon], Math.max(browseMap.getZoom(), 16)); openStorySheet(x, 'list'); };
+      li.appendChild(b); ol.appendChild(li);
+    });
+    // χάρτης
+    if (browseLayer) browseMap.removeLayer(browseLayer);
+    browseLayer = w ? L.layerGroup() : (L.markerClusterGroup ? L.markerClusterGroup({ maxClusterRadius: 40, iconCreateFunction: function (c) { return L.divIcon({ html: c.getChildCount(), className: 'map-cluster-dot', iconSize: [32, 32] }); } }) : L.layerGroup());
+    if (w && list.length > 1) L.polyline(all.map(function (x) { return [x.lat, x.lon]; }), { color: '#186078', weight: 4, opacity: .7, dashArray: '8 8', interactive: false }).addTo(browseLayer);
+    list.forEach(function (x) {
+      var n = all.indexOf(x) + 1, name = (w ? n + '. ' : '') + st(x).title;
+      var icon = w ? L.divIcon({ className: '', html: '<div class="walk-pin">' + n + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] })
+                   : L.divIcon({ html: '<div class="poi-dot"></div>', iconSize: [24, 24], iconAnchor: [12, 12], className: '' });
+      var mk = L.marker([x.lat, x.lon], { icon: icon, title: name, alt: name, keyboard: true }).on('click', function () { openStorySheet(x, 'map'); });
+      browseLayer.addLayer(mk);
+    });
+    browseMap.addLayer(browseLayer);
+    var key = (w ? w.id : 'all') + ':' + all.length;
+    if (!keepView && key !== browseFitKey && list.length) {
+      browseFitKey = key;
+      var pts = list.map(function (x) { return [x.lat, x.lon]; });
+      if (pts.length === 1) browseMap.setView(pts[0], 16); else browseMap.fitBounds(pts, { padding: [40, 40], maxZoom: 17 });
+    }
+    setTimeout(function () { browseMap.invalidateSize(); }, 50);
+  }
+
   function renderWeb() {
     if (!WEB) return;
     var inn = !!currentUser;
