@@ -991,6 +991,13 @@
       sugAll: "3 · Πρόταση όρων",
       sugHint: "Χρησιμοποιεί όλες τις αποθηκευμένες απομαγνητοφωνήσεις μαζί με τα στοιχεία της ιστορίας (τίτλος, ταυτότητα, περίοδος, τοποθεσία) και προτείνει όρους για ηχογραφήσεις και εικόνες, μία φορά.",
       sugRunning: "Αναζήτηση… {i}/{n}",
+      sugAiAsking: "Η ΤΝ διαβάζει τις απομαγνητοφωνήσεις…",
+      sugAiUsed: "Η ΤΝ βρήκε {n} αναφορές (ελέγχθηκαν στο Wikidata).",
+      sugAiPartial: "(Μόνο μέρος της ιστορίας: εξαντλήθηκε το δωρεάν όριο.)",
+      sugAiQuota: "(Η ΤΝ δεν χρησιμοποιήθηκε: εξαντλήθηκε προσωρινά το δωρεάν όριο — μόνο οι κανόνες.)",
+      sugAiErr: "(Η ΤΝ δεν χρησιμοποιήθηκε: {e} — μόνο οι κανόνες.)",
+      sugAiOff: "(Η ΤΝ δεν έχει ρυθμιστεί: ανέβασε τη συνάρτηση suggest-terms — μόνο οι κανόνες.)",
+      rAi: "βρέθηκε από την ΤΝ",
       sugSkipped: "({k} λιγότερο συχνά ονόματα δεν ελέγχθηκαν.)",
       sugDone: "{n} νέες προτάσεις ({h} υψηλής βεβαιότητας).",
       sugNone: "Δεν βρέθηκαν νέες προτάσεις.",
@@ -1402,6 +1409,13 @@
       sugAll: "3 · Suggest terms",
       sugHint: "Uses all saved transcripts together with the story's details (title, identity, period, location) and suggests terms for recordings and images, once.",
       sugRunning: "Searching… {i}/{n}",
+      sugAiAsking: "The AI is reading the transcripts…",
+      sugAiUsed: "The AI found {n} mentions (checked against Wikidata).",
+      sugAiPartial: "(Only part of the story: the free quota ran out.)",
+      sugAiQuota: "(AI not used: the free quota is used up for now — rules only.)",
+      sugAiErr: "(AI not used: {e} — rules only.)",
+      sugAiOff: "(AI not set up: deploy the suggest-terms function — rules only.)",
+      rAi: "found by the AI",
       sugSkipped: "({k} less frequent names were not checked.)",
       sugDone: "{n} new suggestions ({h} high confidence).",
       sugNone: "No new suggestions found.",
@@ -1816,6 +1830,13 @@
       sugAll: "3 · Suggérer",
       sugHint: "Utilise toutes les transcriptions enregistrées avec les détails de l'histoire (titre, identité, période, lieu) et suggère des termes pour les enregistrements et les images, en une fois.",
       sugRunning: "Recherche… {i}/{n}",
+      sugAiAsking: "L'IA lit les transcriptions…",
+      sugAiUsed: "L'IA a trouvé {n} mentions (vérifiées dans Wikidata).",
+      sugAiPartial: "(Seulement une partie de l'histoire : quota gratuit épuisé.)",
+      sugAiQuota: "(IA non utilisée : quota gratuit épuisé pour l'instant — règles seules.)",
+      sugAiErr: "(IA non utilisée : {e} — règles seules.)",
+      sugAiOff: "(IA non configurée : déployez la fonction suggest-terms — règles seules.)",
+      rAi: "trouvé par l'IA",
       sugSkipped: "({k} noms moins fréquents n'ont pas été vérifiés.)",
       sugDone: "{n} nouvelles suggestions ({h} de haute confiance).",
       sugNone: "Aucune nouvelle suggestion.",
@@ -2224,6 +2245,13 @@
       sugAll: "3 · Suggerisci",
       sugHint: "Usa tutte le trascrizioni salvate insieme ai dettagli della storia (titolo, identità, periodo, luogo) e suggerisce termini per registrazioni e immagini, una volta sola.",
       sugRunning: "Ricerca… {i}/{n}",
+      sugAiAsking: "L'IA sta leggendo le trascrizioni…",
+      sugAiUsed: "L'IA ha trovato {n} menzioni (verificate su Wikidata).",
+      sugAiPartial: "(Solo una parte della storia: quota gratuita esaurita.)",
+      sugAiQuota: "(IA non usata: quota gratuita esaurita per ora — solo regole.)",
+      sugAiErr: "(IA non usata: {e} — solo regole.)",
+      sugAiOff: "(IA non configurata: pubblica la funzione suggest-terms — solo regole.)",
+      rAi: "trovato dall'IA",
       sugSkipped: "({k} nomi meno frequenti non sono stati controllati.)",
       sugDone: "{n} nuovi suggerimenti ({h} ad alta affidabilità).",
       sugNone: "Nessun nuovo suggerimento.",
@@ -3422,7 +3450,28 @@
   // Συνδυάζει την απομαγνητοφώνηση με τον τίτλο, την ταυτότητα, την περίοδο και την τοποθεσία κάθε αρχείου, για ηχογραφήσεις ΚΑΙ εικόνες.
   // Κάθε οντότητα (term) συγκεντρώνει ενδείξεις: πού αναφέρεται στο κείμενο, αν ταιριάζει με ταυτότητα/τίτλο/περίοδο, πόσο κοντά είναι στην
   // τοποθεσία. Οι ενδείξεις δίνουν βαθμό βεβαιότητας και αιτιολόγηση. Οι εικόνες παίρνουν όρους και από την αφήγηση που ακούγεται όσο φαίνονται.
-  async function suggestStory(s, lang, onProgress) {
+  // Η ΤΝ (συνάρτηση suggest-terms, ίδιο κλειδί Groq με τη μεταγραφή) βρίσκει τι αναφέρεται: λέξεις, γραμμή, βασικός τύπος, αγγλικό όνομα, είδος.
+  // Δεν δίνει συνδέσμους: κάθε όνομα αναζητείται στο Wikidata όπως και τα υπόλοιπα, άρα τίποτα επινοημένο δεν γίνεται σχολιασμός.
+  async function askAi(s, lang) {
+    if (!sb || !sb.functions || !s.dbId) return { status: 'off', terms: [] };
+    try {
+      var r = await sb.functions.invoke('suggest-terms', { body: { story_id: s.dbId, language: lang } });
+      if (r.error) {
+        var code = r.error.context && r.error.context.status, msg = await fnErrorMessage(r.error);
+        return { status: code === 404 || msg === t('annServerMissing') ? 'off' : code === 429 ? 'quota' : 'error', msg: msg, terms: [] };
+      }
+      var d = r.data || {};
+      return { status: 'used', terms: Array.isArray(d.terms) ? d.terms : [], model: d.model || '', partial: !!d.partial };
+    } catch (e) { return { status: 'error', msg: errText(e), terms: [] }; }
+  }
+  var AI_KIND = { person: 'person', place: 'place', event: 'event', object: 'object', material: 'material', practice: 'concept', concept: 'concept' };
+  // Αποτελέσματα που σχεδόν ποτέ δεν είναι αυτό που εννοεί η αφήγηση για ένα κοινό ουσιαστικό (ταινίες, τραγούδια, επώνυμα, αποσαφηνίσεις…)
+  var AI_BAD_DESC = /\b(film|movie|album|song|single|band|surname|family name|given name|male given name|female given name|disambiguation|television|tv series|novel|video game|magazine|newspaper|record label)\b|ταινία|τραγούδι|άλμπουμ|επώνυμο|ανδρικό όνομα|γυναικείο όνομα|αποσαφήνιση|συγκρότημα|chanson|patronyme|prénom|cognome|nome proprio|canzone/i;
+  function aiOkCand(c) { return !AI_BAD_DESC.test(c.description || ''); }
+
+  async function suggestStory(s, lang, onProgress, onStage) {
+    if (onStage) onStage(t('sugAiAsking'));
+    var ai = await askAi(s, lang);
     var k = await fetchKnowledge(s, true);
     var media = s.media.filter(function (m) { return m.id; });
     var avs = media.filter(function (m) { return m.kind !== 'image'; }), imgs = media.filter(function (m) { return m.kind === 'image'; });
@@ -3437,28 +3486,37 @@
     // Παραλλαγές του ίδιου ονόματος («Στη Μυτιλήνη», «Μυτιλήνη», «Μυτιλήνης») γίνονται μία ομάδα = μία αναζήτηση.
     // Οι ομάδες ταξινομούνται κατά σημασία (πόσες φορές λέγονται, αν υπάρχουν και στα στοιχεία) και ψάχνονται έως MAX_PHRASES.
     var groups = [];
+    // m, g: αρχείο και γραμμή· inLine: οι λέξεις όπως είναι στη γραμμή· name: τι αναζητείται· x: πληροφορίες της ΤΝ (ή null)
+    function addOcc(m, g, inLine, name, x) {
+      var ph = stripLead(name), tk = tokensOf(ph); if (!tk.length) return;
+      var gr = groups.filter(function (y) { return y.tk.length === tk.length && y.tk.every(function (a, i) { return sameTok(a, tk[i]); }); })[0];
+      if (!gr) { gr = { tk: tk, forms: {}, occ: [], first: groups.length }; groups.push(gr); }
+      gr.forms[ph] = (gr.forms[ph] || 0) + (x ? 5 : 1);           // ο βασικός τύπος της ΤΝ («Μυτιλήνη») προτιμάται για αναζήτηση
+      if (x && !gr.ai) { gr.ai = x.type || 'concept'; gr.en = x.en || ''; }
+      var w = stripLead(inLine);
+      var dup = gr.occ.filter(function (o) { return o.m === m && o.g === g; })[0];
+      if (!dup) gr.occ.push({ m: m, g: g, ph: w });
+      else if (w.length < dup.ph.length) dup.ph = w;
+    }
     avs.forEach(function (m) {
       var tr = trOf[m.id]; if (!tr) return;
-      tr.transcript_segments.forEach(function (g) {
-        nameCandidates(g.text).forEach(function (raw) {
-          var ph = stripLead(raw), tk = tokensOf(ph); if (!tk.length) return;
-          var gr = groups.filter(function (x) { return x.tk.length === tk.length && x.tk.every(function (a, i) { return sameTok(a, tk[i]); }); })[0];
-          if (!gr) { gr = { tk: tk, forms: {}, occ: [], first: groups.length }; groups.push(gr); }
-          gr.forms[ph] = (gr.forms[ph] || 0) + 1;
-          var dup = gr.occ.filter(function (o) { return o.m === m && o.g === g; })[0];
-          if (!dup) gr.occ.push({ m: m, g: g, ph: ph });
-          else if (ph.length < dup.ph.length) dup.ph = ph;
-        });
-      });
+      tr.transcript_segments.forEach(function (g) { nameCandidates(g.text).forEach(function (raw) { addOcc(m, g, raw, raw, null); }); });
+    });
+    var aiDet = {};     // mid -> [{ name, x }] όροι της ΤΝ από τα στοιχεία των αρχείων
+    ai.terms.forEach(function (x) {
+      var m = media.filter(function (mm) { return mm.id === x.media_id; })[0]; if (!m || !x.name) return;
+      if (x.idx == null) { (aiDet[m.id] = aiDet[m.id] || []).push(x); return; }
+      var tr = trOf[m.id], g = tr && tr.transcript_segments.filter(function (sg) { return sg.idx === x.idx; })[0];
+      if (g && x.words) addOcc(m, g, x.words, x.name, x);
     });
     var detTok = tokensOf(anyText);
     groups.forEach(function (gr) {
       gr.rep = Object.keys(gr.forms).sort(function (a, b) { return gr.forms[b] - gr.forms[a] || a.length - b.length; })[0];
-      gr.rank = gr.occ.length + (findSeq(detTok, gr.tk) >= 0 ? 3 : 0) + (gr.tk.length > 1 ? 0.5 : 0);
+      gr.rank = gr.occ.length + (findSeq(detTok, gr.tk) >= 0 ? 3 : 0) + (gr.tk.length > 1 ? 0.5 : 0) + (gr.ai ? 2 : 0);
     });
     groups.sort(function (a, b) { return b.rank - a.rank || a.first - b.first; });
-    var phr = {};
-    groups.slice(0, MAX_PHRASES).forEach(function (gr) { phr[gr.rep] = gr.occ; });
+    var phr = {}, aiOf = {};
+    groups.slice(0, MAX_PHRASES).forEach(function (gr) { phr[gr.rep] = gr.occ; if (gr.ai) aiOf[gr.rep] = { type: gr.ai, en: gr.en }; });
     var phrases = Object.keys(phr), skipped = Math.max(0, groups.length - MAX_PHRASES);
     var detPhr = {};    // mid -> [φράσεις ταυτότητας/τίτλου]
     var years = {};     // mid -> [έτη/δεκαετίες]
@@ -3467,6 +3525,7 @@
       nameCandidates([cx.about, cx.title].filter(Boolean).join('. ')).forEach(function (x) { if (list.indexOf(x) < 0) list.push(x); });
       [cx.about, cx.title].forEach(function (x) { x = (x || '').trim(); if (x && x.length <= 80 && list.indexOf(x) < 0) list.push(x); });
       detPhr[m.id] = list.slice(0, 6);
+      (aiDet[m.id] || []).slice(0, 8).forEach(function (x) { if (detPhr[m.id].indexOf(x.name) < 0) detPhr[m.id].push(x.name); aiOf[x.name] = aiOf[x.name] || { type: x.type || 'concept', en: x.en || '' }; });
       var ys = [], mt; DATE_RE.lastIndex = 0;
       while ((mt = DATE_RE.exec(cx.period + ' ' + cx.about + ' ' + cx.title))) { var y = mt[1] + (mt[2] ? 's' : ''); if (ys.indexOf(y) < 0) ys.push(y); }
       years[m.id] = ys.slice(0, 3);
@@ -3475,13 +3534,20 @@
     var allYears = []; media.forEach(function (m) { years[m.id].forEach(function (x) { if (allYears.indexOf(x) < 0) allYears.push(x); }); });
     var jobs = phrases.length + allDet.length + allYears.length + media.length, done = 0;
     function tick() { onProgress(Math.min(++done, jobs), jobs); }
-    if (!phrases.length && !allDet.length && !allYears.length && !locs.length) return { n: 0, high: 0, empty: true };
+    if (!phrases.length && !allDet.length && !allYears.length && !locs.length) return { n: 0, high: 0, empty: true, ai: ai };
 
     // 2. Αναζητήσεις στο Wikidata (παράλληλα, ανά 4)
     var found = {}, foundDet = {}, foundYear = {}, nearOf = {};
     async function inBatches(items, fn) { for (var i = 0; i < items.length; i += 6) await Promise.all(items.slice(i, i + 6).map(fn)); }
-    await inBatches(phrases, function (ph) { return wdSearch(ph, lang, 4).catch(function () { return []; }).then(function (r) { found[ph] = exactOnly(r, ph).slice(0, 4); tick(); }); });
-    await inBatches(allDet, function (ph) { return wdSearch(ph, lang, 4).catch(function () { return []; }).then(function (r) { foundDet[ph] = exactOnly(r, ph).slice(0, 4); tick(); }); });
+    async function lookup(ph) {
+      var r = exactOnly(await wdSearch(ph, lang, 4).catch(function () { return []; }), ph), x = aiOf[ph];
+      if (!x) return r.slice(0, 4);
+      r = r.filter(aiOkCand);
+      if (!r.length && x.en && lang !== 'en') r = exactOnly(await wdSearch(x.en, 'en', 4).catch(function () { return []; }), x.en).filter(aiOkCand);
+      return r.slice(0, 4);
+    }
+    await inBatches(phrases, function (ph) { return lookup(ph).then(function (r) { found[ph] = r; tick(); }); });
+    await inBatches(allDet, function (ph) { return lookup(ph).then(function (r) { foundDet[ph] = r; tick(); }); });
     await inBatches(allYears, function (y) { return wdSearch(y, 'en', 3).catch(function () { return []; }).then(function (r) { foundYear[y] = exactOnly(r, y).slice(0, 1); tick(); }); });
     await inBatches(media, function (m) {
       var cx = cxOf[m.id];
@@ -3507,11 +3573,16 @@
       if (!found[ph].length) return;
       var first = phr[ph][0], best = pickBest(found[ph], ctxFor(first.m.id)), e = ent(best);
       e.phrase = e.phrase || ph;
+      if (aiOf[ph]) { e.ai = true; if (e.kind === 'concept') e.kind = AI_KIND[aiOf[ph].type] || 'concept'; }
       phr[ph].forEach(function (o) { e.lines.push({ mid: o.m.id, seg: o.g, phrase: o.ph || ph }); });
     });
     media.forEach(function (m) {
       var cx = cxOf[m.id];
-      detPhr[m.id].forEach(function (ph) { if (foundDet[ph] && foundDet[ph].length) { var b = pickBest(foundDet[ph], ctxFor(m.id)); ent(b).det.push({ mid: m.id, via: 'identity', phrase: ph }); } });
+      detPhr[m.id].forEach(function (ph) {
+        if (!foundDet[ph] || !foundDet[ph].length) return;
+        var b = pickBest(foundDet[ph], ctxFor(m.id)), e = ent(b); e.det.push({ mid: m.id, via: 'identity', phrase: ph });
+        if (aiOf[ph]) { e.ai = true; if (e.kind === 'concept') e.kind = AI_KIND[aiOf[ph].type] || 'concept'; }
+      });
       years[m.id].forEach(function (y) { (foundYear[y] || []).forEach(function (c) { ent(c, 'concept').det.push({ mid: m.id, via: 'period', p: y }); }); });
       if (cx.lat != null) (nearOf[cx.lat.toFixed(4) + ',' + cx.lon.toFixed(4)] || []).forEach(function (n) {
         var e = ent({ id: n.id, uri: n.uri, label: n.label, description: n.description }, 'place'); e.det.push({ mid: m.id, via: 'near', dist: n.dist, own: m.lat != null });
@@ -3542,6 +3613,7 @@
       var ov = 0; tokensOf(e.description).forEach(function (x) { if (ctxTok.some(function (y) { return sameTok(x, y); })) ov++; });
       if (ov) { sc += Math.min(ov, 3); why.push(t('rDesc')); }
       if (e.lines.length && (e.det.length || (e.km != null && e.km < 5))) sc += 3;     // το κείμενο και τα στοιχεία συμφωνούν
+      if (e.ai) { sc += 1; why.push(t('rAi')); }
       e.score = sc; e.conf = sc >= 7 ? 'confHigh' : sc >= 4 ? 'confMed' : 'confLow'; e.why = why;
     });
     function reason(e, extra, noLine) {
@@ -3610,7 +3682,7 @@
       }
       if (ins.error) throw ins.error;
     }
-    return { n: rows.length, high: high, skipped: skipped };
+    return { n: rows.length, high: high, skipped: skipped, ai: ai };
   }
 
   function kindSelect(value, label, onChange) {
@@ -4345,9 +4417,11 @@
     var unsaved = annSections.filter(function (x) { return x.isUnsaved(); });
     if (unsaved.length) { $('suggestStatus').textContent = t('sugSaveFirst', { n: unsaved.map(function (x) { return x.label; }).join(', ') }); return; }   // μόνο αποθηκευμένες απομαγνητοφωνήσεις
     runStep(async function (st) {
-      var res = await suggestStory(s, $('trLang').value, function (i2, total) { st.textContent = t('sugRunning', { i: i2, n: total }); });
+      var res = await suggestStory(s, $('trLang').value, function (i2, total) { st.textContent = t('sugRunning', { i: i2, n: total }); }, function (msg) { st.textContent = msg; });
       notifyAnn();
-      st.textContent = (res.empty ? t('sugNothing') : (res.n ? t('sugDone', { n: res.n, h: res.high }) : t('sugNone'))) + (res.skipped ? ' ' + t('sugSkipped', { k: res.skipped }) : '');
+      var a = res.ai || {}, aiNote = a.status === 'used' ? t('sugAiUsed', { n: a.terms.length }) + (a.partial ? ' ' + t('sugAiPartial') : '')
+        : a.status === 'quota' ? t('sugAiQuota') : a.status === 'error' ? t('sugAiErr', { e: a.msg || '' }) : a.status === 'off' ? t('sugAiOff') : '';
+      st.textContent = (res.empty ? t('sugNothing') : (res.n ? t('sugDone', { n: res.n, h: res.high }) : t('sugNone'))) + (res.skipped ? ' ' + t('sugSkipped', { k: res.skipped }) : '') + (aiNote ? ' ' + aiNote : '');
     });
   };
   function showTab(which) {

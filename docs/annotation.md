@@ -275,6 +275,22 @@ run again; it replaces its own policies, so run it again after pulling updates.
 The button **Transcribe on the server (free, fast)** then works. Files over 25 MB are
 refused and the shared free quota can run out; the file option (.srt / .vtt / .txt) still works.
 
+## Optional: AI help for term suggestions (same Groq key)
+**3 · Suggest terms** can also ask a Groq text model (same `GROQ_API_KEY` as transcription, no new key) what the story mentions.
+1. Edge Functions -> Deploy a new function -> Via Editor, name it exactly `suggest-terms`,
+   paste `supabase/functions/suggest-terms/index.ts`, deploy (leave Verify JWT on).
+2. Optional secret `GROQ_TEXT_MODEL` to choose the model. Without it the function uses `openai/gpt-oss-120b`, and
+   `llama-3.3-70b-versatile` if that one is no longer offered.
+How it works: the function (annotators only) sends the story's transcript lines and file details (title, identity, time,
+location) to the model and gets back what is mentioned — the exact words and line, the base form of the name ("της Μυτιλήνης" →
+"Μυτιλήνη"), an English name and a type (person, place, event, object, material, practice, concept). This also finds ordinary
+words the rules miss: objects, materials, crafts and customs ("αργαλειός", "σαπούνι", "λάδι"). Mentions whose words are not
+really in that line are thrown away. **The AI never gives links**: the page looks every name up in Wikidata (and the English name if
+the original finds nothing), skips results that are films, songs, surnames, given names or disambiguation pages, and scores it with
+the usual evidence plus "found by the AI". Long stories are sent in parts; if the free quota runs out part-way, what was found is
+used. If the function is not deployed, or the quota is used up, Suggest says so and uses the rules only. The transcript text is
+sent to Groq (the audio already is, for transcription).
+
 ## Flow
 Log in → open one of your stories → **Transcribe and annotate** → per audio/video:
 1. Get a transcript: **Transcribe on the server** (if set up), or **Load a .srt / .vtt / .txt file**, or type it. Edit freely. Format: one line per
