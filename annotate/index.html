@@ -405,6 +405,11 @@
   .ann-row .desc { color: var(--muted); flex-basis: 100%; }
   .ann-row button { padding: 6px 14px; min-height: 40px; font-weight: 700; background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); }
   .ann-row.approved { border-left: 4px solid var(--petrol); padding-left: 8px; } .ann-row.rejected { opacity: .55; }
+  .ann-row button.geo-btn { font-weight: 600; border-style: dashed; }
+  .ann-row button.geo-btn.set { border-style: solid; background: #EAF4F7; }
+  #geoMap { height: 52vh; min-height: 320px; border-radius: 12px; border: 1px solid var(--line-strong); margin: 10px 0; }
+  .geo-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .geo-tools .geo-val { flex-basis: 100%; color: var(--muted); font-size: 14px; }
 
   /* ---------- Φύλλα / διάλογοι ---------- */
   .edit-sheet { position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; justify-content: flex-end; background: rgba(14,63,80,.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); pointer-events: auto; }
@@ -665,6 +670,22 @@
   </div>
 </div>
 
+<div id="geoSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="geoTitle">
+  <div class="sheet-inner">
+    <h2 id="geoTitle"></h2>
+    <p id="geoSub" class="sheet-sub"></p>
+    <p class="sheet-sub" data-i18n="geoHelp"></p>
+    <div id="geoMap" role="application" aria-label="Map"></div>
+    <div class="geo-tools">
+      <span id="geoVal" class="geo-val" role="status"></span>
+      <button type="button" id="geoTermBtn" class="btn-secondary" data-i18n="geoUseTerm" hidden></button>
+      <button type="button" id="geoFileBtn" class="btn-secondary" data-i18n="geoUseFile" hidden></button>
+      <button type="button" id="geoSave" class="btn-primary" data-i18n="geoSave"></button>
+      <button type="button" id="geoClear" class="btn-secondary" data-i18n="geoClear" hidden></button>
+      <button type="button" id="geoCancel" class="btn-secondary" data-i18n="cancel"></button>
+    </div>
+  </div>
+</div>
 <div id="imgPopup" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="imgPopupTitle">
   <div class="sheet-inner">
     <h2 id="imgPopupTitle"></h2>
@@ -872,15 +893,26 @@
       mapStoryLbl: "Ιστορία",
       mapAllStories: "Όλες οι ιστορίες",
       mapOnlyThis: "Μόνο αυτή η ιστορία στον χάρτη",
-      mapStoryInfo: "{a} αρχεία με τη σειρά που εμφανίζονται στις απομαγνητοφωνήσεις · {l} με τοποθεσία στον χάρτη",
+      mapStoryInfo: "{a} αρχεία και τόποι με τη σειρά που εμφανίζονται στις απομαγνητοφωνήσεις · {l} στον χάρτη",
       mapStoryUnlinked: " · {u} δεν συνδέονται με καμία ηχογράφηση (γκρι, χωρίς γραμμή)",
-      mapStoryKey: "Οι αριθμοί δείχνουν τη σειρά εμφάνισης: κάθε ηχογράφηση (με τη σειρά της ιστορίας) και μετά οι φωτογραφίες που εμφανίζονται ή σημειώνονται στην απομαγνητοφώνησή της, με τη σειρά του χρόνου. Η γραμμή τα ενώνει με αυτή τη σειρά. ○ τόπος δημιουργίας ιστορίας.",
+      mapStoryKey: "Οι αριθμοί δείχνουν τη σειρά εμφάνισης: κάθε ηχογράφηση (με τη σειρά της ιστορίας) και μετά οι φωτογραφίες που εμφανίζονται ή σημειώνονται στην απομαγνητοφώνησή της, με τη σειρά του χρόνου. 📍 = τοποθεσία που δόθηκε σε όρο μιας γραμμής της απομαγνητοφώνησης, στη θέση που ακούγεται. Η γραμμή τα ενώνει με αυτή τη σειρά. ○ τόπος δημιουργίας ιστορίας.",
       mapOrderHead: "Σειρά εμφάνισης",
       mapAtTime: "στο «{r}» στο {t}",
       mapNoPlace: "χωρίς τοποθεσία",
       mapNotLinked: "δεν συνδέεται με καμία ηχογράφηση",
       mapRecStart: "ηχογράφηση {n}",
       mapLoadingStory: "Φόρτωση σχολιασμών της ιστορίας…",
+      geoAdd: "📍 Τοποθεσία",
+      geoTitle: "Τοποθεσία για «{t}»",
+      geoHelp: "Πάτα στον χάρτη (ή σύρε τη σήμανση) εκεί που αφορά αυτό το σημείο της αφήγησης.",
+      geoUseTerm: "Θέση του όρου (Wikidata)",
+      geoUseFile: "Θέση του αρχείου",
+      geoSave: "Αποθήκευση τοποθεσίας",
+      geoClear: "Αφαίρεση τοποθεσίας",
+      geoNone: "Δεν έχει επιλεγεί σημείο.",
+      geoAuto: "Συμπληρώθηκε από το Wikidata",
+      geoNeedSql: "Η βάση δεν έχει ακόμη τοποθεσίες όρων: τρέξε μία φορά το supabase/roles.sql.",
+      mapTermStop: "📍 {t}",
       mapLegendKey: "● αρχείο (🖼 φωτογραφία, 🎙 ήχος, 🎬 βίντεο) · ○ τόπος δημιουργίας ιστορίας",
       mapLinkUsers: "Σύνδεση ιστοριών κάθε χρήστη με τη σειρά",
       mapNoFileLoc: "Κανένα αρχείο δεν έχει δική του τοποθεσία (παλιότερες καταχωρίσεις ή δεν έχει τρέξει το roles.sql). Εμφανίζονται μόνο οι τοποθεσίες των ιστοριών.",
@@ -1259,15 +1291,26 @@
       mapStoryLbl: "Story",
       mapAllStories: "All stories",
       mapOnlyThis: "Show only this story on the map",
-      mapStoryInfo: "{a} files in the order they appear in the transcripts · {l} with a location on the map",
+      mapStoryInfo: "{a} files and places in the order they appear in the transcripts · {l} on the map",
       mapStoryUnlinked: " · {u} not linked to any recording (grey, no line)",
-      mapStoryKey: "Numbers show the order of appearance: each recording (in the story's order), followed by the photos shown or noted on its transcript, in time order. The line joins them in that order. ○ place where the story was created.",
+      mapStoryKey: "Numbers show the order of appearance: each recording (in the story's order), followed by the photos shown or noted on its transcript, in time order. 📍 = a location given to a term on a transcript line, at the moment it is said. The line joins them in that order. ○ place where the story was created.",
       mapOrderHead: "Order of appearance",
       mapAtTime: "in “{r}” at {t}",
       mapNoPlace: "no location",
       mapNotLinked: "not linked to any recording",
       mapRecStart: "recording {n}",
       mapLoadingStory: "Loading the story's annotations…",
+      geoAdd: "📍 Location",
+      geoTitle: "Location for “{t}”",
+      geoHelp: "Click on the map (or drag the marker) where this part of the story took place.",
+      geoUseTerm: "Place of the term (Wikidata)",
+      geoUseFile: "Location of the file",
+      geoSave: "Save location",
+      geoClear: "Remove location",
+      geoNone: "No point chosen yet.",
+      geoAuto: "Filled in from Wikidata",
+      geoNeedSql: "The database does not have term locations yet: run supabase/roles.sql once.",
+      mapTermStop: "📍 {t}",
       mapLegendKey: "● file (🖼 photo, 🎙 audio, 🎬 video) · ○ place where the story was created",
       mapLinkUsers: "Connect each user's stories in order",
       mapNoFileLoc: "None of the files has its own location (older uploads, or roles.sql has not been run). Only story locations are shown.",
@@ -1649,15 +1692,26 @@
       mapStoryLbl: "Histoire",
       mapAllStories: "Toutes les histoires",
       mapOnlyThis: "Afficher seulement cette histoire",
-      mapStoryInfo: "{a} fichiers dans l'ordre d'apparition dans les transcriptions · {l} localisés sur la carte",
+      mapStoryInfo: "{a} fichiers et lieux dans l'ordre d'apparition dans les transcriptions · {l} sur la carte",
       mapStoryUnlinked: " · {u} liés à aucun enregistrement (gris, sans ligne)",
-      mapStoryKey: "Les numéros indiquent l'ordre d'apparition : chaque enregistrement (dans l'ordre de l'histoire), puis les photos montrées ou notées sur sa transcription, dans l'ordre du temps. La ligne les relie dans cet ordre. ○ lieu de création de l'histoire.",
+      mapStoryKey: "Les numéros indiquent l'ordre d'apparition : chaque enregistrement (dans l'ordre de l'histoire), puis les photos montrées ou notées sur sa transcription, dans l'ordre du temps. 📍 = un lieu donné à un terme d'une ligne de transcription, au moment où il est dit. La ligne les relie dans cet ordre. ○ lieu de création de l'histoire.",
       mapOrderHead: "Ordre d'apparition",
       mapAtTime: "dans « {r} » à {t}",
       mapNoPlace: "sans lieu",
       mapNotLinked: "lié à aucun enregistrement",
       mapRecStart: "enregistrement {n}",
       mapLoadingStory: "Chargement des annotations de l'histoire…",
+      geoAdd: "📍 Lieu",
+      geoTitle: "Lieu pour « {t} »",
+      geoHelp: "Cliquez sur la carte (ou déplacez le repère) là où se passe ce moment du récit.",
+      geoUseTerm: "Lieu du terme (Wikidata)",
+      geoUseFile: "Lieu du fichier",
+      geoSave: "Enregistrer le lieu",
+      geoClear: "Supprimer le lieu",
+      geoNone: "Aucun point choisi.",
+      geoAuto: "Rempli depuis Wikidata",
+      geoNeedSql: "La base n'a pas encore de lieux pour les termes : exécutez une fois supabase/roles.sql.",
+      mapTermStop: "📍 {t}",
       mapLegendKey: "● fichier (🖼 photo, 🎙 audio, 🎬 vidéo) · ○ lieu de création de l'histoire",
       mapLinkUsers: "Relier les histoires de chaque utilisateur dans l'ordre",
       mapNoFileLoc: "Aucun fichier n'a son propre lieu (anciens envois, ou roles.sql n'a pas été exécuté). Seuls les lieux des histoires sont affichés.",
@@ -2033,15 +2087,26 @@
       mapStoryLbl: "Storia",
       mapAllStories: "Tutte le storie",
       mapOnlyThis: "Mostra solo questa storia sulla mappa",
-      mapStoryInfo: "{a} file nell'ordine in cui compaiono nelle trascrizioni · {l} con un luogo sulla mappa",
+      mapStoryInfo: "{a} file e luoghi nell'ordine in cui compaiono nelle trascrizioni · {l} sulla mappa",
       mapStoryUnlinked: " · {u} non collegati ad alcuna registrazione (grigi, senza linea)",
-      mapStoryKey: "I numeri indicano l'ordine di apparizione: ogni registrazione (nell'ordine della storia), seguita dalle foto mostrate o annotate sulla sua trascrizione, in ordine di tempo. La linea le unisce in quest'ordine. ○ luogo di creazione della storia.",
+      mapStoryKey: "I numeri indicano l'ordine di apparizione: ogni registrazione (nell'ordine della storia), seguita dalle foto mostrate o annotate sulla sua trascrizione, in ordine di tempo. 📍 = un luogo dato a un termine di una riga della trascrizione, nel momento in cui viene detto. La linea le unisce in quest'ordine. ○ luogo di creazione della storia.",
       mapOrderHead: "Ordine di apparizione",
       mapAtTime: "in «{r}» a {t}",
       mapNoPlace: "senza luogo",
       mapNotLinked: "non collegato ad alcuna registrazione",
       mapRecStart: "registrazione {n}",
       mapLoadingStory: "Caricamento delle annotazioni della storia…",
+      geoAdd: "📍 Luogo",
+      geoTitle: "Luogo per «{t}»",
+      geoHelp: "Fai clic sulla mappa (o trascina il segnaposto) dove si svolge questo momento del racconto.",
+      geoUseTerm: "Luogo del termine (Wikidata)",
+      geoUseFile: "Luogo del file",
+      geoSave: "Salva luogo",
+      geoClear: "Rimuovi luogo",
+      geoNone: "Nessun punto scelto.",
+      geoAuto: "Compilato da Wikidata",
+      geoNeedSql: "Il database non ha ancora i luoghi dei termini: esegui una volta supabase/roles.sql.",
+      mapTermStop: "📍 {t}",
       mapLegendKey: "● file (🖼 foto, 🎙 audio, 🎬 video) · ○ luogo di creazione della storia",
       mapLinkUsers: "Collega le storie di ogni utente in ordine",
       mapNoFileLoc: "Nessun file ha un proprio luogo (caricamenti vecchi o roles.sql non eseguito). Sono mostrati solo i luoghi delle storie.",
@@ -2414,6 +2479,9 @@
     ]);
     if (res[1].error && /words/i.test(res[1].error.message || '')) {   // βάση χωρίς στήλη words
       res[1] = await sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids);
+    }
+    if (isGeoColErr(res[0].error)) {                                         // βάση χωρίς τοποθεσίες όρων (roles.sql)
+      ANN_COLS = ANN_BASE + ',av_media_id,reason'; res[0] = await annQuery();
     }
     if (res[0].error && /reason/i.test(res[0].error.message || '')) {        // βάση χωρίς τη στήλη reason (roles.sql)
       ANN_COLS = ANN_BASE + ',av_media_id'; res[0] = await annQuery();
@@ -3368,6 +3436,8 @@
       var key = mid + '|' + e.uri + '|' + (segIdx == null ? 'n' : segIdx); if (seen[key]) return; seen[key] = 1;
       rows.push({ media_id: mid, segment_idx: segIdx, start_s: st_, end_s: en_, mention: String(mention).slice(0, 200), kind: e.kind, vocabulary: 'wikidata', term_uri: e.uri,
         label: e.label.slice(0, 200), description: (e.description || '').slice(0, 300), status: 'suggested', source: 'auto', reason: why });
+      var co = segIdx != null && annGeoOk() ? wdCoord[e.id] : null;
+      if (co) { rows[rows.length - 1].lat = co.lat; rows[rows.length - 1].lon = co.lon; }
       if (e.conf === 'confHigh') high++;
     }
     var imgNear = [];
@@ -3415,6 +3485,7 @@
     high = rows.filter(function (r) { return r.reason.indexOf(t('confHigh')) === 0; }).length;
     for (var i = 0; i < rows.length; i += 100) {
       var chunk = rows.slice(i, i + 100), ins = await sb.from('annotations').insert(chunk);
+      if (isGeoColErr(ins.error)) { chunk = chunk.map(function (r) { var c = Object.assign({}, r); delete c.lat; delete c.lon; return c; }); ins = await sb.from('annotations').insert(chunk); }
       if (ins.error && /reason/i.test(ins.error.message || '')) {         // βάση χωρίς τη στήλη reason (roles.sql): χωρίς αιτιολόγηση
         ins = await sb.from('annotations').insert(chunk.map(function (r) { var c = Object.assign({}, r); delete c.reason; return c; }));
       }
@@ -3454,6 +3525,13 @@
     if (a.status === 'suggested') { btn(t('annApprove'), 'approved'); btn(t('annReject'), 'rejected'); }
     else { var st_ = document.createElement('strong'); st_.textContent = t(a.status === 'approved' ? 'annApproved' : 'annRejected'); row.appendChild(st_); btn(t('annUndo'), 'suggested'); }
 
+    if (a.segment_idx != null && annGeoOk()) {                 // τοποθεσία του όρου σε αυτή τη γραμμή της απομαγνητοφώνησης
+      var gb = document.createElement('button'); gb.type = 'button'; gb.className = 'geo-btn' + (a.lat != null ? ' set' : '');
+      gb.textContent = a.lat != null ? '📍 ' + fmtLL(a.lat, a.lon) : t('geoAdd');
+      gb.setAttribute('aria-label', t('geoTitle', { t: a.label }));
+      gb.onclick = function () { openGeoPicker(a, function () { onChange(); notifyAnn(); }); };
+      row.appendChild(gb);
+    }
     if (a.reason) { var wy = document.createElement('div'); wy.className = 'ann-why'; wy.textContent = t('whyLabel') + ': ' + a.reason; row.appendChild(wy); }
     // Λεπτομέρειες (είδος, χρόνος): κλειστές από προεπιλογή
     var more = document.createElement('div'); more.className = 'ann-more'; more.hidden = true;
@@ -3501,6 +3579,72 @@
     row.appendChild(mb); row.appendChild(more);
     return row;
   }
+
+  // ---- Τοποθεσία όρου σε γραμμή της απομαγνητοφώνησης ----
+  function fmtLL(lat, lon) { return (+lat).toFixed(5) + ', ' + (+lon).toFixed(5); }
+  function wdIdOf(uri) { var mm = /wikidata\.org\/(?:entity|wiki)\/(Q\d+)$/.exec(uri || ''); return mm ? mm[1] : null; }
+  async function termCoord(uri) {                 // συντεταγμένες του όρου στο Wikidata (P625), αν υπάρχουν
+    var id = wdIdOf(uri); if (!id) return null;
+    if (!(id in wdCoord)) { await wdKinds([id]); if (!(id in wdCoord)) wdCoord[id] = null; }
+    return wdCoord[id];
+  }
+  var geoMap = null, geoMarker = null, geoState = null;
+  async function openGeoPicker(a, onSaved) {
+    var s = currentSheetStory, m = s && s.media.filter(function (x) { return x.id === a.media_id; })[0];
+    geoState = { a: a, onSaved: onSaved, lat: a.lat != null ? +a.lat : null, lon: a.lon != null ? +a.lon : null, m: m };
+    $('geoTitle').textContent = t('geoTitle', { t: termLabel(a) });
+    $('geoSub').textContent = (m ? (KIND_ICON[m.kind] || '') + ' ' + mediaName(s, m) : '') + (a.mention ? ' · “' + a.mention + '”' : '') + (hasRange(a) ? ' · ' + mmss(a.start_s) : '');
+    $('geoClear').hidden = a.lat == null;
+    $('geoFileBtn').hidden = !(m && m.lat != null && m.lon != null);
+    $('geoTermBtn').hidden = true;
+    openDialog('geoSheet', $('geoSave'));
+    if (window.L) {
+      if (!geoMap) {
+        geoMap = L.map('geoMap', { zoomControl: true }).setView([39.1, 26.55], 8);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(geoMap);
+        geoMap.on('click', function (ev) { geoSet(ev.latlng.lat, ev.latlng.lng, true); });
+      }
+      if (geoMarker) { geoMap.removeLayer(geoMarker); geoMarker = null; }
+    }
+    var start = geoState.lat != null ? [geoState.lat, geoState.lon] : (m && m.lat != null ? [+m.lat, +m.lon] : (s && s.lat != null ? [+s.lat, +s.lon] : null));
+    geoShow();
+    setTimeout(function () { if (!geoMap) return; geoMap.invalidateSize(); if (start) geoMap.setView(start, geoState.lat != null ? 15 : 13); }, 80);
+    var mine = geoState, co = null;
+    try { co = await termCoord(a.term_uri); } catch (e) {}
+    if (geoState !== mine) return;
+    if (co) {
+      $('geoTermBtn').hidden = false; geoState.term = co;
+      if (geoState.lat == null) { geoSet(co.lat, co.lon, false); $('geoVal').textContent += ' — ' + t('geoAuto'); }
+    }
+  }
+  function geoShow() {
+    var g = geoState;
+    $('geoVal').textContent = g.lat != null ? '📍 ' + fmtLL(g.lat, g.lon) : t('geoNone');
+    $('geoSave').disabled = g.lat == null;
+    if (!geoMap || g.lat == null) return;
+    if (!geoMarker) {
+      geoMarker = L.marker([g.lat, g.lon], { draggable: true }).addTo(geoMap);
+      geoMarker.on('dragend', function () { var p = geoMarker.getLatLng(); geoState.lat = p.lat; geoState.lon = p.lng; geoShow(); });
+    } else geoMarker.setLatLng([g.lat, g.lon]);
+  }
+  function geoSet(lat, lon, keepView) {
+    geoState.lat = Math.round(lat * 1e6) / 1e6; geoState.lon = Math.round(lon * 1e6) / 1e6; geoShow();
+    if (!keepView && geoMap) geoMap.setView([geoState.lat, geoState.lon], Math.max(geoMap.getZoom ? geoMap.getZoom() : 13, 13));
+  }
+  async function geoWrite(lat, lon) {
+    var g = geoState, a = g.a;
+    var r = await sb.from('annotations').update({ lat: lat, lon: lon }).eq('id', a.id);
+    if (r.error) { alert(isGeoColErr(r.error) ? t('geoNeedSql') : t('annSaveError', { e: errText(r.error) })); return; }
+    a.lat = lat; a.lon = lon;
+    closeDialog('geoSheet');
+    if (g.onSaved) g.onSaved();
+  }
+  $('geoTermBtn').onclick = function () { if (geoState && geoState.term) geoSet(geoState.term.lat, geoState.term.lon, false); };
+  $('geoFileBtn').onclick = function () { var m = geoState && geoState.m; if (m) geoSet(+m.lat, +m.lon, false); };
+  $('geoSave').onclick = function () { if (geoState && geoState.lat != null) geoWrite(geoState.lat, geoState.lon); };
+  $('geoClear').onclick = function () { if (geoState) geoWrite(null, null); };
+  $('geoCancel').onclick = function () { closeDialog('geoSheet'); };
+  escHandlers.geoSheet = function () { closeDialog('geoSheet'); };
 
   // --- Μορφή απομαγνητοφώνησης: μία γραμμή ανά τμήμα, προαιρετικά "[λλ:δδ-λλ:δδ] κείμενο" ---
   function fmtStamp(sec) { return mmss(sec); }
@@ -3582,11 +3726,15 @@
           add.onclick = async function () {
             add.disabled = true;
             var loc = locateMention(seg, q);
-            var r = await sb.from('annotations').insert({
+            var row = {
               media_id: m.id, segment_idx: seg.idx, start_s: loc ? loc.start : seg.start_s, end_s: loc ? loc.end : seg.end_s, mention: q, kind: kind, vocabulary: c.vocabulary,
               term_uri: c.uri, label: c.label.slice(0, 200), description: (c.description || '').slice(0, 300),
               status: 'approved', source: 'user', approved_by: currentUser.id, approved_at: new Date().toISOString()
-            }).select('id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source').single();
+            };
+            var co = annGeoOk() ? await termCoord(c.uri) : null;
+            if (co) { row.lat = co.lat; row.lon = co.lon; }
+            var r = await sb.from('annotations').insert(row).select(ANN_COLS).single();
+            if (isGeoColErr(r.error)) { delete row.lat; delete row.lon; ANN_COLS = ANN_BASE + ',av_media_id,reason'; r = await sb.from('annotations').insert(row).select(ANN_COLS).single(); }
             if (r.error) { alert(t('annSaveError', { e: errText(r.error) })); add.disabled = false; return; }
             onAdded(r.data);
           };
@@ -3755,7 +3903,9 @@
   // --- Εικόνες: σύνδεση με όρους της ιστορίας, προαιρετική περιοχή, προτάσεις CLIP στη συσκευή ---
 
   var ANN_BASE = 'id,media_id,segment_idx,start_s,end_s,mention,kind,vocabulary,term_uri,label,description,status,source,region_x,region_y,region_w,region_h';
-  var ANN_COLS = ANN_BASE + ',av_media_id,reason';
+  var ANN_COLS = ANN_BASE + ',av_media_id,reason,lat,lon';
+  function annGeoOk() { return /,lat,lon$/.test(ANN_COLS); }
+  function isGeoColErr(e) { return !!e && /\blat\b|\blon\b/.test(e.message || ''); }
 
   // Εικόνα: τρία βήματα — 1) όρος, 2) περιοχή στην εικόνα, 3) μέρος της απομαγνητοφώνησης (οι χρόνοι προκύπτουν από τις γραμμές).
   function imageSection(s, m, n) {
@@ -4173,6 +4323,8 @@
           'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + a.start_s + ',' + a.end_s }
         } : { 'oa:hasSource': { '@id': m.url } }
       });
+      // Τοποθεσία που έδωσε ο σχολιαστής σε αυτό το σημείο της αφήγησης
+      if (a.lat != null && a.lon != null) graph[graph.length - 1]['dcterms:spatial'] = { '@type': 'crm:E53_Place', 'crm:P168_place_is_defined_by': { '@type': 'geo:wktLiteral', '@value': 'POINT(' + a.lon + ' ' + a.lat + ')' } };
     });
     (k.links || []).forEach(function (l) {
       var im = mediaById(s, l.image_media_id), av = mediaById(s, l.av_media_id);
@@ -4623,8 +4775,14 @@
         var m = byId[a.media_id];
         if (m && !isAv(m) && a.av_media_id === av.id && a.start_s != null && a.status !== 'rejected') ev.push({ m: m, t: +a.start_s });
       });
+      (data.annotations || []).forEach(function (a) {
+        if (a.media_id !== av.id || a.segment_idx == null || a.lat == null || a.lon == null || a.status === 'rejected') return;
+        var g = segIdxOf(data, av.id, a.segment_idx);
+        ev.push({ a: a, t: a.start_s != null ? +a.start_s : (g ? +g.start_s : 0) });
+      });
       ev.sort(function (a, b) { return a.t - b.t || (b.rec ? 1 : 0) - (a.rec ? 1 : 0); });
       ev.forEach(function (e) {
+        if (e.a) { seq.push({ a: e.a, av: av, t: e.t }); return; }      // κάθε τοποθετημένος όρος είναι δική του στάση
         if (!e.rec) (moments[e.m.id] = moments[e.m.id] || []).push({ av: av, t: e.t });
         if (seen[e.m.id]) return;
         seen[e.m.id] = 1; seq.push({ m: e.m, av: e.rec ? null : av, t: e.t });
@@ -4632,6 +4790,10 @@
     });
     var rest = x.media.filter(function (m) { return !seen[m.id]; }).sort(function (a, b) { return (a.position || 0) - (b.position || 0); });
     return { seq: seq, rest: rest, moments: moments, avs: avs };
+  }
+  function segIdxOf(data, avId, idx) {
+    var tr = (data.transcripts || []).filter(function (r) { return r.media_id === avId; })[0];
+    return tr ? tr.transcript_segments.filter(function (g) { return g.idx === idx; })[0] || null : null;
   }
   function segmentAt(data, avId, sec) {
     var tr = (data.transcripts || []).filter(function (r) { return r.media_id === avId; })[0], hit = null;
@@ -4645,16 +4807,17 @@
     var data;
     try { data = await fetchKnowledge(x, true); } catch (e) { if (tok === mapTok) $('mapInfo').textContent = errText(e); return; }
     if (tok !== mapTok) return;                 // άλλαξε η επιλογή όσο φόρτωνε
-    var ord = appearanceOrder(x, data), color = '#186078', grey = '#9E9E9E';
+    var ord = appearanceOrder(x, data), color = '#186078', grey = '#9E9E9E', red = '#B3261E';
     function key(lat, lon) { return (+lat).toFixed(5) + ',' + (+lon).toFixed(5); }
-    function has(m) { return m.lat != null && m.lon != null; }
+    function pos(s2) { return s2.a ? s2.a : (s2.m || s2); }
+    function has(s2) { var q = pos(s2); return q.lat != null && q.lon != null; }
     var all = [], groups = {}, gOrder = [];
     function addTo(lat, lon, item) { var k = key(lat, lon); if (!groups[k]) { groups[k] = { lat: +lat, lon: +lon, items: [] }; gOrder.push(k); } groups[k].items.push(item); }
-    ord.seq.forEach(function (s2, i) { s2.n = i + 1; if (has(s2.m)) addTo(s2.m.lat, s2.m.lon, s2); });
+    ord.seq.forEach(function (s2, i) { s2.n = i + 1; if (has(s2)) addTo(pos(s2).lat, pos(s2).lon, s2); });
     ord.rest.forEach(function (m) { if (has(m)) addTo(m.lat, m.lon, { m: m, n: 0 }); });
     // Η γραμμή: τα αρχεία με τοποθεσία, με τη σειρά εμφάνισης (διαδοχικά ίδια σημεία συγχωνεύονται)
     var path = [];
-    ord.seq.forEach(function (s2) { if (!has(s2.m)) return; var last = path[path.length - 1]; if (!last || key(last[0], last[1]) !== key(s2.m.lat, s2.m.lon)) path.push([+s2.m.lat, +s2.m.lon]); });
+    ord.seq.forEach(function (s2) { if (!has(s2)) return; var q = pos(s2), last = path[path.length - 1]; if (!last || key(last[0], last[1]) !== key(q.lat, q.lon)) path.push([+q.lat, +q.lon]); });
     if (path.length > 1) L.polyline(path, { color: color, weight: 4, opacity: .8 }).addTo(mapLayer);
     if (x.lat != null && x.lon != null) {
       all.push([+x.lat, +x.lon]);
@@ -4664,14 +4827,16 @@
     gOrder.forEach(function (k) {
       var g = groups[k], nums = g.items.filter(function (i) { return i.n; }).map(function (i) { return i.n; });
       var label = nums.length ? nums.join(', ') : (KIND_ICON[g.items[0].m.kind] || '●');
+      var onlyTerms = g.items.every(function (i) { return i.a; }), bg = !nums.length ? grey : onlyTerms ? red : color;
+      if (onlyTerms) label = '📍' + label;
       all.push([g.lat, g.lon]);
       var mk = L.divIcon
-        ? L.marker([g.lat, g.lon], { icon: L.divIcon({ className: 'map-count map-num', html: '<span style="background:' + (nums.length ? color : grey) + '">' + label + '</span>', iconSize: [30, 30] }) })
-        : L.circleMarker([g.lat, g.lon], { radius: 8, color: '#fff', weight: 2, fillColor: nums.length ? color : grey, fillOpacity: .95 });
+        ? L.marker([g.lat, g.lon], { icon: L.divIcon({ className: 'map-count map-num', html: '<span style="background:' + bg + '">' + label + '</span>', iconSize: [30, 30] }) })
+        : L.circleMarker([g.lat, g.lon], { radius: 8, color: '#fff', weight: 2, fillColor: bg, fillOpacity: .95 });
       mk.bindPopup(function () { return popupForStop(x, data, ord, g.items); }).addTo(mapLayer);
     });
     if (tok !== mapTok) return;
-    var located = ord.seq.filter(function (s2) { return has(s2.m); }).length;
+    var located = ord.seq.filter(function (s2) { return has(s2); }).length;
     $('mapInfo').textContent = (ord.seq.length || ord.rest.length)
       ? t('mapStoryInfo', { a: ord.seq.length, l: located }) + (ord.rest.length ? t('mapStoryUnlinked', { u: ord.rest.length }) : '')
       : t('mapNoLoc');
@@ -4681,8 +4846,8 @@
     var hd = document.createElement('strong'); hd.style.flexBasis = '100%'; hd.textContent = t('mapOrderHead') + ':'; lg.appendChild(hd);
     var ol = document.createElement('ol'); ol.className = 'map-order';
     ord.seq.forEach(function (s2) {
-      var li = document.createElement('li'); li.textContent = stopText(x, data, s2) + (has(s2.m) ? '' : ' — ' + t('mapNoPlace'));
-      if (!has(s2.m)) li.className = 'off'; ol.appendChild(li);
+      var li = document.createElement('li'); li.textContent = stopText(x, data, s2) + (has(s2) ? '' : ' — ' + t('mapNoPlace'));
+      if (!has(s2)) li.className = 'off'; ol.appendChild(li);
     });
     lg.appendChild(ol);
     if (ord.rest.length) {
@@ -4693,7 +4858,7 @@
     setTimeout(function () { bigMap.invalidateSize(); if (all.length === 1) bigMap.setView(all[0], 15); else if (all.length) bigMap.fitBounds(all, { padding: [40, 40], maxZoom: 17 }); }, 80);
   }
   function stopText(x, data, s2) {
-    var bits = [(KIND_ICON[s2.m.kind] || '') + ' ' + mediaName(x, s2.m)];
+    var bits = [s2.a ? t('mapTermStop', { t: termLabel(s2.a) }) : (KIND_ICON[s2.m.kind] || '') + ' ' + mediaName(x, s2.m)];
     if (s2.av) bits.push(t('mapAtTime', { r: mediaName(x, s2.av), t: mmss(s2.t) }));
     return bits.join(' · ');
   }
@@ -4703,6 +4868,14 @@
     items.forEach(function (i) {
       var row = document.createElement('div'); row.className = 'map-row';
       var tx = document.createElement('span');
+      if (i.a) {                       // όρος γραμμής απομαγνητοφώνησης με τοποθεσία
+        tx.textContent = i.n + '. ' + stopText(x, data, i); row.appendChild(tx);
+        var g0 = segIdxOf(data, i.av.id, i.a.segment_idx), q0 = document.createElement('span'); q0.className = 'map-quote';
+        var t0 = g0 && g0.text ? g0.text.trim() : '';
+        q0.textContent = (i.a.mention ? '“' + i.a.mention + '”' : '') + (t0 ? (i.a.mention ? ' — ' : '') + '“' + (t0.length > 110 ? t0.slice(0, 110) + '…' : t0) + '”' : '');
+        if (q0.textContent) row.appendChild(q0);
+        d.appendChild(row); return;
+      }
       tx.textContent = (i.n ? i.n + '. ' : '') + (KIND_ICON[i.m.kind] || '') + ' ' + mediaName(x, i.m) + [i.m.about, i.m.recorded, i.m.period].filter(Boolean).map(function (v) { return ' · ' + v; }).join('');
       row.appendChild(tx);
       if (!i.n) { var nl = document.createElement('span'); nl.className = 'map-quote'; nl.textContent = t('mapNotLinked'); row.appendChild(nl); }

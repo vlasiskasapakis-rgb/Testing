@@ -83,11 +83,23 @@ and for each story:
 - **Show** filters drafts / published.
 If no file has its own location (older uploads, or `supabase/roles.sql` not yet re-run) the map says so and shows only the story places.
 
+### Locations of transcript lines
+Every term on a transcript line has a **📍 Location** button (next to Approve / Reject). It opens a map:
+- when the term is a Wikidata item with coordinates (a village, a church, a country…), its place is **filled in automatically**;
+  **Place of the term (Wikidata)** puts it back, **Location of the file** uses the recording's own location;
+- otherwise click on the map (or drag the marker) where that part of the story took place, then **Save location**;
+  **Remove location** clears it.
+Terms you add by hand, and suggested terms, get the Wikidata place automatically when there is one; you can always change it.
+The button then shows the coordinates. Locations are saved in `annotations.lat` / `annotations.lon` (re-run `supabase/roles.sql`
+once; until then the button does not appear). Changes are counted as term edits in the analytics, and the RDF export adds them to the
+annotation as `dcterms:spatial` → `crm:E53_Place` with a `geo:wktLiteral` point.
+
 ### One story at a time, in transcript order
 Choose a story in **Story** (or press **Show only this story on the map** in a marker's popup) to see only that story's files at
 their own locations, joined **in the order they appear in the transcripts**:
 - each recording (audio/video) comes in the story's order, followed by the photos shown or noted on its transcript
   (image links and image notes with a time), in time order; a file counts at its **first** appearance;
+- terms on transcript lines that have a location are stops too (red 📍 markers), at the moment they are said;
 - markers are **numbered** in that order (several numbers on one marker = same place), and the line joins them 1 → 2 → 3 …;
 - a marker's popup gives the file details and every moment it appears (“in *recording* at mm:ss”) with the transcript line spoken then;
 - the list under the map shows the full order, marking files with **no location** (left out of the line) and files **not linked to any
