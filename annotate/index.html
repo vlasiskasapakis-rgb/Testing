@@ -224,6 +224,7 @@
   .map-bar { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-bottom: 8px; }
   .map-bar .chk { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--petrol); font-size: 14px; }
   .map-bar .chk input[type=checkbox] { width: 20px; height: 20px; }
+  .map-bar [hidden] { display: none; }
   .map-bar .lang-select { min-height: 34px; padding: 2px 10px; font-size: 14px; }
   #bigMap { height: calc(100vh - 230px); min-height: 380px; border-radius: 12px; border: 1px solid var(--line-strong); }
   .map-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
@@ -231,6 +232,12 @@
   .map-count span { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 14px; border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,.4); }
   .map-row { display: flex; align-items: center; gap: 8px; justify-content: space-between; padding: 3px 0; border-top: 1px solid var(--line); font-size: 13px; }
   .map-row button { margin: 0; flex: none; }
+  .map-num span { width: auto; min-width: 30px; padding: 0 7px; border-radius: 15px; box-sizing: border-box; }
+  .map-story-sel { max-width: 340px; }
+  .map-order { flex-basis: 100%; margin: 4px 0 0; padding-left: 22px; color: var(--ink, #222); }
+  .map-order li { margin: 2px 0; }
+  .map-order li.off { color: var(--muted); }
+  .map-quote { display: block; font-style: italic; color: var(--muted); margin-top: 2px; }
   .map-pop { max-width: 320px; }
   .map-pop strong { display: block; color: var(--petrol); }
   .map-pop button { margin-top: 6px; padding: 6px 12px; min-height: 34px; background: var(--petrol); color: #fff; font-weight: 700; }
@@ -567,9 +574,11 @@
 
   <section id="mapView" class="map-view" hidden aria-label="Map">
     <div class="map-bar">
-      <label class="chk"><input type="checkbox" id="mapFiles" checked><span data-i18n="mapLinkFiles"></span></label>
-      <label class="chk"><input type="checkbox" id="mapUsers"><span data-i18n="mapLinkUsers"></span></label>
-      <label class="chk"><input type="checkbox" id="mapTerms"><span data-i18n="mapLinkTerms"></span></label>
+      <label class="chk"><span data-i18n="mapStoryLbl"></span>
+        <select id="mapStory" class="lang-select map-story-sel"><option value=""></option></select></label>
+      <label class="chk map-all-only"><input type="checkbox" id="mapFiles" checked><span data-i18n="mapLinkFiles"></span></label>
+      <label class="chk map-all-only"><input type="checkbox" id="mapUsers"><span data-i18n="mapLinkUsers"></span></label>
+      <label class="chk map-all-only"><input type="checkbox" id="mapTerms"><span data-i18n="mapLinkTerms"></span></label>
       <label class="chk" id="mapMinWrap" hidden><span data-i18n="mapMinShared"></span>
         <select id="mapMin" class="lang-select"><option>1</option><option>2</option><option>3</option><option>5</option></select></label>
       <label class="chk"><span data-i18n="mapStatus"></span>
@@ -860,6 +869,18 @@
       needArea: "περιοχή στην εικόνα",
       needLines: "τουλάχιστον μία γραμμή",
       imgClickEnlarge: "Πάτα για μεγέθυνση",
+      mapStoryLbl: "Ιστορία",
+      mapAllStories: "Όλες οι ιστορίες",
+      mapOnlyThis: "Μόνο αυτή η ιστορία στον χάρτη",
+      mapStoryInfo: "{a} αρχεία με τη σειρά που εμφανίζονται στις απομαγνητοφωνήσεις · {l} με τοποθεσία στον χάρτη",
+      mapStoryUnlinked: " · {u} δεν συνδέονται με καμία ηχογράφηση (γκρι, χωρίς γραμμή)",
+      mapStoryKey: "Οι αριθμοί δείχνουν τη σειρά εμφάνισης: κάθε ηχογράφηση (με τη σειρά της ιστορίας) και μετά οι φωτογραφίες που εμφανίζονται ή σημειώνονται στην απομαγνητοφώνησή της, με τη σειρά του χρόνου. Η γραμμή τα ενώνει με αυτή τη σειρά. ○ τόπος δημιουργίας ιστορίας.",
+      mapOrderHead: "Σειρά εμφάνισης",
+      mapAtTime: "στο «{r}» στο {t}",
+      mapNoPlace: "χωρίς τοποθεσία",
+      mapNotLinked: "δεν συνδέεται με καμία ηχογράφηση",
+      mapRecStart: "ηχογράφηση {n}",
+      mapLoadingStory: "Φόρτωση σχολιασμών της ιστορίας…",
       mapLegendKey: "● αρχείο (🖼 φωτογραφία, 🎙 ήχος, 🎬 βίντεο) · ○ τόπος δημιουργίας ιστορίας",
       mapLinkUsers: "Σύνδεση ιστοριών κάθε χρήστη με τη σειρά",
       mapNoFileLoc: "Κανένα αρχείο δεν έχει δική του τοποθεσία (παλιότερες καταχωρίσεις ή δεν έχει τρέξει το roles.sql). Εμφανίζονται μόνο οι τοποθεσίες των ιστοριών.",
@@ -1235,6 +1256,18 @@
       needArea: "an area on the image",
       needLines: "at least one line",
       imgClickEnlarge: "Click to enlarge",
+      mapStoryLbl: "Story",
+      mapAllStories: "All stories",
+      mapOnlyThis: "Show only this story on the map",
+      mapStoryInfo: "{a} files in the order they appear in the transcripts · {l} with a location on the map",
+      mapStoryUnlinked: " · {u} not linked to any recording (grey, no line)",
+      mapStoryKey: "Numbers show the order of appearance: each recording (in the story's order), followed by the photos shown or noted on its transcript, in time order. The line joins them in that order. ○ place where the story was created.",
+      mapOrderHead: "Order of appearance",
+      mapAtTime: "in “{r}” at {t}",
+      mapNoPlace: "no location",
+      mapNotLinked: "not linked to any recording",
+      mapRecStart: "recording {n}",
+      mapLoadingStory: "Loading the story's annotations…",
       mapLegendKey: "● file (🖼 photo, 🎙 audio, 🎬 video) · ○ place where the story was created",
       mapLinkUsers: "Connect each user's stories in order",
       mapNoFileLoc: "None of the files has its own location (older uploads, or roles.sql has not been run). Only story locations are shown.",
@@ -1613,6 +1646,18 @@
       needArea: "une zone sur l'image",
       needLines: "au moins une ligne",
       imgClickEnlarge: "Cliquez pour agrandir",
+      mapStoryLbl: "Histoire",
+      mapAllStories: "Toutes les histoires",
+      mapOnlyThis: "Afficher seulement cette histoire",
+      mapStoryInfo: "{a} fichiers dans l'ordre d'apparition dans les transcriptions · {l} localisés sur la carte",
+      mapStoryUnlinked: " · {u} liés à aucun enregistrement (gris, sans ligne)",
+      mapStoryKey: "Les numéros indiquent l'ordre d'apparition : chaque enregistrement (dans l'ordre de l'histoire), puis les photos montrées ou notées sur sa transcription, dans l'ordre du temps. La ligne les relie dans cet ordre. ○ lieu de création de l'histoire.",
+      mapOrderHead: "Ordre d'apparition",
+      mapAtTime: "dans « {r} » à {t}",
+      mapNoPlace: "sans lieu",
+      mapNotLinked: "lié à aucun enregistrement",
+      mapRecStart: "enregistrement {n}",
+      mapLoadingStory: "Chargement des annotations de l'histoire…",
       mapLegendKey: "● fichier (🖼 photo, 🎙 audio, 🎬 vidéo) · ○ lieu de création de l'histoire",
       mapLinkUsers: "Relier les histoires de chaque utilisateur dans l'ordre",
       mapNoFileLoc: "Aucun fichier n'a son propre lieu (anciens envois, ou roles.sql n'a pas été exécuté). Seuls les lieux des histoires sont affichés.",
@@ -1985,6 +2030,18 @@
       needArea: "un'area sull'immagine",
       needLines: "almeno una riga",
       imgClickEnlarge: "Clicca per ingrandire",
+      mapStoryLbl: "Storia",
+      mapAllStories: "Tutte le storie",
+      mapOnlyThis: "Mostra solo questa storia sulla mappa",
+      mapStoryInfo: "{a} file nell'ordine in cui compaiono nelle trascrizioni · {l} con un luogo sulla mappa",
+      mapStoryUnlinked: " · {u} non collegati ad alcuna registrazione (grigi, senza linea)",
+      mapStoryKey: "I numeri indicano l'ordine di apparizione: ogni registrazione (nell'ordine della storia), seguita dalle foto mostrate o annotate sulla sua trascrizione, in ordine di tempo. La linea le unisce in quest'ordine. ○ luogo di creazione della storia.",
+      mapOrderHead: "Ordine di apparizione",
+      mapAtTime: "in «{r}» a {t}",
+      mapNoPlace: "senza luogo",
+      mapNotLinked: "non collegato ad alcuna registrazione",
+      mapRecStart: "registrazione {n}",
+      mapLoadingStory: "Caricamento delle annotazioni della storia…",
       mapLegendKey: "● file (🖼 foto, 🎙 audio, 🎬 video) · ○ luogo di creazione della storia",
       mapLinkUsers: "Collega le storie di ogni utente in ordine",
       mapNoFileLoc: "Nessun file ha un proprio luogo (caricamenti vecchi o roles.sql non eseguito). Sono mostrati solo i luoghi delle storie.",
@@ -4455,8 +4512,12 @@
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(bigMap);
       mapLayer = L.layerGroup().addTo(bigMap);
     }
-    mapLayer.clearLayers();
     var list = STORIES.filter(function (x) { return $('mapStatusSel').value === 'all' || x.status === $('mapStatusSel').value; });
+    var one = fillMapStory(list);
+    document.querySelectorAll('#mapView .map-all-only').forEach(function (el) { el.hidden = !!one; });
+    mapTok++;
+    mapLayer.clearLayers();
+    if (one) { $('mapMinWrap').hidden = true; return renderStoryMap(one); }
     var users = {}, order = [];
     list.forEach(function (x) { var k = x.ownerId || x.author || '?'; if (!users[k]) { users[k] = { name: x.author || '—', color: PALETTE[order.length % PALETTE.length], n: 0, stories: [] }; order.push(k); } users[k].stories.push(x); });
     function key(lat, lon) { return (+lat).toFixed(5) + ',' + (+lon).toFixed(5); }
@@ -4532,6 +4593,132 @@
     order.forEach(function (k) { var sp2 = document.createElement('span'); var dot = document.createElement('i'); dot.style.background = users[k].color; sp2.appendChild(dot); sp2.appendChild(document.createTextNode(users[k].name + ' (' + users[k].n + ')')); lg.appendChild(sp2); });
     setTimeout(function () { bigMap.invalidateSize(); if (all.length === 1) bigMap.setView(all[0], 15); else if (all.length) bigMap.fitBounds(all, { padding: [40, 40], maxZoom: 16 }); }, 80);
   }
+  // ---- Μία ιστορία: τα αρχεία της με τη σειρά που εμφανίζονται στις απομαγνητοφωνήσεις ----
+  var mapTok = 0;
+  function fillMapStory(list) {
+    var sel = $('mapStory'), want = sel.value;
+    sel.innerHTML = '';
+    var o0 = document.createElement('option'); o0.value = ''; o0.textContent = t('mapAllStories'); sel.appendChild(o0);
+    list.forEach(function (x) {
+      var o = document.createElement('option'); o.value = x.dbId;
+      o.textContent = st(x).title + (x.author ? ' — ' + x.author : '') + (x.status === 'published' ? '' : ' (' + t('statusDraft').split(/[:：]/)[0] + ')');
+      sel.appendChild(o);
+    });
+    var one = want && list.filter(function (x) { return x.dbId === want; })[0];
+    sel.value = one ? want : '';
+    return one || null;
+  }
+  function isAv(m) { return m.kind === 'audio' || m.kind === 'video'; }
+  // Σειρά εμφάνισης: οι ηχογραφήσεις με τη σειρά της ιστορίας, και μετά από κάθε μία οι φωτογραφίες
+  // που συνδέονται με την απομαγνητοφώνησή της (σύνδεση εικόνας ή σημείωση εικόνας με χρόνο), με τη σειρά του χρόνου.
+  // Κάθε αρχείο μετράει στην πρώτη του εμφάνιση· όσα δεν εμφανίζονται πουθενά μένουν εκτός σειράς.
+  function appearanceOrder(x, data) {
+    var byId = {}; x.media.forEach(function (m) { byId[m.id] = m; });
+    var avs = x.media.filter(isAv).sort(function (a, b) { return (a.position || 0) - (b.position || 0); });
+    var seq = [], seen = {}, moments = {};
+    avs.forEach(function (av) {
+      var ev = [{ m: av, t: 0, rec: true }];
+      (data.links || []).forEach(function (l) { if (l.av_media_id === av.id && byId[l.image_media_id] && l.start_s != null) ev.push({ m: byId[l.image_media_id], t: +l.start_s }); });
+      (data.annotations || []).forEach(function (a) {
+        var m = byId[a.media_id];
+        if (m && !isAv(m) && a.av_media_id === av.id && a.start_s != null && a.status !== 'rejected') ev.push({ m: m, t: +a.start_s });
+      });
+      ev.sort(function (a, b) { return a.t - b.t || (b.rec ? 1 : 0) - (a.rec ? 1 : 0); });
+      ev.forEach(function (e) {
+        if (!e.rec) (moments[e.m.id] = moments[e.m.id] || []).push({ av: av, t: e.t });
+        if (seen[e.m.id]) return;
+        seen[e.m.id] = 1; seq.push({ m: e.m, av: e.rec ? null : av, t: e.t });
+      });
+    });
+    var rest = x.media.filter(function (m) { return !seen[m.id]; }).sort(function (a, b) { return (a.position || 0) - (b.position || 0); });
+    return { seq: seq, rest: rest, moments: moments, avs: avs };
+  }
+  function segmentAt(data, avId, sec) {
+    var tr = (data.transcripts || []).filter(function (r) { return r.media_id === avId; })[0], hit = null;
+    if (tr) tr.transcript_segments.forEach(function (g) { if (g.start_s <= sec + 0.01 && (hit == null || g.start_s >= hit.start_s) && (g.end_s == null || g.end_s > sec)) hit = g; });
+    return hit;
+  }
+  async function renderStoryMap(x) {
+    var tok = mapTok;
+    $('mapInfo').textContent = t('mapLoadingStory');
+    $('mapLegend').innerHTML = '';
+    var data;
+    try { data = await fetchKnowledge(x, true); } catch (e) { if (tok === mapTok) $('mapInfo').textContent = errText(e); return; }
+    if (tok !== mapTok) return;                 // άλλαξε η επιλογή όσο φόρτωνε
+    var ord = appearanceOrder(x, data), color = '#186078', grey = '#9E9E9E';
+    function key(lat, lon) { return (+lat).toFixed(5) + ',' + (+lon).toFixed(5); }
+    function has(m) { return m.lat != null && m.lon != null; }
+    var all = [], groups = {}, gOrder = [];
+    function addTo(lat, lon, item) { var k = key(lat, lon); if (!groups[k]) { groups[k] = { lat: +lat, lon: +lon, items: [] }; gOrder.push(k); } groups[k].items.push(item); }
+    ord.seq.forEach(function (s2, i) { s2.n = i + 1; if (has(s2.m)) addTo(s2.m.lat, s2.m.lon, s2); });
+    ord.rest.forEach(function (m) { if (has(m)) addTo(m.lat, m.lon, { m: m, n: 0 }); });
+    // Η γραμμή: τα αρχεία με τοποθεσία, με τη σειρά εμφάνισης (διαδοχικά ίδια σημεία συγχωνεύονται)
+    var path = [];
+    ord.seq.forEach(function (s2) { if (!has(s2.m)) return; var last = path[path.length - 1]; if (!last || key(last[0], last[1]) !== key(s2.m.lat, s2.m.lon)) path.push([+s2.m.lat, +s2.m.lon]); });
+    if (path.length > 1) L.polyline(path, { color: color, weight: 4, opacity: .8 }).addTo(mapLayer);
+    if (x.lat != null && x.lon != null) {
+      all.push([+x.lat, +x.lon]);
+      L.circleMarker([+x.lat, +x.lon], { radius: 5, color: color, weight: 2, fillOpacity: 0 })
+        .bindPopup(function () { return popupForGroup({ items: [{ x: x, m: null }] }, []); }).addTo(mapLayer);
+    }
+    gOrder.forEach(function (k) {
+      var g = groups[k], nums = g.items.filter(function (i) { return i.n; }).map(function (i) { return i.n; });
+      var label = nums.length ? nums.join(', ') : (KIND_ICON[g.items[0].m.kind] || '●');
+      all.push([g.lat, g.lon]);
+      var mk = L.divIcon
+        ? L.marker([g.lat, g.lon], { icon: L.divIcon({ className: 'map-count map-num', html: '<span style="background:' + (nums.length ? color : grey) + '">' + label + '</span>', iconSize: [30, 30] }) })
+        : L.circleMarker([g.lat, g.lon], { radius: 8, color: '#fff', weight: 2, fillColor: nums.length ? color : grey, fillOpacity: .95 });
+      mk.bindPopup(function () { return popupForStop(x, data, ord, g.items); }).addTo(mapLayer);
+    });
+    if (tok !== mapTok) return;
+    var located = ord.seq.filter(function (s2) { return has(s2.m); }).length;
+    $('mapInfo').textContent = (ord.seq.length || ord.rest.length)
+      ? t('mapStoryInfo', { a: ord.seq.length, l: located }) + (ord.rest.length ? t('mapStoryUnlinked', { u: ord.rest.length }) : '')
+      : t('mapNoLoc');
+    // Υπόμνημα: η πλήρης σειρά, και όσα δεν έχουν τοποθεσία ή δεν εμφανίζονται
+    var lg = $('mapLegend');
+    var kd = document.createElement('div'); kd.style.flexBasis = '100%'; kd.textContent = t('mapStoryKey'); lg.appendChild(kd);
+    var hd = document.createElement('strong'); hd.style.flexBasis = '100%'; hd.textContent = t('mapOrderHead') + ':'; lg.appendChild(hd);
+    var ol = document.createElement('ol'); ol.className = 'map-order';
+    ord.seq.forEach(function (s2) {
+      var li = document.createElement('li'); li.textContent = stopText(x, data, s2) + (has(s2.m) ? '' : ' — ' + t('mapNoPlace'));
+      if (!has(s2.m)) li.className = 'off'; ol.appendChild(li);
+    });
+    lg.appendChild(ol);
+    if (ord.rest.length) {
+      var ul = document.createElement('ul'); ul.className = 'map-order';
+      ord.rest.forEach(function (m) { var li = document.createElement('li'); li.className = 'off'; li.textContent = (KIND_ICON[m.kind] || '') + ' ' + mediaName(x, m) + ' — ' + t('mapNotLinked') + (has(m) ? '' : ', ' + t('mapNoPlace')); ul.appendChild(li); });
+      lg.appendChild(ul);
+    }
+    setTimeout(function () { bigMap.invalidateSize(); if (all.length === 1) bigMap.setView(all[0], 15); else if (all.length) bigMap.fitBounds(all, { padding: [40, 40], maxZoom: 17 }); }, 80);
+  }
+  function stopText(x, data, s2) {
+    var bits = [(KIND_ICON[s2.m.kind] || '') + ' ' + mediaName(x, s2.m)];
+    if (s2.av) bits.push(t('mapAtTime', { r: mediaName(x, s2.av), t: mmss(s2.t) }));
+    return bits.join(' · ');
+  }
+  function popupForStop(x, data, ord, items) {
+    var d = document.createElement('div'); d.className = 'map-pop';
+    var h = document.createElement('strong'); h.textContent = st(x).title; d.appendChild(h);
+    items.forEach(function (i) {
+      var row = document.createElement('div'); row.className = 'map-row';
+      var tx = document.createElement('span');
+      tx.textContent = (i.n ? i.n + '. ' : '') + (KIND_ICON[i.m.kind] || '') + ' ' + mediaName(x, i.m) + [i.m.about, i.m.recorded, i.m.period].filter(Boolean).map(function (v) { return ' · ' + v; }).join('');
+      row.appendChild(tx);
+      if (!i.n) { var nl = document.createElement('span'); nl.className = 'map-quote'; nl.textContent = t('mapNotLinked'); row.appendChild(nl); }
+      (ord.moments[i.m.id] || []).slice(0, 4).forEach(function (mo) {
+        var q = document.createElement('span'); q.className = 'map-quote';
+        var seg = segmentAt(data, mo.av.id, mo.t), txt = seg && seg.text ? seg.text.trim() : '';
+        q.textContent = t('mapAtTime', { r: mediaName(x, mo.av), t: mmss(mo.t) }) + (txt ? ' — “' + (txt.length > 110 ? txt.slice(0, 110) + '…' : txt) + '”' : '');
+        row.appendChild(q);
+      });
+      d.appendChild(row);
+    });
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = t('mapOpenStory');
+    b.onclick = function () { if (x !== currentSheetStory && !okToLeave()) return; setView('stories'); openStory(x); };
+    d.appendChild(b);
+    return d;
+  }
   // Αναδυόμενο παράθυρο τοποθεσίας: όλα τα αρχεία (και οι ιστορίες) σε αυτό το σημείο
   function popupForGroup(g, files) {
     var d = document.createElement('div'); d.className = 'map-pop';
@@ -4543,13 +4730,19 @@
       if (i.m) { bits.push((KIND_ICON[i.m.kind] || '') + ' ' + mediaName(i.x, i.m)); if (i.m.about) bits.push(i.m.about); if (i.m.recorded) bits.push(i.m.recorded); if (i.m.period) bits.push(i.m.period); }
       var tx = document.createElement('span'); tx.textContent = bits.join(' · '); row.appendChild(tx);
       var b = document.createElement('button'); b.type = 'button'; b.textContent = t('mapOpenStory'); b.onclick = function () { if (i.x !== currentSheetStory && !okToLeave()) return; setView('stories'); openStory(i.x); };
-      row.appendChild(b); d.appendChild(row);
+      row.appendChild(b);
+      if ($('mapStory').value !== i.x.dbId) {
+        var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'map-only'; b2.textContent = t('mapOnlyThis'); b2.style.marginLeft = '6px';
+        b2.onclick = function () { if (bigMap.closePopup) bigMap.closePopup(); $('mapStory').value = i.x.dbId; renderBigMap(); };
+        row.appendChild(b2);
+      }
+      d.appendChild(row);
     });
     if (items.length > 12) { var more = document.createElement('div'); more.textContent = t('mapMore', { n: items.length - 12 }); d.appendChild(more); }
     return d;
   }
   function st_(x) { return x.t && x.t.el ? x.t.el.title : ''; }
-  ['mapFiles', 'mapUsers', 'mapTerms', 'mapMin', 'mapStatusSel'].forEach(function (id) { $(id).addEventListener('change', function () { if (currentView === 'map') renderBigMap(); }); });
+  ['mapStory', 'mapFiles', 'mapUsers', 'mapTerms', 'mapMin', 'mapStatusSel'].forEach(function (id) { $(id).addEventListener('change', function () { if (currentView === 'map') renderBigMap(); }); });
 
   $('helpBtn').onclick = function () { openDialog('helpSheet', $('helpClose')); };
   $('helpClose').onclick = function () { closeDialog('helpSheet'); };
