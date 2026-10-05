@@ -113,6 +113,13 @@ statistics — and the button only works after ticking **I understand this canno
 This needs `supabase/roles.sql` to be re-run once (it lets annotators delete stories and their files); until then the site says
 the database did not allow the deletion and nothing is removed.
 
+## Story location (app)
+In **New story**, the story's location is your GPS position by default, but it can refer to another place: press **Pick on the map**
+and tap the place (it shows "Chosen on the map: …"); **My location (GPS)** goes back to your position. The story then appears at the
+chosen place in the app (and is opened there, like any story, within 100 m). The **+** button no longer needs a GPS fix, so a story
+can be added indoors by choosing its place on the map; finishing without a GPS fix or a chosen place asks for one. Each file keeps its
+own location (📍 details) as before.
+
 ## Map of all locations (annotation website)
 The **Map** button in the header (next to **Stories**) shows every location that users uploaded, **for each file** (photo, audio, video)
 and for each story:

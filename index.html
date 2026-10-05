@@ -589,7 +589,13 @@
     </div>
     <div class="input-group">
       <span class="group-label" id="locLabel" data-i18n="locLabel"></span>
-      <div id="locDisplay" class="loc-box" aria-labelledby="locLabel"></div>
+      <div id="locDisplay" class="loc-box" aria-labelledby="locLabel" aria-live="polite"></div>
+      <p class="sheet-sub" data-i18n="locHint" style="margin:6px 0 0"></p>
+      <div class="btn-row" style="margin-top:6px">
+        <button type="button" class="btn-secondary" id="storyLocGps" data-i18n="miLocGps"></button>
+        <button type="button" class="btn-secondary" id="storyLocMap" data-i18n="miLocMap"></button>
+      </div>
+      <p id="locError" class="field-error" role="alert"></p>
     </div>
     <div class="input-group">
       <label for="storyTitle" data-i18n="storyTitle"></label>
@@ -861,7 +867,7 @@
       calculating: "Υπολογισμός…", locked: "κλειδωμένο",
       lockedAlert: "Είσαι {m}m μακριά.\n\nΠλησίασε κάτω από 100m για να ξεκλειδώσεις αυτήν την ιστορία!",
       map: "Χάρτης", close: "Κλείσιμο", addStory: "Προσθήκη νέας ιστορίας",
-      newStory: "Νέα ιστορία", locLabel: "Τοποθεσία (κλειδωμένη στο στίγμα σου)", waiting: "Αναμονή…",
+      newStory: "Νέα ιστορία", locLabel: "Τοποθεσία της ιστορίας", waiting: "Αναμονή…",
       storyTitle: "Τίτλος ιστορίας", titlePh: "π.χ. Η παλιά αγορά", media: "Πολυμέσα",
       noFiles: "Δεν έχεις προσθέσει αρχεία ακόμα.", addFile: "+ Προσθήκη αρχείου", recordAudio: "🎤 Ηχογράφηση ήχου",
       cancel: "Ακύρωση", finish: "Ολοκλήρωση ιστορίας",
@@ -1027,6 +1033,10 @@
       miLoc: "Τοποθεσία",
       miLocGps: "Η τοποθεσία μου (GPS)",
       miLocMap: "Επιλογή από χάρτη",
+      locHint: "Εκεί θα εμφανίζεται η ιστορία στην εφαρμογή. Από προεπιλογή είναι το στίγμα σου· αν η ιστορία αφορά άλλο μέρος, διάλεξέ το στον χάρτη.",
+      locFromGps: "Το στίγμα σου (GPS): {c}",
+      locFromMap: "Από τον χάρτη: {c}",
+      locNeeded: "Περίμενε το GPS ή διάλεξε την τοποθεσία στον χάρτη.",
       miLocNone: "Δεν έχει οριστεί τοποθεσία",
       miSave: "Αποθήκευση στοιχείων",
       miEmpty: "Πρόσθεσε τίτλο, ημερομηνία και τοποθεσία",
@@ -1174,7 +1184,7 @@
       calculating: "Calculating…", locked: "locked",
       lockedAlert: "You are {m} m away.\n\nGet within 100 m to unlock this story!",
       map: "Map", close: "Close", addStory: "Add a new story",
-      newStory: "New story", locLabel: "Location (locked to your position)", waiting: "Waiting…",
+      newStory: "New story", locLabel: "Story location", waiting: "Waiting…",
       storyTitle: "Story title", titlePh: "e.g. The old market", media: "Media",
       noFiles: "You haven't added any files yet.", addFile: "+ Add file", recordAudio: "🎤 Record audio",
       cancel: "Cancel", finish: "Finish story",
@@ -1340,6 +1350,10 @@
       miLoc: "Location",
       miLocGps: "My location (GPS)",
       miLocMap: "Pick on the map",
+      locHint: "This is where the story appears in the app. By default it is your position; if the story is about another place, choose it on the map.",
+      locFromGps: "Your position (GPS): {c}",
+      locFromMap: "Chosen on the map: {c}",
+      locNeeded: "Wait for GPS or choose the location on the map.",
       miLocNone: "No location set",
       miSave: "Save details",
       miEmpty: "Add a title, date and location",
@@ -1487,7 +1501,7 @@
       calculating: "Calcul…", locked: "verrouillé",
       lockedAlert: "Vous êtes à {m} m.\n\nApprochez-vous à moins de 100 m pour débloquer cette histoire !",
       map: "Carte", close: "Fermer", addStory: "Ajouter une histoire",
-      newStory: "Nouvelle histoire", locLabel: "Emplacement (fixé sur votre position)", waiting: "En attente…",
+      newStory: "Nouvelle histoire", locLabel: "Lieu de l’histoire", waiting: "En attente…",
       storyTitle: "Titre de l'histoire", titlePh: "ex. : Le vieux marché", media: "Médias",
       noFiles: "Vous n'avez encore ajouté aucun fichier.", addFile: "+ Ajouter un fichier", recordAudio: "🎤 Enregistrer du son",
       cancel: "Annuler", finish: "Terminer l'histoire",
@@ -1653,6 +1667,10 @@
       miLoc: "Lieu",
       miLocGps: "Ma position (GPS)",
       miLocMap: "Choisir sur la carte",
+      locHint: "C’est là que l’histoire apparaît dans l’application. Par défaut, c’est votre position ; si l’histoire parle d’un autre lieu, choisissez-le sur la carte.",
+      locFromGps: "Votre position (GPS) : {c}",
+      locFromMap: "Choisi sur la carte : {c}",
+      locNeeded: "Attendez le GPS ou choisissez le lieu sur la carte.",
       miLocNone: "Aucun lieu défini",
       miSave: "Enregistrer les détails",
       miEmpty: "Ajoutez un titre, une date et un lieu",
@@ -1800,7 +1818,7 @@
       calculating: "Calcolo…", locked: "bloccato",
       lockedAlert: "Sei a {m} m.\n\nAvvicinati entro 100 m per sbloccare questa storia!",
       map: "Mappa", close: "Chiudi", addStory: "Aggiungi una storia",
-      newStory: "Nuova storia", locLabel: "Posizione (bloccata sulla tua posizione)", waiting: "In attesa…",
+      newStory: "Nuova storia", locLabel: "Luogo della storia", waiting: "In attesa…",
       storyTitle: "Titolo della storia", titlePh: "es. Il vecchio mercato", media: "Contenuti multimediali",
       noFiles: "Non hai ancora aggiunto file.", addFile: "+ Aggiungi file", recordAudio: "🎤 Registra audio",
       cancel: "Annulla", finish: "Completa la storia",
@@ -1966,6 +1984,10 @@
       miLoc: "Luogo",
       miLocGps: "La mia posizione (GPS)",
       miLocMap: "Scegli sulla mappa",
+      locHint: "È qui che la storia appare nell’app. Di base è la tua posizione; se la storia parla di un altro luogo, sceglilo sulla mappa.",
+      locFromGps: "La tua posizione (GPS): {c}",
+      locFromMap: "Scelto sulla mappa: {c}",
+      locNeeded: "Attendi il GPS o scegli il luogo sulla mappa.",
       miLocNone: "Nessun luogo impostato",
       miSave: "Salva i dettagli",
       miEmpty: "Aggiungi titolo, data e luogo",
@@ -2549,8 +2571,11 @@
     }
   }
 
+  var storyLoc = null;     // τοποθεσία ιστορίας από τον χάρτη (αλλιώς το στίγμα GPS)
   function renderLoc() {
-    $('locDisplay').textContent = me ? me.lat.toFixed(5) + ', ' + me.lon.toFixed(5) : t('waiting');
+    var c = function (p) { return (+p.lat).toFixed(5) + ', ' + (+p.lon).toFixed(5); };
+    $('locDisplay').textContent = storyLoc ? '🗺 ' + t('locFromMap', { c: c(storyLoc) }) : me ? '📍 ' + t('locFromGps', { c: c(me) }) : t('locNeeded');
+    $('storyLocGps').disabled = !me || !storyLoc;
   }
 
   onLangChange(function () { renderStatus(); renderNearest(false); renderLoc(); });
@@ -2603,7 +2628,7 @@
   }
 
   function updateAddBtn() {
-    $('addBtn').classList.toggle('on', !!(currentUser && me));
+    $('addBtn').classList.toggle('on', !!currentUser);
   }
 
   function isAnnotator() { return !!(currentUser && currentRole === 'annotator'); }
@@ -4145,6 +4170,7 @@
   function clearErrors() {
     $('titleError').textContent = '';
     $('mediaError').textContent = '';
+    $('locError').textContent = '';
     $('storyTitle').removeAttribute('aria-invalid');
   }
 
@@ -4247,12 +4273,12 @@
   };
 
   $('addBtn').onclick = function () {
-    if (!me || !currentUser) return;
+    if (!currentUser) return;
     openConsent();
   };
 
   $('cancelStoryBtn').onclick = function () {
-    activeConsent = null;
+    activeConsent = null; storyLoc = null; renderLoc();
     $('storyTitle').value = '';
     processedFiles = [];
     clearErrors();
@@ -4655,8 +4681,12 @@
     if (pickMarker) pickMarker.setLatLng([lat, lon]); else pickMarker = L.marker([lat, lon]).addTo(pickMap);
     pickShow();
   }
-  $('miLocMap').onclick = function () {
-    pickPoint = miLoc.lat != null ? { lat: miLoc.lat, lon: miLoc.lon } : null;
+  var pickFor = 'file';          // 'file': στοιχεία αρχείου · 'story': τοποθεσία ιστορίας
+  $('miLocMap').onclick = function () { openPicker('file', miLoc.lat != null ? { lat: miLoc.lat, lon: miLoc.lon } : null); };
+  $('storyLocMap').onclick = function () { openPicker('story', storyLoc ? { lat: storyLoc.lat, lon: storyLoc.lon } : null); };
+  $('storyLocGps').onclick = function () { storyLoc = null; $('locError').textContent = ''; renderLoc(); announce($('locDisplay').textContent); };
+  function openPicker(target, start) {
+    pickFor = target; pickPoint = start;
     openDialog('mapPickSheet', $('pickUse'));
     setTimeout(function () {
       var c = pickPoint ? [pickPoint.lat, pickPoint.lon] : (me ? [me.lat, me.lon] : DEFAULT_CENTER);
@@ -4670,10 +4700,16 @@
       if (pickPoint) pickSet(pickPoint.lat, pickPoint.lon);
       pickShow();
     }, 60);
-  };
+  }
   $('pickCancel').onclick = function () { closeDialog('mapPickSheet'); };
   escHandlers.mapPickSheet = function () { closeDialog('mapPickSheet'); };
-  $('pickUse').onclick = function () { if (pickPoint) { miLoc = { lat: pickPoint.lat, lon: pickPoint.lon }; miShowLoc(); } closeDialog('mapPickSheet'); };
+  $('pickUse').onclick = function () {
+    if (pickPoint) {
+      if (pickFor === 'story') { storyLoc = { lat: pickPoint.lat, lon: pickPoint.lon }; $('locError').textContent = ''; renderLoc(); }
+      else { miLoc = { lat: pickPoint.lat, lon: pickPoint.lon }; miShowLoc(); }
+    }
+    closeDialog('mapPickSheet');
+  };
 
   $('mediaList').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-act]'); if (!b) return;
@@ -4725,6 +4761,7 @@
       $('triggerFileBtn').focus();
       return;
     }
+    if (!storyLoc && !me) { $('locError').textContent = t('locNeeded'); $('storyLocMap').focus(); return; }
     renderConfirmSummary();
     closeDialog('uploadSheet', true);
     openDialog('confirmModal');
@@ -4896,6 +4933,7 @@
     $('publishError').textContent = '';
     $('storyTitle').value = '';
     processedFiles = [];
+    storyLoc = null; renderLoc();
     updateMediaListUI();
     closeDialog('previewSheet', true);
     setAR(true);
@@ -4906,11 +4944,12 @@
     var btn = this;
     $('publishError').textContent = '';
     if (!currentUser) { $('publishError').textContent = t('loginToAdd'); return; }
-    if (!me) return;
+    var pos = storyLoc || me;
+    if (!pos) { $('publishError').textContent = t('locNeeded'); return; }
     btn.disabled = true;
     try {
       if (!activeConsent) { $('publishError').textContent = t('consentNeedAll'); return; }
-      var story = await WM.publish($('storyTitle').value.trim(), me, processedFiles, function (i, n) {
+      var story = await WM.publish($('storyTitle').value.trim(), { lat: pos.lat, lon: pos.lon }, processedFiles, function (i, n) {
         btn.textContent = t('publishing', { i: i, n: n });
       }, activeConsent.id, activeConsent.code);
       addStoryRuntime(story);
