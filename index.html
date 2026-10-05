@@ -226,6 +226,36 @@
     background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); box-shadow: 0 4px 14px rgba(14,63,80,.25);
   }
   #listBtn[hidden] { display: none; }
+  #modeBtn {
+    position: absolute; top: calc(var(--pad) + env(safe-area-inset-top) + 108px); right: var(--pad); pointer-events: auto; max-width: 62%;
+    padding: 8px 16px; min-height: 44px; font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); box-shadow: 0 4px 14px rgba(14,63,80,.25);
+  }
+  #modeBtn[hidden] { display: none; }
+  .mode-choose { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .mode-choose[hidden], .mode-choose .mode-opt[hidden] { display: none; }
+  .mode-choose .mode-head { font-size: 15px; font-weight: 700; color: var(--petrol); margin: 0; }
+  .mode-opt { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 2px solid var(--line-strong); border-radius: 14px; background: #fff; cursor: pointer; }
+  .mode-opt:has(input:checked) { border-color: var(--petrol); background: var(--sky-soft); }
+  .mode-opt input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--petrol); flex: none; }
+  .mode-opt b { display: block; color: var(--petrol); font-size: 17px; }
+  .mode-opt small { display: block; color: var(--muted); font-size: 14px; }
+  .mode-opt select { margin-top: 8px; width: 100%; }
+  .mode-opt .walk-desc { margin: 6px 0 0; font-size: 14px; color: var(--ink); }
+  .mode-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .mode-actions button { flex: 1 1 140px; padding: 12px 18px; min-height: 48px; font-weight: 700; }
+  #walkProgress ol { margin: 12px 0 0; padding-left: 0; list-style: none; }
+  #walkProgress li { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+  #walkProgress li .n { flex: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; background: #fff; color: var(--petrol); border: 3px solid var(--petrol); }
+  #walkProgress li.done .n { background: var(--petrol); color: #fff; }
+  #walkProgress li.next .n { border-color: var(--amber); }
+  #walkProgress li .tt { flex: 1 1 auto; min-width: 0; }
+  #walkProgress li .tt small { display: block; color: var(--muted); }
+  #walkProgress .restart { margin-top: 10px; }
+  #nearest.walk { border-left-color: var(--petrol); }
+  .walk-pin { width: 30px; height: 30px; border-radius: 50%; background: #fff; color: var(--petrol); border: 3px solid var(--petrol); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+  .walk-pin.done { background: var(--petrol); color: #fff; }
+  .walk-pin.next { border-color: var(--amber); box-shadow: 0 0 0 4px rgba(224,144,79,.45); }
   .story-status { font-size: 13px; font-weight: 700; color: var(--amber-text); margin: 0 0 6px; } .story-status:empty { display: none; }
   .list-item { display: block; width: 100%; text-align: left; border-radius: 14px; background: var(--mist); color: var(--ink); padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--line); }
   .list-item .t { display: block; font-weight: 700; color: var(--petrol); font-style: italic; }
@@ -443,6 +473,7 @@
       <option value="it" lang="it">Italiano</option>
     </select>
   </div>
+  <div id="gateMode" class="mode-choose"></div>
   <button id="startBtn" data-i18n="start"></button>
   <button id="authBtnGate" class="link-btn" hidden></button>
 </div>
@@ -461,6 +492,7 @@
   </div>
   <button id="authBtn" hidden></button>
   <button id="listBtn" hidden></button>
+  <button id="modeBtn" hidden></button>
   <button id="nearest"><span class="dist"></span><span class="name"></span></button>
 </div>
 
@@ -472,6 +504,19 @@
   <button id="handle" aria-expanded="false" aria-controls="map"><span class="grip" aria-hidden="true"></span><span class="lbl" data-i18n="map"></span></button>
   <div id="map" role="region" data-i18n-aria="map" inert>
     <div id="compass" aria-hidden="true"><span class="needle"></span><span class="deg">—</span></div>
+  </div>
+</div>
+
+<!-- Τρόπος εξερεύνησης: ελεύθερη περιήγηση ή διαδρομή -->
+<div id="modeSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="modeSheetTitle">
+  <div class="sheet-inner">
+    <h2 id="modeSheetTitle" data-i18n="modeTitle"></h2>
+    <div id="modeChoices" class="mode-choose"></div>
+    <div id="walkProgress"></div>
+    <div class="mode-actions">
+      <button id="modeApplyBtn" class="btn-primary" data-i18n="modeApply"></button>
+      <button id="modeCloseBtn" class="btn-secondary" data-i18n="close"></button>
+    </div>
   </div>
 </div>
 
@@ -793,6 +838,25 @@
       gateText: "Χρειάζεται κάμερα, τοποθεσία και αισθητήρες κίνησης. Δούλεψε σε ανοιχτό χώρο.",
       start: "Ξεκίνα τη διαδρομή", opening: "Άνοιγμα κάμερας…", retry: "Δοκίμασε ξανά", permDenied: "Δεν δόθηκε άδεια.",
       waitingFix: "Αναμονή για στίγμα…", accuracy: "Ακρίβεια {m}m.", compassDeg: "Πυξίδα {d}°", gpsError: "Σφάλμα GPS",
+      modeTitle: "Πώς θέλεις να εξερευνήσεις;",
+      modeFree: "Ελεύθερη περιήγηση",
+      modeFreeHint: "Όλες οι ιστορίες γύρω σου",
+      modeWalk: "Ακολούθησε μια διαδρομή",
+      modeWalkHint: "Ιστορίες με σειρά, η μία μετά την άλλη",
+      walkPick: "Διαδρομή",
+      walkStops: "{n} στάσεις",
+      modeApply: "OK",
+      walkStop: "Στάση {i} από {n}",
+      walkDone: "Η διαδρομή ολοκληρώθηκε 🎉",
+      walkDoneHint: "Πάτα για να την ξαναρχίσεις ή να διαλέξεις άλλη",
+      walkArrived: "Έφτασες: στάση {i}, {t}",
+      walkRestart: "Ξεκίνα τη διαδρομή από την αρχή",
+      walkEmpty: "Αυτή η διαδρομή δεν έχει ακόμη δημοσιευμένες ιστορίες",
+      modeNowFree: "Ελεύθερη περιήγηση: όλες οι ιστορίες",
+      modeNowWalk: "Διαδρομή: {t}, {n} στάσεις",
+      modeBtnFree: "🧭 Ελεύθερη περιήγηση",
+      walkVisited: "έχεις δει",
+      walkNext: "επόμενη",
       youAreHere: "Είσαι εδώ", mAway: "{m}m μακριά", closest: "📍 Πιο κοντά", distance: "Απόσταση: {d}",
       calculating: "Υπολογισμός…", locked: "κλειδωμένο",
       lockedAlert: "Είσαι {m}m μακριά.\n\nΠλησίασε κάτω από 100m για να ξεκλειδώσεις αυτήν την ιστορία!",
@@ -1087,6 +1151,25 @@
       gateText: "Needs camera, location and motion sensors. Use it outdoors.",
       start: "Start the trail", opening: "Opening camera…", retry: "Try again", permDenied: "Permission was not granted.",
       waitingFix: "Waiting for location…", accuracy: "Accuracy {m} m.", compassDeg: "Compass {d}°", gpsError: "GPS error",
+      modeTitle: "How do you want to explore?",
+      modeFree: "Free roam",
+      modeFreeHint: "All the stories around you",
+      modeWalk: "Follow a walk",
+      modeWalkHint: "Stories in a set order, one after the other",
+      walkPick: "Walk",
+      walkStops: "{n} stops",
+      modeApply: "OK",
+      walkStop: "Stop {i} of {n}",
+      walkDone: "Walk completed 🎉",
+      walkDoneHint: "Tap to restart it or choose another walk",
+      walkArrived: "You have arrived: stop {i}, {t}",
+      walkRestart: "Restart the walk",
+      walkEmpty: "This walk has no published stories yet",
+      modeNowFree: "Free roam: all stories",
+      modeNowWalk: "Walk: {t}, {n} stops",
+      modeBtnFree: "🧭 Free roam",
+      walkVisited: "seen",
+      walkNext: "next",
       youAreHere: "You are here", mAway: "{m} m away", closest: "📍 Closest", distance: "Distance: {d}",
       calculating: "Calculating…", locked: "locked",
       lockedAlert: "You are {m} m away.\n\nGet within 100 m to unlock this story!",
@@ -1381,6 +1464,25 @@
       gateText: "Nécessite la caméra, la localisation et les capteurs de mouvement. À utiliser en extérieur.",
       start: "Commencer le parcours", opening: "Ouverture de la caméra…", retry: "Réessayer", permDenied: "Autorisation refusée.",
       waitingFix: "En attente de la position…", accuracy: "Précision {m} m.", compassDeg: "Boussole {d}°", gpsError: "Erreur GPS",
+      modeTitle: "Comment voulez-vous explorer ?",
+      modeFree: "Exploration libre",
+      modeFreeHint: "Toutes les histoires autour de vous",
+      modeWalk: "Suivre un parcours",
+      modeWalkHint: "Des histoires dans un ordre donné, l’une après l’autre",
+      walkPick: "Parcours",
+      walkStops: "{n} étapes",
+      modeApply: "OK",
+      walkStop: "Étape {i} sur {n}",
+      walkDone: "Parcours terminé 🎉",
+      walkDoneHint: "Touchez pour le recommencer ou choisir un autre parcours",
+      walkArrived: "Vous êtes arrivé·e : étape {i}, {t}",
+      walkRestart: "Recommencer le parcours",
+      walkEmpty: "Ce parcours n’a pas encore d’histoires publiées",
+      modeNowFree: "Exploration libre : toutes les histoires",
+      modeNowWalk: "Parcours : {t}, {n} étapes",
+      modeBtnFree: "🧭 Exploration libre",
+      walkVisited: "vue",
+      walkNext: "suivante",
       youAreHere: "Vous êtes ici", mAway: "à {m} m", closest: "📍 Le plus proche", distance: "Distance : {d}",
       calculating: "Calcul…", locked: "verrouillé",
       lockedAlert: "Vous êtes à {m} m.\n\nApprochez-vous à moins de 100 m pour débloquer cette histoire !",
@@ -1675,6 +1777,25 @@
       gateText: "Servono fotocamera, posizione e sensori di movimento. Usala all'aperto.",
       start: "Inizia il percorso", opening: "Apertura fotocamera…", retry: "Riprova", permDenied: "Autorizzazione negata.",
       waitingFix: "In attesa della posizione…", accuracy: "Precisione {m} m.", compassDeg: "Bussola {d}°", gpsError: "Errore GPS",
+      modeTitle: "Come vuoi esplorare?",
+      modeFree: "Esplorazione libera",
+      modeFreeHint: "Tutte le storie intorno a te",
+      modeWalk: "Segui un percorso",
+      modeWalkHint: "Storie in un ordine stabilito, una dopo l’altra",
+      walkPick: "Percorso",
+      walkStops: "{n} tappe",
+      modeApply: "OK",
+      walkStop: "Tappa {i} di {n}",
+      walkDone: "Percorso completato 🎉",
+      walkDoneHint: "Tocca per ricominciarlo o sceglierne un altro",
+      walkArrived: "Sei arrivato/a: tappa {i}, {t}",
+      walkRestart: "Ricomincia il percorso",
+      walkEmpty: "Questo percorso non ha ancora storie pubblicate",
+      modeNowFree: "Esplorazione libera: tutte le storie",
+      modeNowWalk: "Percorso: {t}, {n} tappe",
+      modeBtnFree: "🧭 Esplorazione libera",
+      walkVisited: "vista",
+      walkNext: "prossima",
       youAreHere: "Sei qui", mAway: "a {m} m", closest: "📍 Più vicino", distance: "Distanza: {d}",
       calculating: "Calcolo…", locked: "bloccato",
       lockedAlert: "Sei a {m} m.\n\nAvvicinati entro 100 m per sbloccare questa storia!",
@@ -2168,6 +2289,7 @@
   }
 
   function openStorySheet(s, via) {
+    if (MODE.kind === 'walk' && walkNo(s)) markVisited(s);
     trackView(s, 'open', null, via);
     var tr = st(s);
     $('sheetTitle').textContent = tr.title;
@@ -2267,7 +2389,8 @@
       if (!el) return;
       var tr = st(s);
       el.querySelector('.closest-badge').textContent = t('closest');
-      el.querySelector('.mt').textContent = tr.title;
+      var no = walkNo(s);
+      el.querySelector('.mt').textContent = (no ? no + ' · ' : '') + tr.title;
       el.querySelector('.m-sub').textContent = tr.sub + (s.status === 'draft' ? ' · ' + t('statusDraft') : '');
       el.querySelector('.m-dist').textContent = s.d != null ? t('distance', { d: fmtDist(s.d) }) : t('calculating');
       el._label = null;
@@ -2283,12 +2406,14 @@
 
     STORIES.forEach(function (s) {
       s.d = distanceMetres(me.lat, me.lon, s.lat, s.lon);
-      if (s.d < minDist) { minDist = s.d; closestId = s.id; }
+      if (inMode(s) && s.d < minDist) { minDist = s.d; closestId = s.id; }
     });
+    if (MODE.kind === 'walk') { var ns0 = nextStop(); closestId = ns0 ? ns0.s.id : null; }   // σε διαδρομή τονίζεται η επόμενη στάση
 
     STORIES.forEach(function (s) {
       var el = $('html-marker-' + s.id);
       if (!el) return;
+      if (!inMode(s)) { if (el.style.display !== 'none') el.style.display = 'none'; return; }
 
       var distTxt = t('distance', { d: fmtDist(s.d) });
       var distEl = el.querySelector('.m-dist');
@@ -2299,7 +2424,7 @@
       el.classList.toggle('locked', isLocked);
       el.querySelector('.lock').style.display = isLocked ? 'inline' : 'none';
 
-      var label = st(s).title + ', ' + fmtDist(s.d) + (isLocked ? ', ' + t('locked') : '') + (isClosest ? ', ' + t('closest').replace('📍 ', '') : '');
+      var label = (walkNo(s) ? t('walkStop', { i: walkNo(s), n: walkStops().length }) + ', ' : '') + st(s).title + ', ' + fmtDist(s.d) + (isLocked ? ', ' + t('locked') : '') + (isClosest ? ', ' + t('closest').replace('📍 ', '') : '');
       if (el._label !== label) { el.setAttribute('aria-label', label); el._label = label; }
 
       el.style.zIndex = Math.max(1, 90 - Math.floor(s.d / 10));
@@ -2352,6 +2477,7 @@
     markerCluster = L.markerClusterGroup({ maxClusterRadius: 40, iconCreateFunction: function (c) { return L.divIcon({ html: c.getChildCount(), className: 'map-cluster-dot', iconSize: [32, 32] }); } });
     STORIES.forEach(addPoiMarker);
     map.addLayer(markerCluster);
+    renderWalkMap();
     map.on('dragstart', function () { followMe = false; });
   }
 
@@ -2403,6 +2529,8 @@
 
   var lastNearestId = null;
   function renderNearest(announceChange) {
+    if (MODE.kind === 'walk') { renderWalkCard(announceChange); return; }
+    $('nearest').classList.remove('walk');
     if (!me) return;
     var ranked = STORIES.map(function (s) { return { s: s, d: distanceMetres(me.lat, me.lon, s.lat, s.lon) }; })
                         .sort(function (a, b) { return a.d - b.d; })[0];
@@ -2446,6 +2574,8 @@
       $('gate').style.display = 'none';
       $('hud').classList.add('on');
       initMap();
+      var ch = gateChooser ? gateChooser.value() : { kind: 'free' };
+      setMode(ch.kind, ch.walkId, true);
       renderStatus();
       $('langHud').focus();
       navigator.geolocation.watchPosition(onPosition, function () { gpsFailed = true; renderStatus(); announce(t('gpsError')); }, { enableHighAccuracy: true, timeout: 10000 });
@@ -2567,6 +2697,7 @@
     STORIES.push(s);
     if ($('ar-overlay-container').children.length) { createMarkerEl(s); refreshMarkerTexts(); }
     if (map && markerCluster) addPoiMarker(s);
+    scheduleModeRefresh();
   }
 
   function removeStoryRuntime(s) {
@@ -2602,6 +2733,195 @@
       alert(t('deleteError', { e: e.message || e }));
     } finally { b.disabled = false; }
   };
+
+  // ==========================================
+  // Τρόπος εξερεύνησης: ελεύθερη περιήγηση (όλες οι ιστορίες) ή διαδρομή (ιστορίες συνδεδεμένες σε πίνακα της σελίδας «Συνδέσεις ιστοριών»)
+  // ==========================================
+  var WALKS = [], MODE = { kind: 'free', walk: null }, walkVisited = {}, gateChooser = null, sheetChooser = null;
+  // Σειρά στάσεων όπως στη σελίδα συνδέσεων: από κάθε ιστορία χωρίς εισερχόμενη γραμμή, ακολουθώντας τις γραμμές
+  function walkOrder(items, links) {
+    var pos = {}; items.forEach(function (i) { pos[i.story_id] = i; });
+    links = links.filter(function (l) { return pos[l.from_story] && pos[l.to_story]; });
+    if (!links.length) return items.slice().sort(function (a, b) { return a.x - b.x || a.y - b.y; }).map(function (i) { return i.story_id; });
+    var inc = {}, out = {}, seen = {}, order = [];
+    links.forEach(function (l) { inc[l.to_story] = 1; (out[l.from_story] = out[l.from_story] || []).push(l.to_story); });
+    function byPos(a, b) { return pos[a].y - pos[b].y || pos[a].x - pos[b].x; }
+    function visit(id) { if (seen[id]) return; seen[id] = 1; order.push(id); (out[id] || []).slice().sort(function (a, b) { return pos[a].x - pos[b].x || byPos(a, b); }).forEach(visit); }
+    Object.keys(out).filter(function (id) { return !inc[id]; }).sort(byPos).forEach(visit);
+    links.forEach(function (l) { visit(l.from_story); });                 // κύκλοι χωρίς αρχή
+    return order;
+  }
+  async function loadWalks() {
+    if (!sb) return;
+    try {
+      var b = await sb.from('story_boards').select('id,title,description').eq('is_walk', true).order('title');
+      if (b.error || !b.data.length) { WALKS = []; renderChoosers(); return; }
+      var ids = b.data.map(function (x) { return x.id; });
+      var r = await Promise.all([
+        sb.from('story_board_items').select('board_id,story_id,x,y').in('board_id', ids),
+        sb.from('story_board_links').select('board_id,from_story,to_story').in('board_id', ids)
+      ]);
+      if (r[0].error || r[1].error) { WALKS = []; renderChoosers(); return; }
+      WALKS = b.data.map(function (x) {
+        return { id: x.id, title: x.title, description: x.description || '',
+          order: walkOrder(r[0].data.filter(function (i) { return i.board_id === x.id; }), r[1].data.filter(function (l) { return l.board_id === x.id; })) };
+      }).filter(function (w) { return w.order.length; });
+    } catch (e) { WALKS = []; }
+    if (MODE.kind === 'walk') { var again = WALKS.filter(function (w) { return w.id === MODE.walk.id; })[0]; if (again) MODE.walk = again; }
+    renderChoosers(); applyMode();
+  }
+  function storyByDb(id) { return STORIES.filter(function (s) { return s.dbId === id; })[0]; }
+  // Στάσεις της διαδρομής: μόνο δημοσιευμένες ιστορίες που υπάρχουν, με τη σειρά τους
+  function walkStopsOf(w) { return w.order.map(storyByDb).filter(function (s) { return s && s.status === 'published'; }); }
+  function walkStops() { return MODE.kind === 'walk' ? walkStopsOf(MODE.walk) : []; }
+  function walkNo(s) { if (MODE.kind !== 'walk') return 0; var i = walkStops().indexOf(s); return i + 1; }
+  function inMode(s) { return MODE.kind !== 'walk' || walkNo(s) > 0; }
+  function nextStop() {
+    var stops = walkStops();
+    for (var i = 0; i < stops.length; i++) if (!walkVisited[stops[i].dbId]) return { s: stops[i], i: i, n: stops.length };
+    return null;
+  }
+  function visitedKey() { return MODE.walk ? 'wm_walk_' + MODE.walk.id : ''; }
+  function markVisited(s) {
+    if (walkVisited[s.dbId]) return;
+    walkVisited[s.dbId] = 1;
+    try { localStorage.setItem(visitedKey(), JSON.stringify(walkVisited)); } catch (e) {}
+    lastNearestId = null; renderWalkMap(); renderModeBtn();
+    setTimeout(function () { renderNearest(false); refreshMarkerTexts(); }, 0);
+  }
+  function setMode(kind, walkId, quiet) {
+    var w = kind === 'walk' ? WALKS.filter(function (x) { return x.id === walkId; })[0] : null;
+    MODE = w ? { kind: 'walk', walk: w } : { kind: 'free', walk: null };
+    walkVisited = {};
+    if (w) { try { walkVisited = JSON.parse(localStorage.getItem(visitedKey()) || '{}') || {}; } catch (e) { walkVisited = {}; } }
+    try { localStorage.setItem('wm_mode', w ? 'walk:' + w.id : 'free'); } catch (e) {}
+    lastNearestId = null;
+    applyMode();
+    if (w && map && me == null) { var pts = walkStops().map(function (s) { return [s.lat, s.lon]; }); if (pts.length > 1) map.fitBounds(pts, { padding: [30, 30] }); else if (pts.length) map.setView(pts[0], 17); }
+    if (!quiet || w) announce(w ? t('modeNowWalk', { t: w.title, n: walkStops().length }) : t('modeNowFree'));
+  }
+  var modeTimer = null;
+  function scheduleModeRefresh() { clearTimeout(modeTimer); modeTimer = setTimeout(function () { applyMode(); renderChoosers(); }, 250); }
+  function applyMode() {
+    refreshMarkerTexts();
+    STORIES.forEach(function (s) { var el = $('html-marker-' + s.id); if (el && !inMode(s)) el.style.display = 'none'; });
+    renderWalkMap(); renderModeBtn();
+    if (MODE.kind === 'walk') renderNearest(false);
+    else { $('nearest').classList.remove('walk'); if (me) renderNearest(false); else $('nearest').classList.remove('on'); }
+  }
+  function renderModeBtn() {
+    var b = $('modeBtn');
+    b.hidden = !WALKS.length && MODE.kind !== 'walk';
+    if (MODE.kind === 'walk') {
+      var stops = walkStops(), done = stops.filter(function (s) { return walkVisited[s.dbId]; }).length;
+      b.textContent = '🚶 ' + MODE.walk.title + ' · ' + done + '/' + stops.length;
+    } else b.textContent = t('modeBtnFree');
+    b.setAttribute('aria-label', t('modeTitle') + ' ' + b.textContent);
+  }
+  function renderWalkCard(announceChange) {
+    var btn = $('nearest'), stops = walkStops(), ns = nextStop();
+    btn.classList.add('on', 'walk');
+    if (!stops.length) { btn.querySelector('.dist').textContent = t('walkEmpty'); btn.querySelector('.name').textContent = MODE.walk.title; btn.onclick = openModeSheet; return; }
+    if (!ns) {
+      btn.querySelector('.dist').textContent = t('walkDoneHint'); btn.querySelector('.name').textContent = t('walkDone'); btn.onclick = openModeSheet;
+      if (announceChange !== null && lastNearestId !== 'walk-done') { lastNearestId = 'walk-done'; announce(t('walkDone')); }
+      return;
+    }
+    var d = me ? distanceMetres(me.lat, me.lon, ns.s.lat, ns.s.lon) : null, here = d != null && d <= ns.s.radius;
+    btn.querySelector('.dist').textContent = t('walkStop', { i: ns.i + 1, n: ns.n }) + (d == null ? '' : ' · ' + (here ? t('youAreHere') : t('mAway', { m: Math.round(d) })));
+    btn.querySelector('.name').textContent = st(ns.s).title;
+    btn.onclick = function () { openStorySheet(ns.s, 'walk'); };
+    var key = ns.s.id + (here ? ':here' : '');
+    if (announceChange && key !== lastNearestId) {
+      lastNearestId = key;
+      announce(here ? t('walkArrived', { i: ns.i + 1, t: st(ns.s).title }) : t('walkStop', { i: ns.i + 1, n: ns.n }) + ': ' + st(ns.s).title);
+    }
+  }
+  var walkLayer = null;
+  function renderWalkMap() {
+    if (!map || !markerCluster) return;
+    if (walkLayer) { map.removeLayer(walkLayer); walkLayer = null; }
+    if (MODE.kind !== 'walk') { if (!map.hasLayer(markerCluster)) map.addLayer(markerCluster); return; }
+    if (map.hasLayer(markerCluster)) map.removeLayer(markerCluster);
+    walkLayer = L.layerGroup().addTo(map);
+    var stops = walkStops(), ns = nextStop();
+    if (stops.length > 1) L.polyline(stops.map(function (s) { return [s.lat, s.lon]; }), { color: '#186078', weight: 4, opacity: .7, dashArray: '8 8', interactive: false }).addTo(walkLayer);
+    stops.forEach(function (s, i) {
+      var done = !!walkVisited[s.dbId], cur = ns && ns.s === s, name = (i + 1) + '. ' + st(s).title + (done ? ' (' + t('walkVisited') + ')' : cur ? ' (' + t('walkNext') + ')' : '');
+      L.marker([s.lat, s.lon], { icon: L.divIcon({ className: '', html: '<div class="walk-pin' + (done ? ' done' : '') + (cur ? ' next' : '') + '">' + (done ? '✓' : (i + 1)) + '</div>', iconSize: [30, 30], iconAnchor: [15, 15] }),
+        title: name, alt: name, keyboard: true, zIndexOffset: cur ? 500 : 0 }).on('click', function () { openStorySheet(s, 'map'); }).addTo(walkLayer);
+    });
+  }
+  // Επιλογή τρόπου (οθόνη έναρξης και φύλλο «Τρόπος εξερεύνησης»)
+  function buildChooser(box, name) {
+    var sel = null, desc = null;
+    function render() {
+      var cur = (sel && sel.value) || (MODE.walk && MODE.walk.id) || savedWalk();
+      var kind = box.querySelector('input:checked') ? box.querySelector('input:checked').value : (MODE.kind === 'walk' || (box.id === 'gateMode' && savedWalk()) ? 'walk' : 'free');
+      box.innerHTML = '';
+      var h = document.createElement('p'); h.className = 'mode-head' + (box.id === 'modeChoices' ? ' sr-only' : ''); h.id = name + 'Head'; h.textContent = t('modeTitle'); box.appendChild(h);   // στο φύλλο ο τίτλος υπάρχει ήδη
+      box.setAttribute('role', 'radiogroup'); box.setAttribute('aria-labelledby', h.id);
+      function opt(value, title, hint) {
+        var l = document.createElement('label'); l.className = 'mode-opt';
+        var r = document.createElement('input'); r.type = 'radio'; r.name = name; r.value = value; l.appendChild(r);
+        var sp = document.createElement('span'); var b = document.createElement('b'); b.textContent = title; var sm = document.createElement('small'); sm.textContent = hint;
+        sp.appendChild(b); sp.appendChild(sm); l.appendChild(sp); box.appendChild(l); return { l: l, r: r, sp: sp };
+      }
+      var f = opt('free', t('modeFree'), t('modeFreeHint')), w = opt('walk', t('modeWalk'), t('modeWalkHint'));
+      w.l.hidden = !WALKS.length;
+      if (!WALKS.length) kind = 'free';
+      sel = document.createElement('select'); sel.className = 'lang-select'; sel.setAttribute('aria-label', t('walkPick'));
+      WALKS.forEach(function (x) { var o = document.createElement('option'); o.value = x.id; var n = STORIES.length ? walkStopsOf(x).length : x.order.length; o.textContent = x.title + ' · ' + t('walkStops', { n: n }); sel.appendChild(o); });
+      if (cur && WALKS.some(function (x) { return x.id === cur; })) sel.value = cur;
+      desc = document.createElement('p'); desc.className = 'walk-desc';
+      w.sp.appendChild(sel); w.sp.appendChild(desc);
+      function sync() { var x = WALKS.filter(function (y) { return y.id === sel.value; })[0]; desc.textContent = x ? x.description : ''; }
+      // Η λίστα διαδρομών μένει πάντα ενεργή· όποιος την αγγίζει επιλέγει «διαδρομή»
+      sel.onchange = sel.onfocus = sel.onclick = function () { if (!w.r.checked) w.r.checked = true; sync(); };
+      f.r.onchange = w.r.onchange = sync;
+      (kind === 'walk' ? w.r : f.r).checked = true;
+      sync();
+    }
+    render();
+    return { render: render, value: function () { var c = box.querySelector('input:checked'); return { kind: c ? c.value : 'free', walkId: sel ? sel.value : null }; } };
+  }
+  function savedWalk() { try { var v = localStorage.getItem('wm_mode') || ''; return v.indexOf('walk:') === 0 ? v.slice(5) : ''; } catch (e) { return ''; } }
+  function renderChoosers() {
+    if (!gateChooser) gateChooser = buildChooser($('gateMode'), 'gateModeR'); else if ($('gate').style.display !== 'none') gateChooser.render();
+    $('gateMode').hidden = !WALKS.length;      // χωρίς διαδρομές δεν χρειάζεται επιλογή
+    if ($('modeSheet').classList.contains('on')) renderModeSheet();
+    renderModeBtn();
+  }
+  function renderModeSheet() {
+    if (!sheetChooser) sheetChooser = buildChooser($('modeChoices'), 'sheetModeR'); else sheetChooser.render();
+    var box = $('walkProgress'); box.innerHTML = '';
+    if (MODE.kind !== 'walk') return;
+    var stops = walkStops(), ns = nextStop(), ol = document.createElement('ol');
+    stops.forEach(function (s, i) {
+      var li = document.createElement('li'), done = !!walkVisited[s.dbId], cur = ns && ns.s === s;
+      li.className = done ? 'done' : cur ? 'next' : '';
+      var n = document.createElement('span'); n.className = 'n'; n.textContent = done ? '✓' : String(i + 1); n.setAttribute('aria-hidden', 'true'); li.appendChild(n);
+      var tt = document.createElement('span'); tt.className = 'tt'; tt.textContent = (i + 1) + '. ' + st(s).title;
+      var sm = document.createElement('small'); sm.textContent = [done ? t('walkVisited') : cur ? t('walkNext') : '', me ? fmtDist(distanceMetres(me.lat, me.lon, s.lat, s.lon)) : ''].filter(Boolean).join(' · ');
+      tt.appendChild(sm); li.appendChild(tt); ol.appendChild(li);
+    });
+    var h = document.createElement('p'); h.className = 'mode-head'; h.textContent = MODE.walk.title; box.appendChild(h); box.appendChild(ol);
+    var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'btn-secondary restart'; rb.textContent = t('walkRestart');
+    rb.onclick = function () { walkVisited = {}; try { localStorage.removeItem(visitedKey()); } catch (e) {} lastNearestId = null; applyMode(); renderModeSheet(); };
+    box.appendChild(rb);
+  }
+  function openModeSheet() { renderModeSheet(); openDialog('modeSheet', $('modeApplyBtn')); }
+  $('modeBtn').onclick = openModeSheet;
+  $('modeApplyBtn').onclick = function () {
+    var v = sheetChooser.value();
+    if (v.kind !== MODE.kind || (v.kind === 'walk' && (!MODE.walk || v.walkId !== MODE.walk.id))) setMode(v.kind, v.walkId);
+    closeDialog('modeSheet');
+  };
+  $('modeCloseBtn').onclick = function () { closeDialog('modeSheet'); };
+  escHandlers.modeSheet = function () { closeDialog('modeSheet'); };
+  onLangChange(function () { renderChoosers(); renderModeBtn(); if (MODE.kind === 'walk') { refreshMarkerTexts(); renderWalkMap(); renderNearest(false); } });
+  renderChoosers();
+  loadWalks();
 
   function storyFromRow(r) {
     var tr = { title: r.title, sub: r.author_name || '', text: '' };

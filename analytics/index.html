@@ -199,7 +199,7 @@
       corrPerDay: 'Corrections per day', corrPerWeek: 'Corrections per week',
       perAnnotator: 'Per annotator', perStoryAnn: 'Per story',
       cAnnotator: 'Annotator', cSaves: 'Saves', cWords: 'Words corr.', cLines: 'Lines corr.', cApproved: 'Approved', cRejected: 'Rejected', cAdded: 'Added', cEdited: 'Edited', cDeleted: 'Deleted', cNotes: 'Image notes', cCorr: 'Corrections',
-      topStories: 'Most opened stories', fromWhere: 'Where stories were opened from', funnel: 'From opening to listening', fAR: 'AR view', fNearest: '“Nearest” button', fMap: 'Map', fList: 'List', fOpen: 'Opened', fPlay: 'Recording played', fEnd: 'Listened to the end',
+      topStories: 'Most opened stories', fromWhere: 'Where stories were opened from', funnel: 'From opening to listening', fAR: 'AR view', fNearest: '“Nearest” button', fWalk: 'Walk (next stop)', fMap: 'Map', fList: 'List', fOpen: 'Opened', fPlay: 'Recording played', fEnd: 'Listened to the end',
       workPerAnnotator: 'What each annotator did', wordsPerAnnotator: 'Transcript words corrected per annotator', reviewPerAnnotator: 'Suggestions approved vs rejected', workPerStory: 'Corrections per story',
       sApproved: 'Approved', sRejected: 'Rejected', sAdded: 'Added', sEdited: 'Edited', sDeleted: 'Deleted', sLines: 'Transcript lines',
       more: '+ {n} more in the table below', tblStories: 'Table per story', tblVisitors: 'Table per visitor (anonymous)', tblAnnotators: 'Table per annotator', tblAnnStories: 'Table per story (corrections)',
@@ -225,7 +225,7 @@
       corrPerDay: 'Διορθώσεις ανά ημέρα', corrPerWeek: 'Διορθώσεις ανά εβδομάδα',
       perAnnotator: 'Ανά σχολιαστή', perStoryAnn: 'Ανά ιστορία',
       cAnnotator: 'Σχολιαστής', cSaves: 'Αποθηκ.', cWords: 'Λέξεις διορθ.', cLines: 'Γραμμές διορθ.', cApproved: 'Εγκρίσεις', cRejected: 'Απορρίψεις', cAdded: 'Προσθήκες', cEdited: 'Διορθώσεις', cDeleted: 'Διαγραφές', cNotes: 'Σημειώσεις εικόνων', cCorr: 'Διορθώσεις συνολικά',
-      topStories: 'Οι ιστορίες που άνοιξαν περισσότερο', fromWhere: 'Από πού άνοιξαν οι ιστορίες', funnel: 'Από το άνοιγμα στην ακρόαση', fAR: 'Προβολή AR', fNearest: 'Κουμπί «πλησιέστερη»', fMap: 'Χάρτης', fList: 'Λίστα', fOpen: 'Άνοιξαν', fPlay: 'Έπαιξε ηχογράφηση', fEnd: 'Ακούστηκε ως το τέλος',
+      topStories: 'Οι ιστορίες που άνοιξαν περισσότερο', fromWhere: 'Από πού άνοιξαν οι ιστορίες', funnel: 'Από το άνοιγμα στην ακρόαση', fAR: 'Προβολή AR', fNearest: 'Κουμπί «πλησιέστερη»', fWalk: 'Διαδρομή (επόμενη στάση)', fMap: 'Χάρτης', fList: 'Λίστα', fOpen: 'Άνοιξαν', fPlay: 'Έπαιξε ηχογράφηση', fEnd: 'Ακούστηκε ως το τέλος',
       workPerAnnotator: 'Τι έκανε κάθε σχολιαστής', wordsPerAnnotator: 'Λέξεις απομαγνητοφώνησης που διόρθωσε κάθε σχολιαστής', reviewPerAnnotator: 'Προτάσεις: εγκρίσεις και απορρίψεις', workPerStory: 'Διορθώσεις ανά ιστορία',
       sApproved: 'Εγκρίσεις', sRejected: 'Απορρίψεις', sAdded: 'Προσθήκες', sEdited: 'Διορθώσεις', sDeleted: 'Διαγραφές', sLines: 'Γραμμές απομαγν.',
       more: '+ {n} ακόμα στον πίνακα παρακάτω', tblStories: 'Πίνακας ανά ιστορία', tblVisitors: 'Πίνακας ανά επισκέπτη (ανώνυμα)', tblAnnotators: 'Πίνακας ανά σχολιαστή', tblAnnStories: 'Πίνακας ανά ιστορία (διορθώσεις)',
@@ -462,7 +462,8 @@
     var sRows = Object.keys(per).map(function (k) { var p = per[k]; return { id: k, story: byId[k] ? byId[k].title : t('deleted'), opens: p.opens, visitors: Object.keys(p.vis).length, plays: p.plays, complete: p.complete, ar: p.ar, map: p.map, list: p.list }; });
     hbarChart($('chTopStories'), sRows.map(function (r) { return { l: r.story, v: r.opens }; }), { label: t('topStories') });
     hbarChart($('chVia'), [{ l: t('fAR'), v: opens.filter(function (v) { return v.via === 'ar'; }).length }, { l: t('fNearest'), v: opens.filter(function (v) { return v.via === 'nearest'; }).length },
-      { l: t('fMap'), v: opens.filter(function (v) { return v.via === 'map'; }).length }, { l: t('fList'), v: opens.filter(function (v) { return v.via === 'list'; }).length }], { label: t('fromWhere') });
+      { l: t('fMap'), v: opens.filter(function (v) { return v.via === 'map'; }).length }, { l: t('fList'), v: opens.filter(function (v) { return v.via === 'list'; }).length },
+      { l: t('fWalk'), v: opens.filter(function (v) { return v.via === 'walk'; }).length }], { label: t('fromWhere') });
     hbarChart($('chFunnel'), [{ l: t('fOpen'), v: opens.length }, { l: t('fPlay'), v: plays }, { l: t('fEnd'), v: comp }],
       { label: t('funnel'), keepOrder: true, fmt: function (r) { return nf(r.v) + (opens.length && r.v !== opens.length ? ' · ' + Math.round(r.v / opens.length * 100) + '%' : ''); } });
     putTable('tStories', [

@@ -269,6 +269,9 @@ create table if not exists public.story_views (
   event      text not null check (event in ('open', 'play', 'complete')),
   via        text check (via in ('ar', 'map', 'list', 'nearest'))
 );
+-- 'walk' = opened from the "next stop" card while following a walk
+alter table public.story_views drop constraint if exists story_views_via_check;
+alter table public.story_views add  constraint story_views_via_check check (via in ('ar', 'map', 'list', 'nearest', 'walk'));
 create index if not exists story_views_story_idx on public.story_views(story_id, created_at);
 create index if not exists story_views_time_idx  on public.story_views(created_at);
 alter table public.story_views enable row level security;
@@ -390,6 +393,27 @@ create policy "annotators items"  on public.story_board_items for all    to auth
 create policy "read board links"  on public.story_board_links for select to authenticated using (public.is_annotator() or public.is_admin());
 create policy "annotators links"  on public.story_board_links for all    to authenticated using (public.is_annotator()) with check (public.is_annotator());
 grant select, insert, update, delete on public.story_boards, public.story_board_items, public.story_board_links to authenticated;
+
+-- Walks in the AR app: a board marked is_walk is shown to visitors as a walk (its stories in the order of the links).
+-- Visitors only see published stories, so drafts on a walk are skipped in the app.
+alter table public.story_boards
+  add column if not exists is_walk boolean not null default false,
+  add column if not exists description text;
+alter table public.story_boards drop constraint if exists story_boards_description_check;
+alter table public.story_boards add  constraint story_boards_description_check check (description is null or char_length(description) <= 1000);
+drop policy if exists "visitors read walks"      on public.story_boards;
+drop policy if exists "visitors read walk items" on public.story_board_items;
+drop policy if exists "visitors read walk links" on public.story_board_links;
+create policy "visitors read walks"      on public.story_boards      for select to anon, authenticated using (is_walk);
+create policy "visitors read walk items" on public.story_board_items for select to anon, authenticated
+  using (exists (select 1 from public.story_boards b where b.id = board_id and b.is_walk));
+create policy "visitors read walk links" on public.story_board_links for select to anon, authenticated
+  using (exists (select 1 from public.story_boards b where b.id = board_id and b.is_walk));
+-- Visitors get only the columns the app needs (not who created a board or a link).
+revoke all on public.story_boards, public.story_board_items, public.story_board_links from anon;
+grant select (id, title, description, is_walk, created_at, updated_at) on public.story_boards to anon;
+grant select (board_id, story_id, x, y) on public.story_board_items to anon;
+grant select (id, board_id, from_story, to_story, label) on public.story_board_links to anon;
 
 -- Make the API pick up new columns immediately (avoids "could not find the column ... in the schema cache")
 notify pgrst, 'reload schema';
