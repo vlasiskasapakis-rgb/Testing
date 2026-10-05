@@ -15,7 +15,7 @@
     --petrol: #186078; --petrol-deep: #0E3F50; --sky-soft: #E7F4FA; --amber-text: #9A5413;
     --ink: #12303B; --muted: #4B6470; --line: #D3E3EA; --line-strong: #6F8D99; --mist: #F2F7F9; --danger: #B3261E;
     /* chart roles (validated categorical slot 1 of the reference palette, light mode) */
-    --surface-1: #ffffff; --series-1: #2a78d6; --grid: #e6ecef; --text-primary: #12303B; --text-secondary: #4B6470;
+    --surface-1: #ffffff; --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100; --series-5: #e87ba4; --grid: #e6ecef; --text-primary: #12303B; --text-secondary: #4B6470;
     --font: "Exo 2", "Segoe UI", Roboto, system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
@@ -64,6 +64,21 @@
   .empty { color: var(--muted); font-size: 14px; padding: 20px 0; }
   details.tbl > summary { cursor: pointer; color: var(--petrol); font-size: 13px; font-weight: 600; margin-top: 4px; }
 
+  /* horizontal bars (HTML): label · bar · value */
+  .hchart { position: relative; }
+  .hrow { display: grid; grid-template-columns: minmax(110px, 34%) 1fr 64px; align-items: center; gap: 10px; padding: 3px 0; }
+  .hrow .hl { font-size: 13px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hrow .track { display: flex; height: 18px; align-items: stretch; }
+  .hrow .seg { height: 100%; margin-right: 2px; min-width: 2px; }
+  .hrow .seg:last-child { border-radius: 0 4px 4px 0; margin-right: 0; }
+  .hrow .hv { font-size: 13px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .hrow:hover .hl { font-weight: 700; }
+  .hmore { font-size: 12px; color: var(--muted); margin: 4px 0 0; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--text-secondary); margin: 0 0 8px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  details.tbl-wrap { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 8px; }
+  details.tbl-wrap > summary { cursor: pointer; color: var(--petrol); font-weight: 700; font-size: 15px; }
+  details.tbl-wrap .tbar { margin: 8px 0; }
   .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th { text-align: left; background: var(--mist); color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: .03em; padding: 7px 10px; white-space: nowrap; cursor: pointer; user-select: none; }
@@ -117,11 +132,22 @@
         <div><h3 data-i="opensPerDay"></h3><div class="chart" id="chOpens"></div></div>
         <div><h3 data-i="storiesPerVisitor"></h3><div class="chart" id="chPerVisitor"></div></div>
       </div>
-      <div class="tbar"><h3 data-i="perStory"></h3><button class="btn-sm" type="button" data-csv="tStories" data-i="csv"></button></div>
-      <div class="tablewrap" id="tStories"></div>
-      <div class="tbar"><h3 data-i="perVisitor"></h3><button class="btn-sm" type="button" data-csv="tVisitors" data-i="csv"></button></div>
-      <p class="lead" data-i="perVisitorLead"></p>
-      <div class="tablewrap" id="tVisitors"></div>
+      <div class="grid2">
+        <div><h3 data-i="topStories"></h3><div class="hchart" id="chTopStories"></div></div>
+        <div>
+          <h3 data-i="fromWhere"></h3><div class="hchart" id="chVia"></div>
+          <h3 data-i="funnel"></h3><div class="hchart" id="chFunnel"></div>
+        </div>
+      </div>
+      <details class="tbl-wrap"><summary data-i="tblStories"></summary>
+        <div class="tbar"><span></span><button class="btn-sm" type="button" data-csv="tStories" data-i="csv"></button></div>
+        <div class="tablewrap" id="tStories"></div>
+      </details>
+      <details class="tbl-wrap"><summary data-i="tblVisitors"></summary>
+        <p class="lead" data-i="perVisitorLead"></p>
+        <div class="tbar"><span></span><button class="btn-sm" type="button" data-csv="tVisitors" data-i="csv"></button></div>
+        <div class="tablewrap" id="tVisitors"></div>
+      </details>
     </section>
 
     <section class="card" aria-labelledby="h-ann">
@@ -130,10 +156,20 @@
       <div class="kpis" id="annKpis"></div>
       <h3 data-i="corrPerDay"></h3>
       <div class="chart" id="chCorr"></div>
-      <div class="tbar"><h3 data-i="perAnnotator"></h3><button class="btn-sm" type="button" data-csv="tAnnotators" data-i="csv"></button></div>
-      <div class="tablewrap" id="tAnnotators"></div>
-      <div class="tbar"><h3 data-i="perStoryAnn"></h3><button class="btn-sm" type="button" data-csv="tAnnStories" data-i="csv"></button></div>
-      <div class="tablewrap" id="tAnnStories"></div>
+      <div class="grid2">
+        <div><h3 data-i="workPerAnnotator"></h3><div class="hchart" id="chWork"></div></div>
+        <div><h3 data-i="wordsPerAnnotator"></h3><div class="hchart" id="chWords"></div>
+             <h3 data-i="reviewPerAnnotator"></h3><div class="hchart" id="chReview"></div></div>
+      </div>
+      <h3 data-i="workPerStory"></h3><div class="hchart" id="chStoryWork"></div>
+      <details class="tbl-wrap"><summary data-i="tblAnnotators"></summary>
+        <div class="tbar"><span></span><button class="btn-sm" type="button" data-csv="tAnnotators" data-i="csv"></button></div>
+        <div class="tablewrap" id="tAnnotators"></div>
+      </details>
+      <details class="tbl-wrap"><summary data-i="tblAnnStories"></summary>
+        <div class="tbar"><span></span><button class="btn-sm" type="button" data-csv="tAnnStories" data-i="csv"></button></div>
+        <div class="tablewrap" id="tAnnStories"></div>
+      </details>
     </section>
   </div>
 </main>
@@ -163,6 +199,10 @@
       corrPerDay: 'Corrections per day', corrPerWeek: 'Corrections per week',
       perAnnotator: 'Per annotator', perStoryAnn: 'Per story',
       cAnnotator: 'Annotator', cSaves: 'Saves', cWords: 'Words corr.', cLines: 'Lines corr.', cApproved: 'Approved', cRejected: 'Rejected', cAdded: 'Added', cEdited: 'Edited', cDeleted: 'Deleted', cNotes: 'Image notes', cCorr: 'Corrections',
+      topStories: 'Most opened stories', fromWhere: 'Where stories were opened from', funnel: 'From opening to listening', fAR: 'AR view', fNearest: '“Nearest” button', fMap: 'Map', fList: 'List', fOpen: 'Opened', fPlay: 'Recording played', fEnd: 'Listened to the end',
+      workPerAnnotator: 'What each annotator did', wordsPerAnnotator: 'Transcript words corrected per annotator', reviewPerAnnotator: 'Suggestions approved vs rejected', workPerStory: 'Corrections per story',
+      sApproved: 'Approved', sRejected: 'Rejected', sAdded: 'Added', sEdited: 'Edited', sDeleted: 'Deleted', sLines: 'Transcript lines',
+      more: '+ {n} more in the table below', tblStories: 'Table per story', tblVisitors: 'Table per visitor (anonymous)', tblAnnotators: 'Table per annotator', tblAnnStories: 'Table per story (corrections)',
       draft: 'Draft', published: 'Published', deleted: '(deleted story)', none: 'No data in this period.', csv: 'Download CSV', showTable: 'Show as table', day: 'Day', week: 'Week of', value: 'Value', yes: 'yes', no: '—'
     },
     el: {
@@ -185,6 +225,10 @@
       corrPerDay: 'Διορθώσεις ανά ημέρα', corrPerWeek: 'Διορθώσεις ανά εβδομάδα',
       perAnnotator: 'Ανά σχολιαστή', perStoryAnn: 'Ανά ιστορία',
       cAnnotator: 'Σχολιαστής', cSaves: 'Αποθηκ.', cWords: 'Λέξεις διορθ.', cLines: 'Γραμμές διορθ.', cApproved: 'Εγκρίσεις', cRejected: 'Απορρίψεις', cAdded: 'Προσθήκες', cEdited: 'Διορθώσεις', cDeleted: 'Διαγραφές', cNotes: 'Σημειώσεις εικόνων', cCorr: 'Διορθώσεις συνολικά',
+      topStories: 'Οι ιστορίες που άνοιξαν περισσότερο', fromWhere: 'Από πού άνοιξαν οι ιστορίες', funnel: 'Από το άνοιγμα στην ακρόαση', fAR: 'Προβολή AR', fNearest: 'Κουμπί «πλησιέστερη»', fMap: 'Χάρτης', fList: 'Λίστα', fOpen: 'Άνοιξαν', fPlay: 'Έπαιξε ηχογράφηση', fEnd: 'Ακούστηκε ως το τέλος',
+      workPerAnnotator: 'Τι έκανε κάθε σχολιαστής', wordsPerAnnotator: 'Λέξεις απομαγνητοφώνησης που διόρθωσε κάθε σχολιαστής', reviewPerAnnotator: 'Προτάσεις: εγκρίσεις και απορρίψεις', workPerStory: 'Διορθώσεις ανά ιστορία',
+      sApproved: 'Εγκρίσεις', sRejected: 'Απορρίψεις', sAdded: 'Προσθήκες', sEdited: 'Διορθώσεις', sDeleted: 'Διαγραφές', sLines: 'Γραμμές απομαγν.',
+      more: '+ {n} ακόμα στον πίνακα παρακάτω', tblStories: 'Πίνακας ανά ιστορία', tblVisitors: 'Πίνακας ανά επισκέπτη (ανώνυμα)', tblAnnotators: 'Πίνακας ανά σχολιαστή', tblAnnStories: 'Πίνακας ανά ιστορία (διορθώσεις)',
       draft: 'Πρόχειρη', published: 'Δημοσιευμένη', deleted: '(διαγραμμένη ιστορία)', none: 'Δεν υπάρχουν δεδομένα σε αυτή την περίοδο.', csv: 'Λήψη CSV', showTable: 'Προβολή ως πίνακας', day: 'Ημέρα', week: 'Εβδομάδα από', value: 'Τιμή', yes: 'ναι', no: '—'
     }
   };
@@ -246,6 +290,43 @@
     var sm = document.createElement('summary'); sm.textContent = t('showTable'); det.appendChild(sm);
     det.appendChild(makeTable([{ k: 'l', h: opt.xLabel }, { k: 'v', h: opt.label, num: true }], data, null));
     box.appendChild(det);
+  }
+  // Horizontal bars, one series or stacked (≤5 categorical slots, fixed order). Legend for ≥2 series; value at the bar end;
+  // hover tooltip with the breakdown; the same numbers are in the table below (relief for the lighter hues).
+  function hbarChart(box, rows, opt) {
+    box.innerHTML = '';
+    var series = opt.series || [{ k: 'v', name: opt.label, color: 'var(--series-1)' }];
+    rows = rows.map(function (r) { r._t = series.reduce(function (a, s) { return a + (r[s.k] || 0); }, 0); return r; }).filter(function (r) { return r._t > 0; });
+    if (!opt.keepOrder) rows.sort(function (a, b) { return b._t - a._t; });
+    if (!rows.length) { var e = document.createElement('p'); e.className = 'empty'; e.textContent = t('none'); box.appendChild(e); return; }
+    if (series.length > 1) {
+      var lg = document.createElement('div'); lg.className = 'legend';
+      series.forEach(function (s) { var sp = document.createElement('span'); var i = document.createElement('i'); i.style.background = s.color; sp.appendChild(i); sp.appendChild(document.createTextNode(s.name)); lg.appendChild(sp); });
+      box.appendChild(lg);
+    }
+    var limit = opt.limit || 10, shown = rows.slice(0, limit), max = Math.max.apply(null, rows.map(function (r) { return r._t; }));
+    var tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true;
+    var list = document.createElement('div'); list.setAttribute('role', 'list'); list.setAttribute('aria-label', opt.label);
+    shown.forEach(function (r) {
+      var row = document.createElement('div'); row.className = 'hrow'; row.setAttribute('role', 'listitem');
+      var parts = series.filter(function (s) { return r[s.k] > 0; }).map(function (s) { return s.name + ' ' + nf(r[s.k]); });
+      row.setAttribute('aria-label', r.l + ': ' + nf(r._t) + (series.length > 1 ? ' (' + parts.join(', ') + ')' : ''));
+      var l = document.createElement('div'); l.className = 'hl'; l.textContent = r.l; l.title = r.l; row.appendChild(l);
+      var tr = document.createElement('div'); tr.className = 'track';
+      var wrap = document.createElement('div'); wrap.style.display = 'flex'; wrap.style.width = Math.max(1, r._t / max * 100) + '%';
+      series.forEach(function (s) { if (!(r[s.k] > 0)) return; var g = document.createElement('div'); g.className = 'seg'; g.style.background = s.color; g.style.flex = r[s.k] + ' 0 0'; wrap.appendChild(g); });
+      tr.appendChild(wrap); row.appendChild(tr);
+      var v = document.createElement('div'); v.className = 'hv'; v.textContent = opt.fmt ? opt.fmt(r) : nf(r._t); row.appendChild(v);
+      row.addEventListener('mousemove', function (ev) {
+        var bb = box.getBoundingClientRect(); tip.hidden = false;
+        tip.textContent = r.l + ': ' + (series.length > 1 ? parts.join(' · ') : (opt.fmt ? opt.fmt(r) : nf(r._t)));
+        tip.style.left = (ev.clientX - bb.left) + 'px'; tip.style.top = (ev.clientY - bb.top - 6) + 'px';
+      });
+      row.addEventListener('mouseleave', function () { tip.hidden = true; });
+      list.appendChild(row);
+    });
+    box.appendChild(list); box.appendChild(tip);
+    if (rows.length > limit) { var m = document.createElement('p'); m.className = 'hmore'; m.textContent = t('more', { n: rows.length - limit }); box.appendChild(m); }
   }
   function niceStep(max) { var raw = max / 4, p = Math.pow(10, Math.floor(Math.log10(Math.max(raw, 1)))); var m = raw / p; return Math.max(1, (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p); }
 
@@ -379,6 +460,11 @@
     var hist = [['1', 1, 1], ['2', 2, 2], ['3', 3, 3], ['4', 4, 4], ['5–9', 5, 9], ['10+', 10, 1e9]].map(function (h) { return { l: h[0], v: vList.filter(function (x) { return x.stories >= h[1] && x.stories <= h[2]; }).length }; });
     columnChart($('chPerVisitor'), hist, { label: t('storiesPerVisitor'), xLabel: t('cStories') });
     var sRows = Object.keys(per).map(function (k) { var p = per[k]; return { id: k, story: byId[k] ? byId[k].title : t('deleted'), opens: p.opens, visitors: Object.keys(p.vis).length, plays: p.plays, complete: p.complete, ar: p.ar, map: p.map, list: p.list }; });
+    hbarChart($('chTopStories'), sRows.map(function (r) { return { l: r.story, v: r.opens }; }), { label: t('topStories') });
+    hbarChart($('chVia'), [{ l: t('fAR'), v: opens.filter(function (v) { return v.via === 'ar'; }).length }, { l: t('fNearest'), v: opens.filter(function (v) { return v.via === 'nearest'; }).length },
+      { l: t('fMap'), v: opens.filter(function (v) { return v.via === 'map'; }).length }, { l: t('fList'), v: opens.filter(function (v) { return v.via === 'list'; }).length }], { label: t('fromWhere') });
+    hbarChart($('chFunnel'), [{ l: t('fOpen'), v: opens.length }, { l: t('fPlay'), v: plays }, { l: t('fEnd'), v: comp }],
+      { label: t('funnel'), keepOrder: true, fmt: function (r) { return nf(r.v) + (opens.length && r.v !== opens.length ? ' · ' + Math.round(r.v / opens.length * 100) + '%' : ''); } });
     putTable('tStories', [
       { k: 'story', h: t('cStory'), render: storyCell(byId) }, { k: 'opens', h: t('cOpens'), num: true }, { k: 'visitors', h: t('cVisitors'), num: true },
       { k: 'plays', h: t('cPlays'), num: true }, { k: 'complete', h: t('cComplete'), num: true }, { k: 'ar', h: t('cAR'), num: true }, { k: 'map', h: t('cMap'), num: true }, { k: 'list', h: t('cList'), num: true }
@@ -423,9 +509,17 @@
     var cols = [{ k: 'corr', h: t('cCorr'), num: true }, { k: 'saves', h: t('cSaves'), num: true }, { k: 'words', h: t('cWords'), num: true }, { k: 'lines', h: t('cLines'), num: true },
       { k: 'approved', h: t('cApproved'), num: true }, { k: 'rejected', h: t('cRejected'), num: true }, { k: 'added', h: t('cAdded'), num: true },
       { k: 'edited', h: t('cEdited'), num: true }, { k: 'deleted', h: t('cDeleted'), num: true }, { k: 'notes', h: t('cNotes'), num: true }];
-    putTable('tAnnotators', [{ k: 'name', h: t('cAnnotator') }].concat(cols, [{ k: 'last', h: t('cLastAct') }]),
-      group(function (a) { return a.user_id; }, function (a) { return a.user_name || (a.user_id || '').slice(0, 8); }), 'corr');
+    var aRows = group(function (a) { return a.user_id; }, function (a) { return a.user_name || (a.user_id || '').slice(0, 8); });
+    var WORK = [{ k: 'approved', name: t('sApproved'), color: 'var(--series-1)' }, { k: 'rejected', name: t('sRejected'), color: 'var(--series-2)' },
+      { k: 'added', name: t('sAdded'), color: 'var(--series-3)' }, { k: 'edited', name: t('sEdited'), color: 'var(--series-4)' }, { k: 'deleted', name: t('sDeleted'), color: 'var(--series-5)' }];
+    hbarChart($('chWork'), aRows.map(function (r) { return Object.assign({ l: r.name }, r); }), { label: t('workPerAnnotator'), series: WORK });
+    hbarChart($('chWords'), aRows.map(function (r) { return { l: r.name, v: r.words }; }), { label: t('wordsPerAnnotator') });
+    hbarChart($('chReview'), aRows.map(function (r) { return { l: r.name, approved: r.approved, rejected: r.rejected }; }), { label: t('reviewPerAnnotator'), series: WORK.slice(0, 2),
+      fmt: function (r) { return r.approved + r.rejected ? Math.round(r.approved / (r.approved + r.rejected) * 100) + '% ✓' : ''; } });
+    putTable('tAnnotators', [{ k: 'name', h: t('cAnnotator') }].concat(cols, [{ k: 'last', h: t('cLastAct') }]), aRows, 'corr');
     var sRows = group(function (a) { return a.story_id; }, function (a) { return byId[a.story_id] ? byId[a.story_id].title : t('deleted'); });
+    hbarChart($('chStoryWork'), sRows.map(function (r) { return { l: r.name, rejected: r.rejected, added: r.added, edited: r.edited, deleted: r.deleted, lines: r.lines }; }),
+      { label: t('workPerStory'), series: [{ k: 'lines', name: t('sLines'), color: 'var(--series-1)' }].concat(WORK.slice(1)) });   // ίδια σειρά χρωμάτων με το επικυρωμένο παλέτο
     putTable('tAnnStories', [{ k: 'name', h: t('cStory'), render: function (td, r) { storyCell(byId)(td, r); } }].concat(cols), sRows, 'corr');
   }
 
