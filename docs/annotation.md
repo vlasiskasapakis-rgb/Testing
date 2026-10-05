@@ -57,6 +57,11 @@ language picker for the transcription). They work on the whole story:
 separate list:
 - Names spoken in the transcript are looked up in Wikidata. The **title, identity, period and location** of the file decide which
   match is right and how confident the suggestion is.
+- Variants of the same name ("Στη Μυτιλήνη", "Μυτιλήνη", "Μυτιλήνης"; leading articles/prepositions are dropped) are looked up
+  **once** and the term is placed on every line where any variant is said. Names are checked in order of importance — how often they
+  are said, and whether they also appear in the file details — up to **300 names per story**; if a very long story has more, the
+  status line says how many less frequent names were not checked. Wikidata answers are remembered while the page is open, so pressing
+  **Suggest** again (or another story with the same names) does not search them again.
 - Places **near the file's location** (and terms from its identity or period) are matched to the transcript lines, even partially:
   "των Αγίων Θεοδώρων" is recognised as "Ναός Αγίων Θεοδώρων, Μυτιλήνη" when that church is near the location. The suggestion is
   placed on that line, at the seconds where the words are said. Nearby places that nobody mentions are **not** suggested for recordings.
