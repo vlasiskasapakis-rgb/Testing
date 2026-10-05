@@ -326,6 +326,33 @@
   #consentSheet { z-index: 66; }
   #mediaInfoSheet { z-index: 90; }
   #mapPickSheet { z-index: 95; }
+  .place-search { display: flex; gap: 8px; margin: 8px 0 4px; }
+  .place-search input { flex: 1 1 auto; min-width: 0; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 12px; font-size: 16px; }
+  .place-search button { padding: 8px 16px; min-height: 44px; font-weight: 700; }
+  .place-results { list-style: none; margin: 0; padding: 0; }
+  .place-results li button { display: block; width: 100%; text-align: left; padding: 8px 10px; min-height: 40px; background: var(--mist); color: var(--ink); border-radius: 10px; margin-top: 4px; font-size: 14px; }
+  .place-results li.none { color: var(--muted); font-size: 14px; padding: 6px 2px; }
+  .gate-web { margin-top: 14px !important; font-size: 15px; }
+  .gate-web a { color: var(--petrol); font-weight: 600; }
+  /* ---------- Ιστοσελίδα (υπολογιστής) ---------- */
+  .web-home { position: fixed; inset: 0; overflow: auto; background: var(--mist); z-index: 10; }
+  .web-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 24px; background: var(--petrol); color: #fff; }
+  .web-head h1 { margin: 0; font-size: 22px; color: #fff; flex: 1 1 auto; }
+  .web-head #webUser { font-weight: 600; }
+  .web-head button { padding: 8px 16px; min-height: 40px; font-weight: 700; background: #fff; color: var(--petrol); }
+  .web-main { max-width: 760px; margin: 0 auto; padding: 32px 24px 60px; }
+  .web-card { background: var(--paper); border-radius: 20px; padding: 26px 28px; box-shadow: 0 6px 22px rgba(14,63,80,.12); }
+  .web-card h2 { margin: 0 0 8px; font-size: 26px; }
+  .web-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0 6px; }
+  .web-actions[hidden], #webLoginBtn[hidden], #webAuthBtn[hidden] { display: none; }
+  .web-actions button, #webLoginBtn { padding: 14px 24px; min-height: 52px; font-size: 17px; font-weight: 700; }
+  #webLoginBtn { margin: 18px 0 6px; }
+  .web-steps { margin: 18px 0 8px; padding-left: 22px; color: var(--muted); }
+  .web-steps li { margin: 4px 0; }
+  .web-card a { color: var(--petrol); font-weight: 600; }
+  body.web .edit-sheet { justify-content: center; align-items: center; }
+  body.web .sheet-inner { width: min(780px, 94vw); border-radius: 22px; max-height: 92vh; }
+  body.web #hud, body.web #ar-overlay-container, body.web #addBtn, body.web #drawer { display: none !important; }
   #pickMap { height: 52vh; min-height: 260px; border-radius: 12px; border: 2px solid var(--line-strong); margin: 8px 0; }
   .loc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
   .loc-actions button { min-height: 44px; padding: 8px 16px; }
@@ -452,6 +479,34 @@
 <!-- Ανακοινώσεις για αναγνώστες οθόνης (WCAG 4.1.3) -->
 <div id="srLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
+<!-- Ιστοσελίδα για διευκολυντές (index.html?web=1 ή upload/): ίδιο ανέβασμα ιστοριών, χωρίς AR/GPS -->
+<div id="webHome" class="web-home" hidden>
+  <header class="web-head">
+    <h1 data-i18n="webTitle"></h1>
+    <label for="langWeb" class="sr-only" data-i18n="language"></label>
+    <select id="langWeb" class="lang-select">
+      <option value="el" lang="el">EL</option><option value="en" lang="en">EN</option><option value="fr" lang="fr">FR</option><option value="it" lang="it">IT</option>
+    </select>
+    <span id="webUser"></span>
+    <button id="webAuthBtn" type="button"></button>
+  </header>
+  <main class="web-main">
+    <section class="web-card" aria-labelledby="webHello">
+      <h2 id="webHello"></h2>
+      <p data-i18n="webIntro"></p>
+      <div id="webActions" class="web-actions" hidden>
+        <button id="webNewBtn" type="button" class="btn-primary" data-i18n="webNew"></button>
+        <button id="webMineBtn" type="button" class="btn-secondary" data-i18n="listMy"></button>
+      </div>
+      <button id="webLoginBtn" type="button" class="btn-primary" data-i18n="login"></button>
+      <ol class="web-steps">
+        <li data-i18n="webStep1"></li><li data-i18n="webStep2"></li><li data-i18n="webStep3"></li><li data-i18n="webStep4"></li>
+      </ol>
+      <p class="sheet-sub"><a href="./" data-i18n="webToApp"></a></p>
+    </section>
+  </main>
+</div>
+
 <main id="gate" aria-labelledby="gateTitle">
   <svg class="gate-path" aria-hidden="true" focusable="false" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
     <defs><linearGradient id="gatePathGrad" x1="0" y1="0" x2="0" y2="1">
@@ -476,6 +531,7 @@
   <div id="gateMode" class="mode-choose"></div>
   <button id="startBtn" data-i18n="start"></button>
   <button id="authBtnGate" class="link-btn" hidden></button>
+  <p class="gate-web"><a href="?web=1" data-i18n="gateWeb"></a></p>
 </div>
 </main>
 
@@ -817,6 +873,12 @@
   <div class="sheet-inner">
     <h2 id="pickHeading" data-i18n="pickTitle"></h2>
     <p class="sheet-sub" data-i18n="pickHint"></p>
+    <form id="placeSearchForm" class="place-search" role="search">
+      <label for="placeSearchIn" class="sr-only" data-i18n="placeSearch"></label>
+      <input type="search" id="placeSearchIn" data-i18n-ph="placeSearchPh" autocomplete="off">
+      <button type="submit" class="btn-secondary" data-i18n="placeSearchGo"></button>
+    </form>
+    <ul id="placeResults" class="place-results"></ul>
     <div id="pickMap" role="application" data-i18n-aria="map"></div>
     <div id="pickCoords" class="loc-box" aria-live="polite"></div>
     <div class="btn-row">
@@ -1037,6 +1099,24 @@
       locFromGps: "Το στίγμα σου (GPS): {c}",
       locFromMap: "Από τον χάρτη: {c}",
       locNeeded: "Περίμενε το GPS ή διάλεξε την τοποθεσία στον χάρτη.",
+      webTitle: "Walking Memory · Ανέβασμα ιστοριών",
+      webHelloIn: "Γεια σου, {n}",
+      webHelloOut: "Ανέβασμα ιστοριών από υπολογιστή",
+      webIntro: "Εδώ ανεβάζεις ιστορίες όπως στην εφαρμογή: φωτογραφίες, ηχογραφήσεις και βίντεο, με τις ίδιες επεξεργασίες (θόλωμα, περικοπή, σίγαση). Επειδή δεν υπάρχει GPS, διαλέγεις την τοποθεσία κάθε ιστορίας στον χάρτη.",
+      webNew: "+ Νέα ιστορία",
+      webStep1: "Συναίνεση του αφηγητή/της αφηγήτριας",
+      webStep2: "Τίτλος και τοποθεσία στον χάρτη",
+      webStep3: "Αρχεία: πρόσθεσε, επεξεργάσου, δώσε στοιχεία",
+      webStep4: "Έλεγχος και υποβολή",
+      webToApp: "Άνοιγμα της εφαρμογής AR",
+      gateWeb: "Σε υπολογιστή; Ανέβασε ιστορίες από την ιστοσελίδα",
+      locNeededWeb: "Διάλεξε την τοποθεσία της ιστορίας στον χάρτη.",
+      locHintWeb: "Εκεί θα εμφανίζεται η ιστορία στην εφαρμογή.",
+      placeSearch: "Αναζήτηση τόπου",
+      placeSearchPh: "Αναζήτηση τόπου ή διεύθυνσης…",
+      placeSearchGo: "Αναζήτηση",
+      placeNone: "Δεν βρέθηκε τίποτα.",
+      placeErr: "Η αναζήτηση απέτυχε: {e}",
       miLocNone: "Δεν έχει οριστεί τοποθεσία",
       miSave: "Αποθήκευση στοιχείων",
       miEmpty: "Πρόσθεσε τίτλο, ημερομηνία και τοποθεσία",
@@ -1354,6 +1434,24 @@
       locFromGps: "Your position (GPS): {c}",
       locFromMap: "Chosen on the map: {c}",
       locNeeded: "Wait for GPS or choose the location on the map.",
+      webTitle: "Walking Memory · Upload stories",
+      webHelloIn: "Hello, {n}",
+      webHelloOut: "Upload stories from a computer",
+      webIntro: "Upload stories here just like in the app: photos, recordings and videos, with the same editing (blur, crop, mute). As there is no GPS, you choose each story’s location on the map.",
+      webNew: "+ New story",
+      webStep1: "The narrator’s consent",
+      webStep2: "Title and location on the map",
+      webStep3: "Files: add, edit, give details",
+      webStep4: "Check and submit",
+      webToApp: "Open the AR app",
+      gateWeb: "On a computer? Upload stories from the website",
+      locNeededWeb: "Choose the story’s location on the map.",
+      locHintWeb: "This is where the story appears in the app.",
+      placeSearch: "Search for a place",
+      placeSearchPh: "Search for a place or address…",
+      placeSearchGo: "Search",
+      placeNone: "Nothing found.",
+      placeErr: "Search failed: {e}",
       miLocNone: "No location set",
       miSave: "Save details",
       miEmpty: "Add a title, date and location",
@@ -1671,6 +1769,24 @@
       locFromGps: "Votre position (GPS) : {c}",
       locFromMap: "Choisi sur la carte : {c}",
       locNeeded: "Attendez le GPS ou choisissez le lieu sur la carte.",
+      webTitle: "Walking Memory · Envoi d’histoires",
+      webHelloIn: "Bonjour, {n}",
+      webHelloOut: "Envoyer des histoires depuis un ordinateur",
+      webIntro: "Envoyez ici des histoires comme dans l’application : photos, enregistrements et vidéos, avec les mêmes retouches (flou, recadrage, silence). Comme il n’y a pas de GPS, vous choisissez le lieu de chaque histoire sur la carte.",
+      webNew: "+ Nouvelle histoire",
+      webStep1: "Le consentement du narrateur/de la narratrice",
+      webStep2: "Titre et lieu sur la carte",
+      webStep3: "Fichiers : ajouter, retoucher, renseigner",
+      webStep4: "Vérifier et envoyer",
+      webToApp: "Ouvrir l’application AR",
+      gateWeb: "Sur un ordinateur ? Envoyez des histoires depuis le site",
+      locNeededWeb: "Choisissez le lieu de l’histoire sur la carte.",
+      locHintWeb: "C’est là que l’histoire apparaît dans l’application.",
+      placeSearch: "Rechercher un lieu",
+      placeSearchPh: "Rechercher un lieu ou une adresse…",
+      placeSearchGo: "Rechercher",
+      placeNone: "Aucun résultat.",
+      placeErr: "La recherche a échoué : {e}",
       miLocNone: "Aucun lieu défini",
       miSave: "Enregistrer les détails",
       miEmpty: "Ajoutez un titre, une date et un lieu",
@@ -1988,6 +2104,24 @@
       locFromGps: "La tua posizione (GPS): {c}",
       locFromMap: "Scelto sulla mappa: {c}",
       locNeeded: "Attendi il GPS o scegli il luogo sulla mappa.",
+      webTitle: "Walking Memory · Carica storie",
+      webHelloIn: "Ciao, {n}",
+      webHelloOut: "Carica storie da un computer",
+      webIntro: "Qui carichi le storie come nell’app: foto, registrazioni e video, con le stesse modifiche (sfocatura, ritaglio, silenziamento). Non essendoci il GPS, scegli il luogo di ogni storia sulla mappa.",
+      webNew: "+ Nuova storia",
+      webStep1: "Il consenso del narratore/della narratrice",
+      webStep2: "Titolo e luogo sulla mappa",
+      webStep3: "File: aggiungi, modifica, inserisci i dettagli",
+      webStep4: "Controlla e invia",
+      webToApp: "Apri l’app AR",
+      gateWeb: "Al computer? Carica storie dal sito",
+      locNeededWeb: "Scegli il luogo della storia sulla mappa.",
+      locHintWeb: "È qui che la storia appare nell’app.",
+      placeSearch: "Cerca un luogo",
+      placeSearchPh: "Cerca un luogo o un indirizzo…",
+      placeSearchGo: "Cerca",
+      placeNone: "Nessun risultato.",
+      placeErr: "Ricerca non riuscita: {e}",
       miLocNone: "Nessun luogo impostato",
       miSave: "Salva i dettagli",
       miEmpty: "Aggiungi titolo, data e luogo",
@@ -2572,9 +2706,11 @@
   }
 
   var storyLoc = null;     // τοποθεσία ιστορίας από τον χάρτη (αλλιώς το στίγμα GPS)
+  // Ιστοσελίδα για υπολογιστή: ίδιο ανέβασμα, χωρίς AR και GPS (η τοποθεσία επιλέγεται πάντα στον χάρτη)
+  var WEB = /[?&]web=1\b/.test(location.search);
   function renderLoc() {
     var c = function (p) { return (+p.lat).toFixed(5) + ', ' + (+p.lon).toFixed(5); };
-    $('locDisplay').textContent = storyLoc ? '🗺 ' + t('locFromMap', { c: c(storyLoc) }) : me ? '📍 ' + t('locFromGps', { c: c(me) }) : t('locNeeded');
+    $('locDisplay').textContent = storyLoc ? '🗺 ' + t('locFromMap', { c: c(storyLoc) }) : me ? '📍 ' + t('locFromGps', { c: c(me) }) : t(WEB ? 'locNeededWeb' : 'locNeeded');
     $('storyLocGps').disabled = !me || !storyLoc;
   }
 
@@ -2649,6 +2785,7 @@
     lb.hidden = !currentUser;
     lb.textContent = t(isAnnotator() ? 'listAll' : 'listMy');
     updateAddBtn();
+    if (typeof renderWeb === 'function') renderWeb();
   }
   onLangChange(function () { renderAuth(); renderAuthSheet(); });
 
@@ -4686,7 +4823,7 @@
   $('storyLocMap').onclick = function () { openPicker('story', storyLoc ? { lat: storyLoc.lat, lon: storyLoc.lon } : null); };
   $('storyLocGps').onclick = function () { storyLoc = null; $('locError').textContent = ''; renderLoc(); announce($('locDisplay').textContent); };
   function openPicker(target, start) {
-    pickFor = target; pickPoint = start;
+    pickFor = target; pickPoint = start; $('placeResults').innerHTML = ''; $('placeSearchIn').value = '';
     openDialog('mapPickSheet', $('pickUse'));
     setTimeout(function () {
       var c = pickPoint ? [pickPoint.lat, pickPoint.lon] : (me ? [me.lat, me.lon] : DEFAULT_CENTER);
@@ -4701,6 +4838,22 @@
       pickShow();
     }, 60);
   }
+  $('placeSearchForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var q = $('placeSearchIn').value.trim(), ul = $('placeResults'); ul.innerHTML = '';
+    if (!q) return;
+    try {
+      var r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=' + encodeURIComponent(LANG) + '&q=' + encodeURIComponent(q));
+      if (!r.ok) throw new Error(r.status);
+      var d = await r.json();
+      if (!d.length) { var n = document.createElement('li'); n.className = 'none'; n.textContent = t('placeNone'); ul.appendChild(n); return; }
+      d.forEach(function (x) {
+        var li = document.createElement('li'), b = document.createElement('button'); b.type = 'button'; b.textContent = x.display_name;
+        b.onclick = function () { var la = +x.lat, lo = +x.lon; pickSet(la, lo); if (pickMap) pickMap.setView([la, lo], 17); ul.innerHTML = ''; $('pickUse').focus(); };
+        li.appendChild(b); ul.appendChild(li);
+      });
+    } catch (e) { var er = document.createElement('li'); er.className = 'none'; er.textContent = t('placeErr', { e: e.message || e }); ul.appendChild(er); }
+  });
   $('pickCancel').onclick = function () { closeDialog('mapPickSheet'); };
   escHandlers.mapPickSheet = function () { closeDialog('mapPickSheet'); };
   $('pickUse').onclick = function () {
@@ -4761,7 +4914,7 @@
       $('triggerFileBtn').focus();
       return;
     }
-    if (!storyLoc && !me) { $('locError').textContent = t('locNeeded'); $('storyLocMap').focus(); return; }
+    if (!storyLoc && !me) { $('locError').textContent = t(WEB ? 'locNeededWeb' : 'locNeeded'); $('storyLocMap').focus(); return; }
     renderConfirmSummary();
     closeDialog('uploadSheet', true);
     openDialog('confirmModal');
@@ -4937,7 +5090,7 @@
     updateMediaListUI();
     closeDialog('previewSheet', true);
     setAR(true);
-    if ($('addBtn').classList.contains('on')) $('addBtn').focus();
+    if (WEB) $('webNewBtn').focus(); else if ($('addBtn').classList.contains('on')) $('addBtn').focus();
   }
 
   $('closePreviewBtn').onclick = async function () {
@@ -5162,6 +5315,26 @@
   // ==========================================
   // Εκκίνηση
   // ==========================================
+  if (WEB) {
+    document.body.classList.add('web');
+    $('gate').style.display = 'none';
+    $('webHome').hidden = false;
+    $('storyLocGps').hidden = true; $('miLocGps').hidden = true;      // χωρίς GPS
+    document.querySelector('[data-i18n="locHint"]').setAttribute('data-i18n', 'locHintWeb');
+  }
+  function renderWeb() {
+    if (!WEB) return;
+    var inn = !!currentUser;
+    $('webHello').textContent = inn ? t('webHelloIn', { n: userName(currentUser) }) : t('webHelloOut');
+    $('webUser').textContent = inn ? userName(currentUser) + ' (' + t('role_' + currentRole) + ')' : '';
+    $('webAuthBtn').textContent = t(inn ? 'logout' : 'login'); $('webAuthBtn').hidden = !sb;
+    $('webActions').hidden = !inn; $('webLoginBtn').hidden = inn || !sb;
+  }
+  $('webAuthBtn').onclick = $('webLoginBtn').onclick = function () { $('authBtnGate').onclick(); };
+  $('webNewBtn').onclick = function () { $('addBtn').onclick(); };
+  $('webMineBtn').onclick = function () { $('listBtn').onclick(); };
+  $('langWeb').addEventListener('change', function () { setLang(this.value); });
+  onLangChange(function () { $('langWeb').value = LANG; renderWeb(); });
   setLang(LANG);
   updateMediaListUI();
   renderLoc();

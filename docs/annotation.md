@@ -120,6 +120,14 @@ chosen place in the app (and is opened there, like any story, within 100 m). The
 can be added indoors by choosing its place on the map; finishing without a GPS fix or a chosen place asks for one. Each file keeps its
 own location (📍 details) as before.
 
+## Uploading stories from a computer (facilitator website)
+`…/upload/` (it opens `index.html?web=1`; the app's start screen also links to it: "On a computer? Upload stories from the
+website") is the same story upload as in the app, for a desktop browser: log in, **+ New story**, the narrator's consent, title,
+files (add, edit — blur, crop, mute — and give details), **Finish story**, check and submit. **My stories** lists your stories
+(open, play, delete). There is no AR, camera or GPS here, so the **story location is always chosen on the map** — the map has a
+**place search** (OpenStreetMap); finishing without a location asks for one. Files' own locations are also chosen on the map.
+The place search is also available in the app's map picker.
+
 ## Map of all locations (annotation website)
 The **Map** button in the header (next to **Stories**) shows every location that users uploaded, **for each file** (photo, audio, video)
 and for each story:
