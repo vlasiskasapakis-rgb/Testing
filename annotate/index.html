@@ -295,6 +295,16 @@
   .follow input { width: 20px; height: 20px; }
   .ann-seg { scroll-margin-top: 230px; border: 2px solid transparent; }
   .ann-seg.now { border-color: var(--amber); background: var(--sky-soft); }
+  .ann-comments { margin-top: 6px; }
+  .ann-comment { margin: 6px 0; padding: 8px 12px; border-left: 4px solid #7B1FA2; background: #F6EFFA; border-radius: 8px; }
+  .ann-comment .cmt-body { margin: 0; white-space: pre-wrap; }
+  .ann-comment .cmt-meta { display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--muted); }
+  .ann-comment .link-btn.danger { color: var(--danger); }
+  .cmt-form { margin: 6px 0; }
+  .cmt-form textarea { width: 100%; padding: 8px 10px; border: 2px solid var(--line-strong); border-radius: 10px; font: inherit; font-size: 15px; resize: vertical; }
+  .cmt-form .sheet-sub { margin: 4px 0; }
+  .cmt-btns { display: flex; gap: 8px; }
+  .cmt-btns button { padding: 6px 16px; min-height: 38px; font-weight: 700; }
   .ann-seg .when { display: inline-flex; align-items: center; gap: 6px; background: none; color: var(--amber-text); padding: 2px 8px 2px 0; min-height: 32px; border-radius: 6px; }
   .ann-seg .when::before { content: '▶'; font-size: 11px; }
   .ann-seg .when:hover { text-decoration: underline; }
@@ -950,6 +960,15 @@
       delDone: "Η ιστορία «{t}» διαγράφηκε.",
       delDenied: "Η βάση δεν επέτρεψε τη διαγραφή. Τρέξε μία φορά το supabase/roles.sql ώστε οι σχολιαστές να μπορούν να διαγράφουν ιστορίες.",
       delFailed: "Η διαγραφή απέτυχε: {e}",
+      cmtAdd: "💬 Προσθήκη σχολίου",
+      cmtPh: "Σχόλιο για τους επισκέπτες: ιστορικό πλαίσιο, εξήγηση, διόρθωση…",
+      cmtSave: "Αποθήκευση σχολίου",
+      cmtCancel: "Ακύρωση",
+      cmtEdit: "Επεξεργασία",
+      cmtDelete: "Διαγραφή",
+      cmtDeleteQ: "Διαγραφή αυτού του σχολίου;",
+      cmtNeedSql: "Τα σχόλια χρειάζονται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.",
+      cmtHint: "Το βλέπουν όλοι στην εφαρμογή και στην ιστοσελίδα, τη στιγμή που ακούγεται αυτή η γραμμή.",
       mapLegendKey: "● αρχείο (🖼 φωτογραφία, 🎙 ήχος, 🎬 βίντεο) · ○ τόπος δημιουργίας ιστορίας",
       mapLinkUsers: "Σύνδεση ιστοριών κάθε χρήστη με τη σειρά",
       mapNoFileLoc: "Κανένα αρχείο δεν έχει δική του τοποθεσία (παλιότερες καταχωρίσεις ή δεν έχει τρέξει το roles.sql). Εμφανίζονται μόνο οι τοποθεσίες των ιστοριών.",
@@ -1369,6 +1388,15 @@
       delDone: "The story “{t}” was deleted.",
       delDenied: "The database did not allow the deletion. Run supabase/roles.sql once so annotators can delete stories.",
       delFailed: "Deleting failed: {e}",
+      cmtAdd: "💬 Add comment",
+      cmtPh: "Comment for visitors: background, explanation, a correction…",
+      cmtSave: "Save comment",
+      cmtCancel: "Cancel",
+      cmtEdit: "Edit",
+      cmtDelete: "Delete",
+      cmtDeleteQ: "Delete this comment?",
+      cmtNeedSql: "Comments need a database update: run supabase/roles.sql once.",
+      cmtHint: "Everyone sees it in the app and on the website, at the moment this line is heard.",
       mapLegendKey: "● file (🖼 photo, 🎙 audio, 🎬 video) · ○ place where the story was created",
       mapLinkUsers: "Connect each user's stories in order",
       mapNoFileLoc: "None of the files has its own location (older uploads, or roles.sql has not been run). Only story locations are shown.",
@@ -1791,6 +1819,15 @@
       delDone: "L'histoire « {t} » a été supprimée.",
       delDenied: "La base n'a pas autorisé la suppression. Exécutez une fois supabase/roles.sql pour que les annotateurs puissent supprimer des histoires.",
       delFailed: "La suppression a échoué : {e}",
+      cmtAdd: "💬 Ajouter un commentaire",
+      cmtPh: "Commentaire pour les visiteurs : contexte, explication, correction…",
+      cmtSave: "Enregistrer le commentaire",
+      cmtCancel: "Annuler",
+      cmtEdit: "Modifier",
+      cmtDelete: "Supprimer",
+      cmtDeleteQ: "Supprimer ce commentaire ?",
+      cmtNeedSql: "Les commentaires nécessitent une mise à jour de la base : exécutez une fois supabase/roles.sql.",
+      cmtHint: "Tout le monde le voit dans l’application et sur le site, au moment où cette ligne est entendue.",
       mapLegendKey: "● fichier (🖼 photo, 🎙 audio, 🎬 vidéo) · ○ lieu de création de l'histoire",
       mapLinkUsers: "Relier les histoires de chaque utilisateur dans l'ordre",
       mapNoFileLoc: "Aucun fichier n'a son propre lieu (anciens envois, ou roles.sql n'a pas été exécuté). Seuls les lieux des histoires sont affichés.",
@@ -2207,6 +2244,15 @@
       delDone: "La storia «{t}» è stata eliminata.",
       delDenied: "Il database non ha permesso l'eliminazione. Esegui una volta supabase/roles.sql perché gli annotatori possano eliminare le storie.",
       delFailed: "Eliminazione non riuscita: {e}",
+      cmtAdd: "💬 Aggiungi commento",
+      cmtPh: "Commento per i visitatori: contesto, spiegazione, correzione…",
+      cmtSave: "Salva commento",
+      cmtCancel: "Annulla",
+      cmtEdit: "Modifica",
+      cmtDelete: "Elimina",
+      cmtDeleteQ: "Eliminare questo commento?",
+      cmtNeedSql: "I commenti richiedono un aggiornamento del database: esegui una volta supabase/roles.sql.",
+      cmtHint: "Lo vedono tutti nell’app e sul sito, nel momento in cui si sente questa riga.",
       mapLegendKey: "● file (🖼 foto, 🎙 audio, 🎬 video) · ○ luogo di creazione della storia",
       mapLinkUsers: "Collega le storie di ogni utente in ordine",
       mapNoFileLoc: "Nessun file ha un proprio luogo (caricamenti vecchi o roles.sql non eseguito). Sono mostrati solo i luoghi delle storie.",
@@ -2584,7 +2630,8 @@
     var res = await Promise.all([
       aq,
       sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text,words)').in('media_id', ids),
-      sb.from('media_links').select('id,story_id,image_media_id,av_media_id,start_s,end_s').eq('story_id', s.dbId).order('start_s')
+      sb.from('media_links').select('id,story_id,image_media_id,av_media_id,start_s,end_s').eq('story_id', s.dbId).order('start_s'),
+      sb.from('transcript_comments').select('id,media_id,segment_idx,start_s,end_s,body,author_name,updated_at').in('media_id', ids).order('start_s')
     ]);
     if (res[1].error && /words/i.test(res[1].error.message || '')) {   // βάση χωρίς στήλη words
       res[1] = await sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids);
@@ -2604,7 +2651,7 @@
     if (res[1].error) { if (all) throw res[1].error; problems.push(res[1].error.message); } else trs = res[1].data;
     if (res[2].error && !all) problems.push(res[2].error.message);
     trs.forEach(function (tr) { tr.transcript_segments.sort(function (a, b) { return a.idx - b.idx; }); });
-    return { annotations: res[0].data, transcripts: trs, links: res[2].error ? [] : res[2].data, problems: problems };
+    return { annotations: res[0].data, transcripts: trs, links: res[2].error ? [] : res[2].data, comments: res[3].error ? [] : res[3].data, problems: problems };
   }
 
   // ---- Ονόματα όρων στη γλώσσα που επιλέχθηκε, από το λεξιλόγιο της κάθε σχολιασμού (Wikidata, και Getty μέσω Wikidata) ----
@@ -3896,6 +3943,64 @@
     return segs;
   }
 
+  // ---- Σχόλια ειδικού σε γραμμή της απομαγνητοφώνησης: τα βλέπουν όλοι στην εφαρμογή και στην ιστοσελίδα, τη στιγμή που ακούγεται η γραμμή ----
+  function commentsBlock(seg, m, data, repaint) {
+    data.comments = data.comments || [];
+    var wrap = document.createElement('div'); wrap.className = 'ann-comments';
+    function editor(initial, onSave, onCancel) {
+      var f = document.createElement('div'); f.className = 'cmt-form';
+      var ta = document.createElement('textarea'); ta.rows = 3; ta.maxLength = 2000; ta.value = initial || ''; ta.placeholder = t('cmtPh'); ta.setAttribute('aria-label', t('cmtPh'));
+      var hint = document.createElement('p'); hint.className = 'sheet-sub'; hint.textContent = t('cmtHint');
+      var row = document.createElement('div'); row.className = 'cmt-btns';
+      var sv = document.createElement('button'); sv.type = 'button'; sv.className = 'btn-primary'; sv.textContent = t('cmtSave');
+      var cc = document.createElement('button'); cc.type = 'button'; cc.className = 'btn-secondary'; cc.textContent = t('cmtCancel');
+      var err = document.createElement('p'); err.className = 'field-error'; err.setAttribute('role', 'alert');
+      sv.onclick = async function () {
+        var v = ta.value.trim(); if (!v) { ta.focus(); return; }
+        sv.disabled = true; err.textContent = '';
+        var e = await onSave(v.slice(0, 2000));
+        if (e) { err.textContent = /transcript_comments|does not exist|schema cache/i.test(e.message || '') ? t('cmtNeedSql') : t('annSaveError', { e: errText(e) }); sv.disabled = false; }
+      };
+      cc.onclick = onCancel;
+      row.appendChild(sv); row.appendChild(cc); f.appendChild(ta); f.appendChild(hint); f.appendChild(row); f.appendChild(err);
+      setTimeout(function () { ta.focus(); }, 0);
+      return f;
+    }
+    data.comments.filter(function (c) { return c.media_id === m.id && c.segment_idx === seg.idx; }).forEach(function (c) {
+      var d = document.createElement('div'); d.className = 'ann-comment';
+      var b = document.createElement('p'); b.className = 'cmt-body'; b.textContent = '💬 ' + c.body; d.appendChild(b);
+      var meta = document.createElement('div'); meta.className = 'cmt-meta';
+      var who = document.createElement('span'); who.textContent = c.author_name ? '— ' + c.author_name : ''; meta.appendChild(who);
+      var ed = document.createElement('button'); ed.type = 'button'; ed.className = 'link-btn'; ed.textContent = t('cmtEdit');
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'link-btn danger'; del.textContent = t('cmtDelete');
+      ed.onclick = function () {
+        d.replaceWith(editor(c.body, async function (v) {
+          var r = await sb.from('transcript_comments').update({ body: v, updated_at: new Date().toISOString() }).eq('id', c.id);
+          if (r.error) return r.error; c.body = v; repaint(); return null;
+        }, function () { repaint(); }));
+      };
+      del.onclick = async function () {
+        if (!window.confirm(t('cmtDeleteQ'))) return;
+        var r = await sb.from('transcript_comments').delete().eq('id', c.id);
+        if (r.error) { alert(t('annSaveError', { e: errText(r.error) })); return; }
+        data.comments = data.comments.filter(function (x) { return x !== c; }); repaint();
+      };
+      meta.appendChild(ed); meta.appendChild(del); d.appendChild(meta);
+      wrap.appendChild(d);
+    });
+    var add = document.createElement('button'); add.type = 'button'; add.className = 'link-btn'; add.textContent = t('cmtAdd');
+    add.onclick = function () {
+      add.replaceWith(editor('', async function (v) {
+        var row = { media_id: m.id, segment_idx: seg.idx, start_s: seg.start_s, end_s: seg.end_s, body: v, author_name: userName(currentUser) };
+        var r = await sb.from('transcript_comments').insert(row).select('id,media_id,segment_idx,start_s,end_s,body,author_name,updated_at').single();
+        if (r.error) return r.error;
+        data.comments.push(r.data); repaint(); return null;
+      }, function () { repaint(); }));
+    };
+    wrap.appendChild(add);
+    return wrap;
+  }
+
   function addTermForm(seg, m, lang, onAdded, hasTerm) {
     var wrap = document.createElement('div'); wrap.className = 'ann-add';
     var open = document.createElement('button'); open.type = 'button'; open.className = 'link-btn'; open.textContent = t('annAddTerm');
@@ -4049,6 +4154,7 @@
         mine.forEach(function (a) { box.appendChild(annRowEl(a, paint, ctx)); });
         box.appendChild(addTermForm(seg, m, tr.language || trLang(), function (row) { data.annotations.push(row); paint(); notifyAnn(); },
           function (uri) { return data.annotations.some(function (a) { return a.media_id === m.id && a.segment_idx === seg.idx && a.term_uri === uri && a.status !== 'rejected'; }); }));
+        box.appendChild(commentsBlock(seg, m, data, paint));
         list.appendChild(box);
       });
     }
@@ -4535,6 +4641,16 @@
         'oa:hasBody': { '@id': im.url },
         'oa:hasTarget': { 'oa:hasSource': { '@id': av.url },
           'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + l.start_s + ',' + l.end_s } }
+      });
+    });
+    (k.comments || []).forEach(function (c) {
+      var m = mediaById(s, c.media_id); if (!m) return;
+      var body = { '@type': 'oa:TextualBody', 'rdf:value': c.body, 'dcterms:format': 'text/plain' };
+      if (c.author_name) body['dcterms:creator'] = c.author_name;
+      graph.push({
+        '@id': sid + '#comment-' + c.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:commenting' }, 'oa:hasBody': body,
+        'oa:hasTarget': c.end_s > c.start_s ? { 'oa:hasSource': { '@id': m.url },
+          'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + c.start_s + ',' + c.end_s } } : { 'oa:hasSource': { '@id': m.url } }
       });
     });
     if (!narr['hdt:HP10_tells_about'].length) delete narr['hdt:HP10_tells_about'];

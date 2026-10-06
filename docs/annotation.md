@@ -153,6 +153,15 @@ and for each story:
 - **Show** filters drafts / published.
 If no file has its own location (older uploads, or `supabase/roles.sql` not yet re-run) the map says so and shows only the story places.
 
+### Expert comments on transcript lines
+Under every transcript line there is **💬 Add comment**: a short text for visitors (background, explanation, a correction…), saved
+with your name; **Edit** / **Delete** change it later. Visitors see comments wherever they see the story (AR app and stories website):
+- while the recording plays, the comment of the line being heard appears under the subtitles ("💬 Expert note: … — name");
+- in the transcript, under its line; and in an **Expert notes** list with the time (▶ 00:05 jumps there).
+Comments of draft stories are visible only to annotators until the story is published. The RDF export includes them as W3C Web
+Annotations with motivation `oa:commenting` (text body, author, the line's time span). Table `transcript_comments` — re-run
+`supabase/roles.sql` once.
+
 ### Locations of transcript lines
 Every term on a transcript line has a **📍 Location** button (next to Approve / Reject). It opens a map:
 - when the term is a Wikidata item with coordinates (a village, a church, a country…), its place is **filled in automatically**;
