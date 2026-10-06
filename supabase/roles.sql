@@ -234,21 +234,19 @@ create policy "annotators write links" on public.media_links for all to authenti
   );
 
 -- Per-file details entered by the facilitator: title, identity (who/what), date recorded, period it refers to, location
-alter table public.story_media
-  add column if not exists title       text,
-  add column if not exists about       text,
-  add column if not exists recorded_at date,
-  add column if not exists period      text,
-  add column if not exists lat         double precision,
-  add column if not exists lon         double precision;
+alter table public.story_media add column if not exists title text;
+alter table public.story_media add column if not exists about text;
+alter table public.story_media add column if not exists recorded_at date;
+alter table public.story_media add column if not exists period text;
+alter table public.story_media add column if not exists lat double precision;
+alter table public.story_media add column if not exists lon double precision;
 
 -- Why a suggested term was proposed (confidence and evidence from the transcript, details and location)
 alter table public.annotations add column if not exists reason text;
 
 -- Where a term on a transcript line took place (optional; filled from Wikidata when known, or picked on the map by an annotator)
-alter table public.annotations
-  add column if not exists lat double precision,
-  add column if not exists lon double precision;
+alter table public.annotations add column if not exists lat double precision;
+alter table public.annotations add column if not exists lon double precision;
 alter table public.annotations drop constraint if exists annotations_geo_check;
 alter table public.annotations add  constraint annotations_geo_check check (
   (lat is null) = (lon is null) and (lat is null or (lat between -90 and 90 and lon between -180 and 180)));
@@ -421,9 +419,8 @@ grant select, insert, update, delete on public.story_boards, public.story_board_
 
 -- Walks in the AR app: a board marked is_walk is shown to visitors as a walk (its stories in the order of the links).
 -- Visitors only see published stories, so drafts on a walk are skipped in the app.
-alter table public.story_boards
-  add column if not exists is_walk boolean not null default false,
-  add column if not exists description text;
+alter table public.story_boards add column if not exists is_walk boolean not null default false;
+alter table public.story_boards add column if not exists description text;
 alter table public.story_boards drop constraint if exists story_boards_description_check;
 alter table public.story_boards add  constraint story_boards_description_check check (description is null or char_length(description) <= 1000);
 drop policy if exists "visitors read walks"      on public.story_boards;
