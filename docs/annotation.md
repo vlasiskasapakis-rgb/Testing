@@ -157,7 +157,8 @@ If no file has its own location (older uploads, or `supabase/roles.sql` not yet 
 Under every transcript line there is **💬 Add comment**: a short text for visitors (background, explanation, a correction…), saved
 with your name; **Edit** / **Delete** change it later. Visitors see comments wherever they see the story (AR app and stories website):
 - while the recording plays, the terms of the moment appear in a box right under the subtitles ("🏷 Terms: …"; "—" when none)
-  and the comment of the line being heard under it ("💬 Expert note: … — name"); the
+  and the comment of the line being heard under it ("💬 Expert note: … — name"; "—" between comments — the box keeps the
+  height of the longest comment so nothing moves); the
   timeline has a purple **Comments** lane (tap a mark to jump there);
 - in the transcript, under its line; and in an **Expert notes** list with the time (▶ 00:05 jumps there).
 Comments of draft stories are visible only to annotators until the story is published. The RDF export includes them as W3C Web
