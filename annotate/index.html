@@ -384,6 +384,9 @@
   .ann-lines input { width: 22px; height: 22px; flex: none; margin-top: 2px; }
   .ann-lines { max-height: 260px; overflow: auto; margin: 8px 0; }
   .tl-item.imgnote { background: var(--petrol); }
+  .tl-item.cmt { background: #7B1FA2; }
+  .expert-note { margin: 0 0 8px; padding: 8px 12px; border-radius: 10px; background: #F6EFFA; border-left: 5px solid #7B1FA2; color: var(--ink); font-size: 15px; white-space: pre-wrap; }
+  .expert-note[hidden] { display: none; }
   .term-block { margin-bottom: 10px; }
   .inst-row { margin-left: 22px; padding: 6px 0 6px 10px; border-left: 3px solid var(--line); }
   .inst-row .ann-when { flex-basis: 100%; }
@@ -1079,6 +1082,9 @@
       uploadDone: "Η ιστορία ανέβηκε. Θα τη δουν οι σχολιαστές και θα δημοσιευτεί μετά τον σχολιασμό.",
       tlImages: "Εικόνες",
       tlTerms: "Όροι",
+      tlComments: "Σχόλια",
+      noteLabel: "Σχόλιο ειδικού",
+      noteBy: "— {n}",
       tlItemImg: "Εικόνα {n}",
       tlAria: "{l}, {a}–{b}. Αναπαραγωγή από εδώ",
       tlNowTerms: "Όροι σε αυτή τη στιγμή",
@@ -1510,6 +1516,9 @@
       uploadDone: "Story uploaded. Annotators will review it and it will be published after annotation.",
       tlImages: "Images",
       tlTerms: "Terms",
+      tlComments: "Comments",
+      noteLabel: "Expert note",
+      noteBy: "— {n}",
       tlItemImg: "Image {n}",
       tlAria: "{l}, {a}–{b}. Play from here",
       tlNowTerms: "Terms at this moment",
@@ -1935,6 +1944,9 @@
       uploadDone: "Histoire envoyée. Les annotateurs la reverront et elle sera publiée après annotation.",
       tlImages: "Images",
       tlTerms: "Termes",
+      tlComments: "Commentaires",
+      noteLabel: "Note d’expert",
+      noteBy: "— {n}",
       tlItemImg: "Image {n}",
       tlAria: "{l}, {a}–{b}. Lire à partir d'ici",
       tlNowTerms: "Termes à ce moment",
@@ -2363,6 +2375,9 @@
       uploadDone: "Storia caricata. Gli annotatori la esamineranno e sarà pubblicata dopo l'annotazione.",
       tlImages: "Immagini",
       tlTerms: "Termini",
+      tlComments: "Commenti",
+      noteLabel: "Nota dell’esperto",
+      noteBy: "— {n}",
       tlItemImg: "Immagine {n}",
       tlAria: "{l}, {a}–{b}. Riproduci da qui",
       tlNowTerms: "Termini in questo momento",
@@ -3025,9 +3040,25 @@
   }
 
   // Εμφανίζει στη σκηνή τις εικόνες και τους όρους που αφορούν την τρέχουσα στιγμή του ήχου/βίντεο
+  // Το σχόλιο της γραμμής που ακούγεται τώρα (όπως το βλέπουν οι επισκέπτες)
+  function updateExpertNote(avEl) {
+    var id = avEl.dataset.mediaId, now = avEl.currentTime, list = (sheetK && sheetK.comments) || [];
+    var c = list.filter(function (x) { return x.media_id === id && x.end_s > x.start_s && now >= x.start_s && now < x.end_s; })[0];
+    var host = avEl.parentNode, box = host && host.querySelector('.expert-note[data-media-id="' + id + '"]');
+    if (!c) { if (box) box.hidden = true; return; }
+    if (!box) {
+      box = document.createElement('div'); box.className = 'expert-note'; box.dataset.mediaId = id; box.setAttribute('aria-live', 'polite');
+      var bar = host.querySelector('.subtitle-bar[data-media-id="' + id + '"]');
+      (bar || avEl).insertAdjacentElement('afterend', box);
+    }
+    var txt = '💬 ' + t('noteLabel') + ': ' + c.body + (c.author_name ? ' ' + t('noteBy', { n: c.author_name }) : '');
+    if (box.textContent !== txt) box.textContent = txt;
+    box.hidden = false;
+  }
   function updateStage(avEl) {
     var avWrap = avEl.closest('.av-wrap'), stage = avWrap && avWrap.querySelector('.sync-stage'), s = currentSheetStory;
     updateSubtitle(avEl);
+    updateExpertNote(avEl);
     if (!stage || !s) return;
     var now = avEl.currentTime, avId = avEl.dataset.mediaId;
     var active = currentLinks.filter(function (l) { return l.av_media_id === avId && now >= l.start_s && now < l.end_s; });
@@ -3118,6 +3149,9 @@
     sheetK.annotations.filter(function (a) { return a.status === 'approved' && a.av_media_id === avId && isTimedNote(a); }).forEach(function (a) {
       out.push({ type: 'imgnote', start: a.start_s, end: a.end_s, label: termLabel(a) + ' · ' + mediaName(s, mediaById(s, a.media_id)) });
     });
+    (sheetK.comments || []).filter(function (c) { return c.media_id === avId && c.end_s > c.start_s; }).forEach(function (c) {     // σχόλια ειδικών
+      out.push({ type: 'cmt', start: c.start_s, end: c.end_s, label: '💬 ' + (c.body.length > 80 ? c.body.slice(0, 80) + '…' : c.body) + (c.author_name ? ' ' + t('noteBy', { n: c.author_name }) : '') });
+    });
     return out;
   }
 
@@ -3130,13 +3164,13 @@
     var dur = avDuration(avEl, items);
     var box = document.createElement('div'); box.className = 'tl'; box.dataset.mediaId = id; box.dataset.dur = dur;
     var lg = document.createElement('div'); lg.className = 'tl-legend';
-    [['img', 'tlImages', 'var(--amber)'], ['imgnote', 'tlImgNotes', 'var(--petrol)'], ['term', 'tlTerms', 'var(--sky)']].forEach(function (x) {
+    [['img', 'tlImages', 'var(--amber)'], ['imgnote', 'tlImgNotes', 'var(--petrol)'], ['term', 'tlTerms', 'var(--sky)'], ['cmt', 'tlComments', '#7B1FA2']].forEach(function (x) {
       if (!items.some(function (i) { return i.type === x[0]; })) return;
       var sp = document.createElement('span'); var sw = document.createElement('i'); sw.style.background = x[2];
       sp.appendChild(sw); sp.appendChild(document.createTextNode(t(x[1]))); lg.appendChild(sp);
     });
     box.appendChild(lg);
-    ['img', 'imgnote', 'term'].forEach(function (type) {
+    ['img', 'imgnote', 'term', 'cmt'].forEach(function (type) {
       var list = items.filter(function (i) { return i.type === type; }).sort(function (a, b) { return a.start - b.start; });
       if (!list.length) return;
       var lanes = [];
@@ -3976,14 +4010,14 @@
       ed.onclick = function () {
         d.replaceWith(editor(c.body, async function (v) {
           var r = await sb.from('transcript_comments').update({ body: v, updated_at: new Date().toISOString() }).eq('id', c.id);
-          if (r.error) return r.error; c.body = v; repaint(); return null;
+          if (r.error) return r.error; c.body = v; repaint(); notifyAnn(); return null;
         }, function () { repaint(); }));
       };
       del.onclick = async function () {
         if (!window.confirm(t('cmtDeleteQ'))) return;
         var r = await sb.from('transcript_comments').delete().eq('id', c.id);
         if (r.error) { alert(t('annSaveError', { e: errText(r.error) })); return; }
-        data.comments = data.comments.filter(function (x) { return x !== c; }); repaint();
+        data.comments = data.comments.filter(function (x) { return x !== c; }); repaint(); notifyAnn();
       };
       meta.appendChild(ed); meta.appendChild(del); d.appendChild(meta);
       wrap.appendChild(d);
@@ -3994,7 +4028,7 @@
         var row = { media_id: m.id, segment_idx: seg.idx, start_s: seg.start_s, end_s: seg.end_s, body: v, author_name: userName(currentUser) };
         var r = await sb.from('transcript_comments').insert(row).select('id,media_id,segment_idx,start_s,end_s,body,author_name,updated_at').single();
         if (r.error) return r.error;
-        data.comments.push(r.data); repaint(); return null;
+        data.comments.push(r.data); repaint(); notifyAnn(); return null;
       }, function () { repaint(); }));
     };
     wrap.appendChild(add);
