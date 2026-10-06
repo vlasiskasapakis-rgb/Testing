@@ -277,6 +277,12 @@
   .stage-view .img-wrap { flex-direction: column; justify-content: center; }
   .stage-idle { color: var(--muted); font-size: 15px; text-align: center; padding: 0 16px; }
   .stage-terms { min-height: 44px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
+  .terms-now { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-height: 46px; margin: 0 0 8px; padding: 6px 12px; border-radius: 10px; background: var(--sky-soft); border-left: 5px solid var(--sky); }
+  .terms-now[hidden] { display: none; }
+  .terms-now .tn-label { font-weight: 700; color: var(--petrol); font-size: 15px; }
+  .terms-now .term-list { margin: 0; }
+  .terms-now .term-list li { background: #fff; }
+  .terms-now .tn-none { background: none !important; color: var(--muted); }
   .stage-terms .term-list { margin: 0; }
   @keyframes stageIn { from { opacity: 0; } to { opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .stage-view .img-wrap { animation: none; } }
@@ -3741,14 +3747,12 @@
     }
     // Η σκηνή μένει σταθερή (ίδιο ύψος) όσο η ιστορία έχει εικόνες/όρους με χρόνο. Οι εικόνες ξαναφτιάχνονται μόνο όταν αλλάζει το σύνολο
     // των εικόνων/περιοχών· όταν αλλάζουν μόνο οι όροι, οι εικόνες μένουν ως έχουν (χωρίς αναβοσβήσιμο).
-    var used = currentLinks.some(function (l) { return l.av_media_id === avId; }) || (sheetK && sheetK.annotations.some(function (a) { return a.status === 'approved' && ((a.media_id === avId && hasRange(a)) || (a.av_media_id === avId && isTimedNote(a))); }));
+    updateTermsNow(avEl, terms, active, ctx);
+    var used = currentLinks.some(function (l) { return l.av_media_id === avId; }) || (sheetK && sheetK.annotations.some(function (a) { return a.status === 'approved' && a.av_media_id === avId && isTimedNote(a); }));
     if (!used) { stage.hidden = true; stage.dataset.key = ''; return; }
     stage.hidden = false;
-    var view = stage.querySelector('.stage-view'), row = stage.querySelector('.stage-terms');
-    if (!view) {
-      view = document.createElement('div'); view.className = 'stage-view'; stage.appendChild(view);
-      row = document.createElement('div'); row.className = 'stage-terms'; row.setAttribute('aria-label', t('tlNowTerms')); stage.appendChild(row);
-    }
+    var view = stage.querySelector('.stage-view');
+    if (!view) { view = document.createElement('div'); view.className = 'stage-view'; stage.appendChild(view); }
     var imgKey = active.map(function (l) { return l.id; }).join(',') + '|' + noteIds.join(',');
     if (stage.dataset.imgKey !== imgKey) {
       stage.dataset.imgKey = imgKey;
@@ -3769,15 +3773,31 @@
         view.appendChild(el);
       });
     }
-    var termKey = terms.map(function (a) { return a.id; }).join(',') + '|' + noteIds.join(',');
-    if (stage.dataset.termKey !== termKey) {
-      stage.dataset.termKey = termKey; row.innerHTML = '';
-      var all = terms.slice(), seen = {};
-      active.forEach(function (l) { annsForImage(l.image_media_id).forEach(function (a) { if (isTimedNote(a) && noteActive(a, ctx)) all.push(a); }); });
-      var ul = document.createElement('ul'); ul.className = 'term-list';
-      all.forEach(function (a) { if (seen[a.term_uri]) return; seen[a.term_uri] = 1; var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); }); ul.appendChild(li); });
-      row.appendChild(ul);
+  }
+  // Οι όροι της στιγμής σε δικό τους πλαίσιο κάτω από τους υπότιτλους (όπως τα σχόλια ειδικών). Το πλαίσιο μένει στη θέση του όσο
+  // η ηχογράφηση έχει όρους με χρόνο ("—" όταν δεν ισχύει κανένας), ώστε η σελίδα να μη μετακινείται.
+  function updateTermsNow(avEl, terms, active, ctx) {
+    var id = avEl.dataset.mediaId, host = avEl.parentNode; if (!host) return;
+    var box = host.querySelector('.terms-now[data-media-id="' + id + '"]');
+    var has = sheetK && sheetK.annotations.some(function (a) { return a.status === 'approved' && ((a.media_id === id && hasRange(a)) || (a.av_media_id === id && isTimedNote(a))); });
+    if (!has) { if (box) box.hidden = true; return; }
+    if (!box) {
+      box = document.createElement('div'); box.className = 'terms-now'; box.dataset.mediaId = id; box.setAttribute('aria-label', t('tlNowTerms'));
+      var lb = document.createElement('span'); lb.className = 'tn-label'; lb.textContent = '🏷 ' + t('tlTerms') + ':'; box.appendChild(lb);
+      var ul = document.createElement('ul'); ul.className = 'term-list'; box.appendChild(ul);
+      var bar = host.querySelector('.subtitle-bar[data-media-id="' + id + '"]');
+      (bar || avEl).insertAdjacentElement('afterend', box);
     }
+    box.hidden = false;
+    var all = terms.slice(), noteIds = [];
+    active.forEach(function (l) { annsForImage(l.image_media_id).forEach(function (a) { if (isTimedNote(a) && noteActive(a, ctx)) { all.push(a); noteIds.push(a.id); } }); });
+    var key = all.map(function (a) { return a.id; }).join(',');
+    if (box.dataset.key === key) return;
+    box.dataset.key = key; box.querySelector('.tn-label').textContent = '🏷 ' + t('tlTerms') + ':';
+    var list = box.querySelector('.term-list'); list.innerHTML = '';
+    var seen = {};
+    all.forEach(function (a) { if (seen[a.term_uri]) return; seen[a.term_uri] = 1; var li = document.createElement('li'); termLink(a, true).forEach(function (x) { li.appendChild(x); }); list.appendChild(li); });
+    if (!list.children.length) { var none = document.createElement('li'); none.className = 'tn-none'; none.textContent = '—'; list.appendChild(none); }
   }
 
   // Γραμμή χρόνου κάτω από κάθε ήχο/βίντεο: ποια μέρη αφορούν εικόνες και ποια όρους
@@ -3846,8 +3866,9 @@
       track.onclick = function (ev) { if (ev.target !== track) return; var r = track.getBoundingClientRect(); seekPlay(id, (ev.clientX - r.left) / r.width * dur, 'keep'); };
       box.appendChild(track);
     });
-    var cap = avEl.nextElementSibling;
-    (cap && cap.classList.contains('subtitle-bar') ? cap : avEl).insertAdjacentElement('afterend', box);
+    // Σειρά κάτω από τον αναπαραγωγέα: υπότιτλοι → όροι → σχόλιο ειδικού → γραμμή χρόνου → εικόνες
+    var host = avEl.parentNode, q = function (c) { return host.querySelector('.' + c + '[data-media-id="' + id + '"]'); };
+    (q('expert-note') || q('terms-now') || q('subtitle-bar') || avEl).insertAdjacentElement('afterend', box);
     updateStage(avEl);
   }
 
@@ -3902,7 +3923,7 @@
     if (!c) { if (box) box.hidden = true; return; }
     if (!box) {
       box = document.createElement('div'); box.className = 'expert-note'; box.dataset.mediaId = id; box.setAttribute('aria-live', 'polite');
-      var bar = host.querySelector('.subtitle-bar[data-media-id="' + id + '"]');
+      var bar = host.querySelector('.terms-now[data-media-id="' + id + '"]') || host.querySelector('.subtitle-bar[data-media-id="' + id + '"]');
       (bar || avEl).insertAdjacentElement('afterend', box);
     }
     var txt = '💬 ' + t('noteLabel') + ': ' + c.body + (c.author_name ? ' ' + t('noteBy', { n: c.author_name }) : '');
