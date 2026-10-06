@@ -318,6 +318,7 @@
   .ann-lines input { width: 22px; height: 22px; flex: none; margin-top: 2px; }
   .ann-lines { max-height: 260px; overflow: auto; margin: 8px 0; }
   .tl-item.imgnote { background: var(--petrol); }
+  .tl-item.cmt { background: #7B1FA2; }
   .term-block { margin-bottom: 10px; }
   .inst-row { margin-left: 22px; padding: 6px 0 6px 10px; border-left: 3px solid var(--line); }
   .inst-row .ann-when { flex-basis: 100%; }
@@ -1206,6 +1207,7 @@
       connPrev: "Προηγούμενη",
       connIn: "στη διαδρομή «{w}»",
       browseConn: "Εμφάνιση συνδέσεων ανάμεσα στις ιστορίες",
+      tlComments: "Σχόλια",
       notesTitle: "Σχόλια ειδικών",
       noteLabel: "Σχόλιο ειδικού",
       noteBy: "— {n}",
@@ -1559,6 +1561,7 @@
       connPrev: "Before",
       connIn: "in the walk “{w}”",
       browseConn: "Show connections between stories",
+      tlComments: "Comments",
       notesTitle: "Expert notes",
       noteLabel: "Expert note",
       noteBy: "— {n}",
@@ -1912,6 +1915,7 @@
       connPrev: "Précédente",
       connIn: "dans le parcours « {w} »",
       browseConn: "Afficher les liens entre les histoires",
+      tlComments: "Commentaires",
       notesTitle: "Notes d’experts",
       noteLabel: "Note d’expert",
       noteBy: "— {n}",
@@ -2265,6 +2269,7 @@
       connPrev: "Precedente",
       connIn: "nel percorso «{w}»",
       browseConn: "Mostra i collegamenti tra le storie",
+      tlComments: "Commenti",
       notesTitle: "Note degli esperti",
       noteLabel: "Nota dell’esperto",
       noteBy: "— {n}",
@@ -3796,6 +3801,9 @@
     sheetK.annotations.filter(function (a) { return a.status === 'approved' && a.av_media_id === avId && isTimedNote(a); }).forEach(function (a) {
       out.push({ type: 'imgnote', start: a.start_s, end: a.end_s, label: termLabel(a) + ' · ' + mediaName(s, mediaById(s, a.media_id)) });
     });
+    sheetComments.filter(function (c) { return c.media_id === avId && c.end_s > c.start_s; }).forEach(function (c) {     // σχόλια ειδικών
+      out.push({ type: 'cmt', start: c.start_s, end: c.end_s, label: '💬 ' + (c.body.length > 80 ? c.body.slice(0, 80) + '…' : c.body) + (c.author_name ? ' ' + t('noteBy', { n: c.author_name }) : '') });
+    });
     return out;
   }
 
@@ -3808,13 +3816,13 @@
     var dur = avDuration(avEl, items);
     var box = document.createElement('div'); box.className = 'tl'; box.dataset.mediaId = id; box.dataset.dur = dur;
     var lg = document.createElement('div'); lg.className = 'tl-legend';
-    [['img', 'tlImages', 'var(--amber)'], ['imgnote', 'tlImgNotes', 'var(--petrol)'], ['term', 'tlTerms', 'var(--sky)']].forEach(function (x) {
+    [['img', 'tlImages', 'var(--amber)'], ['imgnote', 'tlImgNotes', 'var(--petrol)'], ['term', 'tlTerms', 'var(--sky)'], ['cmt', 'tlComments', '#7B1FA2']].forEach(function (x) {
       if (!items.some(function (i) { return i.type === x[0]; })) return;
       var sp = document.createElement('span'); var sw = document.createElement('i'); sw.style.background = x[2];
       sp.appendChild(sw); sp.appendChild(document.createTextNode(t(x[1]))); lg.appendChild(sp);
     });
     box.appendChild(lg);
-    ['img', 'imgnote', 'term'].forEach(function (type) {
+    ['img', 'imgnote', 'term', 'cmt'].forEach(function (type) {
       var list = items.filter(function (i) { return i.type === type; }).sort(function (a, b) { return a.start - b.start; });
       if (!list.length) return;
       var lanes = [];
