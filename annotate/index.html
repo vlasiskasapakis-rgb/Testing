@@ -393,6 +393,8 @@
   .tl-item.cmt { background: #7B1FA2; }
   .expert-note { margin: 0 0 8px; padding: 8px 12px; border-radius: 10px; background: #F6EFFA; border-left: 5px solid #7B1FA2; color: var(--ink); font-size: 15px; white-space: pre-wrap; }
   .expert-note[hidden] { display: none; }
+  .expert-note { min-height: calc(2 * 1.4em + 16px); display: flex; align-items: center; }
+  .expert-note.idle { color: var(--muted); }
   .term-block { margin-bottom: 10px; }
   .inst-row { margin-left: 22px; padding: 6px 0 6px 10px; border-left: 3px solid var(--line); }
   .inst-row .ann-when { flex-basis: 100%; }
@@ -3049,16 +3051,28 @@
   // Το σχόλιο της γραμμής που ακούγεται τώρα (όπως το βλέπουν οι επισκέπτες)
   function updateExpertNote(avEl) {
     var id = avEl.dataset.mediaId, now = avEl.currentTime, list = (sheetK && sheetK.comments) || [];
-    var c = list.filter(function (x) { return x.media_id === id && x.end_s > x.start_s && now >= x.start_s && now < x.end_s; })[0];
+    var mine = list.filter(function (x) { return x.media_id === id && x.end_s > x.start_s; });
+    var c = mine.filter(function (x) { return now >= x.start_s && now < x.end_s; })[0];
     var host = avEl.parentNode, box = host && host.querySelector('.expert-note[data-media-id="' + id + '"]');
-    if (!c) { if (box) box.hidden = true; return; }
+    if (!mine.length) { if (box) box.hidden = true; return; }      // χωρίς σχόλια σε αυτή την ηχογράφηση: κανένα πλαίσιο
     if (!box) {
       box = document.createElement('div'); box.className = 'expert-note'; box.dataset.mediaId = id; box.setAttribute('aria-live', 'polite');
       var bar = host.querySelector('.terms-now[data-media-id="' + id + '"]') || host.querySelector('.subtitle-bar[data-media-id="' + id + '"]');
       (bar || avEl).insertAdjacentElement('afterend', box);
     }
-    var txt = '💬 ' + t('noteLabel') + ': ' + c.body + (c.author_name ? ' ' + t('noteBy', { n: c.author_name }) : '');
+    // Το πλαίσιο μένει στη θέση του σε όλη την ηχογράφηση ("—" ανάμεσα στα σχόλια), ώστε η σελίδα να μη μετακινείται
+    var fmt = function (x) { return '💬 ' + t('noteLabel') + ': ' + (x ? x.body + (x.author_name ? ' ' + t('noteBy', { n: x.author_name }) : '') : '—'); };
+    // Ύψος = του μακρύτερου σχολίου της ηχογράφησης (στο τρέχον πλάτος), ώστε να μη μετακινείται τίποτα όταν αλλάζει το σχόλιο
+    var sizeKey = mine.map(function (x) { return x.id + ':' + x.body.length; }).join(',') + '@' + box.clientWidth + '|' + LANG;
+    if (box.clientWidth && box.dataset.sizeKey !== sizeKey) {
+      box.dataset.sizeKey = sizeKey; box.style.minHeight = ''; var hMax = 0;
+      mine.forEach(function (x) { box.textContent = fmt(x); hMax = Math.max(hMax, box.offsetHeight); });
+      if (hMax) box.style.minHeight = hMax + 'px';
+      box.textContent = '';
+    }
+    var txt = fmt(c);
     if (box.textContent !== txt) box.textContent = txt;
+    box.classList.toggle('idle', !c);
     box.hidden = false;
   }
   function updateStage(avEl) {
