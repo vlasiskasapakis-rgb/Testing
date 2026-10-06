@@ -346,6 +346,31 @@ drop trigger if exists annotations_activity on public.annotations;
 create trigger annotations_activity after insert or update or delete on public.annotations
   for each row execute function public.log_annotation_change();
 
+-- ---------- expert comments on transcript lines (annotation website), shown to everyone who can see the story ----------
+create table if not exists public.transcript_comments (
+  id          uuid primary key default gen_random_uuid(),
+  media_id    uuid not null references public.story_media(id) on delete cascade,
+  segment_idx integer,
+  start_s     real,
+  end_s       real,
+  body        text not null check (char_length(body) between 1 and 2000),
+  author_name text,
+  created_by  uuid default auth.uid() references auth.users(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index if not exists transcript_comments_media_idx on public.transcript_comments(media_id);
+alter table public.transcript_comments enable row level security;
+drop policy if exists "read visible comments"       on public.transcript_comments;
+drop policy if exists "annotators write comments"   on public.transcript_comments;
+create policy "read visible comments" on public.transcript_comments for select
+  using (public.is_annotator() or public.media_is_public(media_id));
+create policy "annotators write comments" on public.transcript_comments for all to authenticated
+  using (public.is_annotator()) with check (public.is_annotator());
+revoke all on public.transcript_comments from anon;
+grant select (id, media_id, segment_idx, start_s, end_s, body, author_name, created_at, updated_at) on public.transcript_comments to anon;
+grant select, insert, update, delete on public.transcript_comments to authenticated;
+
 -- ---------- story links (connect/ page): boards where annotators place stories and connect them ----------
 -- A board holds stories (with their position on the board) and directed links "this story, then that one".
 create table if not exists public.story_boards (

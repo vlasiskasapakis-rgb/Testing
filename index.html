@@ -289,6 +289,13 @@
   .tr-line { display: block; width: 100%; text-align: left; background: none; color: var(--ink); border-radius: 8px; padding: 6px 8px; font-size: 15px; border: 0; }
   .tr-line .when { font-weight: 700; color: var(--amber-text); margin-right: 8px; font-size: 13px; }
   .tr-line.now { background: var(--sky-soft); }
+  .tr-note { margin: 2px 0 6px 8px; padding: 6px 10px; border-left: 4px solid #7B1FA2; background: #F6EFFA; border-radius: 8px; font-size: 14px; white-space: pre-wrap; }
+  .expert-note { margin: 0 0 8px; padding: 8px 12px; border-radius: 10px; background: #F6EFFA; border-left: 5px solid #7B1FA2; color: var(--ink); font-size: 15px; white-space: pre-wrap; }
+  .expert-note[hidden] { display: none; }
+  .note-list { list-style: none; margin: 6px 0 0; padding: 0; }
+  .note-list li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line); }
+  .note-list .note-when { flex: none; padding: 4px 10px; min-height: 34px; font-size: 13px; font-weight: 700; background: var(--sky-soft); color: var(--petrol); }
+  .note-list .note-text { white-space: pre-wrap; font-size: 15px; }
   .lnk-box { border-top: 1px dashed var(--line-strong); margin-top: 10px; padding-top: 8px; }
   .lnk-box .time-in { width: 90px; padding: 8px 10px; border: 2px solid var(--line-strong); border-radius: 10px; font-size: 15px; }
   .lnk-box audio, .lnk-box video { width: 100%; max-height: 220px; margin: 6px 0; }
@@ -1199,6 +1206,9 @@
       connPrev: "Προηγούμενη",
       connIn: "στη διαδρομή «{w}»",
       browseConn: "Εμφάνιση συνδέσεων ανάμεσα στις ιστορίες",
+      notesTitle: "Σχόλια ειδικών",
+      noteLabel: "Σχόλιο ειδικού",
+      noteBy: "— {n}",
       miLocNone: "Δεν έχει οριστεί τοποθεσία",
       miSave: "Αποθήκευση στοιχείων",
       miEmpty: "Πρόσθεσε τίτλο, ημερομηνία και τοποθεσία",
@@ -1549,6 +1559,9 @@
       connPrev: "Before",
       connIn: "in the walk “{w}”",
       browseConn: "Show connections between stories",
+      notesTitle: "Expert notes",
+      noteLabel: "Expert note",
+      noteBy: "— {n}",
       miLocNone: "No location set",
       miSave: "Save details",
       miEmpty: "Add a title, date and location",
@@ -1899,6 +1912,9 @@
       connPrev: "Précédente",
       connIn: "dans le parcours « {w} »",
       browseConn: "Afficher les liens entre les histoires",
+      notesTitle: "Notes d’experts",
+      noteLabel: "Note d’expert",
+      noteBy: "— {n}",
       miLocNone: "Aucun lieu défini",
       miSave: "Enregistrer les détails",
       miEmpty: "Ajoutez un titre, une date et un lieu",
@@ -2249,6 +2265,9 @@
       connPrev: "Precedente",
       connIn: "nel percorso «{w}»",
       browseConn: "Mostra i collegamenti tra le storie",
+      notesTitle: "Note degli esperti",
+      noteLabel: "Nota dell’esperto",
+      noteBy: "— {n}",
       miLocNone: "Nessun luogo impostato",
       miSave: "Salva i dettagli",
       miEmpty: "Aggiungi titolo, data e luogo",
@@ -3347,7 +3366,8 @@
     var res = await Promise.all([
       aq,
       sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text,words)').in('media_id', ids),
-      sb.from('media_links').select('id,story_id,image_media_id,av_media_id,start_s,end_s').eq('story_id', s.dbId).order('start_s')
+      sb.from('media_links').select('id,story_id,image_media_id,av_media_id,start_s,end_s').eq('story_id', s.dbId).order('start_s'),
+      sb.from('transcript_comments').select('id,media_id,segment_idx,start_s,end_s,body,author_name').in('media_id', ids).order('start_s')
     ]);
     if (res[1].error && /words/i.test(res[1].error.message || '')) {   // βάση χωρίς στήλη words
       res[1] = await sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids);
@@ -3361,7 +3381,7 @@
     if (res[1].error) { if (all) throw res[1].error; problems.push(res[1].error.message); } else trs = res[1].data;
     if (res[2].error && !all) problems.push(res[2].error.message);
     trs.forEach(function (tr) { tr.transcript_segments.sort(function (a, b) { return a.idx - b.idx; }); });
-    return { annotations: res[0].data, transcripts: trs, links: res[2].error ? [] : res[2].data, problems: problems };
+    return { annotations: res[0].data, transcripts: trs, links: res[2].error ? [] : res[2].data, comments: res[3].error ? [] : res[3].data, problems: problems };
   }
 
   // ---- Ονόματα όρων στη γλώσσα που επιλέχθηκε, από το λεξιλόγιο της κάθε σχολιασμού (Wikidata, και Getty μέσω Wikidata) ----
@@ -3694,6 +3714,7 @@
   function updateStage(avEl) {
     var avWrap = avEl.closest('.av-wrap'), stage = avWrap && avWrap.querySelector('.sync-stage'), s = currentSheetStory;
     updateSubtitle(avEl);
+    updateExpertNote(avEl);
     if (!stage || !s) return;
     var now = avEl.currentTime, avId = avEl.dataset.mediaId;
     var active = currentLinks.filter(function (l) { return l.av_media_id === avId && now >= l.start_s && now < l.end_s; });
@@ -3858,6 +3879,28 @@
     box.appendChild(fold);
   }
 
+  // Σχόλιο ειδικού (ιστοσελίδα σχολιασμού): κείμενο και όνομα
+  function noteEl(c, plain) {
+    var d = document.createElement('div'); d.className = plain ? 'note-text' : 'tr-note';
+    d.textContent = (plain ? '' : '💬 ') + c.body + (c.author_name ? ' ' + t('noteBy', { n: c.author_name }) : '');
+    return d;
+  }
+  var sheetComments = [];
+  // Κατά την αναπαραγωγή: το σχόλιο της γραμμής που ακούγεται τώρα, κάτω από τους υπότιτλους
+  function updateExpertNote(avEl) {
+    var id = avEl.dataset.mediaId, now = avEl.currentTime;
+    var c = sheetComments.filter(function (x) { return x.media_id === id && x.end_s > x.start_s && now >= x.start_s && now < x.end_s; })[0];
+    var host = avEl.parentNode, box = host && host.querySelector('.expert-note[data-media-id="' + id + '"]');
+    if (!c) { if (box) box.hidden = true; return; }
+    if (!box) {
+      box = document.createElement('div'); box.className = 'expert-note'; box.dataset.mediaId = id; box.setAttribute('aria-live', 'polite');
+      var bar = host.querySelector('.subtitle-bar[data-media-id="' + id + '"]');
+      (bar || avEl).insertAdjacentElement('afterend', box);
+    }
+    var txt = '💬 ' + t('noteLabel') + ': ' + c.body + (c.author_name ? ' ' + t('noteBy', { n: c.author_name }) : '');
+    if (box.textContent !== txt) box.textContent = txt;
+    box.hidden = false;
+  }
   function renderKnowledge(s) {
     var box = $('sheetKnow');
     box.innerHTML = '';
@@ -3872,8 +3915,10 @@
       var n = document.createElement('p'); n.className = 'field-error'; n.textContent = t('annLoadFail', { e: msg });
       box.appendChild(n);
     }
+    sheetComments = [];
     fetchKnowledge(s, false).then(async function (k) {
       if (currentSheetStory !== s) return;
+      sheetComments = k.comments || [];
       // Ονόματα όρων στη γλώσσα της διεπαφής (μέχρι ~3 δευτερόλεπτα· αλλιώς εμφανίζονται τα αποθηκευμένα)
       await Promise.race([loadTermLabels(k.annotations, LANG), new Promise(function (r) { setTimeout(r, 3500); })]);
       if (currentSheetStory !== s) return;
@@ -3909,12 +3954,30 @@
               b.onclick = function () { seekPlay(tr.media_id, g.start_s); };
               li.appendChild(b);
             } else { li.textContent = g.text; }
+            (k.comments || []).filter(function (c) { return c.media_id === tr.media_id && c.segment_idx === g.idx; }).forEach(function (c) { li.appendChild(noteEl(c)); });
             ul.appendChild(li);
           });
           d.appendChild(ul);
         } else { var pre = document.createElement('pre'); pre.textContent = tr.text; d.appendChild(pre); }
         box.appendChild(d);
       });
+      if ((k.comments || []).length) {
+        var nf = document.createElement('details'); nf.className = 'fold notes-fold'; nf.open = true;
+        var nsm = document.createElement('summary'); nsm.textContent = '💬 ' + t('notesTitle') + ' (' + k.comments.length + ')'; nf.appendChild(nsm);
+        var nul = document.createElement('ul'); nul.className = 'note-list';
+        k.comments.forEach(function (c) {
+          var li = document.createElement('li'), m = mediaById(s, c.media_id);
+          if (c.end_s > c.start_s && m && m.kind !== 'image') {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'note-when'; b.textContent = '▶ ' + mmss(c.start_s);
+            b.setAttribute('aria-label', t('trPlay', { t: mmss(c.start_s) }) + (m ? ' · ' + mediaName(s, m) : ''));
+            b.onclick = function () { seekPlay(c.media_id, c.start_s); };
+            li.appendChild(b);
+          }
+          li.appendChild(noteEl(c, true));
+          nul.appendChild(li);
+        });
+        nf.appendChild(nul); box.appendChild(nf);
+      }
       if (k.annotations.length) {
         var ul = document.createElement('ul'); ul.className = 'term-list';
         var byUri = {}, order = [];
