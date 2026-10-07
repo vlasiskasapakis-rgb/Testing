@@ -334,6 +334,15 @@
   .list-item .t { display: block; font-weight: 700; color: var(--petrol); font-style: italic; }
   .list-item .m { display: block; font-size: 13px; color: var(--muted); }
   .chip-draft { color: var(--amber-text); font-weight: 700; } .chip-pub { color: var(--petrol); font-weight: 700; }
+  .chip-sub { color: #1565C0; font-weight: 700; } .chip-ret { color: var(--danger); font-weight: 700; }
+  .review-box { margin: 6px 0 10px; }
+  .review-box .rev-returned { padding: 10px 14px; border-radius: 12px; background: #FDECEA; border-left: 5px solid var(--danger); }
+  .review-box .rev-returned b { display: block; color: var(--danger); }
+  .review-box .rev-returned p { margin: 4px 0 0; white-space: pre-wrap; }
+  .review-box details { margin-top: 6px; font-size: 14px; }
+  .review-box summary { cursor: pointer; color: var(--petrol); font-weight: 600; }
+  .review-box ol { margin: 6px 0 0; padding-left: 20px; }
+  .review-box li { margin: 3px 0; } .review-box li q { color: var(--muted); }
   .sync-stage { border: 3px solid var(--amber); border-radius: 16px; padding: 10px; background: #fff; }
   .sync-stage[hidden] { display: none; }
   .stage-view { height: 38vh; min-height: 200px; display: flex; gap: 8px; align-items: center; justify-content: center; background: var(--mist); border-radius: 12px; overflow: hidden; }
@@ -589,6 +598,7 @@
     <button type="button" id="viewMap" aria-pressed="false" data-i18n="viewMap"></button>
   </nav>
   <a id="linksPage" class="head-link" href="../connect/" hidden data-i18n="navLinks"></a>
+  <a id="validatePage" class="head-link" href="../validate/" hidden data-i18n="navValidate"></a>
   <div id="userBox" hidden><span id="userName"></span><button id="logoutBtn" type="button" data-i18n="logout"></button></div>
 </header>
 
@@ -649,6 +659,7 @@
           <span id="sheetStatus" class="story-status"></span>
           <span id="sheetConsent" class="story-status" hidden></span>
         </div>
+        <div id="reviewBox" class="review-box" hidden></div>
         <div id="sheetTools" hidden>
           <button id="publishBtn" class="btn-primary" hidden></button>
           <button id="exportBtn" class="btn-secondary" hidden data-i18n="annExport"></button>
@@ -980,6 +991,24 @@
       cmtDeleteQ: "Διαγραφή αυτού του σχολίου;",
       cmtNeedSql: "Τα σχόλια χρειάζονται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.",
       cmtHint: "Το βλέπουν όλοι στην εφαρμογή και στην ιστοσελίδα, τη στιγμή που ακούγεται αυτή η γραμμή.",
+      statusSubmitted: "Υποβλήθηκε για έλεγχο",
+      statusReturned: "Επιστράφηκε με σχόλια",
+      listSubF: "Σε έλεγχο",
+      listRetF: "Επιστράφηκαν",
+      submitBtn: "Υποβολή για έλεγχο",
+      resubmitBtn: "Νέα υποβολή για έλεγχο",
+      withdrawBtn: "Απόσυρση από τον έλεγχο",
+      submitMsgQ: "Υποβολή της «{t}» στους ελεγκτές για δημοσίευση. Προαιρετικό μήνυμα για αυτούς:",
+      withdrawQ: "Απόσυρση της «{t}» από τον έλεγχο; Θα γίνει ξανά πρόχειρη.",
+      valNeedSql: "Ο έλεγχος χρειάζεται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.",
+      revReturned: "Επιστράφηκε από {n} · {d}",
+      revHistory: "Ιστορικό ελέγχου ({n})",
+      rev_submitted: "Υποβολή",
+      rev_withdrawn: "Απόσυρση",
+      rev_returned: "Επιστροφή",
+      rev_approved: "Έγκριση και δημοσίευση",
+      rev_unpublished: "Απόσυρση δημοσίευσης",
+      navValidate: "Έλεγχος",
       mapLegendKey: "● αρχείο (🖼 φωτογραφία, 🎙 ήχος, 🎬 βίντεο) · ○ τόπος δημιουργίας ιστορίας",
       mapLinkUsers: "Σύνδεση ιστοριών κάθε χρήστη με τη σειρά",
       mapNoFileLoc: "Κανένα αρχείο δεν έχει δική του τοποθεσία (παλιότερες καταχωρίσεις ή δεν έχει τρέξει το roles.sql). Εμφανίζονται μόνο οι τοποθεσίες των ιστοριών.",
@@ -1411,6 +1440,24 @@
       cmtDeleteQ: "Delete this comment?",
       cmtNeedSql: "Comments need a database update: run supabase/roles.sql once.",
       cmtHint: "Everyone sees it in the app and on the website, at the moment this line is heard.",
+      statusSubmitted: "Submitted for validation",
+      statusReturned: "Returned with comments",
+      listSubF: "In validation",
+      listRetF: "Returned",
+      submitBtn: "Submit for validation",
+      resubmitBtn: "Submit again for validation",
+      withdrawBtn: "Withdraw from validation",
+      submitMsgQ: "Submit “{t}” to the validators for publishing. Optional message for them:",
+      withdrawQ: "Withdraw “{t}” from validation? It becomes a draft again.",
+      valNeedSql: "Validation needs a database update: run supabase/roles.sql once.",
+      revReturned: "Returned by {n} · {d}",
+      revHistory: "Validation history ({n})",
+      rev_submitted: "Submitted",
+      rev_withdrawn: "Withdrawn",
+      rev_returned: "Returned",
+      rev_approved: "Approved and published",
+      rev_unpublished: "Unpublished",
+      navValidate: "Validation",
       mapLegendKey: "● file (🖼 photo, 🎙 audio, 🎬 video) · ○ place where the story was created",
       mapLinkUsers: "Connect each user's stories in order",
       mapNoFileLoc: "None of the files has its own location (older uploads, or roles.sql has not been run). Only story locations are shown.",
@@ -1845,6 +1892,24 @@
       cmtDeleteQ: "Supprimer ce commentaire ?",
       cmtNeedSql: "Les commentaires nécessitent une mise à jour de la base : exécutez une fois supabase/roles.sql.",
       cmtHint: "Tout le monde le voit dans l’application et sur le site, au moment où cette ligne est entendue.",
+      statusSubmitted: "Soumise à validation",
+      statusReturned: "Renvoyée avec commentaires",
+      listSubF: "En validation",
+      listRetF: "Renvoyées",
+      submitBtn: "Soumettre à validation",
+      resubmitBtn: "Soumettre à nouveau",
+      withdrawBtn: "Retirer de la validation",
+      submitMsgQ: "Soumettre « {t} » aux validateurs pour publication. Message facultatif :",
+      withdrawQ: "Retirer « {t} » de la validation ? Elle redevient un brouillon.",
+      valNeedSql: "La validation nécessite une mise à jour de la base : exécutez une fois supabase/roles.sql.",
+      revReturned: "Renvoyée par {n} · {d}",
+      revHistory: "Historique de validation ({n})",
+      rev_submitted: "Soumission",
+      rev_withdrawn: "Retrait",
+      rev_returned: "Renvoi",
+      rev_approved: "Approuvée et publiée",
+      rev_unpublished: "Dépubliée",
+      navValidate: "Validation",
       mapLegendKey: "● fichier (🖼 photo, 🎙 audio, 🎬 vidéo) · ○ lieu de création de l'histoire",
       mapLinkUsers: "Relier les histoires de chaque utilisateur dans l'ordre",
       mapNoFileLoc: "Aucun fichier n'a son propre lieu (anciens envois, ou roles.sql n'a pas été exécuté). Seuls les lieux des histoires sont affichés.",
@@ -2273,6 +2338,24 @@
       cmtDeleteQ: "Eliminare questo commento?",
       cmtNeedSql: "I commenti richiedono un aggiornamento del database: esegui una volta supabase/roles.sql.",
       cmtHint: "Lo vedono tutti nell’app e sul sito, nel momento in cui si sente questa riga.",
+      statusSubmitted: "Inviata per la validazione",
+      statusReturned: "Restituita con commenti",
+      listSubF: "In validazione",
+      listRetF: "Restituite",
+      submitBtn: "Invia per la validazione",
+      resubmitBtn: "Invia di nuovo",
+      withdrawBtn: "Ritira dalla validazione",
+      submitMsgQ: "Inviare «{t}» ai validatori per la pubblicazione. Messaggio facoltativo:",
+      withdrawQ: "Ritirare «{t}» dalla validazione? Torna bozza.",
+      valNeedSql: "La validazione richiede un aggiornamento del database: esegui una volta supabase/roles.sql.",
+      revReturned: "Restituita da {n} · {d}",
+      revHistory: "Storico della validazione ({n})",
+      rev_submitted: "Invio",
+      rev_withdrawn: "Ritiro",
+      rev_returned: "Restituzione",
+      rev_approved: "Approvata e pubblicata",
+      rev_unpublished: "Ritirata dalla pubblicazione",
+      navValidate: "Validazione",
       mapLegendKey: "● file (🖼 foto, 🎙 audio, 🎬 video) · ○ luogo di creazione della storia",
       mapLinkUsers: "Collega le storie di ogni utente in ordine",
       mapNoFileLoc: "Nessun file ha un proprio luogo (caricamenti vecchi o roles.sql non eseguito). Sono mostrati solo i luoghi delle storie.",
@@ -2612,12 +2695,15 @@
 
   function isAnnotator() { return !!(currentUser && currentRole === 'annotator'); }
 
+  var currentValidator = false;
   async function loadRole() {
-    currentRole = 'facilitator';
+    currentRole = 'facilitator'; currentValidator = false;
     if (!sb || !currentUser) return;
     try {
-      var r = await sb.from('profiles').select('role').eq('user_id', currentUser.id).maybeSingle();
+      var r = await sb.from('profiles').select('role,is_validator').eq('user_id', currentUser.id).maybeSingle();
+      if (r.error) r = await sb.from('profiles').select('role').eq('user_id', currentUser.id).maybeSingle();   // βάση χωρίς ελεγκτές
       if (!r.error && r.data && r.data.role) currentRole = r.data.role;
+      currentValidator = !!(r.data && r.data.is_validator);
     } catch (e) { /* χωρίς πίνακα ρόλων: συμπεριφέρεται ως διευκολυντής */ }
   }
 
@@ -2741,20 +2827,52 @@
     el.appendChild(txt); el.appendChild(b);
   }
 
+  var STATUS_KEY = { draft: 'statusDraft', submitted: 'statusSubmitted', returned: 'statusReturned', published: 'statusPublished' };
+  var STATUS_CHIP = { draft: 'chip-draft', submitted: 'chip-sub', returned: 'chip-ret', published: 'chip-pub' };
+  function statusText(x) { return t(STATUS_KEY[x] || 'statusDraft'); }
   function renderPublishUI(s) {
     var visible = !!(s.dbId && (isOwner(s) || isAnnotator()));
-    $('sheetStatus').textContent = visible ? t(s.status === 'published' ? 'statusPublished' : 'statusDraft') : '';
+    $('sheetStatus').textContent = visible ? statusText(s.status) : '';
+    $('sheetStatus').className = 'story-status ' + (STATUS_CHIP[s.status] || 'chip-draft');
     var pb = $('publishBtn');
     pb.hidden = !(isAnnotator() && s.dbId);
-    pb.textContent = t(s.status === 'published' ? 'unpubStory' : 'pubStory');
+    pb.textContent = t({ draft: 'submitBtn', returned: 'resubmitBtn', submitted: 'withdrawBtn', published: 'unpubStory' }[s.status] || 'submitBtn');
+    pb.className = s.status === 'submitted' || s.status === 'published' ? 'btn-secondary' : 'btn-primary';
+    loadReviews(s);
+  }
+  // Ιστορικό ελέγχου: το τελευταίο σχόλιο επιστροφής του ελεγκτή φαίνεται καθαρά πάνω από την ιστορία
+  async function loadReviews(s) {
+    var box = $('reviewBox'); box.hidden = true; box.innerHTML = '';
+    if (!sb || !s.dbId || !isAnnotator()) return;
+    var r = await sb.from('reviews').select('action,message,user_name,created_at').eq('story_id', s.dbId).order('created_at', { ascending: false }).limit(20);
+    if (r.error || !r.data || !r.data.length || currentSheetStory !== s) return;
+    var last = r.data[0];
+    if (last.action === 'returned' && s.status === 'returned') {
+      var d = document.createElement('div'); d.className = 'rev-returned';
+      var b = document.createElement('b'); b.textContent = '↩ ' + t('revReturned', { n: last.user_name || '—', d: String(last.created_at).slice(0, 16).replace('T', ' ') }); d.appendChild(b);
+      if (last.message) { var p = document.createElement('p'); p.textContent = last.message; d.appendChild(p); }
+      box.appendChild(d);
+    }
+    var det = document.createElement('details'), sm = document.createElement('summary'); sm.textContent = t('revHistory', { n: r.data.length }); det.appendChild(sm);
+    var ol = document.createElement('ol');
+    r.data.forEach(function (x) {
+      var li = document.createElement('li'); li.textContent = String(x.created_at).slice(0, 16).replace('T', ' ') + ' · ' + t('rev_' + x.action) + ' · ' + (x.user_name || '—') + ' ';
+      if (x.message) { var q = document.createElement('q'); q.textContent = x.message; li.appendChild(q); }
+      ol.appendChild(li);
+    });
+    det.appendChild(ol); box.appendChild(det); box.hidden = false;
+  }
+  async function addReview(s, action, message) {
+    return sb.from('reviews').insert({ story_id: s.dbId, action: action, message: message || null, user_id: currentUser.id, user_name: userName(currentUser) });
   }
 
   $('publishBtn').onclick = async function () {
     var s = currentSheetStory;
     if (!sb || !s || !isAnnotator()) return;
-    var next = s.status === 'published' ? 'draft' : 'published', b = this;
-    var msg = t(next === 'published' ? 'pubConfirm' : 'unpubConfirm', { t: st(s).title });
-    if (next === 'published') {           // προειδοποίηση για προτάσεις που δεν έχουν ελεγχθεί
+    var next = s.status === 'published' || s.status === 'submitted' ? 'draft' : 'submitted', b = this;
+    var action = next === 'submitted' ? 'submitted' : s.status === 'submitted' ? 'withdrawn' : 'unpublished';
+    var msg = next === 'submitted' ? t('submitMsgQ', { t: st(s).title }) : t(action === 'withdrawn' ? 'withdrawQ' : 'unpubConfirm', { t: st(s).title });
+    if (next === 'submitted') {           // προειδοποίηση για προτάσεις που δεν έχουν ελεγχθεί
       try {
         var ids = s.media.map(function (m) { return m.id; }).filter(Boolean);
         var q = ids.length ? await sb.from('annotations').select('id').in('media_id', ids).eq('status', 'suggested') : null;
@@ -2762,15 +2880,18 @@
         if (nOpen) msg += t('pubConfirmOpen', { n: nOpen });
       } catch (e) {}
     }
-    if (!window.confirm(msg)) return;
+    var note = null;
+    if (next === 'submitted') { note = window.prompt(msg, ''); if (note === null) return; note = note.trim().slice(0, 4000); }
+    else if (!window.confirm(msg)) return;
     b.disabled = true;
     try {
       var r = await sb.from('stories').update({ status: next }).eq('id', s.dbId).select('id');
       if (r.error) throw r.error;
       if (!r.data || !r.data.length) throw new Error('not allowed');
       s.status = next;
+      await addReview(s, action, note);
       renderPublishUI(s); renderList();
-    } catch (e) { alert(t('pubError', { e: errText(e) })); }
+    } catch (e) { alert(/status_check|reviews|schema cache/i.test((e && e.message) || '') ? t('valNeedSql') : t('pubError', { e: errText(e) })); }
     finally { b.disabled = false; }
   };
 
@@ -5017,19 +5138,20 @@
   function renderList() {
     var f = $('listFilter'), cur = f.value || 'all';
     f.innerHTML = '';
-    [['all', 'listAllF'], ['draft', 'listDraftF'], ['published', 'listPubF']].forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = t(o[1]); f.appendChild(op); });
+    [['all', 'listAllF'], ['returned', 'listRetF'], ['draft', 'listDraftF'], ['submitted', 'listSubF'], ['published', 'listPubF']].forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = t(o[1]); f.appendChild(op); });
     f.value = cur;
     var body = $('listBody'); body.innerHTML = '';
     var q = ($('listSearch').value || '').trim().toLowerCase();
     var items = STORIES.filter(function (x) { return f.value === 'all' || x.status === f.value; })
       .filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.consentCode || '')).toLowerCase().indexOf(q) >= 0; }).reverse();
-    items.sort(function (a, b) { return (a.status === 'published') - (b.status === 'published'); });   // πρώτα τα πρόχειρα (αυτά θέλουν δουλειά)
+    var RANK = { returned: 0, draft: 1, submitted: 2, published: 3 };
+    items.sort(function (a, b) { return (RANK[a.status] || 0) - (RANK[b.status] || 0); });   // πρώτα όσα θέλουν δουλειά (επιστραμμένα, πρόχειρα)
     if (!items.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('listEmpty'); body.appendChild(p); return; }
     items.forEach(function (x) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item' + (currentSheetStory === x ? ' current' : '');
       var ti = document.createElement('span'); ti.className = 't'; ti.textContent = st(x).title;
       var me_ = document.createElement('span'); me_.className = 'm';
-      var chip = document.createElement('span'); chip.className = x.status === 'published' ? 'chip-pub' : 'chip-draft'; chip.textContent = t(x.status === 'published' ? 'statusPublished' : 'statusDraft');
+      var chip = document.createElement('span'); chip.className = STATUS_CHIP[x.status] || 'chip-draft'; chip.textContent = statusText(x.status);
       me_.appendChild(chip);
       me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length + (x.consentCode ? ' · ' + x.consentCode : '')));
       b.appendChild(ti); b.appendChild(me_);
@@ -5098,7 +5220,7 @@
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(bigMap);
       mapLayer = L.layerGroup().addTo(bigMap);
     }
-    var list = STORIES.filter(function (x) { return $('mapStatusSel').value === 'all' || x.status === $('mapStatusSel').value; });
+    var list = STORIES.filter(function (x) { var v = $('mapStatusSel').value; return v === 'all' || (v === 'draft' ? x.status !== 'published' : x.status === v); });
     var one = fillMapStory(list);
     document.querySelectorAll('#mapView .map-all-only').forEach(function (el) { el.hidden = !!one; });
     mapTok++;
@@ -5366,7 +5488,7 @@
     $('noAccess').hidden = !(currentUser && !annot);
     $('appView').hidden = !annot || currentView !== 'stories';
     $('mapView').hidden = !annot || currentView !== 'map';
-    $('viewSwitch').hidden = !annot; $('linksPage').hidden = !annot;
+    $('viewSwitch').hidden = !annot; $('linksPage').hidden = !annot; $('validatePage').hidden = !(annot && currentValidator);
     $('helpBtn').hidden = !annot;
     $('userBox').hidden = !currentUser;
     $('userName').textContent = currentUser ? userName(currentUser) : '';

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Walking Memory · Validation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,700&display=swap" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+  :root {
+    --petrol: #186078; --petrol-deep: #0E3F50; --sky: #249CCC; --sky-soft: #E7F4FA; --amber: #E0904F; --amber-text: #9A5413;
+    --ink: #12303B; --muted: #4B6470; --line: #D3E3EA; --line-strong: #6F8D99; --mist: #F2F7F9; --danger: #B3261E; --ok: #2E7D32;
+    --font: "Exo 2", "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--mist); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.45; }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; }
+  button { cursor: pointer; border: 0; border-radius: 999px; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+  header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 24px; background: var(--petrol); color: #fff; }
+  header h1 { margin: 0; font-size: 22px; font-style: italic; flex: 1 1 auto; }
+  header select, header button, header a.hbtn { min-height: 38px; padding: 6px 14px; border-radius: 999px; border: 0; font-weight: 700; color: var(--petrol); background: #fff; text-decoration: none; display: inline-flex; align-items: center; }
+  header a.hbtn { background: rgba(255,255,255,.15); color: #fff; }
+  #userName { font-weight: 600; }
+  main { max-width: 1060px; margin: 0 auto; padding: 20px 24px 60px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; }
+  .login { max-width: 460px; margin: 40px auto; }
+  .login label { display: block; font-weight: 600; color: var(--petrol); margin: 10px 0 4px; }
+  .login input { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 10px; }
+  h2 { margin: 0 0 6px; color: var(--petrol); font-size: 22px; font-style: italic; }
+  h3 { margin: 0 0 4px; font-size: 19px; color: var(--petrol); font-style: italic; }
+  .lead, .note { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  .err { color: var(--danger); font-weight: 600; }
+  code { background: var(--mist); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .btn { background: var(--petrol); color: #fff; font-weight: 700; padding: 10px 20px; min-height: 44px; }
+  .btn-ok { background: var(--ok); color: #fff; font-weight: 700; padding: 10px 20px; min-height: 44px; }
+  .btn-ret { background: #fff; color: var(--danger); border: 2px solid var(--danger); font-weight: 700; padding: 8px 18px; min-height: 44px; }
+  .btn-sec { background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); font-weight: 700; padding: 8px 18px; min-height: 44px; text-decoration: none; display: inline-flex; align-items: center; }
+  .item { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-top: 12px; background: #fff; }
+  .item .meta { color: var(--muted); font-size: 14px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0; font-size: 14px; }
+  .facts span { background: var(--mist); border-radius: 999px; padding: 3px 10px; }
+  .facts .warn { background: #FFF4E5; color: var(--amber-text); font-weight: 600; }
+  .msg { margin: 8px 0; padding: 8px 12px; border-left: 4px solid var(--sky); background: var(--sky-soft); border-radius: 8px; white-space: pre-wrap; font-size: 15px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: center; }
+  .ret-form { margin-top: 10px; }
+  .ret-form textarea { width: 100%; padding: 10px 12px; border: 2px solid var(--danger); border-radius: 10px; resize: vertical; }
+  details.preview { margin-top: 8px; }
+  details.preview > summary { cursor: pointer; font-weight: 700; color: var(--petrol); }
+  .media { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 10px; }
+  .media figure { margin: 0; background: var(--mist); border-radius: 10px; padding: 8px; }
+  .media img, .media video { width: 100%; max-height: 180px; object-fit: contain; border-radius: 8px; background: #000; }
+  .media audio { width: 100%; }
+  .media figcaption { font-size: 13px; margin-top: 4px; }
+  .stops { margin: 8px 0; padding-left: 22px; }
+  .stops li { margin: 3px 0; }
+  .chip { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
+  .chip.published { background: #E8F5E9; color: var(--ok); } .chip.other { background: #FFF4E5; color: var(--amber-text); }
+  .empty { color: var(--muted); font-size: 15px; padding: 6px 0; }
+  .hist { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  .hist li { padding: 6px 0; border-top: 1px solid var(--line); }
+  .hist .a-approved { color: var(--ok); font-weight: 700; } .hist .a-returned { color: var(--danger); font-weight: 700; }
+  #status { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--petrol-deep); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+  #status.bad { background: var(--danger); }
+</style>
+</head>
+<body>
+<header>
+  <h1 data-i="title"></h1>
+  <a class="hbtn" href="../annotate/" data-i="toAnnotate"></a>
+  <a class="hbtn" href="../connect/" data-i="toConnect"></a>
+  <select id="lang" aria-label="Language"><option value="el">EL</option><option value="en">EN</option><option value="fr">FR</option><option value="it">IT</option></select>
+  <span id="userName"></span>
+  <button id="logout" type="button" hidden data-i="logout"></button>
+</header>
+<main>
+  <section id="loginView" class="card login" hidden>
+    <h2 data-i="login"></h2>
+    <p class="note" data-i="loginHint"></p>
+    <form id="loginForm" novalidate>
+      <label for="email" data-i="email"></label><input id="email" type="email" autocomplete="email" required>
+      <label for="pass" data-i="password"></label><input id="pass" type="password" autocomplete="current-password" required>
+      <p id="loginErr" class="err" role="alert"></p>
+      <button class="btn" type="submit" data-i="login" style="margin-top:12px"></button>
+    </form>
+  </section>
+  <section id="noAccess" class="card login" hidden>
+    <p class="err" data-i="noAccess"></p>
+    <p class="note"><span data-i="noAccessHow"></span><br><code>update public.profiles set role = 'annotator', is_validator = true where user_id = (select id from auth.users where email = '…');</code></p>
+  </section>
+  <div id="app" hidden>
+    <p id="loadInfo" class="note" role="status"></p>
+    <section class="card" aria-labelledby="hStories">
+      <h2 id="hStories"></h2>
+      <p class="lead" data-i="storiesLead"></p>
+      <div id="storyQueue"></div>
+    </section>
+    <section class="card" aria-labelledby="hWalks">
+      <h2 id="hWalks"></h2>
+      <p class="lead" data-i="walksLead"></p>
+      <div id="walkQueue"></div>
+    </section>
+    <section class="card" aria-labelledby="hHist">
+      <h2 id="hHist" data-i="histTitle"></h2>
+      <ul id="history" class="hist"></ul>
+    </section>
+  </div>
+</main>
+<div id="status" role="status" hidden></div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var I18N = {
+    el: {
+      title: 'Walking Memory · Έλεγχος', toAnnotate: 'Σχολιασμός', toConnect: 'Συνδέσεις ιστοριών', logout: 'Αποσύνδεση', login: 'Σύνδεση', email: 'E-mail', password: 'Κωδικός',
+      loginHint: 'Για ελεγκτές του Walking Memory.', loginFail: 'Η σύνδεση απέτυχε: {e}', noAccess: 'Αυτός ο λογαριασμός δεν είναι ελεγκτής.',
+      noAccessHow: 'Ο υπεύθυνος του έργου μπορεί να το επιτρέψει στο Supabase (SQL editor, Run as: postgres):',
+      storiesTitle: 'Ιστορίες για έλεγχο ({n})', storiesLead: 'Οι σχολιαστές τις υπέβαλαν για δημοσίευση. Έλεγξε περιεχόμενο, απομαγνητοφώνηση, όρους και σχόλια· μετά ενέκρινε ή επίστρεψε με σχόλια.',
+      walksTitle: 'Διαδρομές για έλεγχο ({n})', walksLead: 'Μετά την έγκριση η διαδρομή εμφανίζεται στην εφαρμογή AR και στην ιστοσελίδα. Μόνο οι δημοσιευμένες ιστορίες της φαίνονται στους επισκέπτες.',
+      none: 'Τίποτα σε αναμονή.', histTitle: 'Πρόσφατες αποφάσεις', histNone: 'Καμία απόφαση ακόμη.',
+      by: 'από {n}', submittedBy: 'Υποβλήθηκε από {n} · {d}', files: '{n} αρχεία', lines: '{n} γραμμές απομαγνητοφώνησης', noTranscript: 'χωρίς απομαγνητοφώνηση',
+      terms: '{n} εγκεκριμένοι όροι', openTerms: '{n} προτάσεις όρων δεν έχουν ελεγχθεί', comments: '{n} σχόλια ειδικών', consent: 'Συναίνεση {c}', location: 'Τοποθεσία',
+      preview: 'Προεπισκόπηση αρχείων', openFull: 'Άνοιγμα ολόκληρης της ιστορίας ↗', openBoard: 'Άνοιγμα του πίνακα ↗',
+      approve: 'Έγκριση και δημοσίευση', returnBtn: 'Επιστροφή με σχόλια', sendReturn: 'Αποστολή στον σχολιαστή', cancel: 'Ακύρωση',
+      retPh: 'Τι πρέπει να διορθωθεί; (το βλέπει ο σχολιαστής)', retNeed: 'Γράψε τι πρέπει να διορθωθεί.',
+      approveQ: 'Έγκριση και δημοσίευση της «{t}»; Θα τη βλέπουν όλοι οι επισκέπτες.', approveWalkQ: 'Έγκριση της διαδρομής «{t}»; Θα εμφανίζεται στην εφαρμογή και στην ιστοσελίδα.',
+      approved: 'Εγκρίθηκε: {t}', returned: 'Επιστράφηκε: {t}', gone: 'Δεν περιμένει πια έλεγχο (αποσύρθηκε ή αποφασίστηκε ήδη).',
+      stops: 'Στάσεις με τη σειρά', stopsShown: '{a} από {n} στάσεις θα φαίνονται (οι υπόλοιπες δεν είναι δημοσιευμένες)', noStops: 'Η διαδρομή δεν έχει ιστορίες.',
+      st_published: 'δημοσιευμένη', st_other: 'μη δημοσιευμένη', a_approved: 'Εγκρίθηκε', a_returned: 'Επιστράφηκε', storyW: 'Ιστορία', walkW: 'Διαδρομή',
+      loading: 'Φόρτωση…', loadErr: 'Δεν φορτώθηκαν τα δεδομένα: {e}', needSql: 'Ο έλεγχος χρειάζεται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.', untitled: 'Χωρίς τίτλο'
+    },
+    en: {
+      title: 'Walking Memory · Validation', toAnnotate: 'Annotation', toConnect: 'Story links', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password',
+      loginHint: 'For Walking Memory validators.', loginFail: 'Login failed: {e}', noAccess: 'This account is not a validator.',
+      noAccessHow: 'The project owner can allow it in Supabase (SQL editor, Run as: postgres):',
+      storiesTitle: 'Stories to validate ({n})', storiesLead: 'Annotators submitted these for publishing. Check the content, transcript, terms and comments, then approve or return them with comments.',
+      walksTitle: 'Walks to validate ({n})', walksLead: 'Once approved, the walk appears in the AR app and on the website. Only its published stories are shown to visitors.',
+      none: 'Nothing waiting.', histTitle: 'Recent decisions', histNone: 'No decisions yet.',
+      by: 'by {n}', submittedBy: 'Submitted by {n} · {d}', files: '{n} files', lines: '{n} transcript lines', noTranscript: 'no transcript',
+      terms: '{n} approved terms', openTerms: '{n} term suggestions not reviewed', comments: '{n} expert comments', consent: 'Consent {c}', location: 'Location',
+      preview: 'Preview the files', openFull: 'Open the full story ↗', openBoard: 'Open the board ↗',
+      approve: 'Approve and publish', returnBtn: 'Return with comments', sendReturn: 'Send to the annotator', cancel: 'Cancel',
+      retPh: 'What needs to be fixed? (the annotator sees this)', retNeed: 'Write what needs to be fixed.',
+      approveQ: 'Approve and publish “{t}”? All visitors will see it.', approveWalkQ: 'Approve the walk “{t}”? It will appear in the app and on the website.',
+      approved: 'Approved: {t}', returned: 'Returned: {t}', gone: 'It is no longer waiting (withdrawn or already decided).',
+      stops: 'Stops in order', stopsShown: '{a} of {n} stops will be shown (the others are not published)', noStops: 'The walk has no stories.',
+      st_published: 'published', st_other: 'not published', a_approved: 'Approved', a_returned: 'Returned', storyW: 'Story', walkW: 'Walk',
+      loading: 'Loading…', loadErr: 'Could not load the data: {e}', needSql: 'Validation needs a database update: run supabase/roles.sql once.', untitled: 'Untitled'
+    },
+    fr: {
+      title: 'Walking Memory · Validation', toAnnotate: 'Annotation', toConnect: 'Liens entre histoires', logout: 'Déconnexion', login: 'Connexion', email: 'E-mail', password: 'Mot de passe',
+      loginHint: 'Pour les validateurs de Walking Memory.', loginFail: 'Échec de connexion : {e}', noAccess: 'Ce compte n’est pas validateur.',
+      noAccessHow: 'Le responsable du projet peut l’autoriser dans Supabase (SQL editor, Run as: postgres) :',
+      storiesTitle: 'Histoires à valider ({n})', storiesLead: 'Les annotateurs les ont soumises pour publication. Vérifiez le contenu, la transcription, les termes et les commentaires, puis approuvez ou renvoyez avec des commentaires.',
+      walksTitle: 'Parcours à valider ({n})', walksLead: 'Une fois approuvé, le parcours apparaît dans l’application AR et sur le site. Seules ses histoires publiées sont montrées.',
+      none: 'Rien en attente.', histTitle: 'Décisions récentes', histNone: 'Aucune décision.',
+      by: 'par {n}', submittedBy: 'Soumise par {n} · {d}', files: '{n} fichiers', lines: '{n} lignes de transcription', noTranscript: 'pas de transcription',
+      terms: '{n} termes approuvés', openTerms: '{n} suggestions de termes non vérifiées', comments: '{n} commentaires d’experts', consent: 'Consentement {c}', location: 'Lieu',
+      preview: 'Aperçu des fichiers', openFull: 'Ouvrir l’histoire complète ↗', openBoard: 'Ouvrir le tableau ↗',
+      approve: 'Approuver et publier', returnBtn: 'Renvoyer avec commentaires', sendReturn: 'Envoyer à l’annotateur', cancel: 'Annuler',
+      retPh: 'Que faut-il corriger ? (l’annotateur le verra)', retNeed: 'Écrivez ce qu’il faut corriger.',
+      approveQ: 'Approuver et publier « {t} » ? Tous les visiteurs la verront.', approveWalkQ: 'Approuver le parcours « {t} » ? Il apparaîtra dans l’application et sur le site.',
+      approved: 'Approuvée : {t}', returned: 'Renvoyée : {t}', gone: 'Ce n’est plus en attente (retiré ou déjà décidé).',
+      stops: 'Étapes dans l’ordre', stopsShown: '{a} étapes sur {n} seront montrées (les autres ne sont pas publiées)', noStops: 'Le parcours n’a pas d’histoires.',
+      st_published: 'publiée', st_other: 'non publiée', a_approved: 'Approuvée', a_returned: 'Renvoyée', storyW: 'Histoire', walkW: 'Parcours',
+      loading: 'Chargement…', loadErr: 'Impossible de charger les données : {e}', needSql: 'La validation nécessite une mise à jour de la base : exécutez une fois supabase/roles.sql.', untitled: 'Sans titre'
+    },
+    it: {
+      title: 'Walking Memory · Validazione', toAnnotate: 'Annotazione', toConnect: 'Collegamenti tra storie', logout: 'Esci', login: 'Accedi', email: 'E-mail', password: 'Password',
+      loginHint: 'Per i validatori di Walking Memory.', loginFail: 'Accesso non riuscito: {e}', noAccess: 'Questo account non è un validatore.',
+      noAccessHow: 'Il responsabile del progetto può abilitarlo in Supabase (SQL editor, Run as: postgres):',
+      storiesTitle: 'Storie da validare ({n})', storiesLead: 'Gli annotatori le hanno inviate per la pubblicazione. Controlla contenuto, trascrizione, termini e commenti, poi approva o restituisci con commenti.',
+      walksTitle: 'Percorsi da validare ({n})', walksLead: 'Una volta approvato, il percorso appare nell’app AR e sul sito. Ai visitatori si vedono solo le sue storie pubblicate.',
+      none: 'Niente in attesa.', histTitle: 'Decisioni recenti', histNone: 'Nessuna decisione.',
+      by: 'di {n}', submittedBy: 'Inviata da {n} · {d}', files: '{n} file', lines: '{n} righe di trascrizione', noTranscript: 'nessuna trascrizione',
+      terms: '{n} termini approvati', openTerms: '{n} suggerimenti di termini non controllati', comments: '{n} commenti degli esperti', consent: 'Consenso {c}', location: 'Luogo',
+      preview: 'Anteprima dei file', openFull: 'Apri la storia completa ↗', openBoard: 'Apri la lavagna ↗',
+      approve: 'Approva e pubblica', returnBtn: 'Restituisci con commenti', sendReturn: 'Invia all’annotatore', cancel: 'Annulla',
+      retPh: 'Cosa va corretto? (lo vede l’annotatore)', retNeed: 'Scrivi cosa va corretto.',
+      approveQ: 'Approvare e pubblicare «{t}»? Tutti i visitatori la vedranno.', approveWalkQ: 'Approvare il percorso «{t}»? Apparirà nell’app e sul sito.',
+      approved: 'Approvata: {t}', returned: 'Restituita: {t}', gone: 'Non è più in attesa (ritirata o già decisa).',
+      stops: 'Tappe in ordine', stopsShown: '{a} tappe su {n} saranno mostrate (le altre non sono pubblicate)', noStops: 'Il percorso non ha storie.',
+      st_published: 'pubblicata', st_other: 'non pubblicata', a_approved: 'Approvata', a_returned: 'Restituita', storyW: 'Storia', walkW: 'Percorso',
+      loading: 'Caricamento…', loadErr: 'Impossibile caricare i dati: {e}', needSql: 'La validazione richiede un aggiornamento del database: esegui una volta supabase/roles.sql.', untitled: 'Senza titolo'
+    }
+  };
+  var LANG = 'el';
+  try { var sv = localStorage.getItem('dm_lang'); if (I18N[sv]) LANG = sv; else if (/^en/i.test(navigator.language || '')) LANG = 'en'; } catch (e) {}
+  function t(k, v) { var s = (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k; if (v) Object.keys(v).forEach(function (x) { s = s.split('{' + x + '}').join(v[x]); }); return s; }
+  function applyLang() {
+    document.documentElement.lang = LANG; $('lang').value = LANG; document.title = t('title');
+    document.querySelectorAll('[data-i]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i')); });
+  }
+  $('lang').onchange = function () { LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang(); render(); };
+
+  var CFG = window.WM_CONFIG || {}, sb = null;
+  try { if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { sb = null; }
+  function errText(e) { return (e && (e.message || e.details)) || String(e); }
+  function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
+  function when(d) { return String(d || '').slice(0, 16).replace('T', ' '); }
+  var statusTimer = null;
+  function say(msg, bad) { var s = $('status'); s.textContent = msg; s.className = bad ? 'bad' : ''; s.hidden = false; clearTimeout(statusTimer); statusTimer = setTimeout(function () { s.hidden = true; }, 4000); }
+
+  // ---- login ----
+  var user = null, loadedFor = null;
+  function show(v) { $('loginView').hidden = v !== 'login'; $('noAccess').hidden = v !== 'noaccess'; $('app').hidden = v !== 'app'; $('logout').hidden = !user; }
+  function myName() { return user ? ((user.user_metadata && user.user_metadata.display_name) || (user.email || '').split('@')[0]) : ''; }
+  $('loginForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault(); $('loginErr').textContent = '';
+    var r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pass').value });
+    if (r.error) $('loginErr').textContent = t('loginFail', { e: errText(r.error) });
+  });
+  $('logout').onclick = function () { if (sb) sb.auth.signOut(); };
+  async function onSession(session) {
+    if (session && loadedFor === session.user.id) { user = session.user; return; }
+    user = session ? session.user : null; loadedFor = null;
+    $('userName').textContent = user ? myName() : '';
+    if (!user) { show('login'); return; }
+    var r = await sb.from('profiles').select('role,is_validator').eq('user_id', user.id).maybeSingle();
+    if (r.error) { show('noaccess'); say(t('needSql'), true); return; }
+    if (!r.data || r.data.role !== 'annotator' || !r.data.is_validator) { show('noaccess'); return; }
+    loadedFor = user.id; show('app'); load();
+  }
+
+  // ---- data ----
+  var D = { stories: [], walks: [], history: [], titles: {}, counts: {}, subs: {} };
+  function publicUrl(path) { return sb.storage.from('story-media').getPublicUrl(path).data.publicUrl; }
+  function walkOrder(items, links) {             // όπως στην εφαρμογή: ακολουθώντας τις γραμμές
+    var pos = {}; items.forEach(function (i) { pos[i.story_id] = i; });
+    links = links.filter(function (l) { return pos[l.from_story] && pos[l.to_story]; });
+    if (!links.length) return items.slice().sort(function (a, b) { return a.x - b.x || a.y - b.y; }).map(function (i) { return i.story_id; });
+    var inc = {}, out = {}, seen = {}, order = [];
+    links.forEach(function (l) { inc[l.to_story] = 1; (out[l.from_story] = out[l.from_story] || []).push(l.to_story); });
+    function byPos(a, b) { return pos[a].y - pos[b].y || pos[a].x - pos[b].x; }
+    function visit(id) { if (seen[id]) return; seen[id] = 1; order.push(id); (out[id] || []).slice().sort(function (a, b) { return pos[a].x - pos[b].x || byPos(a, b); }).forEach(visit); }
+    Object.keys(out).filter(function (id) { return !inc[id]; }).sort(byPos).forEach(visit);
+    links.forEach(function (l) { visit(l.from_story); });
+    return order;
+  }
+  async function load() {
+    $('loadInfo').textContent = t('loading');
+    try {
+      var cols = 'id,title,author_name,lat,lon,status,created_at,story_media(id,kind,path,position,title,about,period,recorded_at),consents(code)';
+      var r = await Promise.all([
+        sb.from('stories').select(cols).eq('status', 'submitted').order('created_at'),
+        sb.from('stories').select('id,title,status'),
+        sb.from('story_boards').select('id,title,description,walk_status,is_walk,updated_at').eq('walk_status', 'submitted').order('updated_at'),
+        sb.from('story_boards').select('id,title'),
+        sb.from('reviews').select('action,message,user_name,created_at,story_id,board_id').in('action', ['approved', 'returned']).order('created_at', { ascending: false }).limit(25)
+      ]);
+      var e = r.find(function (x) { return x.error; });
+      if (e) throw e.error;
+      D.stories = r[0].data; D.walks = r[2].data; D.history = r[4].data;
+      D.titles = {}; D.storyStatus = {};
+      r[1].data.forEach(function (x) { D.titles[x.id] = x.title; D.storyStatus[x.id] = x.status; });
+      r[3].data.forEach(function (x) { D.titles[x.id] = x.title; });
+      // Στοιχεία ελέγχου για κάθε ιστορία: όροι, απομαγνητοφώνηση, σχόλια, μήνυμα υποβολής
+      var mids = []; D.stories.forEach(function (s) { (s.story_media || []).forEach(function (m) { mids.push(m.id); }); });
+      var sids = D.stories.map(function (s) { return s.id; }), wids = D.walks.map(function (w) { return w.id; });
+      var q = await Promise.all([
+        mids.length ? sb.from('annotations').select('media_id,status').in('media_id', mids) : { data: [] },
+        mids.length ? sb.from('media_transcripts').select('media_id,transcript_segments(idx)').in('media_id', mids) : { data: [] },
+        mids.length ? sb.from('transcript_comments').select('media_id').in('media_id', mids) : { data: [] },
+        sids.length ? sb.from('reviews').select('story_id,message,user_name,created_at').in('story_id', sids).eq('action', 'submitted').order('created_at', { ascending: false }) : { data: [] },
+        wids.length ? sb.from('reviews').select('board_id,message,user_name,created_at').in('board_id', wids).eq('action', 'submitted').order('created_at', { ascending: false }) : { data: [] },
+        wids.length ? sb.from('story_board_items').select('board_id,story_id,x,y').in('board_id', wids) : { data: [] },
+        wids.length ? sb.from('story_board_links').select('board_id,from_story,to_story').in('board_id', wids) : { data: [] }
+      ]);
+      var mediaStory = {}; D.stories.forEach(function (s) { (s.story_media || []).forEach(function (m) { mediaStory[m.id] = s.id; }); });
+      D.counts = {}; sids.forEach(function (id) { D.counts[id] = { approved: 0, open: 0, lines: 0, comments: 0 }; });
+      (q[0].data || []).forEach(function (a) { var c = D.counts[mediaStory[a.media_id]]; if (!c) return; if (a.status === 'approved') c.approved++; else if (a.status === 'suggested') c.open++; });
+      (q[1].data || []).forEach(function (tr) { var c = D.counts[mediaStory[tr.media_id]]; if (c) c.lines += (tr.transcript_segments || []).length; });
+      (q[2].data || []).forEach(function (x) { var c = D.counts[mediaStory[x.media_id]]; if (c) c.comments++; });
+      D.subs = {};
+      (q[3].data || []).forEach(function (x) { if (!D.subs[x.story_id]) D.subs[x.story_id] = x; });
+      (q[4].data || []).forEach(function (x) { if (!D.subs[x.board_id]) D.subs[x.board_id] = x; });
+      D.walks.forEach(function (w) {
+        w.order = walkOrder((q[5].data || []).filter(function (i) { return i.board_id === w.id; }), (q[6].data || []).filter(function (l) { return l.board_id === w.id; }));
+      });
+      $('loadInfo').textContent = '';
+    } catch (e) {
+      $('loadInfo').textContent = /walk_status|reviews|is_validator|schema cache|does not exist/i.test(errText(e)) ? t('needSql') : t('loadErr', { e: errText(e) });
+      D.stories = []; D.walks = []; D.history = [];
+    }
+    render();
+  }
+
+  // ---- decisions ----
+  function returnForm(parent, onSend) {
+    var f = el('div', 'ret-form'), ta = el('textarea'); ta.rows = 4; ta.maxLength = 4000; ta.placeholder = t('retPh'); ta.setAttribute('aria-label', t('retPh'));
+    var row = el('div', 'actions'), send = el('button', 'btn-ret', t('sendReturn')), cc = el('button', 'btn-sec', t('cancel'));
+    send.type = cc.type = 'button';
+    send.onclick = function () { var v = ta.value.trim(); if (!v) { say(t('retNeed'), true); ta.focus(); return; } send.disabled = true; onSend(v).finally(function () { send.disabled = false; }); };
+    cc.onclick = function () { f.remove(); };
+    row.appendChild(send); row.appendChild(cc); f.appendChild(ta); f.appendChild(row); parent.appendChild(f); ta.focus();
+  }
+  async function decideStory(s, approve, message) {
+    var r = await sb.from('stories').update({ status: approve ? 'published' : 'returned' }).eq('id', s.id).eq('status', 'submitted').select('id');
+    if (r.error) { say(/status_check|schema cache/i.test(r.error.message || '') ? t('needSql') : errText(r.error), true); return; }
+    if (!r.data || !r.data.length) { say(t('gone'), true); await load(); return; }
+    await sb.from('reviews').insert({ story_id: s.id, action: approve ? 'approved' : 'returned', message: message || null, user_id: user.id, user_name: myName() });
+    say(t(approve ? 'approved' : 'returned', { t: s.title }));
+    await load();
+  }
+  async function decideWalk(w, approve, message) {
+    var patch = approve ? { walk_status: 'approved', is_walk: true } : { walk_status: 'returned', is_walk: false };
+    patch.updated_at = new Date().toISOString();
+    var r = await sb.from('story_boards').update(patch).eq('id', w.id).eq('walk_status', 'submitted').select('id');
+    if (r.error) { say(errText(r.error), true); return; }
+    if (!r.data || !r.data.length) { say(t('gone'), true); await load(); return; }
+    await sb.from('reviews').insert({ board_id: w.id, action: approve ? 'approved' : 'returned', message: message || null, user_id: user.id, user_name: myName() });
+    say(t(approve ? 'approved' : 'returned', { t: w.title }));
+    await load();
+  }
+
+  // ---- render ----
+  function submitted(box, x) {
+    var sub = D.subs[x.id]; if (!sub) return;
+    box.appendChild(el('div', 'meta', t('submittedBy', { n: sub.user_name || '—', d: when(sub.created_at) })));
+    if (sub.message) box.appendChild(el('div', 'msg', sub.message));
+  }
+  function render() {
+    // ιστορίες
+    $('hStories').textContent = t('storiesTitle', { n: D.stories.length });
+    var q = $('storyQueue'); q.innerHTML = '';
+    if (!D.stories.length) q.appendChild(el('p', 'empty', t('none')));
+    D.stories.forEach(function (s) {
+      var it = el('article', 'item'); it.setAttribute('aria-label', s.title);
+      it.appendChild(el('h3', null, s.title || t('untitled')));
+      if (s.author_name) it.appendChild(el('div', 'meta', t('by', { n: s.author_name })));
+      submitted(it, s);
+      var media = (s.story_media || []).slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0); });
+      var c = D.counts[s.id] || {}, facts = el('div', 'facts');
+      var kinds = {}; media.forEach(function (m) { kinds[m.kind] = (kinds[m.kind] || 0) + 1; });
+      facts.appendChild(el('span', null, t('files', { n: media.length }) + ' (' + ['audio', 'video', 'image'].filter(function (k) { return kinds[k]; }).map(function (k) { return { audio: '🎙', video: '🎬', image: '🖼' }[k] + kinds[k]; }).join(' ') + ')'));
+      facts.appendChild(el('span', c.lines ? null : 'warn', c.lines ? t('lines', { n: c.lines }) : t('noTranscript')));
+      facts.appendChild(el('span', null, t('terms', { n: c.approved || 0 })));
+      if (c.open) facts.appendChild(el('span', 'warn', t('openTerms', { n: c.open })));
+      if (c.comments) facts.appendChild(el('span', null, t('comments', { n: c.comments })));
+      if (s.consents && s.consents.code) facts.appendChild(el('span', null, t('consent', { c: s.consents.code })));
+      if (s.lat != null) { var a = el('a', null, '📍 ' + t('location')); a.href = 'https://www.openstreetmap.org/?mlat=' + s.lat + '&mlon=' + s.lon + '#map=17/' + s.lat + '/' + s.lon; a.target = '_blank'; a.rel = 'noopener'; var sp = el('span'); sp.appendChild(a); facts.appendChild(sp); }
+      it.appendChild(facts);
+      // προεπισκόπηση αρχείων
+      var det = el('details', 'preview'); det.appendChild(el('summary', null, t('preview')));
+      det.addEventListener('toggle', function () {
+        if (!det.open || det.dataset.done) return; det.dataset.done = '1';
+        var g = el('div', 'media');
+        media.forEach(function (m) {
+          var f = el('figure'), x;
+          if (m.kind === 'image') { x = el('img'); x.alt = m.title || ''; x.loading = 'lazy'; }
+          else { x = el(m.kind === 'video' ? 'video' : 'audio'); x.controls = true; x.preload = 'metadata'; }
+          x.src = publicUrl(m.path); f.appendChild(x);
+          f.appendChild(el('figcaption', null, [m.title, m.about, m.period, m.recorded_at].filter(Boolean).join(' · ') || '—'));
+          g.appendChild(f);
+        });
+        det.appendChild(g);
+      });
+      it.appendChild(det);
+      var act = el('div', 'actions');
+      var ok = el('button', 'btn-ok', '✓ ' + t('approve')), ret = el('button', 'btn-ret', '↩ ' + t('returnBtn')), open = el('a', 'btn-sec', t('openFull'));
+      ok.type = ret.type = 'button'; open.href = '../annotate/#story=' + encodeURIComponent(s.id); open.target = '_blank'; open.rel = 'noopener';
+      ok.onclick = function () { if (window.confirm(t('approveQ', { t: s.title }))) { ok.disabled = true; decideStory(s, true).finally(function () { ok.disabled = false; }); } };
+      ret.onclick = function () { if (!it.querySelector('.ret-form')) returnForm(it, function (msg) { return decideStory(s, false, msg); }); };
+      act.appendChild(ok); act.appendChild(ret); act.appendChild(open); it.appendChild(act);
+      q.appendChild(it);
+    });
+    // διαδρομές
+    $('hWalks').textContent = t('walksTitle', { n: D.walks.length });
+    var wq = $('walkQueue'); wq.innerHTML = '';
+    if (!D.walks.length) wq.appendChild(el('p', 'empty', t('none')));
+    D.walks.forEach(function (w) {
+      var it = el('article', 'item'); it.setAttribute('aria-label', w.title);
+      it.appendChild(el('h3', null, '🚶 ' + w.title));
+      if (w.description) it.appendChild(el('div', 'meta', w.description));
+      submitted(it, w);
+      var order = w.order || [], shown = order.filter(function (id) { return D.storyStatus[id] === 'published'; }).length;
+      if (!order.length) it.appendChild(el('p', 'facts', t('noStops')));
+      else {
+        it.appendChild(el('div', 'meta', t('stops') + ':'));
+        var ol = el('ol', 'stops');
+        order.forEach(function (id) { var li = el('li', null, D.titles[id] || '—'); var pub = D.storyStatus[id] === 'published'; li.appendChild(el('span', 'chip ' + (pub ? 'published' : 'other'), t(pub ? 'st_published' : 'st_other'))); ol.appendChild(li); });
+        it.appendChild(ol);
+        if (shown < order.length) { var f = el('div', 'facts'); f.appendChild(el('span', 'warn', t('stopsShown', { a: shown, n: order.length }))); it.appendChild(f); }
+      }
+      var act = el('div', 'actions');
+      var ok = el('button', 'btn-ok', '✓ ' + t('approve')), ret = el('button', 'btn-ret', '↩ ' + t('returnBtn')), open = el('a', 'btn-sec', t('openBoard'));
+      ok.type = ret.type = 'button'; open.href = '../connect/#board=' + encodeURIComponent(w.id); open.target = '_blank'; open.rel = 'noopener';
+      ok.onclick = function () { if (window.confirm(t('approveWalkQ', { t: w.title }))) { ok.disabled = true; decideWalk(w, true).finally(function () { ok.disabled = false; }); } };
+      ret.onclick = function () { if (!it.querySelector('.ret-form')) returnForm(it, function (msg) { return decideWalk(w, false, msg); }); };
+      act.appendChild(ok); act.appendChild(ret); act.appendChild(open); it.appendChild(act);
+      wq.appendChild(it);
+    });
+    // ιστορικό
+    var h = $('history'); h.innerHTML = '';
+    if (!D.history.length) h.appendChild(el('li', 'empty', t('histNone')));
+    D.history.forEach(function (x) {
+      var li = el('li');
+      li.appendChild(el('span', 'a-' + x.action, t('a_' + x.action)));
+      li.appendChild(document.createTextNode(' · ' + t(x.story_id ? 'storyW' : 'walkW') + ' «' + (D.titles[x.story_id || x.board_id] || '—') + '» · ' + (x.user_name || '—') + ' · ' + when(x.created_at)));
+      if (x.message) li.appendChild(el('div', 'meta', '“' + x.message + '”'));
+      h.appendChild(li);
+    });
+  }
+
+  applyLang();
+  if (!sb) { show('login'); $('loginErr').textContent = 'Supabase is not configured (config.js).'; return; }
+  sb.auth.onAuthStateChange(function (_e, session) { setTimeout(function () { onSession(session); }, 0); });
+})();
+</script>
+</body>
+</html>

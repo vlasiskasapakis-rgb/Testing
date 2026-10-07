@@ -437,5 +437,69 @@ grant select (id, title, description, is_walk, created_at, updated_at) on public
 grant select (board_id, story_id, x, y) on public.story_board_items to anon;
 grant select (id, board_id, from_story, to_story, label) on public.story_board_links to anon;
 
+-- ---------- validation: a validator approves stories and walks before they are published ----------
+-- Make someone a validator (they also need the annotator role, to see and fix drafts):
+--   update public.profiles set role = 'annotator', is_validator = true
+--   where user_id = (select id from auth.users where email = 'validator@example.com');
+alter table public.profiles add column if not exists is_validator boolean not null default false;
+create or replace function public.is_validator() returns boolean language sql stable security definer set search_path = public as $$ select exists (select 1 from public.profiles where user_id = auth.uid() and is_validator) $$;
+grant execute on function public.is_validator() to anon, authenticated;
+
+-- Story status: draft -> submitted (annotator) -> published (validator) or returned (validator, with comments) -> submitted ...
+alter table public.stories drop constraint if exists stories_status_check;
+alter table public.stories add constraint stories_status_check check (status in ('draft', 'submitted', 'returned', 'published'));
+create or replace function public.check_story_status() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.status is distinct from old.status and auth.uid() is not null and new.status in ('published', 'returned') and not public.is_validator() then
+    raise exception 'Only a validator can publish or return a story' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+drop trigger if exists stories_status_guard on public.stories;
+create trigger stories_status_guard before update of status on public.stories for each row execute function public.check_story_status();
+
+-- Walks: an annotator submits a board as a walk; it is shown in the app (is_walk) only after a validator approves it.
+alter table public.story_boards add column if not exists walk_status text not null default 'none';
+alter table public.story_boards drop constraint if exists story_boards_walk_status_check;
+alter table public.story_boards add constraint story_boards_walk_status_check check (walk_status in ('none', 'submitted', 'returned', 'approved'));
+update public.story_boards set walk_status = 'approved' where is_walk and walk_status = 'none';
+create or replace function public.check_walk_status() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is not null and not public.is_validator() and (
+       (new.is_walk and not coalesce(old.is_walk, false))
+       or (new.walk_status is distinct from old.walk_status and new.walk_status in ('approved', 'returned'))) then
+    raise exception 'Only a validator can approve or return a walk' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+drop trigger if exists story_boards_walk_guard on public.story_boards;
+create trigger story_boards_walk_guard before update on public.story_boards for each row execute function public.check_walk_status();
+grant select (walk_status) on public.story_boards to anon;
+
+-- History of submissions and decisions (with the validator's comments)
+create table if not exists public.reviews (
+  id         uuid primary key default gen_random_uuid(),
+  story_id   uuid references public.stories(id) on delete cascade,
+  board_id   uuid references public.story_boards(id) on delete cascade,
+  action     text not null check (action in ('submitted', 'withdrawn', 'returned', 'approved', 'unpublished')),
+  message    text check (message is null or char_length(message) <= 4000),
+  user_id    uuid default auth.uid() references auth.users(id) on delete set null,
+  user_name  text,
+  created_at timestamptz not null default now(),
+  check ((story_id is null) <> (board_id is null))
+);
+create index if not exists reviews_story_idx on public.reviews(story_id, created_at);
+create index if not exists reviews_board_idx on public.reviews(board_id, created_at);
+alter table public.reviews enable row level security;
+drop policy if exists "staff read reviews" on public.reviews;
+drop policy if exists "staff add reviews"  on public.reviews;
+create policy "staff read reviews" on public.reviews for select to authenticated using (public.is_annotator() or public.is_admin());
+create policy "staff add reviews" on public.reviews for insert to authenticated
+  with check (public.is_annotator() and user_id = auth.uid() and (action in ('submitted', 'withdrawn', 'unpublished') or public.is_validator()));
+revoke all on public.reviews from anon;
+grant select, insert on public.reviews to authenticated;
+
 -- Make the API pick up new columns immediately (avoids "could not find the column ... in the schema cache")
 notify pgrst, 'reload schema';
