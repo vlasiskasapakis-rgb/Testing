@@ -437,6 +437,25 @@ grant select (id, title, description, is_walk, created_at, updated_at) on public
 grant select (board_id, story_id, x, y) on public.story_board_items to anon;
 grant select (id, board_id, from_story, to_story, label) on public.story_board_links to anon;
 
+-- ---------- heritage objects in ECHOES that a story refers to (e.g. a church or an object documented by OCRA) ----------
+create table if not exists public.story_heritage (
+  id         uuid primary key default gen_random_uuid(),
+  story_id   uuid not null references public.stories(id) on delete cascade,
+  uri        text not null check (uri ~ '^https?://' and char_length(uri) <= 500),
+  label      text check (label is null or char_length(label) <= 200),
+  created_by uuid default auth.uid() references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  unique (story_id, uri)
+);
+alter table public.story_heritage enable row level security;
+drop policy if exists "read visible heritage links" on public.story_heritage;
+drop policy if exists "annotators write heritage links" on public.story_heritage;
+create policy "read visible heritage links" on public.story_heritage for select using (exists (select 1 from public.stories s where s.id = story_heritage.story_id));
+create policy "annotators write heritage links" on public.story_heritage for all to authenticated using (public.is_annotator()) with check (public.is_annotator());
+revoke all on public.story_heritage from anon;
+grant select (id, story_id, uri, label) on public.story_heritage to anon;
+grant select, insert, update, delete on public.story_heritage to authenticated;
+
 -- ---------- validation: a validator approves stories and walks before they are published ----------
 -- Make someone a validator (they also need the annotator role, to see and fix drafts):
 --   update public.profiles set role = 'annotator', is_validator = true

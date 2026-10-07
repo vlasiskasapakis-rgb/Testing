@@ -6,7 +6,7 @@
 window.WM_CONFIG = {
   SUPABASE_URL: 'https://sqxhzlwqqhodbhfdnaxv.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_mLGyvgBorl9W5iHgcyiIpg_o-AQT0Xg',
-  // Namespace used for HDT classes/properties in the JSON-LD export. HDTO v0.1 (June 2025)
-  // does not publish an official one yet; replace this when ECHOES does.
-  HDT_NS: 'urn:echoes:hdto:'
+  // ECHOES Heritage Digital Twin Ontology (HDTO) namespace, as used by the ECHOES knowledge base
+  // and other ECHOES applications (e.g. OCRA).
+  HDT_NS: 'http://isl.ics.forth.gr/ontology/echoes/'
 };

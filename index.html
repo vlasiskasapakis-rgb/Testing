@@ -379,6 +379,9 @@
   .browse-conn[hidden] { display: none; }
   .browse-conn input { width: 22px; height: 22px; accent-color: var(--petrol); }
   .story-links:empty { display: none; }
+  .heritage-links h3 { margin: 14px 0 6px; font-size: 16px; font-style: italic; color: var(--petrol); }
+  .heritage-links ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .heritage-links a { display: inline-block; padding: 6px 12px; border-radius: 999px; background: #F3EFE6; color: var(--petrol); font-weight: 600; text-decoration: none; }
   .story-links h3 { margin: 14px 0 6px; font-size: 16px; font-style: italic; color: var(--petrol); }
   .story-links ul { list-style: none; margin: 0; padding: 0; }
   .story-links li { margin-bottom: 6px; }
@@ -1216,6 +1219,7 @@
       connIn: "στη διαδρομή «{w}»",
       browseConn: "Εμφάνιση συνδέσεων ανάμεσα στις ιστορίες",
       tlComments: "Σχόλια",
+      herTitle: "Αντικείμενα κληρονομιάς (ECHOES)",
       notesTitle: "Σχόλια ειδικών",
       noteLabel: "Σχόλιο ειδικού",
       noteBy: "— {n}",
@@ -1570,6 +1574,7 @@
       connIn: "in the walk “{w}”",
       browseConn: "Show connections between stories",
       tlComments: "Comments",
+      herTitle: "Heritage objects (ECHOES)",
       notesTitle: "Expert notes",
       noteLabel: "Expert note",
       noteBy: "— {n}",
@@ -1924,6 +1929,7 @@
       connIn: "dans le parcours « {w} »",
       browseConn: "Afficher les liens entre les histoires",
       tlComments: "Commentaires",
+      herTitle: "Objets patrimoniaux (ECHOES)",
       notesTitle: "Notes d’experts",
       noteLabel: "Note d’expert",
       noteBy: "— {n}",
@@ -2278,6 +2284,7 @@
       connIn: "nel percorso «{w}»",
       browseConn: "Mostra i collegamenti tra le storie",
       tlComments: "Commenti",
+      herTitle: "Oggetti del patrimonio (ECHOES)",
       notesTitle: "Note degli esperti",
       noteLabel: "Nota dell’esperto",
       noteBy: "— {n}",
@@ -3380,7 +3387,8 @@
       aq,
       sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text,words)').in('media_id', ids),
       sb.from('media_links').select('id,story_id,image_media_id,av_media_id,start_s,end_s').eq('story_id', s.dbId).order('start_s'),
-      sb.from('transcript_comments').select('id,media_id,segment_idx,start_s,end_s,body,author_name').in('media_id', ids).order('start_s')
+      sb.from('transcript_comments').select('id,media_id,segment_idx,start_s,end_s,body,author_name').in('media_id', ids).order('start_s'),
+      sb.from('story_heritage').select('id,uri,label').eq('story_id', s.dbId)
     ]);
     if (res[1].error && /words/i.test(res[1].error.message || '')) {   // βάση χωρίς στήλη words
       res[1] = await sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids);
@@ -3394,7 +3402,7 @@
     if (res[1].error) { if (all) throw res[1].error; problems.push(res[1].error.message); } else trs = res[1].data;
     if (res[2].error && !all) problems.push(res[2].error.message);
     trs.forEach(function (tr) { tr.transcript_segments.sort(function (a, b) { return a.idx - b.idx; }); });
-    return { annotations: res[0].data, transcripts: trs, links: res[2].error ? [] : res[2].data, comments: res[3].error ? [] : res[3].data, problems: problems };
+    return { annotations: res[0].data, transcripts: trs, links: res[2].error ? [] : res[2].data, comments: res[3].error ? [] : res[3].data, heritage: res[4].error ? [] : res[4].data, problems: problems };
   }
 
   // ---- Ονόματα όρων στη γλώσσα που επιλέχθηκε, από το λεξιλόγιο της κάθε σχολιασμού (Wikidata, και Getty μέσω Wikidata) ----
@@ -4004,6 +4012,17 @@
         } else { var pre = document.createElement('pre'); pre.textContent = tr.text; d.appendChild(pre); }
         box.appendChild(d);
       });
+      if ((k.heritage || []).length) {               // αντικείμενα κληρονομιάς στο ECHOES
+        var hb = document.createElement('div'); hb.className = 'heritage-links';
+        var hh = document.createElement('h3'); hh.textContent = '🏛 ' + t('herTitle'); hb.appendChild(hh);
+        var hul = document.createElement('ul');
+        k.heritage.forEach(function (h) {
+          var li = document.createElement('li'), a = document.createElement('a');
+          a.href = safeUrl(h.uri); a.target = '_blank'; a.rel = 'noopener'; a.textContent = (h.label || h.uri) + ' ↗';
+          li.appendChild(a); hul.appendChild(li);
+        });
+        hb.appendChild(hul); box.appendChild(hb);
+      }
       if ((k.comments || []).length) {
         var nf = document.createElement('details'); nf.className = 'fold notes-fold'; nf.open = true;
         var nsm = document.createElement('summary'); nsm.textContent = '💬 ' + t('notesTitle') + ' (' + k.comments.length + ')'; nf.appendChild(nsm);

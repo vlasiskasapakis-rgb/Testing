@@ -105,6 +105,14 @@ The button under the language (🧭 Free roam / 🚶 walk name · 2/5) switches 
 can **restart the walk**. Without any published walk the app works exactly as before. Openings from the walk card are counted in
 the analytics as "Walk (next stop)". Needs `supabase/roles.sql` re-run (columns `is_walk`, `description`; visitors may read walks).
 
+## Heritage objects in ECHOES (links to other ECHOES tools, e.g. OCRA)
+If a story is about an object or monument that is documented in ECHOES (for example modelled and annotated in OCRA), annotators can
+link it: in the story on the annotation site, open **🏛 Heritage objects (ECHOES)**, paste the object's ECHOES address (e.g.
+`http://echoes-eccch.eu/HDT/…`) and an optional name, **Add**. Visitors see the links in the story view (app and stories website),
+and the RDF export declares the object as `hdto:HC1_Heritage_Entity` and says the story's narrative refers to it
+(`crm:P67_refers_to`), so ECCCH can find the oral stories about that object. No 3D model is needed on our side. Table
+`story_heritage` — re-run `supabase/roles.sql` once.
+
 ## Validation before publishing (validate/ page)
 Annotators no longer publish directly: a **validator** approves every story and every walk first.
 - **Stories**: on the annotation site the button is **Submit for validation** (with an optional message). The story becomes
@@ -239,8 +247,8 @@ starts from then on.
   `xywh=percent` fragment selectors), SKOS terms from Wikidata/Getty, GeoSPARQL `wktLiteral` points, Dublin Core terms.
 - Each file also carries its details: title (`rdfs:label`), identity (`crm:P3_has_note`), date recorded (`dcterms:created`),
   period (`dcterms:temporal`) and location (`dcterms:spatial` → `crm:E53_Place` with a WKT point).
-- The HDT ontology v0.1 has no published namespace yet, so `hdt:` is `urn:echoes:hdto:`. When ECHOES publishes the official IRI, set
-  `HDT_NS` in `config.js` and every export uses it.
+- `hdto:` is the ECHOES HDTO namespace `http://isl.ics.forth.gr/ontology/echoes/`, the one used by the ECHOES knowledge base and
+  OCRA; it comes from `HDT_NS` in `config.js`, so it can be changed there if ECHOES ever moves it.
 
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
@@ -417,5 +425,5 @@ a time range, and the export then links the whole media file instead of a time f
 | Mentioned person / place / thing / type | `crm:P67 refers to` → `E21` / `E53` / `E70` / `E55` |
 | Time-anchored tag | `oa:Annotation` with a media-fragment selector (`t=start,end`) |
 
-`hdt:` has no official namespace in v0.1; the export uses `HDT_NS` from `config.js`
+`hdto:` is the ECHOES HDTO namespace `http://isl.ics.forth.gr/ontology/echoes/` (as used by the ECHOES knowledge base and OCRA); the export uses `HDT_NS` from `config.js`
 (`urn:echoes:hdto:`). Replace it when ECHOES publishes one, and verify the `nont:` namespace.
