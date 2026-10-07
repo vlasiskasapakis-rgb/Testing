@@ -105,6 +105,26 @@ The button under the language (🧭 Free roam / 🚶 walk name · 2/5) switches 
 can **restart the walk**. Without any published walk the app works exactly as before. Openings from the walk card are counted in
 the analytics as "Walk (next stop)". Needs `supabase/roles.sql` re-run (columns `is_walk`, `description`; visitors may read walks).
 
+## Validation before publishing (validate/ page)
+Annotators no longer publish directly: a **validator** approves every story and every walk first.
+- **Stories**: on the annotation site the button is **Submit for validation** (with an optional message). The story becomes
+  *Submitted for validation*; **Withdraw from validation** turns it back into a draft. A validator then either **approves and
+  publishes** it, or **returns it with comments** — the story becomes *Returned with comments*, the comments are shown in red at the top
+  of the story (with the whole validation history), and the annotator fixes it and presses **Submit again for validation**.
+  Published stories can still be unpublished by annotators. The story list shows the status and can be filtered by it.
+- **Walks**: on the Story links page, **Submit as a walk for validation** replaces the old checkbox; states: *Not a walk*, *Waiting for
+  validation* (Withdraw), *Returned by the validator* (with the comment; Submit again), *Published walk in the app* (Withdraw the walk).
+  Visitors see a walk only after a validator approves it.
+- **Validator page** `…/validate/` (also a **Validation** button in the annotation site's header for validators): stories and walks
+  waiting for validation. Each story shows who submitted it and their message, its files (with a preview player), transcript lines,
+  approved terms, a warning for term suggestions not yet reviewed, expert comments, consent code and location, and opens in full in the
+  annotation site. Each walk shows its stops in order and warns about stops that are not published (visitors won't see them).
+  **Approve and publish** or **Return with comments** (a comment is required). Recent decisions are listed at the bottom.
+- The database enforces it: only validators can publish or return a story and approve or return a walk (trigger), and every
+  submission/decision is recorded in `reviews`. Make someone a validator (they also need the annotator role) in the SQL editor:
+  `update public.profiles set role = 'annotator', is_validator = true where user_id = (select id from auth.users where email = '…');`
+  Existing published stories and walks stay published. Re-run `supabase/roles.sql` once (as written, without enabling RLS).
+
 ## Deleting a story (annotation website)
 Annotators can delete **any** story (the person who uploaded it can still delete their own in the app). Open the story and press
 **Delete story** (top right). A dialog lists what goes with it — its files, transcripts, terms and image notes, and its view

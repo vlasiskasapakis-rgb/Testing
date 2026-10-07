@@ -71,6 +71,10 @@
   .walk-box { margin-top: 10px; padding: 8px 10px; border-radius: 10px; background: var(--mist); }
   .walk-chk { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--petrol); }
   .walk-chk input { width: 20px; height: 20px; }
+  .walk-state { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .walk-state b { color: var(--petrol); font-size: 14px; }
+  .walk-state b.sub { color: #1565C0; } .walk-state b.ret { color: var(--danger); } .walk-state b.ok { color: #2E7D32; }
+  .walk-ret { margin-top: 6px; padding: 6px 10px; border-radius: 8px; background: #FDECEA; border-left: 4px solid var(--danger); font-size: 13px; white-space: pre-wrap; }
   #walkDesc { width: 100%; margin-top: 6px; padding: 6px 8px; border: 2px solid var(--line-strong); border-radius: 8px; font: inherit; font-size: 14px; resize: vertical; }
   .walk-box .note { margin: 4px 0 0; font-size: 12px; }
   details.fold > summary { cursor: pointer; font-weight: 700; color: var(--petrol); font-size: 17px; }
@@ -158,7 +162,8 @@
         <button id="boardDelete" type="button" class="btn-danger btn-sm" data-i="deleteBoard"></button>
       </div>
       <div id="walkBox" class="walk-box">
-        <label class="walk-chk"><input type="checkbox" id="walkChk"><span data-i="isWalk"></span></label>
+        <div class="walk-state"><b id="walkState"></b><button id="walkAct" type="button" class="btn-sec btn-sm"></button></div>
+        <div id="walkRet" class="walk-ret" hidden></div>
         <label for="walkDesc" class="sr-only" data-i="walkDescLbl"></label>
         <textarea id="walkDesc" rows="2" maxlength="1000" data-i-ph="walkDescPh"></textarea>
         <p class="note" data-i="walkNote"></p>
@@ -218,10 +223,20 @@
   var $ = function (id) { return document.getElementById(id); };
   var I18N = {
     el: {
+      walkNone: "Δεν είναι διαδρομή",
+      walkSubmit: "Υποβολή ως διαδρομή για έλεγχο",
+      walkWaiting: "Περιμένει έλεγχο",
+      walkWithdraw: "Απόσυρση",
+      walkReturned: "Επιστράφηκε από τον ελεγκτή",
+      walkResubmit: "Νέα υποβολή",
+      walkApproved: "Δημοσιευμένη διαδρομή στην εφαρμογή",
+      walkUnpublish: "Απόσυρση διαδρομής",
+      walkSubmitQ: "Υποβολή του «{t}» ως διαδρομή. Προαιρετικό μήνυμα για τους ελεγκτές:",
+      walkNeedSql: "Ο έλεγχος διαδρομών χρειάζεται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.",
+      walkNote: "Ένας ελεγκτής εγκρίνει τη διαδρομή πριν τη δουν οι επισκέπτες. Οι πρόχειρες ιστορίες δεν εμφανίζονται.",
       isWalk: "Διαδρομή στην εφαρμογή AR",
       walkDescLbl: "Περιγραφή διαδρομής",
       walkDescPh: "Σύντομη περιγραφή για τους επισκέπτες (προαιρετικά)",
-      walkNote: "Οι επισκέπτες βλέπουν τις ιστορίες με τη σειρά των γραμμών. Οι πρόχειρες ιστορίες δεν εμφανίζονται.",
       title: 'Walking Memory · Συνδέσεις ιστοριών', toAnnotate: 'Σχολιασμός', logout: 'Αποσύνδεση', login: 'Σύνδεση', email: 'E-mail', password: 'Κωδικός',
       loginHint: 'Για σχολιαστές του Walking Memory.', loginFail: 'Η σύνδεση απέτυχε: {e}', noAccess: 'Αυτός ο λογαριασμός δεν είναι σχολιαστής.',
       boards: 'Πίνακες', newBoard: '+ Νέος πίνακας', rename: 'Μετονομασία', deleteBoard: 'Διαγραφή πίνακα', boardName: 'Όνομα πίνακα:', boardDefault: 'Πίνακας {n}',
@@ -243,10 +258,20 @@
       image: 'φωτογραφία', audio: 'ήχος', video: 'βίντεο', untitled: 'Χωρίς τίτλο'
     },
     en: {
+      walkNone: "Not a walk",
+      walkSubmit: "Submit as a walk for validation",
+      walkWaiting: "Waiting for validation",
+      walkWithdraw: "Withdraw",
+      walkReturned: "Returned by the validator",
+      walkResubmit: "Submit again",
+      walkApproved: "Published walk in the app",
+      walkUnpublish: "Withdraw the walk",
+      walkSubmitQ: "Submit “{t}” as a walk. Optional message for the validators:",
+      walkNeedSql: "Walk validation needs a database update: run supabase/roles.sql once.",
+      walkNote: "A validator approves the walk before visitors see it. Draft stories are not shown.",
       isWalk: "Walk in the AR app",
       walkDescLbl: "Walk description",
       walkDescPh: "Short description for visitors (optional)",
-      walkNote: "Visitors follow the stories in the order of the lines. Draft stories are not shown.",
       title: 'Walking Memory · Story links', toAnnotate: 'Annotation', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password',
       loginHint: 'For Walking Memory annotators.', loginFail: 'Login failed: {e}', noAccess: 'This account is not an annotator.',
       boards: 'Boards', newBoard: '+ New board', rename: 'Rename', deleteBoard: 'Delete board', boardName: 'Board name:', boardDefault: 'Board {n}',
@@ -268,10 +293,20 @@
       image: 'photo', audio: 'audio', video: 'video', untitled: 'Untitled'
     },
     fr: {
+      walkNone: "Pas un parcours",
+      walkSubmit: "Soumettre comme parcours",
+      walkWaiting: "En attente de validation",
+      walkWithdraw: "Retirer",
+      walkReturned: "Renvoyé par le validateur",
+      walkResubmit: "Soumettre à nouveau",
+      walkApproved: "Parcours publié dans l’application",
+      walkUnpublish: "Retirer le parcours",
+      walkSubmitQ: "Soumettre « {t} » comme parcours. Message facultatif pour les validateurs :",
+      walkNeedSql: "La validation des parcours nécessite une mise à jour de la base : exécutez une fois supabase/roles.sql.",
+      walkNote: "Un validateur approuve le parcours avant que les visiteurs le voient. Les brouillons ne sont pas affichés.",
       isWalk: "Parcours dans l’application AR",
       walkDescLbl: "Description du parcours",
       walkDescPh: "Courte description pour les visiteurs (facultatif)",
-      walkNote: "Les visiteurs suivent les histoires dans l’ordre des lignes. Les brouillons ne sont pas affichés.",
       title: 'Walking Memory · Liens entre histoires', toAnnotate: 'Annotation', logout: 'Déconnexion', login: 'Connexion', email: 'E-mail', password: 'Mot de passe',
       loginHint: 'Pour les annotateurs de Walking Memory.', loginFail: 'Échec de connexion : {e}', noAccess: 'Ce compte n’est pas annotateur.',
       boards: 'Tableaux', newBoard: '+ Nouveau tableau', rename: 'Renommer', deleteBoard: 'Supprimer le tableau', boardName: 'Nom du tableau :', boardDefault: 'Tableau {n}',
@@ -293,10 +328,20 @@
       image: 'photo', audio: 'audio', video: 'vidéo', untitled: 'Sans titre'
     },
     it: {
+      walkNone: "Non è un percorso",
+      walkSubmit: "Invia come percorso per la validazione",
+      walkWaiting: "In attesa di validazione",
+      walkWithdraw: "Ritira",
+      walkReturned: "Restituito dal validatore",
+      walkResubmit: "Invia di nuovo",
+      walkApproved: "Percorso pubblicato nell’app",
+      walkUnpublish: "Ritira il percorso",
+      walkSubmitQ: "Inviare «{t}» come percorso. Messaggio facoltativo per i validatori:",
+      walkNeedSql: "La validazione dei percorsi richiede un aggiornamento del database: esegui una volta supabase/roles.sql.",
+      walkNote: "Un validatore approva il percorso prima che i visitatori lo vedano. Le bozze non vengono mostrate.",
       isWalk: "Percorso nell’app AR",
       walkDescLbl: "Descrizione del percorso",
       walkDescPh: "Breve descrizione per i visitatori (facoltativa)",
-      walkNote: "I visitatori seguono le storie nell’ordine delle linee. Le bozze non vengono mostrate.",
       title: 'Walking Memory · Collegamenti tra storie', toAnnotate: 'Annotazione', logout: 'Esci', login: 'Accedi', email: 'E-mail', password: 'Password',
       loginHint: 'Per gli annotatori di Walking Memory.', loginFail: 'Accesso non riuscito: {e}', noAccess: 'Questo account non è un annotatore.',
       boards: 'Lavagne', newBoard: '+ Nuova lavagna', rename: 'Rinomina', deleteBoard: 'Elimina lavagna', boardName: 'Nome della lavagna:', boardDefault: 'Lavagna {n}',
@@ -386,12 +431,14 @@
     if (r.error) r = await sb.from('stories').select(cols).order('created_at');
     if (r.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('loadErr', { e: errText(r.error) }); return; }
     STORIES = r.data.map(storyFromRow); byId = {}; STORIES.forEach(function (s) { byId[s.id] = s; });
-    var b = await sb.from('story_boards').select('id,title,created_at,is_walk,description').order('created_at');
+    var b = await sb.from('story_boards').select('id,title,created_at,is_walk,description,walk_status').order('created_at');
+    if (b.error && /walk_status/i.test(b.error.message || '')) b = await sb.from('story_boards').select('id,title,created_at,is_walk,description').order('created_at');   // βάση χωρίς έλεγχο
     if (b.error && /is_walk|description/i.test(b.error.message || '')) b = await sb.from('story_boards').select('id,title,created_at').order('created_at');   // βάση χωρίς διαδρομές
     if (b.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = (isMissingTable(b.error) ? t('notSetUp') + ' ' : t('loadErr', { e: '' })) + '[' + (b.error.code || '') + ' ' + errText(b.error) + ']'; BOARDS = []; renderAll(); return; }
     BOARDS = b.data;
     var keep = null; try { keep = localStorage.getItem('wm_board'); } catch (e) {}
-    var pick = BOARDS.filter(function (x) { return x.id === boardId || x.id === keep; })[0] || BOARDS[0];
+    var fromLink = (/^#board=([\w-]+)$/.exec(location.hash || '') || [])[1];     // π.χ. από τη σελίδα ελέγχου
+    var pick = BOARDS.filter(function (x) { return x.id === fromLink; })[0] || BOARDS.filter(function (x) { return x.id === boardId || x.id === keep; })[0] || BOARDS[0];
     await openBoard(pick ? pick.id : null);
     $('saveStatus').textContent = '';
   }
@@ -420,14 +467,41 @@
     $('boardRename').disabled = $('boardDelete').disabled = !boardId;
     var cur = BOARDS.filter(function (x) { return x.id === boardId; })[0];
     $('walkBox').hidden = !cur;
-    if (cur) { $('walkChk').checked = !!cur.is_walk; if (document.activeElement !== $('walkDesc')) $('walkDesc').value = cur.description || ''; }
+    if (cur) { renderWalkState(cur); if (document.activeElement !== $('walkDesc')) $('walkDesc').value = cur.description || ''; }
   }
-  // Διαδρομή στην εφαρμογή: αποθηκεύεται αμέσως
-  $('walkChk').onchange = async function () {
+  // Διαδρομή: υποβολή για έλεγχο → ο ελεγκτής εγκρίνει (εμφανίζεται στην εφαρμογή) ή επιστρέφει με σχόλια
+  function walkStatusOf(b) { return b.walk_status || (b.is_walk ? 'approved' : 'none'); }
+  function renderWalkState(b) {
+    var ws = walkStatusOf(b), el = $('walkState'), act = $('walkAct');
+    el.textContent = t({ none: 'walkNone', submitted: 'walkWaiting', returned: 'walkReturned', approved: 'walkApproved' }[ws]);
+    el.className = { submitted: 'sub', returned: 'ret', approved: 'ok' }[ws] || '';
+    act.textContent = t({ none: 'walkSubmit', submitted: 'walkWithdraw', returned: 'walkResubmit', approved: 'walkUnpublish' }[ws]);
+    act.className = (ws === 'none' || ws === 'returned' ? 'btn' : 'btn-sec') + ' btn-sm';
+    var ret = $('walkRet'); ret.hidden = true; ret.textContent = '';
+    if (ws === 'returned') {
+      sb.from('reviews').select('message,user_name,created_at').eq('board_id', b.id).eq('action', 'returned').order('created_at', { ascending: false }).limit(1).then(function (r) {
+        if (r.error || !r.data || !r.data.length || b.id !== boardId) return;
+        ret.textContent = '↩ ' + (r.data[0].user_name || '') + ': ' + (r.data[0].message || ''); ret.hidden = false;
+      });
+    }
+  }
+  function myName() { return user ? ((user.user_metadata && user.user_metadata.display_name) || (user.email || '').split('@')[0]) : ''; }
+  $('walkAct').onclick = async function () {
     var b = BOARDS.filter(function (x) { return x.id === boardId; })[0]; if (!b) return;
-    var v = this.checked, r = await write(sb.from('story_boards').update({ is_walk: v, updated_at: new Date().toISOString() }).eq('id', b.id));
-    if (r.error) this.checked = !v; else b.is_walk = v;
+    var ws = walkStatusOf(b), patch, action, note = null;
+    if (ws === 'none' || ws === 'returned') {
+      note = window.prompt(t('walkSubmitQ', { t: b.title }), ''); if (note === null) return;
+      patch = { walk_status: 'submitted' }; action = 'submitted';
+    } else if (ws === 'submitted') { patch = { walk_status: 'none' }; action = 'withdrawn'; }
+    else { patch = { walk_status: 'none', is_walk: false }; action = 'unpublished'; }
+    patch.updated_at = new Date().toISOString();
+    var r = await write(sb.from('story_boards').update(patch).eq('id', b.id));
+    if (r.error) { if (/walk_status|reviews|schema cache/i.test(r.error.message || '')) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('walkNeedSql'); } return; }
+    Object.assign(b, patch);
+    await write(sb.from('reviews').insert({ board_id: b.id, action: action, message: note ? note.trim().slice(0, 4000) : null, user_id: user.id, user_name: myName() }));
+    renderBoards();
   };
+  // Διαδρομή στην εφαρμογή: αποθηκεύεται αμέσως
   $('walkDesc').onchange = async function () {
     var b = BOARDS.filter(function (x) { return x.id === boardId; })[0]; if (!b) return;
     var v = this.value.trim().slice(0, 1000), r = await write(sb.from('story_boards').update({ description: v || null, updated_at: new Date().toISOString() }).eq('id', b.id));
