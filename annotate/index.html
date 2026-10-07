@@ -296,6 +296,13 @@
   .ann-seg { scroll-margin-top: 230px; border: 2px solid transparent; }
   .ann-seg.now { border-color: var(--amber); background: var(--sky-soft); }
   .ann-comments { margin-top: 6px; }
+  .her-list { list-style: none; margin: 6px 0; padding: 0; }
+  .her-list li { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .her-list li a { color: var(--petrol); font-weight: 600; overflow-wrap: anywhere; flex: 1 1 auto; }
+  .her-list li small { display: block; color: var(--muted); font-weight: 400; }
+  .her-add { display: flex; flex-wrap: wrap; gap: 6px; }
+  .her-add input { flex: 1 1 200px; padding: 8px 10px; border: 2px solid var(--line-strong); border-radius: 10px; font-size: 14px; }
+  .her-add button { padding: 6px 14px; min-height: 38px; font-weight: 700; }
   .ann-comment { margin: 6px 0; padding: 8px 12px; border-left: 4px solid #7B1FA2; background: #F6EFFA; border-radius: 8px; }
   .ann-comment .cmt-body { margin: 0; white-space: pre-wrap; }
   .ann-comment .cmt-meta { display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--muted); }
@@ -674,6 +681,18 @@
             <div id="sheetImages" class="story-media"></div>
             <details id="orderFold" class="fold" hidden><summary data-i18n="orderTitle"></summary><ol id="orderList" class="order-list"></ol><p id="orderErr" class="field-error" role="alert"></p></details>
             <details id="locFold" class="fold" hidden open><summary data-i18n="locMapTitle"></summary><div id="locMap"></div></details>
+            <details id="herFold" class="fold" hidden><summary id="herSum"></summary>
+              <p class="sheet-sub" data-i18n="herHelp"></p>
+              <ul id="herList" class="her-list"></ul>
+              <div class="her-add">
+                <label for="herUri" class="sr-only" data-i18n="herUri"></label>
+                <input type="url" id="herUri" data-i18n-ph="herUriPh" autocomplete="off">
+                <label for="herLabel" class="sr-only" data-i18n="herLabel"></label>
+                <input type="text" id="herLabel" data-i18n-ph="herLabelPh" maxlength="200" autocomplete="off">
+                <button type="button" id="herAdd" class="btn-secondary" data-i18n="herAddBtn"></button>
+              </div>
+              <p id="herErr" class="field-error" role="alert"></p>
+            </details>
           </div>
           <div class="col-ann">
             <div class="col-head">
@@ -1009,6 +1028,17 @@
       rev_approved: "Έγκριση και δημοσίευση",
       rev_unpublished: "Απόσυρση δημοσίευσης",
       navValidate: "Έλεγχος",
+      herTitle: "Αντικείμενα κληρονομιάς (ECHOES)",
+      herHelp: "Αν η ιστορία αφορά ένα αντικείμενο ή μνημείο που έχει τεκμηριωθεί στο ECHOES (π.χ. στο OCRA), επικόλλησε τη διεύθυνσή του (π.χ. http://echoes-eccch.eu/HDT/…). Η εξαγωγή RDF θα δείχνει ότι η ιστορία αναφέρεται σε αυτό, και οι επισκέπτες θα βλέπουν τον σύνδεσμο.",
+      herUri: "Διεύθυνση στο ECHOES",
+      herUriPh: "http://echoes-eccch.eu/HDT/…",
+      herLabel: "Όνομα",
+      herLabelPh: "Όνομα (π.χ. Ναός Αγίου Θεράποντα)",
+      herAddBtn: "Προσθήκη",
+      herRemove: "Αφαίρεση",
+      herBadUri: "Γράψε μια διεύθυνση που ξεκινά με http:// ή https://.",
+      herDup: "Αυτή η διεύθυνση έχει ήδη προστεθεί.",
+      herNeedSql: "Χρειάζεται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.",
       mapLegendKey: "● αρχείο (🖼 φωτογραφία, 🎙 ήχος, 🎬 βίντεο) · ○ τόπος δημιουργίας ιστορίας",
       mapLinkUsers: "Σύνδεση ιστοριών κάθε χρήστη με τη σειρά",
       mapNoFileLoc: "Κανένα αρχείο δεν έχει δική του τοποθεσία (παλιότερες καταχωρίσεις ή δεν έχει τρέξει το roles.sql). Εμφανίζονται μόνο οι τοποθεσίες των ιστοριών.",
@@ -1458,6 +1488,17 @@
       rev_approved: "Approved and published",
       rev_unpublished: "Unpublished",
       navValidate: "Validation",
+      herTitle: "Heritage objects (ECHOES)",
+      herHelp: "If the story is about an object or monument documented in ECHOES (e.g. in OCRA), paste its address (e.g. http://echoes-eccch.eu/HDT/…). The RDF export will say the story refers to it, and visitors will see the link.",
+      herUri: "ECHOES address",
+      herUriPh: "http://echoes-eccch.eu/HDT/…",
+      herLabel: "Name",
+      herLabelPh: "Name (e.g. Church of St Therapon)",
+      herAddBtn: "Add",
+      herRemove: "Remove",
+      herBadUri: "Write an address that starts with http:// or https://.",
+      herDup: "This address is already added.",
+      herNeedSql: "Needs a database update: run supabase/roles.sql once.",
       mapLegendKey: "● file (🖼 photo, 🎙 audio, 🎬 video) · ○ place where the story was created",
       mapLinkUsers: "Connect each user's stories in order",
       mapNoFileLoc: "None of the files has its own location (older uploads, or roles.sql has not been run). Only story locations are shown.",
@@ -1910,6 +1951,17 @@
       rev_approved: "Approuvée et publiée",
       rev_unpublished: "Dépubliée",
       navValidate: "Validation",
+      herTitle: "Objets patrimoniaux (ECHOES)",
+      herHelp: "Si l’histoire parle d’un objet ou d’un monument documenté dans ECHOES (p. ex. dans OCRA), collez son adresse (p. ex. http://echoes-eccch.eu/HDT/…). L’export RDF indiquera que l’histoire y fait référence, et les visiteurs verront le lien.",
+      herUri: "Adresse ECHOES",
+      herUriPh: "http://echoes-eccch.eu/HDT/…",
+      herLabel: "Nom",
+      herLabelPh: "Nom (p. ex. Église Saint-Thérapon)",
+      herAddBtn: "Ajouter",
+      herRemove: "Retirer",
+      herBadUri: "Écrivez une adresse commençant par http:// ou https://.",
+      herDup: "Cette adresse est déjà ajoutée.",
+      herNeedSql: "Mise à jour de la base nécessaire : exécutez une fois supabase/roles.sql.",
       mapLegendKey: "● fichier (🖼 photo, 🎙 audio, 🎬 vidéo) · ○ lieu de création de l'histoire",
       mapLinkUsers: "Relier les histoires de chaque utilisateur dans l'ordre",
       mapNoFileLoc: "Aucun fichier n'a son propre lieu (anciens envois, ou roles.sql n'a pas été exécuté). Seuls les lieux des histoires sont affichés.",
@@ -2356,6 +2408,17 @@
       rev_approved: "Approvata e pubblicata",
       rev_unpublished: "Ritirata dalla pubblicazione",
       navValidate: "Validazione",
+      herTitle: "Oggetti del patrimonio (ECHOES)",
+      herHelp: "Se la storia riguarda un oggetto o un monumento documentato in ECHOES (ad es. in OCRA), incolla il suo indirizzo (ad es. http://echoes-eccch.eu/HDT/…). L’esportazione RDF indicherà che la storia vi fa riferimento e i visitatori vedranno il collegamento.",
+      herUri: "Indirizzo ECHOES",
+      herUriPh: "http://echoes-eccch.eu/HDT/…",
+      herLabel: "Nome",
+      herLabelPh: "Nome (es. Chiesa di San Terapone)",
+      herAddBtn: "Aggiungi",
+      herRemove: "Rimuovi",
+      herBadUri: "Scrivi un indirizzo che inizi con http:// o https://.",
+      herDup: "Questo indirizzo è già stato aggiunto.",
+      herNeedSql: "Serve un aggiornamento del database: esegui una volta supabase/roles.sql.",
       mapLegendKey: "● file (🖼 foto, 🎙 audio, 🎬 video) · ○ luogo di creazione della storia",
       mapLinkUsers: "Collega le storie di ogni utente in ordine",
       mapNoFileLoc: "Nessun file ha un proprio luogo (caricamenti vecchi o roles.sql non eseguito). Sono mostrati solo i luoghi delle storie.",
@@ -2740,7 +2803,8 @@
       aq,
       sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text,words)').in('media_id', ids),
       sb.from('media_links').select('id,story_id,image_media_id,av_media_id,start_s,end_s').eq('story_id', s.dbId).order('start_s'),
-      sb.from('transcript_comments').select('id,media_id,segment_idx,start_s,end_s,body,author_name,updated_at').in('media_id', ids).order('start_s')
+      sb.from('transcript_comments').select('id,media_id,segment_idx,start_s,end_s,body,author_name,updated_at').in('media_id', ids).order('start_s'),
+      sb.from('story_heritage').select('id,uri,label').eq('story_id', s.dbId).order('created_at')
     ]);
     if (res[1].error && /words/i.test(res[1].error.message || '')) {   // βάση χωρίς στήλη words
       res[1] = await sb.from('media_transcripts').select('id,media_id,language,text,status,error,transcript_segments(idx,start_s,end_s,text)').in('media_id', ids);
@@ -2760,7 +2824,7 @@
     if (res[1].error) { if (all) throw res[1].error; problems.push(res[1].error.message); } else trs = res[1].data;
     if (res[2].error && !all) problems.push(res[2].error.message);
     trs.forEach(function (tr) { tr.transcript_segments.sort(function (a, b) { return a.idx - b.idx; }); });
-    return { annotations: res[0].data, transcripts: trs, links: res[2].error ? [] : res[2].data, comments: res[3].error ? [] : res[3].data, problems: problems };
+    return { annotations: res[0].data, transcripts: trs, links: res[2].error ? [] : res[2].data, comments: res[3].error ? [] : res[3].data, heritage: res[4].error ? [] : res[4].data, problems: problems };
   }
 
   // ---- Ονόματα όρων στη γλώσσα που επιλέχθηκε, από το λεξιλόγιο της κάθε σχολιασμού (Wikidata, και Getty μέσω Wikidata) ----
@@ -4133,6 +4197,42 @@
     return segs;
   }
 
+  // ---- Αντικείμενα κληρονομιάς στο ECHOES στα οποία αναφέρεται η ιστορία (π.χ. ένας ναός ή ένα αντικείμενο τεκμηριωμένο στο OCRA) ----
+  var herRows = [];
+  async function renderHeritage(s) {
+    var fold = $('herFold'); fold.hidden = !(isAnnotator() && s.dbId); $('herErr').textContent = '';
+    if (fold.hidden) return;
+    var r = await sb.from('story_heritage').select('id,uri,label').eq('story_id', s.dbId).order('created_at');
+    if (currentSheetStory !== s) return;
+    herRows = r.error ? [] : r.data;
+    if (r.error) $('herErr').textContent = /story_heritage|schema cache|does not exist/i.test(r.error.message || '') ? t('herNeedSql') : errText(r.error);
+    $('herSum').textContent = '🏛 ' + t('herTitle') + ' (' + herRows.length + ')';
+    fold.open = fold.open || herRows.length > 0;
+    var ul = $('herList'); ul.innerHTML = '';
+    herRows.forEach(function (h) {
+      var li = document.createElement('li'), a = document.createElement('a');
+      a.href = safeUrl(h.uri); a.target = '_blank'; a.rel = 'noopener'; a.textContent = (h.label || h.uri) + ' ↗';
+      if (h.label) { var sm = document.createElement('small'); sm.textContent = h.uri; a.appendChild(sm); }
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'x-btn'; del.textContent = '✕'; del.setAttribute('aria-label', t('herRemove') + ': ' + (h.label || h.uri));
+      del.onclick = async function () {
+        var d = await sb.from('story_heritage').delete().eq('id', h.id);
+        if (d.error) { $('herErr').textContent = errText(d.error); return; }
+        renderHeritage(s); notifyAnn();
+      };
+      li.appendChild(a); li.appendChild(del); ul.appendChild(li);
+    });
+  }
+  $('herAdd').onclick = async function () {
+    var s = currentSheetStory; if (!s) return;
+    var uri = $('herUri').value.trim(), label = $('herLabel').value.trim().slice(0, 200);
+    $('herErr').textContent = '';
+    if (!/^https?:\/\/\S+$/i.test(uri) || uri.length > 500) { $('herErr').textContent = t('herBadUri'); $('herUri').focus(); return; }
+    var r = await sb.from('story_heritage').insert({ story_id: s.dbId, uri: uri, label: label || null });
+    if (r.error) { $('herErr').textContent = /duplicate|unique/i.test(r.error.message || '') ? t('herDup') : /story_heritage|schema cache|does not exist/i.test(r.error.message || '') ? t('herNeedSql') : errText(r.error); return; }
+    $('herUri').value = ''; $('herLabel').value = '';
+    renderHeritage(s); notifyAnn();
+  };
+
   // ---- Σχόλια ειδικού σε γραμμή της απομαγνητοφώνησης: τα βλέπουν όλοι στην εφαρμογή και στην ιστοσελίδα, τη στιγμή που ακούγεται η γραμμή ----
   function commentsBlock(seg, m, data, repaint) {
     data.comments = data.comments || [];
@@ -4743,26 +4843,26 @@
   });
 
   // --- Εξαγωγή JSON-LD (HDT ontology + CIDOC-CRM + Web Annotation) ---
-  // Το HDTO v0.1 δεν δημοσιεύει ακόμη επίσημο namespace· ορίστε WM_CONFIG.HDT_NS όταν υπάρξει.
+  // Namespace του ECHOES HDTO (όπως στη βάση γνώσης ECHOES και στο OCRA)· αλλάζει από το WM_CONFIG.HDT_NS.
   var KIND_CLASS = { person: 'crm:E21_Person', place: 'crm:E53_Place', event: 'crm:E5_Event', object: 'crm:E70_Thing', material: 'crm:E57_Materials', concept: 'crm:E55_Type' };
 
   function buildJsonLd(s, k) {
     var sid = 'urn:walkingmemory:story:' + s.dbId;
     var entity = sid + '#heritage-entity', twin = sid + '#digital-twin', narrative = sid + '#narrative';
     var graph = [];
-    var narr = { '@id': narrative, '@type': 'nont:Narrative', 'hdt:HP10_tells_about': [], 'crm:P67_refers_to': [] };
+    var narr = { '@id': narrative, '@type': 'nont:Narrative', 'hdto:HP10_tells_about': [], 'crm:P67_refers_to': [] };
     var ent = {
-      '@id': entity, '@type': 'hdt:HC1_Heritage_Entity', 'rdfs:label': st(s).title,
+      '@id': entity, '@type': 'hdto:HC1_Heritage_Entity', 'rdfs:label': st(s).title,
       'crm:P168_place_is_defined_by': { '@type': 'geo:wktLiteral', '@value': 'POINT(' + s.lon + ' ' + s.lat + ')' },
       'dcterms:creator': s.author || undefined, 'dcterms:identifier': s.dbId,
-      'hdt:HP1_has_digital_twin': { '@id': twin }, 'hdt:HP2_has_story': { '@id': narrative }
+      'hdto:HP1_has_digital_twin': { '@id': twin }, 'hdto:HP2_has_story': { '@id': narrative }
     };
-    graph.push(ent, { '@id': twin, '@type': 'hdt:HC2_Heritage_Digital_Twin', 'crm:P67_refers_to': { '@id': entity } }, narr);
+    graph.push(ent, { '@id': twin, '@type': 'hdto:HC2_Heritage_Digital_Twin', 'crm:P67_refers_to': { '@id': entity } }, narr);
 
     var repById = {};
     s.media.forEach(function (m) {
       if (!m.id) return;
-      var rep = { '@id': m.url, '@type': m.kind === 'audio' ? 'hdt:HC5_Digital_Representation' : 'hdt:HC7_Digital_Visual_Object', 'hdt:HP22_represents': { '@id': entity },
+      var rep = { '@id': m.url, '@type': m.kind === 'audio' ? 'hdto:HC5_Digital_Representation' : 'hdto:HC7_Digital_Visual_Object', 'hdto:HP22_represents': { '@id': entity },
         'dcterms:format': m.kind };
       // στοιχεία αρχείου: τίτλος, ταυτότητα, ημερομηνία καταγραφής, περίοδος, τοποθεσία
       if (m.title) rep['rdfs:label'] = m.title;
@@ -4771,16 +4871,16 @@
       if (m.period) rep['dcterms:temporal'] = m.period;
       if (m.lat != null && m.lon != null) rep['dcterms:spatial'] = { '@type': 'crm:E53_Place', 'crm:P168_place_is_defined_by': { '@type': 'geo:wktLiteral', '@value': 'POINT(' + m.lon + ' ' + m.lat + ')' } };
 
-      if (m.kind === 'image') rep['hdt:HP9_is_visual_representation_of'] = { '@id': entity };
+      if (m.kind === 'image') rep['hdto:HP9_is_visual_representation_of'] = { '@id': entity };
       repById[m.id] = rep;
       graph.push(rep);
       if (m.kind === 'image') return;
       var tr = k.transcripts.filter(function (x) { return x.media_id === m.id && x.status === 'done'; })[0];
-      var narration = { '@id': sid + '#narration-' + m.id, '@type': 'nont:Narration', 'hdt:HP4_narrates': { '@id': narrative }, 'crm:P165_incorporates': { '@id': m.url } };
+      var narration = { '@id': sid + '#narration-' + m.id, '@type': 'nont:Narration', 'hdto:HP4_narrates': { '@id': narrative }, 'crm:P165_incorporates': { '@id': m.url } };
       if (tr) {
         var doc = sid + '#transcript-' + m.id;
-        narration['hdt:HP8_is_narrated_in_document'] = { '@id': doc };
-        graph.push({ '@id': doc, '@type': ['hdt:HC6_Digital_Document', 'crm:E31_Document'], 'hdt:HP11_documents': { '@id': entity }, 'dcterms:language': tr.language, 'rdf:value': tr.text });
+        narration['hdto:HP8_is_narrated_in_document'] = { '@id': doc };
+        graph.push({ '@id': doc, '@type': ['hdto:HC6_Digital_Document', 'crm:E31_Document'], 'hdto:HP11_documents': { '@id': entity }, 'dcterms:language': tr.language, 'rdf:value': tr.text });
       }
       graph.push(narration);
     });
@@ -4811,7 +4911,7 @@
         }
         return;
       }
-      narr[a.kind === 'event' ? 'hdt:HP10_tells_about' : 'crm:P67_refers_to'].push({ '@id': a.term_uri });
+      narr[a.kind === 'event' ? 'hdto:HP10_tells_about' : 'crm:P67_refers_to'].push({ '@id': a.term_uri });
       graph.push({
         '@id': sid + '#annotation-' + a.id, '@type': 'oa:Annotation', 'oa:motivation': { '@id': 'oa:tagging' },
         'oa:hasBody': { '@id': a.term_uri },
@@ -4833,6 +4933,11 @@
           'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + l.start_s + ',' + l.end_s } }
       });
     });
+    (k.heritage || []).forEach(function (h) {             // αντικείμενα κληρονομιάς στο ECHOES (π.χ. από το OCRA)
+      narr['crm:P67_refers_to'].push({ '@id': h.uri });
+      var he = { '@id': h.uri, '@type': 'hdto:HC1_Heritage_Entity' }; if (h.label) he['rdfs:label'] = h.label;
+      graph.push(he);
+    });
     (k.comments || []).forEach(function (c) {
       var m = mediaById(s, c.media_id); if (!m) return;
       var body = { '@type': 'oa:TextualBody', 'rdf:value': c.body, 'dcterms:format': 'text/plain' };
@@ -4843,12 +4948,12 @@
           'oa:hasSelector': { '@type': 'oa:FragmentSelector', 'dcterms:conformsTo': { '@id': 'http://www.w3.org/TR/media-frags/' }, 'rdf:value': 't=' + c.start_s + ',' + c.end_s } } : { 'oa:hasSource': { '@id': m.url } }
       });
     });
-    if (!narr['hdt:HP10_tells_about'].length) delete narr['hdt:HP10_tells_about'];
+    if (!narr['hdto:HP10_tells_about'].length) delete narr['hdto:HP10_tells_about'];
     if (!narr['crm:P67_refers_to'].length) delete narr['crm:P67_refers_to'];
 
     return {
       '@context': {
-        crm: 'http://www.cidoc-crm.org/cidoc-crm/', hdt: CFG.HDT_NS || 'urn:echoes:hdto:', nont: 'https://dlnarratives.eu/ontology/',
+        crm: 'http://www.cidoc-crm.org/cidoc-crm/', hdto: CFG.HDT_NS || 'http://isl.ics.forth.gr/ontology/echoes/', nont: 'https://dlnarratives.eu/ontology/',
         oa: 'http://www.w3.org/ns/oa#', skos: 'http://www.w3.org/2004/02/skos/core#', dcterms: 'http://purl.org/dc/terms/',
         rdfs: 'http://www.w3.org/2000/01/rdf-schema#', rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
         geo: 'http://www.opengis.net/ont/geosparql#', xsd: 'http://www.w3.org/2001/XMLSchema#'
@@ -5032,7 +5137,8 @@
     renderSheetMedia(s);
     renderKnowledge(s);
     renderOrder(s);
-    try { renderLocMap(s); } catch (e) { try { console.warn('map', e); } catch (_) {} }      // ο χάρτης δεν πρέπει να εμποδίζει τον σχολιασμό
+    try { renderLocMap(s); } catch (e) { try { console.warn('map', e); } catch (_) {} }
+    renderHeritage(s);      // ο χάρτης δεν πρέπει να εμποδίζει τον σχολιασμό
     annListeners = [];
     buildAnnotate();
     renderList();
