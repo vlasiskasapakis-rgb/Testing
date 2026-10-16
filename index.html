@@ -932,22 +932,29 @@
   </div>
 </div>
 
-<!-- Στοιχεία αρχείου: τίτλος, ταυτότητα, χρόνος, τοποθεσία -->
+<!-- Στοιχεία αρχείου: τίτλος και ποιος, τι, πού, πότε (όλα προαιρετικά) -->
 <div id="mediaInfoSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="miHeading">
   <div class="sheet-inner">
     <h2 id="miHeading"></h2>
+    <p class="sheet-sub" data-i18n="miIntro"></p>
     <div class="input-group"><label for="miTitleIn" data-i18n="miTitle"></label><input type="text" id="miTitleIn" maxlength="120" autocomplete="off"></div>
     <div class="input-group"><label for="miAboutIn" data-i18n="miAbout"></label><input type="text" id="miAboutIn" maxlength="200" autocomplete="off" data-i18n-ph="miAboutPh"></div>
-    <div class="input-group"><label for="miDateIn" data-i18n="miDate"></label><input type="date" id="miDateIn"></div>
-    <div class="input-group"><label for="miPeriodIn" data-i18n="miPeriod"></label><input type="text" id="miPeriodIn" maxlength="120" autocomplete="off" data-i18n-ph="miPeriodPh"></div>
+    <div class="input-group"><label for="miWhatIn" data-i18n="miWhat"></label><input type="text" id="miWhatIn" maxlength="200" autocomplete="off" data-i18n-ph="miWhatPh"></div>
     <div class="input-group">
-      <span class="group-label" id="miLocLabel" data-i18n="miLoc"></span>
+      <label for="miPlaceIn" data-i18n="miWhere"></label><input type="text" id="miPlaceIn" maxlength="200" autocomplete="off" data-i18n-ph="miWherePh">
+      <span class="group-label" id="miLocLabel" data-i18n="miLoc" style="margin-top:10px"></span>
       <div id="miLocText" class="loc-box" aria-labelledby="miLocLabel"></div>
       <div class="loc-actions">
         <button type="button" class="btn-secondary" id="miLocGps" data-i18n="miLocGps"></button>
         <button type="button" class="btn-secondary" id="miLocMap" data-i18n="miLocMap"></button>
+        <button type="button" class="link-btn" id="miLocClear" data-i18n="miLocClear"></button>
       </div>
     </div>
+    <div class="input-group">
+      <label for="miPeriodIn" data-i18n="miPeriod"></label><input type="text" id="miPeriodIn" maxlength="120" autocomplete="off" data-i18n-ph="miPeriodPh">
+      <label for="miDecadeIn" data-i18n="miDecade" style="margin-top:8px"></label><select id="miDecadeIn" class="lang-select"></select>
+    </div>
+    <div class="input-group"><label for="miDateIn" data-i18n="miDate"></label><input type="date" id="miDateIn"></div>
     <div class="btn-row">
       <button type="button" class="btn-secondary" id="miCancel" data-i18n="cancel"></button>
       <button type="button" class="btn-primary" id="miSave" data-i18n="miSave"></button>
@@ -1173,12 +1180,27 @@
       movedTo: "{name}: θέση {i} από {n}",
       miDetails: "Στοιχεία",
       miTitle: "Τίτλος",
-      miAbout: "Ταυτότητα: ποιος ή τι αφορά",
-      miAboutPh: "π.χ. η γιαγιά Μαρία, το καφενείο του Νίκου",
+      miAbout: "Ποιος; Ποιοι είναι μέσα ή για ποιον μιλάει",
+      miAboutPh: "π.χ. η γιαγιά Μαρία, οι ψαράδες του λιμανιού",
+      miIntro: "Απάντησε ό,τι ξέρεις· όλες οι ερωτήσεις είναι προαιρετικές και αρκεί κάτι κατά προσέγγιση.",
+      miWhat: "Τι; Τι είναι (αντικείμενο, γεγονός, έθιμο, μαγαζί…)",
+      miWhatPh: "π.χ. το καφενείο του Νίκου, το πανηγύρι του 1965, ένα τραγούδι του γάμου",
+      miWhere: "Πού έγινε; (όνομα του τόπου)",
+      miWherePh: "π.χ. το παλιό λιμάνι, η πλατεία της Επάνω Σκάλας, Σμύρνη",
+      miLocClear: "Χωρίς σημείο",
+      miDecade: "Δεκαετία (προαιρετικό)",
+      miDecadeNone: "— δεν ξέρω —",
+      decadeOf: "δεκαετία του {d}",
+      miAnswered: "{n} από 4 απαντήσεις",
+      capWho: "Ποιος: {v}",
+      capWhat: "Τι: {v}",
+      capWhen: "Πότε: {v}",
+      capWhere: "Πού:",
+      w4NotSaved: "Η ιστορία ανέβηκε, αλλά τα «τι», «πού» (όνομα τόπου) και η δεκαετία ΔΕΝ αποθηκεύτηκαν, επειδή η βάση δεν έχει ακόμα τις νέες στήλες. Ζητήστε από τον διαχειριστή να τρέξει το supabase/roles.sql.",
       miDate: "Ημερομηνία καταγραφής",
-      miPeriod: "Περίοδος που αφορά",
-      miPeriodPh: "π.χ. καλοκαίρι 1965, δεκαετία του '50",
-      miLoc: "Τοποθεσία",
+      miPeriod: "Πότε έγινε;",
+      miPeriodPh: "π.χ. καλοκαίρι 1965, μετά τον πόλεμο",
+      miLoc: "Σημείο στον χάρτη (προαιρετικό, αν μπορείς να το δείξεις)",
       miLocGps: "Η τοποθεσία μου (GPS)",
       miLocMap: "Επιλογή από χάρτη",
       locHint: "Εκεί θα εμφανίζεται η ιστορία στην εφαρμογή. Από προεπιλογή είναι το στίγμα σου· αν η ιστορία αφορά άλλο μέρος, διάλεξέ το στον χάρτη.",
@@ -1225,7 +1247,7 @@
       noteBy: "— {n}",
       miLocNone: "Δεν έχει οριστεί τοποθεσία",
       miSave: "Αποθήκευση στοιχείων",
-      miEmpty: "Πρόσθεσε τίτλο, ημερομηνία και τοποθεσία",
+      miEmpty: "Ποιος, τι, πού, πότε",
       pickTitle: "Διάλεξε τοποθεσία",
       pickHint: "Πάτησε στον χάρτη για να βάλεις τον δείκτη.",
       pickUse: "Χρήση αυτής της τοποθεσίας",
@@ -1528,12 +1550,27 @@
       movedTo: "{name}: position {i} of {n}",
       miDetails: "Details",
       miTitle: "Title",
-      miAbout: "Identity: who or what it is about",
-      miAboutPh: "e.g. Grandma Maria, Nikos's café",
+      miAbout: "Who? Who is in it or who is it about",
+      miAboutPh: "e.g. Grandma Maria, the harbour fishermen",
+      miIntro: "Answer what you know; every question is optional and an approximate answer is fine.",
+      miWhat: "What? What is it (an object, an event, a custom, a shop…)",
+      miWhatPh: "e.g. Nikos's café, the 1965 village feast, a wedding song",
+      miWhere: "Where did it happen? (name of the place)",
+      miWherePh: "e.g. the old harbour, the square of Epano Skala, Smyrna",
+      miLocClear: "No point",
+      miDecade: "Decade (optional)",
+      miDecadeNone: "— not sure —",
+      decadeOf: "the {d}s",
+      miAnswered: "{n} of 4 answered",
+      capWho: "Who: {v}",
+      capWhat: "What: {v}",
+      capWhen: "When: {v}",
+      capWhere: "Where:",
+      w4NotSaved: "The story was uploaded, but “what”, “where” (place name) and the decade were NOT saved because the database does not have the new columns yet. Ask the administrator to run supabase/roles.sql.",
       miDate: "Date recorded",
-      miPeriod: "Period it refers to",
-      miPeriodPh: "e.g. summer 1965, the 1950s",
-      miLoc: "Location",
+      miPeriod: "When did it happen?",
+      miPeriodPh: "e.g. summer 1965, after the war",
+      miLoc: "Point on the map (optional, if you can show it)",
       miLocGps: "My location (GPS)",
       miLocMap: "Pick on the map",
       locHint: "This is where the story appears in the app. By default it is your position; if the story is about another place, choose it on the map.",
@@ -1580,7 +1617,7 @@
       noteBy: "— {n}",
       miLocNone: "No location set",
       miSave: "Save details",
-      miEmpty: "Add a title, date and location",
+      miEmpty: "Who, what, where, when",
       pickTitle: "Choose a location",
       pickHint: "Tap the map to place the marker.",
       pickUse: "Use this location",
@@ -1883,12 +1920,27 @@
       movedTo: "{name} : position {i} sur {n}",
       miDetails: "Détails",
       miTitle: "Titre",
-      miAbout: "Identité : de qui ou de quoi il s'agit",
-      miAboutPh: "p. ex. Grand-mère Maria, le café de Nikos",
+      miAbout: "Qui ? Qui y figure ou de qui parle-t-on",
+      miAboutPh: "p. ex. Grand-mère Maria, les pêcheurs du port",
+      miIntro: "Répondez à ce que vous savez ; chaque question est facultative et une réponse approximative suffit.",
+      miWhat: "Quoi ? De quoi s'agit-il (objet, événement, coutume, boutique…)",
+      miWhatPh: "p. ex. le café de Nikos, la fête du village en 1965, une chanson de mariage",
+      miWhere: "Où cela s'est-il passé ? (nom du lieu)",
+      miWherePh: "p. ex. le vieux port, la place d'Epano Skala, Smyrne",
+      miLocClear: "Sans point",
+      miDecade: "Décennie (facultatif)",
+      miDecadeNone: "— je ne sais pas —",
+      decadeOf: "années {d}",
+      miAnswered: "{n} réponses sur 4",
+      capWho: "Qui : {v}",
+      capWhat: "Quoi : {v}",
+      capWhen: "Quand : {v}",
+      capWhere: "Où :",
+      w4NotSaved: "L'histoire a été envoyée, mais « quoi », « où » (nom du lieu) et la décennie n'ont PAS été enregistrés car la base n'a pas encore les nouvelles colonnes. Demandez à l'administrateur d'exécuter supabase/roles.sql.",
       miDate: "Date d'enregistrement",
-      miPeriod: "Période concernée",
-      miPeriodPh: "p. ex. été 1965, années 1950",
-      miLoc: "Lieu",
+      miPeriod: "Quand cela s'est-il passé ?",
+      miPeriodPh: "p. ex. été 1965, après la guerre",
+      miLoc: "Point sur la carte (facultatif, si vous pouvez le montrer)",
       miLocGps: "Ma position (GPS)",
       miLocMap: "Choisir sur la carte",
       locHint: "C’est là que l’histoire apparaît dans l’application. Par défaut, c’est votre position ; si l’histoire parle d’un autre lieu, choisissez-le sur la carte.",
@@ -1935,7 +1987,7 @@
       noteBy: "— {n}",
       miLocNone: "Aucun lieu défini",
       miSave: "Enregistrer les détails",
-      miEmpty: "Ajoutez un titre, une date et un lieu",
+      miEmpty: "Qui, quoi, où, quand",
       pickTitle: "Choisissez un lieu",
       pickHint: "Touchez la carte pour placer le repère.",
       pickUse: "Utiliser ce lieu",
@@ -2238,12 +2290,27 @@
       movedTo: "{name}: posizione {i} di {n}",
       miDetails: "Dettagli",
       miTitle: "Titolo",
-      miAbout: "Identità: di chi o di cosa si tratta",
-      miAboutPh: "es. nonna Maria, il caffè di Nikos",
+      miAbout: "Chi? Chi c'è o di chi si parla",
+      miAboutPh: "es. Nonna Maria, i pescatori del porto",
+      miIntro: "Rispondi a ciò che sai; ogni domanda è facoltativa e basta una risposta approssimativa.",
+      miWhat: "Cosa? Che cos'è (un oggetto, un evento, un'usanza, un negozio…)",
+      miWhatPh: "es. il caffè di Nikos, la festa del paese del 1965, una canzone nuziale",
+      miWhere: "Dove è successo? (nome del luogo)",
+      miWherePh: "es. il vecchio porto, la piazza di Epano Skala, Smirne",
+      miLocClear: "Nessun punto",
+      miDecade: "Decennio (facoltativo)",
+      miDecadeNone: "— non so —",
+      decadeOf: "anni {d}",
+      miAnswered: "{n} risposte su 4",
+      capWho: "Chi: {v}",
+      capWhat: "Cosa: {v}",
+      capWhen: "Quando: {v}",
+      capWhere: "Dove:",
+      w4NotSaved: "La storia è stata caricata, ma «cosa», «dove» (nome del luogo) e il decennio NON sono stati salvati perché il database non ha ancora le nuove colonne. Chiedi all'amministratore di eseguire supabase/roles.sql.",
       miDate: "Data di registrazione",
-      miPeriod: "Periodo a cui si riferisce",
-      miPeriodPh: "es. estate 1965, anni '50",
-      miLoc: "Luogo",
+      miPeriod: "Quando è successo?",
+      miPeriodPh: "es. estate 1965, dopo la guerra",
+      miLoc: "Punto sulla mappa (facoltativo, se puoi indicarlo)",
       miLocGps: "La mia posizione (GPS)",
       miLocMap: "Scegli sulla mappa",
       locHint: "È qui che la storia appare nell’app. Di base è la tua posizione; se la storia parla di un altro luogo, sceglilo sulla mappa.",
@@ -2290,7 +2357,7 @@
       noteBy: "— {n}",
       miLocNone: "Nessun luogo impostato",
       miSave: "Salva i dettagli",
-      miEmpty: "Aggiungi titolo, data e luogo",
+      miEmpty: "Chi, cosa, dove, quando",
       pickTitle: "Scegli un luogo",
       pickHint: "Tocca la mappa per posizionare il segnaposto.",
       pickUse: "Usa questo luogo",
@@ -3294,7 +3361,8 @@
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
-          title: m.title || '', about: m.about || '', recorded: m.recorded_at || '', period: m.period || '', lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
+          title: m.title || '', about: m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '', period: m.period || '', decade: m.decade || null,
+          lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
   }
@@ -3310,7 +3378,9 @@
     try {
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
-      var r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
+      var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name,decade)');                     // ποιος/τι/πού/πότε
+      var r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');
+      if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');   // βάση χωρίς πίνακα συναινέσεων
       if (r.error) r = await sb.from('stories').select(cols).order('created_at');              // βάση χωρίς στήλη status
@@ -3328,7 +3398,7 @@
     publish: async function (title, pos, files, onProgress, consentId, consentCode) {
       if (!sb || !currentUser) throw new Error(t('loginToAdd'));
       if (!consentId) throw new Error(t('consentNeedAll'));
-      var uid = currentUser.id, sid = crypto.randomUUID(), uploaded = [], rows = [], detailsDropped = false;
+      var uid = currentUser.id, sid = crypto.randomUUID(), uploaded = [], rows = [], detailsDropped = false, w4Dropped = false;
       try {
         for (var i = 0; i < files.length; i++) {
           onProgress(i + 1, files.length);
@@ -3339,12 +3409,17 @@
           if (up.error) throw up.error;
           uploaded.push(path);
           var inf = f.info || {};
-          rows.push({ story_id: sid, kind: f.kind, path: path, position: i, title: inf.title || null, about: inf.about || null, recorded_at: inf.recorded || null, period: inf.period || null, lat: inf.lat == null ? null : inf.lat, lon: inf.lon == null ? null : inf.lon });
+          rows.push({ story_id: sid, kind: f.kind, path: path, position: i, title: inf.title || null, about: inf.about || null, what: inf.what || null, place_name: inf.place || null,
+            recorded_at: inf.recorded || null, period: inf.period || null, decade: inf.decade || null, lat: inf.lat == null ? null : inf.lat, lon: inf.lon == null ? null : inf.lon });
         }
         var author = userName(currentUser);
         var ins = await sb.from('stories').insert({ id: sid, title: title, lat: pos.lat, lon: pos.lon, author_name: author, consent_id: consentId });
         if (ins.error) throw ins.error;
         var mi = await sb.from('story_media').insert(rows).select('id,position');
+        if (mi.error && /what|place_name|decade/i.test(mi.error.message || '')) {
+          w4Dropped = true;            // βάση χωρίς τις στήλες τι/πού/δεκαετία (roles.sql): τα υπόλοιπα στοιχεία αποθηκεύονται
+          mi = await sb.from('story_media').insert(rows.map(function (r) { var c = Object.assign({}, r); delete c.what; delete c.place_name; delete c.decade; return c; })).select('id,position');
+        }
         if (mi.error && /column|schema cache/i.test(mi.error.message || '')) {
           detailsDropped = true;       // βάση χωρίς τις νέες στήλες (roles.sql): ανεβαίνει χωρίς τα στοιχεία αρχείου
           mi = await sb.from('story_media').insert(rows.map(function (r) { return { story_id: r.story_id, kind: r.kind, path: r.path, position: r.position }; })).select('id,position');
@@ -3357,8 +3432,9 @@
         throw e;
       }
       var created = storyFromRow({ id: sid, user_id: uid, status: 'draft', consent_id: consentId, consents: consentCode ? { code: consentCode } : null, title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
-        story_media: rows.map(function (r) { return detailsDropped ? { id: r.id, kind: r.kind, path: r.path, position: r.position } : { id: r.id, kind: r.kind, path: r.path, position: r.position, title: r.title, about: r.about, recorded_at: r.recorded_at, period: r.period, lat: r.lat, lon: r.lon }; }) });
+        story_media: rows.map(function (r) { return detailsDropped ? { id: r.id, kind: r.kind, path: r.path, position: r.position } : w4Dropped ? { id: r.id, kind: r.kind, path: r.path, position: r.position, title: r.title, about: r.about, recorded_at: r.recorded_at, period: r.period, lat: r.lat, lon: r.lon } : r; }) });
       created.detailsDropped = detailsDropped;
+      created.w4Dropped = w4Dropped && !detailsDropped;
       return created;
     }
   };
@@ -3667,15 +3743,22 @@
     var box = document.createElement('div'); box.className = 'media-cap';
     if (m.title && !skipTitle) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
     if (!titleOnly) {
-      var bits = [];
-      if (m.about) bits.push(m.about);
+      // ποιος · τι · πότε, και πού (το όνομα του τόπου γίνεται σύνδεσμος στον χάρτη όταν υπάρχει σημείο)
+      var bits = [], when = [m.period, m.decade ? t('decadeOf', { d: m.decade }) : ''].filter(Boolean).join(', ');
+      if (m.about) bits.push(t('capWho', { v: m.about }));
+      if (m.what) bits.push(t('capWhat', { v: m.what }));
+      if (when) bits.push(t('capWhen', { v: when }));
       if (m.recorded) bits.push(t('miRecorded') + ' ' + m.recorded);
-      if (m.period) bits.push(m.period);
       if (bits.length) { var p = document.createElement('div'); p.textContent = bits.join(' · '); box.appendChild(p); }
-      if (m.lat != null && m.lon != null) {
-        var a = document.createElement('a'); a.href = osmLink(m.lat, m.lon); a.target = '_blank'; a.rel = 'noopener';
-        a.textContent = '📍 ' + (+m.lat).toFixed(5) + ', ' + (+m.lon).toFixed(5); a.setAttribute('aria-label', t('miOpenMap') + ': ' + (m.title || ''));
-        box.appendChild(a);
+      if (m.place || (m.lat != null && m.lon != null)) {
+        var wh = document.createElement('div'); wh.appendChild(document.createTextNode('📍 ' + t('capWhere') + ' '));
+        var label = m.place || (+m.lat).toFixed(5) + ', ' + (+m.lon).toFixed(5);
+        if (m.lat != null && m.lon != null) {
+          var a = document.createElement('a'); a.href = osmLink(m.lat, m.lon); a.target = '_blank'; a.rel = 'noopener';
+          a.textContent = label; a.setAttribute('aria-label', t('miOpenMap') + ': ' + label);
+          wh.appendChild(a);
+        } else wh.appendChild(document.createTextNode(label));
+        box.appendChild(wh);
       }
     }
     return box.children.length ? box : null;
@@ -5014,19 +5097,21 @@
     leaveEditor(document.querySelector('#mediaList [data-act="edit"][data-i="' + idx + '"]'));
   };
 
-  // Στοιχεία αρχείου: τίτλος, ταυτότητα (ποιος/τι), ημερομηνία καταγραφής, περίοδος που αφορά, τοποθεσία (αρχικά το GPS)
+  // Στοιχεία αρχείου: τίτλος, ποιος, τι, πού (όνομα τόπου και, αν γίνεται, σημείο στον χάρτη), πότε (κείμενο και δεκαετία), ημερομηνία καταγραφής
   function isoDate(ms) { var d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function defaultInfo(file) {
     var lm = file && file.lastModified ? file.lastModified : Date.now();
-    return { title: '', about: '', recorded: isoDate(lm), period: '', lat: me ? me.lat : null, lon: me ? me.lon : null };
+    return { title: '', about: '', what: '', place: '', recorded: isoDate(lm), period: '', decade: null, lat: null, lon: null };   // πού: όπου έγινε, όχι όπου γίνεται η καταγραφή
   }
   function infoOf(f) { if (!f.info) f.info = defaultInfo(f.originalFile); return f.info; }
   function infoSummary(f) {
-    var i = infoOf(f), bits = [];
+    var i = infoOf(f), bits = [], n = 0;
     if (i.title) bits.push(i.title);
-    if (i.recorded) bits.push(i.recorded);
-    if (i.lat != null) bits.push('📍 ' + (+i.lat).toFixed(4) + ', ' + (+i.lon).toFixed(4));
-    return bits.length ? bits.join(' · ') : t('miEmpty');
+    ['about', 'what', 'place', 'period'].forEach(function (k) { if (i[k] || (k === 'place' && i.lat != null) || (k === 'period' && i.decade)) n++; });
+    if (i.place || i.lat != null) bits.push('📍 ' + (i.place || (+i.lat).toFixed(4) + ', ' + (+i.lon).toFixed(4)));
+    if (i.period || i.decade) bits.push(i.period || t('decadeOf', { d: i.decade }));
+    bits.push(t('miAnswered', { n: n }));
+    return bits.join(' · ');
   }
 
   function describeChanges(f) {
@@ -5076,26 +5161,36 @@
 
   // ---- Φόρμα στοιχείων αρχείου ----
   var miIndex = -1, miLoc = { lat: null, lon: null };
-  function miShowLoc() { $('miLocText').textContent = miLoc.lat != null ? (+miLoc.lat).toFixed(5) + ', ' + (+miLoc.lon).toFixed(5) : t('miLocNone'); }
+  function miShowLoc() { $('miLocText').textContent = miLoc.lat != null ? (+miLoc.lat).toFixed(5) + ', ' + (+miLoc.lon).toFixed(5) : t('miLocNone'); $('miLocClear').hidden = miLoc.lat == null; }
   function openMediaInfo(i) {
     var f = processedFiles[i]; if (!f) return;
     miIndex = i; var info = infoOf(f);
     $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f);
-    $('miTitleIn').value = info.title; $('miAboutIn').value = info.about; $('miDateIn').value = info.recorded; $('miPeriodIn').value = info.period;
+    $('miTitleIn').value = info.title; $('miAboutIn').value = info.about; $('miWhatIn').value = info.what || ''; $('miPlaceIn').value = info.place || '';
+    $('miDateIn').value = info.recorded; $('miPeriodIn').value = info.period; fillDecades(); $('miDecadeIn').value = info.decade ? String(info.decade) : '';
     miLoc = { lat: info.lat, lon: info.lon }; miShowLoc();
     $('miLocGps').disabled = !me;
     openDialog('mediaInfoSheet', $('miTitleIn'));
   }
   $('miLocGps').onclick = function () { if (!me) return; miLoc = { lat: me.lat, lon: me.lon }; miShowLoc(); };
+  $('miLocClear').onclick = function () { miLoc = { lat: null, lon: null }; miShowLoc(); };
+  // Δεκαετία (προαιρετική): βοηθά στην αναζήτηση και στη χρονογραμμή όταν το «πότε» είναι ελεύθερο κείμενο
+  function fillDecades() {
+    var sel = $('miDecadeIn'), cur = sel.value; sel.innerHTML = '';
+    var o0 = document.createElement('option'); o0.value = ''; o0.textContent = t('miDecadeNone'); sel.appendChild(o0);
+    for (var d = 1880; d <= 2020; d += 10) { var o = document.createElement('option'); o.value = String(d); o.textContent = t('decadeOf', { d: d }); sel.appendChild(o); }
+    sel.value = cur;
+  }
   $('miCancel').onclick = function () { closeDialog('mediaInfoSheet'); };
   escHandlers.mediaInfoSheet = function () { closeDialog('mediaInfoSheet'); };
   $('miSave').onclick = function () {
     var f = processedFiles[miIndex]; if (!f) { closeDialog('mediaInfoSheet'); return; }
-    f.info = { title: $('miTitleIn').value.trim(), about: $('miAboutIn').value.trim(), recorded: $('miDateIn').value, period: $('miPeriodIn').value.trim(), lat: miLoc.lat, lon: miLoc.lon };
+    f.info = { title: $('miTitleIn').value.trim(), about: $('miAboutIn').value.trim(), what: $('miWhatIn').value.trim(), place: $('miPlaceIn').value.trim(),
+      recorded: $('miDateIn').value, period: $('miPeriodIn').value.trim(), decade: $('miDecadeIn').value ? +$('miDecadeIn').value : null, lat: miLoc.lat, lon: miLoc.lon };
     updateMediaListUI();
     closeDialog('mediaInfoSheet');
   };
-  onLangChange(function () { if ($('mediaInfoSheet').classList.contains('on')) { miShowLoc(); var f = processedFiles[miIndex]; if (f) $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f); } });
+  onLangChange(function () { if ($('mediaInfoSheet').classList.contains('on')) { miShowLoc(); fillDecades(); var f = processedFiles[miIndex]; if (f) $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f); } });
 
   // Επιλογή τοποθεσίας από χάρτη (Leaflet)
   var pickMap = null, pickMarker = null, pickPoint = null;
@@ -5106,7 +5201,11 @@
     pickShow();
   }
   var pickFor = 'file';          // 'file': στοιχεία αρχείου · 'story': τοποθεσία ιστορίας
-  $('miLocMap').onclick = function () { openPicker('file', miLoc.lat != null ? { lat: miLoc.lat, lon: miLoc.lon } : null); };
+  $('miLocMap').onclick = function () {
+    openPicker('file', miLoc.lat != null ? { lat: miLoc.lat, lon: miLoc.lon } : null);
+    var nm = $('miPlaceIn').value.trim();     // το όνομα του τόπου γίνεται αναζήτηση στον χάρτη
+    if (nm && miLoc.lat == null) { $('placeSearchIn').value = nm; $('placeSearchForm').requestSubmit ? $('placeSearchForm').requestSubmit() : $('placeSearchForm').dispatchEvent(new Event('submit', { cancelable: true })); }
+  };
   $('storyLocMap').onclick = function () { openPicker('story', storyLoc ? { lat: storyLoc.lat, lon: storyLoc.lon } : null); };
   $('storyLocGps').onclick = function () { storyLoc = null; $('locError').textContent = ''; renderLoc(); announce($('locDisplay').textContent); };
   function openPicker(target, start) {
@@ -5136,7 +5235,10 @@
       if (!d.length) { var n = document.createElement('li'); n.className = 'none'; n.textContent = t('placeNone'); ul.appendChild(n); return; }
       d.forEach(function (x) {
         var li = document.createElement('li'), b = document.createElement('button'); b.type = 'button'; b.textContent = x.display_name;
-        b.onclick = function () { var la = +x.lat, lo = +x.lon; pickSet(la, lo); if (pickMap) pickMap.setView([la, lo], 17); ul.innerHTML = ''; $('pickUse').focus(); };
+        b.onclick = function () {
+          var la = +x.lat, lo = +x.lon; pickSet(la, lo); if (pickMap) pickMap.setView([la, lo], 17); ul.innerHTML = ''; $('pickUse').focus();
+          if (pickFor === 'file' && !$('miPlaceIn').value.trim()) $('miPlaceIn').value = String(x.name || x.display_name || '').split(',')[0].slice(0, 200);   // χωρίς όνομα: παίρνει το όνομα του αποτελέσματος
+        };
         li.appendChild(b); ul.appendChild(li);
       });
     } catch (e) { var er = document.createElement('li'); er.className = 'none'; er.textContent = t('placeErr', { e: e.message || e }); ul.appendChild(er); }
@@ -5395,6 +5497,7 @@
       addStoryRuntime(story);
       announce(t('published'));
       if (story.detailsDropped) alert(t('detailsNotSaved'));
+      if (story.w4Dropped) alert(t('w4NotSaved'));
       alert(t('uploadDone'));
       finishStoryFlow();
     } catch (e) {

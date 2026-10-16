@@ -1119,6 +1119,11 @@
       locMapTitle: "Χάρτης τοποθεσιών",
       detViaPlace: "κοντά στην τοποθεσία του αρχείου",
       miRecorded: "Καταγράφηκε",
+      capWho: "Ποιος: {v}",
+      capWhat: "Τι: {v}",
+      capWhen: "Πότε: {v}",
+      capWhere: "Πού:",
+      decadeOf: "δεκαετία του {d}",
       miOpenMap: "Άνοιγμα στον χάρτη",
       siteTitle: "Walking Memory · Σχολιασμός",
       tabRec: "Απομαγνητοφώνηση και όροι",
@@ -1579,11 +1584,13 @@
       locMapTitle: "Map of locations",
       detViaPlace: "near the file's location",
       miRecorded: "Recorded",
+      capWho: "Who: {v}",
+      capWhat: "What: {v}",
+      capWhen: "When: {v}",
+      capWhere: "Where:",
+      decadeOf: "the {d}s",
       miOpenMap: "Open in map",
       siteTitle: "Walking Memory · Annotation",
-      tabRec: "Transcription et termes",
-      tabImg: "Images",
-      followPb: "Suivre la lecture",
       tabRec: "Transcript & terms",
       tabImg: "Images",
       followPb: "Follow playback",
@@ -2042,6 +2049,11 @@
       locMapTitle: "Carte des lieux",
       detViaPlace: "près du lieu du fichier",
       miRecorded: "Enregistré",
+      capWho: "Qui : {v}",
+      capWhat: "Quoi : {v}",
+      capWhen: "Quand : {v}",
+      capWhere: "Où :",
+      decadeOf: "années {d}",
       miOpenMap: "Ouvrir dans la carte",
       siteTitle: "Walking Memory · Annotation",
       siteLoginTitle: "Connexion des annotateurs",
@@ -2159,6 +2171,9 @@
       noteDelete: "Supprimer",
       imgNoTranscript: "Ajoutez d'abord une transcription à cet enregistrement.",
       imgLinkNone: "Pas encore affichée pendant la lecture.",
+      tabRec: "Transcription et termes",
+      tabImg: "Images",
+      followPb: "Suivre la lecture",
       listSearch: "Rechercher par titre, nom ou code de consentement"
     },
     it: {
@@ -2499,6 +2514,11 @@
       locMapTitle: "Mappa dei luoghi",
       detViaPlace: "vicino al luogo del file",
       miRecorded: "Registrato",
+      capWho: "Chi: {v}",
+      capWhat: "Cosa: {v}",
+      capWhen: "Quando: {v}",
+      capWhere: "Dove:",
+      decadeOf: "anni {d}",
       miOpenMap: "Apri nella mappa",
       siteTitle: "Walking Memory · Annotazione",
       tabRec: "Trascrizione e termini",
@@ -2778,7 +2798,8 @@
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, position: m.position, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
-          title: m.title || '', about: m.about || '', recorded: m.recorded_at || '', period: m.period || '', lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
+          title: m.title || '', about: m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '', period: m.period || '', decade: m.decade || null,
+          lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
   }
@@ -3166,15 +3187,22 @@
     var box = document.createElement('div'); box.className = 'media-cap';
     if (m.title && !skipTitle) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
     if (!titleOnly) {
-      var bits = [];
-      if (m.about) bits.push(m.about);
+      // ποιος · τι · πότε, και πού (το όνομα του τόπου γίνεται σύνδεσμος στον χάρτη όταν υπάρχει σημείο)
+      var bits = [], when = [m.period, m.decade ? t('decadeOf', { d: m.decade }) : ''].filter(Boolean).join(', ');
+      if (m.about) bits.push(t('capWho', { v: m.about }));
+      if (m.what) bits.push(t('capWhat', { v: m.what }));
+      if (when) bits.push(t('capWhen', { v: when }));
       if (m.recorded) bits.push(t('miRecorded') + ' ' + m.recorded);
-      if (m.period) bits.push(m.period);
       if (bits.length) { var p = document.createElement('div'); p.textContent = bits.join(' · '); box.appendChild(p); }
-      if (m.lat != null && m.lon != null) {
-        var a = document.createElement('a'); a.href = osmLink(m.lat, m.lon); a.target = '_blank'; a.rel = 'noopener';
-        a.textContent = '📍 ' + (+m.lat).toFixed(5) + ', ' + (+m.lon).toFixed(5); a.setAttribute('aria-label', t('miOpenMap') + ': ' + (m.title || ''));
-        box.appendChild(a);
+      if (m.place || (m.lat != null && m.lon != null)) {
+        var wh = document.createElement('div'); wh.appendChild(document.createTextNode('📍 ' + t('capWhere') + ' '));
+        var label = m.place || (+m.lat).toFixed(5) + ', ' + (+m.lon).toFixed(5);
+        if (m.lat != null && m.lon != null) {
+          var a = document.createElement('a'); a.href = osmLink(m.lat, m.lon); a.target = '_blank'; a.rel = 'noopener';
+          a.textContent = label; a.setAttribute('aria-label', t('miOpenMap') + ': ' + label);
+          wh.appendChild(a);
+        } else wh.appendChild(document.createTextNode(label));
+        box.appendChild(wh);
       }
     }
     return box.children.length ? box : null;
@@ -3681,13 +3709,13 @@
   // Στοιχεία του αρχείου που βοηθούν στις προτάσεις: τίτλος, ταυτότητα, περίοδος, τοποθεσία (αλλιώς η τοποθεσία της ιστορίας)
   function detailsContext(s, m) {
     var lat = m.lat != null ? m.lat : (s.lat != null ? s.lat : null), lon = m.lon != null ? m.lon : (s.lon != null ? s.lon : null);
-    return { title: m.title || '', about: m.about || '', period: m.period || '', recorded: m.recorded || '', lat: lat, lon: lon, hasLoc: m.lat != null && m.lon != null,
-      hasText: !!(m.title || m.about || m.period) };
+    return { title: m.title || '', about: m.about || '', what: m.what || '', place: m.place || '', period: [m.period, m.decade ? String(m.decade) + 's' : ''].filter(Boolean).join(' '),
+      recorded: m.recorded || '', lat: lat, lon: lon, hasLoc: m.lat != null && m.lon != null, hasText: !!(m.title || m.about || m.what || m.place || m.period) };
   }
   // Από πολλά αποτελέσματα επιλέγει το πιο πιθανό: κοντά στην τοποθεσία του αρχείου και με περιγραφή που ταιριάζει στα στοιχεία του
   function pickBest(cands, cx) {
     if (!cx || cands.length < 2) return cands[0];
-    var ctxTok = tokensOf([cx.title, cx.about, cx.period].join(' ')), best = null, bs = -1e9;
+    var ctxTok = tokensOf([cx.title, cx.about, cx.what, cx.place, cx.period].join(' ')), best = null, bs = -1e9;
     cands.forEach(function (c, i) {
       var sc = -i * 0.01;
       var co = wdCoord[c.id];
@@ -3785,7 +3813,7 @@
     var media = s.media.filter(function (m) { return m.id; });
     var avs = media.filter(function (m) { return m.kind !== 'image'; }), imgs = media.filter(function (m) { return m.kind === 'image'; });
     var cxOf = {}; media.forEach(function (m) { cxOf[m.id] = detailsContext(s, m); });
-    var anyText = media.map(function (m) { return [m.title, m.about, m.period].join(' '); }).join(' ');
+    var anyText = media.map(function (m) { return [m.title, m.about, m.what, m.place, m.period].join(' '); }).join(' ');
     var trOf = {}; k.transcripts.forEach(function (tr) { trOf[tr.media_id] = tr; });
     var locs = []; media.forEach(function (m) { if (m.lat != null && m.lon != null) locs.push({ lat: m.lat, lon: m.lon }); });
     if (!locs.length && s.lat != null && s.lon != null) locs.push({ lat: s.lat, lon: s.lon });
@@ -3831,12 +3859,12 @@
     var years = {};     // mid -> [έτη/δεκαετίες]
     media.forEach(function (m) {
       var cx = cxOf[m.id], list = [];
-      nameCandidates([cx.about, cx.title].filter(Boolean).join('. ')).forEach(function (x) { if (list.indexOf(x) < 0) list.push(x); });
-      [cx.about, cx.title].forEach(function (x) { x = (x || '').trim(); if (x && x.length <= 80 && list.indexOf(x) < 0) list.push(x); });
+      nameCandidates([cx.about, cx.what, cx.place, cx.title].filter(Boolean).join('. ')).forEach(function (x) { if (list.indexOf(x) < 0) list.push(x); });
+      [cx.place, cx.about, cx.what, cx.title].forEach(function (x) { x = (x || '').trim(); if (x && x.length <= 80 && list.indexOf(x) < 0) list.push(x); });   // το «πού» πρώτο: συνήθως ένας τόπος
       detPhr[m.id] = list.slice(0, 6);
       (aiDet[m.id] || []).slice(0, 8).forEach(function (x) { if (detPhr[m.id].indexOf(x.name) < 0) detPhr[m.id].push(x.name); aiOf[x.name] = aiOf[x.name] || { type: x.type || 'concept', en: x.en || '' }; });
       var ys = [], mt; DATE_RE.lastIndex = 0;
-      while ((mt = DATE_RE.exec(cx.period + ' ' + cx.about + ' ' + cx.title))) { var y = mt[1] + (mt[2] ? 's' : ''); if (ys.indexOf(y) < 0) ys.push(y); }
+      while ((mt = DATE_RE.exec(cx.period + ' ' + cx.about + ' ' + cx.what + ' ' + cx.title))) { var y = mt[1] + (mt[2] ? 's' : ''); if (ys.indexOf(y) < 0) ys.push(y); }
       years[m.id] = ys.slice(0, 3);
     });
     var allDet = []; media.forEach(function (m) { detPhr[m.id].forEach(function (x) { if (allDet.indexOf(x) < 0) allDet.push(x); }); });
@@ -4864,12 +4892,20 @@
       if (!m.id) return;
       var rep = { '@id': m.url, '@type': m.kind === 'audio' ? 'hdto:HC5_Digital_Representation' : 'hdto:HC7_Digital_Visual_Object', 'hdto:HP22_represents': { '@id': entity },
         'dcterms:format': m.kind };
-      // στοιχεία αρχείου: τίτλος, ταυτότητα, ημερομηνία καταγραφής, περίοδος, τοποθεσία
+      // στοιχεία αρχείου: τίτλος, ποιος, τι, πού (όνομα και σημείο), πότε (κείμενο και δεκαετία), ημερομηνία καταγραφής
       if (m.title) rep['rdfs:label'] = m.title;
       if (m.about) rep['crm:P3_has_note'] = m.about;
+      if (m.what) rep['dcterms:subject'] = m.what;
       if (m.recorded) rep['dcterms:created'] = { '@type': 'xsd:date', '@value': m.recorded };
-      if (m.period) rep['dcterms:temporal'] = m.period;
-      if (m.lat != null && m.lon != null) rep['dcterms:spatial'] = { '@type': 'crm:E53_Place', 'crm:P168_place_is_defined_by': { '@type': 'geo:wktLiteral', '@value': 'POINT(' + m.lon + ' ' + m.lat + ')' } };
+      if (m.decade) rep['dcterms:temporal'] = { '@type': 'crm:E52_Time-Span', 'rdfs:label': m.period || (m.decade + 's'),
+        'crm:P82a_begin_of_the_begin': { '@type': 'xsd:date', '@value': m.decade + '-01-01' }, 'crm:P82b_end_of_the_end': { '@type': 'xsd:date', '@value': (m.decade + 9) + '-12-31' } };
+      else if (m.period) rep['dcterms:temporal'] = m.period;
+      if (m.place || (m.lat != null && m.lon != null)) {
+        var pl = { '@type': 'crm:E53_Place' };
+        if (m.place) pl['rdfs:label'] = m.place;
+        if (m.lat != null && m.lon != null) pl['crm:P168_place_is_defined_by'] = { '@type': 'geo:wktLiteral', '@value': 'POINT(' + m.lon + ' ' + m.lat + ')' };
+        rep['dcterms:spatial'] = pl;
+      }
 
       if (m.kind === 'image') rep['hdto:HP9_is_visual_representation_of'] = { '@id': entity };
       repById[m.id] = rep;
@@ -5275,7 +5311,9 @@
     try {
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
-      var r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
+      var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name,decade)');                     // ποιος/τι/πού/πότε
+      var r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');
+      if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
       if (r.error) throw r.error;
@@ -5538,7 +5576,7 @@
         if (q0.textContent) row.appendChild(q0);
         d.appendChild(row); return;
       }
-      tx.textContent = (i.n ? i.n + '. ' : '') + (KIND_ICON[i.m.kind] || '') + ' ' + mediaName(x, i.m) + [i.m.about, i.m.recorded, i.m.period].filter(Boolean).map(function (v) { return ' · ' + v; }).join('');
+      tx.textContent = (i.n ? i.n + '. ' : '') + (KIND_ICON[i.m.kind] || '') + ' ' + mediaName(x, i.m) + [i.m.about, i.m.what, i.m.place, i.m.recorded, i.m.period].filter(Boolean).map(function (v) { return ' · ' + v; }).join('');
       row.appendChild(tx);
       if (!i.n) { var nl = document.createElement('span'); nl.className = 'map-quote'; nl.textContent = t('mapNotLinked'); row.appendChild(nl); }
       (ord.moments[i.m.id] || []).slice(0, 4).forEach(function (mo) {
@@ -5562,7 +5600,7 @@
     items.slice(0, 12).forEach(function (i) {
       var row = document.createElement('div'); row.className = 'map-row';
       var bits = [st_(i.x) + (i.x.author ? ' — ' + i.x.author : '')];
-      if (i.m) { bits.push((KIND_ICON[i.m.kind] || '') + ' ' + mediaName(i.x, i.m)); if (i.m.about) bits.push(i.m.about); if (i.m.recorded) bits.push(i.m.recorded); if (i.m.period) bits.push(i.m.period); }
+      if (i.m) { bits.push((KIND_ICON[i.m.kind] || '') + ' ' + mediaName(i.x, i.m)); [i.m.about, i.m.what, i.m.place, i.m.recorded, i.m.period].forEach(function (v) { if (v) bits.push(v); }); }
       var tx = document.createElement('span'); tx.textContent = bits.join(' · '); row.appendChild(tx);
       var b = document.createElement('button'); b.type = 'button'; b.textContent = t('mapOpenStory'); b.onclick = function () { if (i.x !== currentSheetStory && !okToLeave()) return; setView('stories'); openStory(i.x); };
       row.appendChild(b);

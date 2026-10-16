@@ -247,13 +247,15 @@
     $('loadInfo').textContent = t('loading');
     try {
       var cols = 'id,title,author_name,lat,lon,status,created_at,story_media(id,kind,path,position,title,about,period,recorded_at),consents(code)';
+      var colsW = cols.replace('recorded_at)', 'recorded_at,what,place_name,decade)');   // ποιος/τι/πού/πότε
       var r = await Promise.all([
-        sb.from('stories').select(cols).eq('status', 'submitted').order('created_at'),
+        sb.from('stories').select(colsW).eq('status', 'submitted').order('created_at'),
         sb.from('stories').select('id,title,status'),
         sb.from('story_boards').select('id,title,description,walk_status,is_walk,updated_at').eq('walk_status', 'submitted').order('updated_at'),
         sb.from('story_boards').select('id,title'),
         sb.from('reviews').select('action,message,user_name,created_at,story_id,board_id').in('action', ['approved', 'returned']).order('created_at', { ascending: false }).limit(25)
       ]);
+      if (r[0].error) r[0] = await sb.from('stories').select(cols).eq('status', 'submitted').order('created_at');   // βάση χωρίς τις νέες στήλες
       var e = r.find(function (x) { return x.error; });
       if (e) throw e.error;
       D.stories = r[0].data; D.walks = r[2].data; D.history = r[4].data;
@@ -356,7 +358,7 @@
           if (m.kind === 'image') { x = el('img'); x.alt = m.title || ''; x.loading = 'lazy'; }
           else { x = el(m.kind === 'video' ? 'video' : 'audio'); x.controls = true; x.preload = 'metadata'; }
           x.src = publicUrl(m.path); f.appendChild(x);
-          f.appendChild(el('figcaption', null, [m.title, m.about, m.period, m.recorded_at].filter(Boolean).join(' · ') || '—'));
+          f.appendChild(el('figcaption', null, [m.title, m.about, m.what, m.place_name, m.period || (m.decade ? m.decade + 's' : ''), m.recorded_at].filter(Boolean).join(' · ') || '—'));
           g.appendChild(f);
         });
         det.appendChild(g);

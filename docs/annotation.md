@@ -23,12 +23,28 @@ The order of a story's files is the order they appear in the story (and in the a
 - **Afterwards**, on the annotation website, the **Order of recordings** dropdown above the player has ↑ / ↓ for each recording;
   a move is saved at once. Re-run `supabase/roles.sql` once: it lets the story's owner and annotators change only the `position` of a story's media.
 
-## Details for each file (facilitators)
-In the upload form each image, audio or video has a 📍 button for its details: **title**, **identity** (who or what it is about),
-**date recorded** (starts as the file's date), **period it refers to** (free text, e.g. "summer 1965") and **location**. The location
-starts as your GPS position; you can press **Pick on the map** and tap a place instead. Visitors and annotators see these under
-each file (the location links to OpenStreetMap). Re-run `supabase/roles.sql` once: it adds the columns to `story_media`
-(an upload still works without them, but the details, including each file's location, are then NOT saved; the app tells you when that happens).
+## Details for each file (facilitators): who, what, where, when
+In the upload form each image, audio or video has a 📍 button for its details. Every question is optional and an approximate answer
+is fine:
+- **Title**
+- **Who?** Who is in it or who is it about (e.g. "Grandma Maria", "the harbour fishermen"). The narrator's own name is not asked here.
+- **What?** What it is: an object, an event, a custom, a shop… (e.g. "Nikos's café", "the 1965 village feast").
+- **Where did it happen?** The name of the place (e.g. "the old harbour", "Smyrna"), and, if the contributor can show it, a **point on
+  the map**. The point is not filled in automatically any more (where the memory happened is often not where it is recorded):
+  **My location (GPS)** uses the phone's position, **Pick on the map** opens the map and searches for the place name typed above;
+  choosing a search result fills in the place name when it is empty. **No point** removes the point.
+- **When did it happen?** Free text (e.g. "summer 1965", "after the war") and an optional **decade** (1880s–2020s) for searching.
+- **Date recorded** (starts as the file's date).
+
+The upload list shows "n of 4 answered" for each file. Visitors and annotators see the answers under each file ("Who: … · What: … ·
+When: …" and "📍 Where: …", a link to OpenStreetMap when there is a point); the validation and story-links pages show them too. On
+the annotation website the answers also feed the automatic term suggestions (the place name is tried as a place first), and the
+JSON-LD/Turtle export carries them: who → `crm:P3_has_note`, what → `dcterms:subject`, where → `dcterms:spatial` (`crm:E53_Place`
+with the name as `rdfs:label` and the point as a WKT literal), when → `dcterms:temporal` (with a decade: a `crm:E52_Time-Span` from
+the first to the last day of the decade, labelled with the free text).
+Re-run `supabase/roles.sql` once: it adds the columns `what`, `place_name` and `decade` to `story_media` ("who" uses the existing
+`about` column, "when" the existing `period`). Until then an upload still works and keeps the other details; the app says that
+"what", "where" and the decade were not saved.
 
 ## One dropdown per recording in the player area
 In the story view (the app and the annotation website) each audio or video is its own dropdown ("Audio 2 · Second tape") holding its

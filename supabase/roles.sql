@@ -240,6 +240,13 @@ alter table public.story_media add column if not exists recorded_at date;
 alter table public.story_media add column if not exists period text;
 alter table public.story_media add column if not exists lat double precision;
 alter table public.story_media add column if not exists lon double precision;
+-- Who / what / where / when for each file: "about" holds who, "period" holds when (free text);
+-- the place is a name (place_name) and, when the contributor can point it, a point on the map (lat, lon).
+alter table public.story_media add column if not exists what text;
+alter table public.story_media add column if not exists place_name text;
+alter table public.story_media add column if not exists decade smallint;
+alter table public.story_media drop constraint if exists story_media_decade_check;
+alter table public.story_media add constraint story_media_decade_check check (decade is null or (decade between 1800 and 2100 and decade % 10 = 0));
 
 -- Why a suggested term was proposed (confidence and evidence from the transcript, details and location)
 alter table public.annotations add column if not exists reason text;
