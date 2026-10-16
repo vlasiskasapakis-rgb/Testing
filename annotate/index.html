@@ -1123,7 +1123,6 @@
       capWhat: "Τι: {v}",
       capWhen: "Πότε: {v}",
       capWhere: "Πού:",
-      decadeOf: "δεκαετία του {d}",
       miOpenMap: "Άνοιγμα στον χάρτη",
       siteTitle: "Walking Memory · Σχολιασμός",
       tabRec: "Απομαγνητοφώνηση και όροι",
@@ -1588,7 +1587,6 @@
       capWhat: "What: {v}",
       capWhen: "When: {v}",
       capWhere: "Where:",
-      decadeOf: "the {d}s",
       miOpenMap: "Open in map",
       siteTitle: "Walking Memory · Annotation",
       tabRec: "Transcript & terms",
@@ -2053,7 +2051,6 @@
       capWhat: "Quoi : {v}",
       capWhen: "Quand : {v}",
       capWhere: "Où :",
-      decadeOf: "années {d}",
       miOpenMap: "Ouvrir dans la carte",
       siteTitle: "Walking Memory · Annotation",
       siteLoginTitle: "Connexion des annotateurs",
@@ -2518,7 +2515,6 @@
       capWhat: "Cosa: {v}",
       capWhen: "Quando: {v}",
       capWhere: "Dove:",
-      decadeOf: "anni {d}",
       miOpenMap: "Apri nella mappa",
       siteTitle: "Walking Memory · Annotazione",
       tabRec: "Trascrizione e termini",
@@ -2798,7 +2794,7 @@
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, position: m.position, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
-          title: m.title || '', about: m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '', period: m.period || '', decade: m.decade || null,
+          title: m.title || '', about: m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '', period: m.period || '',
           lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
@@ -3188,7 +3184,7 @@
     if (m.title && !skipTitle) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
     if (!titleOnly) {
       // ποιος · τι · πότε, και πού (το όνομα του τόπου γίνεται σύνδεσμος στον χάρτη όταν υπάρχει σημείο)
-      var bits = [], when = [m.period, m.decade ? t('decadeOf', { d: m.decade }) : ''].filter(Boolean).join(', ');
+      var bits = [], when = m.period;
       if (m.about) bits.push(t('capWho', { v: m.about }));
       if (m.what) bits.push(t('capWhat', { v: m.what }));
       if (when) bits.push(t('capWhen', { v: when }));
@@ -3709,7 +3705,7 @@
   // Στοιχεία του αρχείου που βοηθούν στις προτάσεις: τίτλος, ταυτότητα, περίοδος, τοποθεσία (αλλιώς η τοποθεσία της ιστορίας)
   function detailsContext(s, m) {
     var lat = m.lat != null ? m.lat : (s.lat != null ? s.lat : null), lon = m.lon != null ? m.lon : (s.lon != null ? s.lon : null);
-    return { title: m.title || '', about: m.about || '', what: m.what || '', place: m.place || '', period: [m.period, m.decade ? String(m.decade) + 's' : ''].filter(Boolean).join(' '),
+    return { title: m.title || '', about: m.about || '', what: m.what || '', place: m.place || '', period: m.period || '',
       recorded: m.recorded || '', lat: lat, lon: lon, hasLoc: m.lat != null && m.lon != null, hasText: !!(m.title || m.about || m.what || m.place || m.period) };
   }
   // Από πολλά αποτελέσματα επιλέγει το πιο πιθανό: κοντά στην τοποθεσία του αρχείου και με περιγραφή που ταιριάζει στα στοιχεία του
@@ -4892,14 +4888,12 @@
       if (!m.id) return;
       var rep = { '@id': m.url, '@type': m.kind === 'audio' ? 'hdto:HC5_Digital_Representation' : 'hdto:HC7_Digital_Visual_Object', 'hdto:HP22_represents': { '@id': entity },
         'dcterms:format': m.kind };
-      // στοιχεία αρχείου: τίτλος, ποιος, τι, πού (όνομα και σημείο), πότε (κείμενο και δεκαετία), ημερομηνία καταγραφής
+      // στοιχεία αρχείου: τίτλος, ποιος, τι, πού (όνομα και σημείο), πότε, ημερομηνία καταγραφής
       if (m.title) rep['rdfs:label'] = m.title;
       if (m.about) rep['crm:P3_has_note'] = m.about;
       if (m.what) rep['dcterms:subject'] = m.what;
       if (m.recorded) rep['dcterms:created'] = { '@type': 'xsd:date', '@value': m.recorded };
-      if (m.decade) rep['dcterms:temporal'] = { '@type': 'crm:E52_Time-Span', 'rdfs:label': m.period || (m.decade + 's'),
-        'crm:P82a_begin_of_the_begin': { '@type': 'xsd:date', '@value': m.decade + '-01-01' }, 'crm:P82b_end_of_the_end': { '@type': 'xsd:date', '@value': (m.decade + 9) + '-12-31' } };
-      else if (m.period) rep['dcterms:temporal'] = m.period;
+      if (m.period) rep['dcterms:temporal'] = m.period;
       if (m.place || (m.lat != null && m.lon != null)) {
         var pl = { '@type': 'crm:E53_Place' };
         if (m.place) pl['rdfs:label'] = m.place;
@@ -5311,7 +5305,7 @@
     try {
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
-      var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name,decade)');                     // ποιος/τι/πού/πότε
+      var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
       var r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');

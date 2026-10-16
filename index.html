@@ -952,7 +952,6 @@
     </div>
     <div class="input-group">
       <label for="miPeriodIn" data-i18n="miPeriod"></label><input type="text" id="miPeriodIn" maxlength="120" autocomplete="off" data-i18n-ph="miPeriodPh">
-      <label for="miDecadeIn" data-i18n="miDecade" style="margin-top:8px"></label><select id="miDecadeIn" class="lang-select"></select>
     </div>
     <div class="input-group"><label for="miDateIn" data-i18n="miDate"></label><input type="date" id="miDateIn"></div>
     <div class="btn-row">
@@ -1188,15 +1187,12 @@
       miWhere: "Πού έγινε; (όνομα του τόπου)",
       miWherePh: "π.χ. το παλιό λιμάνι, η πλατεία της Επάνω Σκάλας, Σμύρνη",
       miLocClear: "Χωρίς σημείο",
-      miDecade: "Δεκαετία (προαιρετικό)",
-      miDecadeNone: "— δεν ξέρω —",
-      decadeOf: "δεκαετία του {d}",
       miAnswered: "{n} από 4 απαντήσεις",
       capWho: "Ποιος: {v}",
       capWhat: "Τι: {v}",
       capWhen: "Πότε: {v}",
       capWhere: "Πού:",
-      w4NotSaved: "Η ιστορία ανέβηκε, αλλά τα «τι», «πού» (όνομα τόπου) και η δεκαετία ΔΕΝ αποθηκεύτηκαν, επειδή η βάση δεν έχει ακόμα τις νέες στήλες. Ζητήστε από τον διαχειριστή να τρέξει το supabase/roles.sql.",
+      w4NotSaved: "Η ιστορία ανέβηκε, αλλά τα «τι» και «πού» (όνομα τόπου) ΔΕΝ αποθηκεύτηκαν, επειδή η βάση δεν έχει ακόμα τις νέες στήλες. Ζητήστε από τον διαχειριστή να τρέξει το supabase/roles.sql.",
       miDate: "Ημερομηνία καταγραφής",
       miPeriod: "Πότε έγινε;",
       miPeriodPh: "π.χ. καλοκαίρι 1965, μετά τον πόλεμο",
@@ -1558,15 +1554,12 @@
       miWhere: "Where did it happen? (name of the place)",
       miWherePh: "e.g. the old harbour, the square of Epano Skala, Smyrna",
       miLocClear: "No point",
-      miDecade: "Decade (optional)",
-      miDecadeNone: "— not sure —",
-      decadeOf: "the {d}s",
       miAnswered: "{n} of 4 answered",
       capWho: "Who: {v}",
       capWhat: "What: {v}",
       capWhen: "When: {v}",
       capWhere: "Where:",
-      w4NotSaved: "The story was uploaded, but “what”, “where” (place name) and the decade were NOT saved because the database does not have the new columns yet. Ask the administrator to run supabase/roles.sql.",
+      w4NotSaved: "The story was uploaded, but “what” and “where” (place name) were NOT saved because the database does not have the new columns yet. Ask the administrator to run supabase/roles.sql.",
       miDate: "Date recorded",
       miPeriod: "When did it happen?",
       miPeriodPh: "e.g. summer 1965, after the war",
@@ -1928,15 +1921,12 @@
       miWhere: "Où cela s'est-il passé ? (nom du lieu)",
       miWherePh: "p. ex. le vieux port, la place d'Epano Skala, Smyrne",
       miLocClear: "Sans point",
-      miDecade: "Décennie (facultatif)",
-      miDecadeNone: "— je ne sais pas —",
-      decadeOf: "années {d}",
       miAnswered: "{n} réponses sur 4",
       capWho: "Qui : {v}",
       capWhat: "Quoi : {v}",
       capWhen: "Quand : {v}",
       capWhere: "Où :",
-      w4NotSaved: "L'histoire a été envoyée, mais « quoi », « où » (nom du lieu) et la décennie n'ont PAS été enregistrés car la base n'a pas encore les nouvelles colonnes. Demandez à l'administrateur d'exécuter supabase/roles.sql.",
+      w4NotSaved: "L'histoire a été envoyée, mais « quoi » et « où » (nom du lieu) n'ont PAS été enregistrés car la base n'a pas encore les nouvelles colonnes. Demandez à l'administrateur d'exécuter supabase/roles.sql.",
       miDate: "Date d'enregistrement",
       miPeriod: "Quand cela s'est-il passé ?",
       miPeriodPh: "p. ex. été 1965, après la guerre",
@@ -2298,15 +2288,12 @@
       miWhere: "Dove è successo? (nome del luogo)",
       miWherePh: "es. il vecchio porto, la piazza di Epano Skala, Smirne",
       miLocClear: "Nessun punto",
-      miDecade: "Decennio (facoltativo)",
-      miDecadeNone: "— non so —",
-      decadeOf: "anni {d}",
       miAnswered: "{n} risposte su 4",
       capWho: "Chi: {v}",
       capWhat: "Cosa: {v}",
       capWhen: "Quando: {v}",
       capWhere: "Dove:",
-      w4NotSaved: "La storia è stata caricata, ma «cosa», «dove» (nome del luogo) e il decennio NON sono stati salvati perché il database non ha ancora le nuove colonne. Chiedi all'amministratore di eseguire supabase/roles.sql.",
+      w4NotSaved: "La storia è stata caricata, ma «cosa» e «dove» (nome del luogo) NON sono stati salvati perché il database non ha ancora le nuove colonne. Chiedi all'amministratore di eseguire supabase/roles.sql.",
       miDate: "Data di registrazione",
       miPeriod: "Quando è successo?",
       miPeriodPh: "es. estate 1965, dopo la guerra",
@@ -3361,7 +3348,7 @@
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
-          title: m.title || '', about: m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '', period: m.period || '', decade: m.decade || null,
+          title: m.title || '', about: m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '', period: m.period || '',
           lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
@@ -3378,7 +3365,7 @@
     try {
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
-      var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name,decade)');                     // ποιος/τι/πού/πότε
+      var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
       var r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
@@ -3410,15 +3397,15 @@
           uploaded.push(path);
           var inf = f.info || {};
           rows.push({ story_id: sid, kind: f.kind, path: path, position: i, title: inf.title || null, about: inf.about || null, what: inf.what || null, place_name: inf.place || null,
-            recorded_at: inf.recorded || null, period: inf.period || null, decade: inf.decade || null, lat: inf.lat == null ? null : inf.lat, lon: inf.lon == null ? null : inf.lon });
+            recorded_at: inf.recorded || null, period: inf.period || null, lat: inf.lat == null ? null : inf.lat, lon: inf.lon == null ? null : inf.lon });
         }
         var author = userName(currentUser);
         var ins = await sb.from('stories').insert({ id: sid, title: title, lat: pos.lat, lon: pos.lon, author_name: author, consent_id: consentId });
         if (ins.error) throw ins.error;
         var mi = await sb.from('story_media').insert(rows).select('id,position');
-        if (mi.error && /what|place_name|decade/i.test(mi.error.message || '')) {
-          w4Dropped = true;            // βάση χωρίς τις στήλες τι/πού/δεκαετία (roles.sql): τα υπόλοιπα στοιχεία αποθηκεύονται
-          mi = await sb.from('story_media').insert(rows.map(function (r) { var c = Object.assign({}, r); delete c.what; delete c.place_name; delete c.decade; return c; })).select('id,position');
+        if (mi.error && /what|place_name/i.test(mi.error.message || '')) {
+          w4Dropped = true;            // βάση χωρίς τις στήλες τι/πού (roles.sql): τα υπόλοιπα στοιχεία αποθηκεύονται
+          mi = await sb.from('story_media').insert(rows.map(function (r) { var c = Object.assign({}, r); delete c.what; delete c.place_name; return c; })).select('id,position');
         }
         if (mi.error && /column|schema cache/i.test(mi.error.message || '')) {
           detailsDropped = true;       // βάση χωρίς τις νέες στήλες (roles.sql): ανεβαίνει χωρίς τα στοιχεία αρχείου
@@ -3744,7 +3731,7 @@
     if (m.title && !skipTitle) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
     if (!titleOnly) {
       // ποιος · τι · πότε, και πού (το όνομα του τόπου γίνεται σύνδεσμος στον χάρτη όταν υπάρχει σημείο)
-      var bits = [], when = [m.period, m.decade ? t('decadeOf', { d: m.decade }) : ''].filter(Boolean).join(', ');
+      var bits = [], when = m.period;
       if (m.about) bits.push(t('capWho', { v: m.about }));
       if (m.what) bits.push(t('capWhat', { v: m.what }));
       if (when) bits.push(t('capWhen', { v: when }));
@@ -5097,19 +5084,19 @@
     leaveEditor(document.querySelector('#mediaList [data-act="edit"][data-i="' + idx + '"]'));
   };
 
-  // Στοιχεία αρχείου: τίτλος, ποιος, τι, πού (όνομα τόπου και, αν γίνεται, σημείο στον χάρτη), πότε (κείμενο και δεκαετία), ημερομηνία καταγραφής
+  // Στοιχεία αρχείου: τίτλος, ποιος, τι, πού (όνομα τόπου και, αν γίνεται, σημείο στον χάρτη), πότε (ελεύθερο κείμενο), ημερομηνία καταγραφής
   function isoDate(ms) { var d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function defaultInfo(file) {
     var lm = file && file.lastModified ? file.lastModified : Date.now();
-    return { title: '', about: '', what: '', place: '', recorded: isoDate(lm), period: '', decade: null, lat: null, lon: null };   // πού: όπου έγινε, όχι όπου γίνεται η καταγραφή
+    return { title: '', about: '', what: '', place: '', recorded: isoDate(lm), period: '', lat: null, lon: null };   // πού: όπου έγινε, όχι όπου γίνεται η καταγραφή
   }
   function infoOf(f) { if (!f.info) f.info = defaultInfo(f.originalFile); return f.info; }
   function infoSummary(f) {
     var i = infoOf(f), bits = [], n = 0;
     if (i.title) bits.push(i.title);
-    ['about', 'what', 'place', 'period'].forEach(function (k) { if (i[k] || (k === 'place' && i.lat != null) || (k === 'period' && i.decade)) n++; });
+    ['about', 'what', 'place', 'period'].forEach(function (k) { if (i[k] || (k === 'place' && i.lat != null)) n++; });
     if (i.place || i.lat != null) bits.push('📍 ' + (i.place || (+i.lat).toFixed(4) + ', ' + (+i.lon).toFixed(4)));
-    if (i.period || i.decade) bits.push(i.period || t('decadeOf', { d: i.decade }));
+    if (i.period) bits.push(i.period);
     bits.push(t('miAnswered', { n: n }));
     return bits.join(' · ');
   }
@@ -5167,30 +5154,23 @@
     miIndex = i; var info = infoOf(f);
     $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f);
     $('miTitleIn').value = info.title; $('miAboutIn').value = info.about; $('miWhatIn').value = info.what || ''; $('miPlaceIn').value = info.place || '';
-    $('miDateIn').value = info.recorded; $('miPeriodIn').value = info.period; fillDecades(); $('miDecadeIn').value = info.decade ? String(info.decade) : '';
+    $('miDateIn').value = info.recorded; $('miPeriodIn').value = info.period;
     miLoc = { lat: info.lat, lon: info.lon }; miShowLoc();
     $('miLocGps').disabled = !me;
     openDialog('mediaInfoSheet', $('miTitleIn'));
   }
   $('miLocGps').onclick = function () { if (!me) return; miLoc = { lat: me.lat, lon: me.lon }; miShowLoc(); };
   $('miLocClear').onclick = function () { miLoc = { lat: null, lon: null }; miShowLoc(); };
-  // Δεκαετία (προαιρετική): βοηθά στην αναζήτηση και στη χρονογραμμή όταν το «πότε» είναι ελεύθερο κείμενο
-  function fillDecades() {
-    var sel = $('miDecadeIn'), cur = sel.value; sel.innerHTML = '';
-    var o0 = document.createElement('option'); o0.value = ''; o0.textContent = t('miDecadeNone'); sel.appendChild(o0);
-    for (var d = 1880; d <= 2020; d += 10) { var o = document.createElement('option'); o.value = String(d); o.textContent = t('decadeOf', { d: d }); sel.appendChild(o); }
-    sel.value = cur;
-  }
   $('miCancel').onclick = function () { closeDialog('mediaInfoSheet'); };
   escHandlers.mediaInfoSheet = function () { closeDialog('mediaInfoSheet'); };
   $('miSave').onclick = function () {
     var f = processedFiles[miIndex]; if (!f) { closeDialog('mediaInfoSheet'); return; }
     f.info = { title: $('miTitleIn').value.trim(), about: $('miAboutIn').value.trim(), what: $('miWhatIn').value.trim(), place: $('miPlaceIn').value.trim(),
-      recorded: $('miDateIn').value, period: $('miPeriodIn').value.trim(), decade: $('miDecadeIn').value ? +$('miDecadeIn').value : null, lat: miLoc.lat, lon: miLoc.lon };
+      recorded: $('miDateIn').value, period: $('miPeriodIn').value.trim(), lat: miLoc.lat, lon: miLoc.lon };
     updateMediaListUI();
     closeDialog('mediaInfoSheet');
   };
-  onLangChange(function () { if ($('mediaInfoSheet').classList.contains('on')) { miShowLoc(); fillDecades(); var f = processedFiles[miIndex]; if (f) $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f); } });
+  onLangChange(function () { if ($('mediaInfoSheet').classList.contains('on')) { miShowLoc(); var f = processedFiles[miIndex]; if (f) $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f); } });
 
   // Επιλογή τοποθεσίας από χάρτη (Leaflet)
   var pickMap = null, pickMarker = null, pickPoint = null;

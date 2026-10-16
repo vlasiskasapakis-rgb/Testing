@@ -247,7 +247,7 @@
     $('loadInfo').textContent = t('loading');
     try {
       var cols = 'id,title,author_name,lat,lon,status,created_at,story_media(id,kind,path,position,title,about,period,recorded_at),consents(code)';
-      var colsW = cols.replace('recorded_at)', 'recorded_at,what,place_name,decade)');   // ποιος/τι/πού/πότε
+      var colsW = cols.replace('recorded_at)', 'recorded_at,what,place_name)');   // ποιος/τι/πού/πότε
       var r = await Promise.all([
         sb.from('stories').select(colsW).eq('status', 'submitted').order('created_at'),
         sb.from('stories').select('id,title,status'),
@@ -358,7 +358,7 @@
           if (m.kind === 'image') { x = el('img'); x.alt = m.title || ''; x.loading = 'lazy'; }
           else { x = el(m.kind === 'video' ? 'video' : 'audio'); x.controls = true; x.preload = 'metadata'; }
           x.src = publicUrl(m.path); f.appendChild(x);
-          f.appendChild(el('figcaption', null, [m.title, m.about, m.what, m.place_name, m.period || (m.decade ? m.decade + 's' : ''), m.recorded_at].filter(Boolean).join(' · ') || '—'));
+          f.appendChild(el('figcaption', null, [m.title, m.about, m.what, m.place_name, m.period, m.recorded_at].filter(Boolean).join(' · ') || '—'));
           g.appendChild(f);
         });
         det.appendChild(g);

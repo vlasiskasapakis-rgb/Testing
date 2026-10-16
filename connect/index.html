@@ -427,8 +427,8 @@
   async function loadAll() {
     $('saveStatus').className = ''; $('saveStatus').textContent = t('loading');
     var cols = 'id,title,lat,lon,author_name,status,story_media(id,kind,path,position)';
-    var r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,decade,lat,lon)') + ',consents(code)').order('created_at');
-    if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');   // βάση χωρίς τι/πού/δεκαετία
+    var r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');
+    if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');   // βάση χωρίς τι/πού
     if (r.error) r = await sb.from('stories').select(cols).order('created_at');
     if (r.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('loadErr', { e: errText(r.error) }); return; }
     STORIES = r.data.map(storyFromRow); byId = {}; STORIES.forEach(function (s) { byId[s.id] = s; });
@@ -626,7 +626,7 @@
   function fileLine(m) {
     var li = document.createElement('li');
     li.appendChild(document.createTextNode((KIND_ICON[m.kind] || '•') + ' ' + (m.title || t(m.kind))));
-    var d = [m.about, m.what, m.place_name, m.period || (m.decade ? m.decade + 's' : ''), m.recorded_at].filter(Boolean).join(' · ');   // ποιος · τι · πού · πότε
+    var d = [m.about, m.what, m.place_name, m.period, m.recorded_at].filter(Boolean).join(' · ');   // ποιος · τι · πού · πότε
     if (d) { var sp = document.createElement('span'); sp.className = 'd'; sp.textContent = d; li.appendChild(sp); }
     return li;
   }

@@ -33,18 +33,17 @@ is fine:
   the map**. The point is not filled in automatically any more (where the memory happened is often not where it is recorded):
   **My location (GPS)** uses the phone's position, **Pick on the map** opens the map and searches for the place name typed above;
   choosing a search result fills in the place name when it is empty. **No point** removes the point.
-- **When did it happen?** Free text (e.g. "summer 1965", "after the war") and an optional **decade** (1880s–2020s) for searching.
+- **When did it happen?** Free text, as precise as the person remembers (e.g. "1965", "summer 1965", "the 1960s", "after the war").
 - **Date recorded** (starts as the file's date).
 
 The upload list shows "n of 4 answered" for each file. Visitors and annotators see the answers under each file ("Who: … · What: … ·
 When: …" and "📍 Where: …", a link to OpenStreetMap when there is a point); the validation and story-links pages show them too. On
 the annotation website the answers also feed the automatic term suggestions (the place name is tried as a place first), and the
 JSON-LD/Turtle export carries them: who → `crm:P3_has_note`, what → `dcterms:subject`, where → `dcterms:spatial` (`crm:E53_Place`
-with the name as `rdfs:label` and the point as a WKT literal), when → `dcterms:temporal` (with a decade: a `crm:E52_Time-Span` from
-the first to the last day of the decade, labelled with the free text).
-Re-run `supabase/roles.sql` once: it adds the columns `what`, `place_name` and `decade` to `story_media` ("who" uses the existing
-`about` column, "when" the existing `period`). Until then an upload still works and keeps the other details; the app says that
-"what", "where" and the decade were not saved.
+with the name as `rdfs:label` and the point as a WKT literal), when → `dcterms:temporal` (the text as written).
+Re-run `supabase/roles.sql` once: it adds the columns `what` and `place_name` to `story_media` ("who" uses the existing `about`
+column, "when" the existing `period`). Until then an upload still works and keeps the other details; the app says that "what" and
+"where" were not saved.
 
 ## One dropdown per recording in the player area
 In the story view (the app and the annotation website) each audio or video is its own dropdown ("Audio 2 · Second tape") holding its
