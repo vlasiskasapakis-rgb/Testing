@@ -412,7 +412,10 @@
   .mi-info { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .icon-btn.mv { background: var(--mist); color: var(--petrol); margin-right: 4px; border: 1px solid var(--line-strong); }
   .icon-btn.mv:disabled { opacity: .35; cursor: default; }
-  .icon-btn.info { background: var(--sky); margin-right: 6px; }
+  .media-list-item { flex-wrap: wrap; }
+  .media-list-item .mi-text { flex: 1 1 0; }
+  .mi-w4 { flex: 1 0 100%; justify-content: center; display: inline-flex; align-items: center; margin-top: 4px; min-height: 40px; padding: 6px 12px; border-radius: 999px; border: 2px solid var(--petrol); background: #fff; color: var(--petrol); font-weight: 700; font-size: 14px; text-align: left; }
+  .mi-w4.todo { background: var(--petrol); color: #fff; }
   .check { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 12px; font-weight: 400; color: var(--ink); line-height: 1.4; }
   .check input { flex: none; width: 24px; height: 24px; margin-top: 2px; }
   .code-big { display: block; margin: 6px 0 10px; padding: 12px; text-align: center; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 30px; font-weight: 700; letter-spacing: .08em; color: var(--petrol); background: var(--mist); border: 2px dashed var(--line-strong); border-radius: 12px; user-select: all; -webkit-user-select: all; }
@@ -1187,7 +1190,9 @@
       miWhere: "Πού έγινε; (όνομα του τόπου)",
       miWherePh: "π.χ. το παλιό λιμάνι, η πλατεία της Επάνω Σκάλας, Σμύρνη",
       miLocClear: "Χωρίς σημείο",
-      miAnswered: "{n} από 4 απαντήσεις",
+      miW4Add: "Πρόσθεσε ποιος, τι, πού, πότε",
+      miW4Btn: "Ποιος, τι, πού, πότε: {n} από 4",
+      miLater: "Αργότερα",
       capWho: "Ποιος: {v}",
       capWhat: "Τι: {v}",
       capWhen: "Πότε: {v}",
@@ -1554,7 +1559,9 @@
       miWhere: "Where did it happen? (name of the place)",
       miWherePh: "e.g. the old harbour, the square of Epano Skala, Smyrna",
       miLocClear: "No point",
-      miAnswered: "{n} of 4 answered",
+      miW4Add: "Add who, what, where, when",
+      miW4Btn: "Who, what, where, when: {n} of 4",
+      miLater: "Later",
       capWho: "Who: {v}",
       capWhat: "What: {v}",
       capWhen: "When: {v}",
@@ -1921,7 +1928,9 @@
       miWhere: "Où cela s'est-il passé ? (nom du lieu)",
       miWherePh: "p. ex. le vieux port, la place d'Epano Skala, Smyrne",
       miLocClear: "Sans point",
-      miAnswered: "{n} réponses sur 4",
+      miW4Add: "Ajouter qui, quoi, où, quand",
+      miW4Btn: "Qui, quoi, où, quand : {n} sur 4",
+      miLater: "Plus tard",
       capWho: "Qui : {v}",
       capWhat: "Quoi : {v}",
       capWhen: "Quand : {v}",
@@ -2288,7 +2297,9 @@
       miWhere: "Dove è successo? (nome del luogo)",
       miWherePh: "es. il vecchio porto, la piazza di Epano Skala, Smirne",
       miLocClear: "Nessun punto",
-      miAnswered: "{n} risposte su 4",
+      miW4Add: "Aggiungi chi, cosa, dove, quando",
+      miW4Btn: "Chi, cosa, dove, quando: {n} su 4",
+      miLater: "Più tardi",
       capWho: "Chi: {v}",
       capWhat: "Cosa: {v}",
       capWhen: "Quando: {v}",
@@ -5068,7 +5079,7 @@
     else if (kind === 'video') meta.ranges = readVideoRanges();
     else meta.ranges = readAudioRanges();
 
-    var idx = window.currentEditIndex;
+    var idx = window.currentEditIndex, isNew = idx === -1;
     var item = idx !== -1 ? processedFiles[idx] : null;
     if (item) {
       item.meta = meta; item.blob = null; item.outType = null;
@@ -5082,6 +5093,7 @@
     updateMediaListUI();
     announce(t('kept', { name: nameOf(item) }));
     leaveEditor(document.querySelector('#mediaList [data-act="edit"][data-i="' + idx + '"]'));
+    if (isNew) openMediaInfo(idx, true);      // νέο αρχείο: οι ερωτήσεις ανοίγουν αμέσως («Αργότερα» για να συμπληρωθούν μετά, πριν από την αποστολή)
   };
 
   // Στοιχεία αρχείου: τίτλος, ποιος, τι, πού (όνομα τόπου και, αν γίνεται, σημείο στον χάρτη), πότε (ελεύθερο κείμενο), ημερομηνία καταγραφής
@@ -5092,13 +5104,19 @@
   }
   function infoOf(f) { if (!f.info) f.info = defaultInfo(f.originalFile); return f.info; }
   function infoSummary(f) {
-    var i = infoOf(f), bits = [], n = 0;
+    var i = infoOf(f), bits = [];
     if (i.title) bits.push(i.title);
-    ['about', 'what', 'place', 'period'].forEach(function (k) { if (i[k] || (k === 'place' && i.lat != null)) n++; });
     if (i.place || i.lat != null) bits.push('📍 ' + (i.place || (+i.lat).toFixed(4) + ', ' + (+i.lon).toFixed(4)));
     if (i.period) bits.push(i.period);
-    bits.push(t('miAnswered', { n: n }));
     return bits.join(' · ');
+  }
+  // Πόσες από τις τέσσερις ερωτήσεις (ποιος, τι, πού, πότε) έχουν απάντηση
+  function answered(f) {
+    var i = infoOf(f), n = 0;
+    ['about', 'what', 'place', 'period'].forEach(function (k) { if (i[k] || (k === 'place' && i.lat != null)) n++; });
+    return n;
+  }
+  function w4Label(f) { var n = answered(f); return n ? '✎ ' + t('miW4Btn', { n: n }) : '+ ' + t('miW4Add');
   }
 
   function describeChanges(f) {
@@ -5131,15 +5149,15 @@
                 '<div class="mi-text">' +
                   '<span class="mi-name" title="' + escHTML(f.name) + '">' + escHTML(nm) + ' <small>(' + Math.round(f.originalFile.size / 1024) + ' KB)</small></span>' +
                   '<span class="mi-changes">' + escHTML(describeChanges(f)) + ' · ' + escHTML(f.blob ? t('saved') : t('pending')) + '</span>' +
-                  '<span class="mi-info">' + escHTML(infoSummary(f)) + '</span>' +
+                  (infoSummary(f) ? '<span class="mi-info">' + escHTML(infoSummary(f)) + '</span>' : '') +
                 '</div>' +
                 '<div style="flex-shrink:0;">' +
                   '<button type="button" class="icon-btn mv" data-act="up" data-i="' + i + '"' + (i === 0 ? ' disabled' : '') + ' aria-label="' + escHTML(t('moveUp', { name: nm })) + '"><span aria-hidden="true">↑</span></button>' +
                   '<button type="button" class="icon-btn mv" data-act="down" data-i="' + i + '"' + (i === processedFiles.length - 1 ? ' disabled' : '') + ' aria-label="' + escHTML(t('moveDown', { name: nm })) + '"><span aria-hidden="true">↓</span></button>' +
-                  '<button type="button" class="icon-btn info" data-act="info" data-i="' + i + '" aria-label="' + escHTML(t('miDetails') + ': ' + nm) + '"><span aria-hidden="true">📍</span></button>' +
                   '<button type="button" class="icon-btn edit" data-act="edit" data-i="' + i + '" aria-label="' + escHTML(t('editItem', { name: nm })) + '"><span aria-hidden="true">✏️</span></button>' +
                   '<button type="button" class="icon-btn del" data-act="del" data-i="' + i + '" aria-label="' + escHTML(t('deleteItem', { name: nm })) + '"><span aria-hidden="true">✕</span></button>' +
                 '</div>' +
+                '<button type="button" class="mi-w4' + (answered(f) ? '' : ' todo') + '" data-act="info" data-i="' + i + '" aria-label="' + escHTML(w4Label(f) + ': ' + nm) + '">' + escHTML(w4Label(f)) + '</button>' +
               '</li>';
     });
     list.innerHTML = html;
@@ -5149,9 +5167,10 @@
   // ---- Φόρμα στοιχείων αρχείου ----
   var miIndex = -1, miLoc = { lat: null, lon: null };
   function miShowLoc() { $('miLocText').textContent = miLoc.lat != null ? (+miLoc.lat).toFixed(5) + ', ' + (+miLoc.lon).toFixed(5) : t('miLocNone'); $('miLocClear').hidden = miLoc.lat == null; }
-  function openMediaInfo(i) {
+  function openMediaInfo(i, afterAdd) {
     var f = processedFiles[i]; if (!f) return;
     miIndex = i; var info = infoOf(f);
+    $('miCancel').textContent = t(afterAdd ? 'miLater' : 'cancel');
     $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f);
     $('miTitleIn').value = info.title; $('miAboutIn').value = info.about; $('miWhatIn').value = info.what || ''; $('miPlaceIn').value = info.place || '';
     $('miDateIn').value = info.recorded; $('miPeriodIn').value = info.period;
@@ -5161,14 +5180,18 @@
   }
   $('miLocGps').onclick = function () { if (!me) return; miLoc = { lat: me.lat, lon: me.lon }; miShowLoc(); };
   $('miLocClear').onclick = function () { miLoc = { lat: null, lon: null }; miShowLoc(); };
-  $('miCancel').onclick = function () { closeDialog('mediaInfoSheet'); };
-  escHandlers.mediaInfoSheet = function () { closeDialog('mediaInfoSheet'); };
+  function closeMediaInfo() {      // η λίστα ξαναζωγραφίζεται: η εστίαση πάει στο κουμπί του ίδιου αρχείου
+    closeDialog('mediaInfoSheet', true);
+    var b = document.querySelector('#mediaList [data-act="info"][data-i="' + miIndex + '"]'); if (b) b.focus();
+  }
+  $('miCancel').onclick = closeMediaInfo;
+  escHandlers.mediaInfoSheet = closeMediaInfo;
   $('miSave').onclick = function () {
     var f = processedFiles[miIndex]; if (!f) { closeDialog('mediaInfoSheet'); return; }
     f.info = { title: $('miTitleIn').value.trim(), about: $('miAboutIn').value.trim(), what: $('miWhatIn').value.trim(), place: $('miPlaceIn').value.trim(),
       recorded: $('miDateIn').value, period: $('miPeriodIn').value.trim(), lat: miLoc.lat, lon: miLoc.lon };
     updateMediaListUI();
-    closeDialog('mediaInfoSheet');
+    closeMediaInfo();
   };
   onLangChange(function () { if ($('mediaInfoSheet').classList.contains('on')) { miShowLoc(); var f = processedFiles[miIndex]; if (f) $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f); } });
 

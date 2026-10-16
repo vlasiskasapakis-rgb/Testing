@@ -24,8 +24,10 @@ The order of a story's files is the order they appear in the story (and in the a
   a move is saved at once. Re-run `supabase/roles.sql` once: it lets the story's owner and annotators change only the `position` of a story's media.
 
 ## Details for each file (facilitators): who, what, where, when
-In the upload form each image, audio or video has a 📍 button for its details. Every question is optional and an approximate answer
-is fine:
+In the upload form the questions open as soon as a file is added (**Later** closes them). Each file then has a button under it,
+"+ Add who, what, where, when" or "✎ Who, what, where, when: n of 4", to fill in or correct the answers at any time **before the
+story is uploaded**. After upload they cannot be changed (by facilitators or annotators). Every question is optional and an
+approximate answer is fine:
 - **Title**
 - **Who?** Who is in it or who is it about (e.g. "Grandma Maria", "the harbour fishermen"). The narrator's own name is not asked here.
 - **What?** What it is: an object, an event, a custom, a shop… (e.g. "Nikos's café", "the 1965 village feast").
@@ -36,7 +38,7 @@ is fine:
 - **When did it happen?** Free text, as precise as the person remembers (e.g. "1965", "summer 1965", "the 1960s", "after the war").
 - **Date recorded** (starts as the file's date).
 
-The upload list shows "n of 4 answered" for each file. Visitors and annotators see the answers under each file ("Who: … · What: … ·
+Visitors and annotators see the answers under each file ("Who: … · What: … ·
 When: …" and "📍 Where: …", a link to OpenStreetMap when there is a point); the validation and story-links pages show them too. On
 the annotation website the answers also feed the automatic term suggestions (the place name is tried as a place first), and the
 JSON-LD/Turtle export carries them: who → `crm:P3_has_note`, what → `dcterms:subject`, where → `dcterms:spatial` (`crm:E53_Place`
