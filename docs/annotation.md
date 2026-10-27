@@ -136,9 +136,10 @@ A story uploaded from the AR app or the upload website first **waits for its fac
 "Waiting for your review before annotation"); annotators do not see it yet (the annotation site says how many are waiting).
 Both use the same upload code, so AR stories follow exactly the same path.
 - The facilitator opens `…/review/` and signs in with the same account. The page lists **only their own** stories that are waiting.
-  Ways in: right after an upload (app or website) a prompt offers to open the review page on that story; the AR app start screen
-  ("Review the stories I uploaded", when signed in); "My stories" in the AR app (how many are waiting, with a link); the story view
-  of a waiting story ("Open the review website →"); and the upload website home. A link can point at one story: `review/?story=<id>`.
+  The review is done on the website only; the AR app has no review links (after an upload it just says the story waits for review
+  on the review website). Ways in from the upload website: right after an upload a prompt offers to open the review page on that
+  story; the website home ("Review the stories I uploaded"); "My stories" (how many are waiting, with a link); and the story view
+  of a waiting story ("Open the review website →"). A link can point at one story: `review/?story=<id>`.
 - A story shows its **fragments as tiles** (photo thumbnails, 🎙 audio, 🎬 video) with how many of who/what/where/when are answered.
   Opening a tile shows the file (player or photo) and its details, with **← Previous / Next →**. Tiles get ✓ once opened and
   💬 when they have comments; the page counts "You have looked at n of m".

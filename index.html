@@ -626,7 +626,6 @@
   <button id="authBtnGate" class="link-btn" hidden></button>
   <p class="gate-web"><a href="?view=1" data-i18n="gateBrowse"></a></p>
   <p class="gate-web"><a href="?web=1" data-i18n="gateWeb"></a></p>
-  <p class="gate-web" id="gateReview" hidden><a href="review/" data-i18n="webToReview"></a></p>
 </div>
 </main>
 
@@ -1298,6 +1297,7 @@
       lnkNoAV: "Πρόσθεσε ήχο ή βίντεο στην ιστορία για να συνδέσεις εικόνες.",
       uploadDone: "Η ιστορία ανέβηκε και περιμένει τον έλεγχό σου. Να ανοίξει τώρα η ιστοσελίδα ελέγχου, για να δεις τα αρχεία, να προσθέσεις σχόλια και να τη στείλεις για σχολιασμό;",
       openReview: "Άνοιγμα της ιστοσελίδας ελέγχου →",
+      uploadDoneAr: "Η ιστορία ανέβηκε. Πριν πάει για σχολιασμό, έλεγξέ την στην ιστοσελίδα ελέγχου (…/review/).",
       listPendingNote: "Ιστορίες που περιμένουν τον έλεγχό σου: {n}.",
       tlImages: "Εικόνες",
       tlTerms: "Όροι",
@@ -1691,6 +1691,7 @@
       lnkNoAV: "Add an audio or video to this story to link images to it.",
       uploadDone: "Story uploaded. It is now waiting for your review. Open the review website now to look through the files, add comments and send it to annotation?",
       openReview: "Open the review website →",
+      uploadDoneAr: "Story uploaded. Before it goes to annotation, review it on the review website (…/review/).",
       listPendingNote: "Stories waiting for your review: {n}.",
       tlImages: "Images",
       tlTerms: "Terms",
@@ -2084,6 +2085,7 @@
       lnkNoAV: "Ajoutez un audio ou une vidéo à cette histoire pour y lier des images.",
       uploadDone: "Histoire envoyée. Elle attend maintenant votre relecture. Ouvrir le site de relecture maintenant pour parcourir les fichiers, ajouter des commentaires et l'envoyer à l'annotation ?",
       openReview: "Ouvrir le site de relecture →",
+      uploadDoneAr: "Histoire envoyée. Avant l'annotation, relisez-la sur le site de relecture (…/review/).",
       listPendingNote: "Histoires en attente de votre relecture : {n}.",
       tlImages: "Images",
       tlTerms: "Termes",
@@ -2477,6 +2479,7 @@
       lnkNoAV: "Aggiungi un audio o un video alla storia per collegarvi le immagini.",
       uploadDone: "Storia caricata. Ora attende la tua revisione. Aprire subito il sito di revisione per esaminare i file, aggiungere commenti e inviarla all'annotazione?",
       openReview: "Apri il sito di revisione →",
+      uploadDoneAr: "Storia caricata. Prima dell'annotazione, rivedila sul sito di revisione (…/review/).",
       listPendingNote: "Storie in attesa della tua revisione: {n}.",
       tlImages: "Immagini",
       tlTerms: "Termini",
@@ -3159,7 +3162,6 @@
   function renderAuth() {
     var label = currentUser ? t('logout') + ' · ' + userName(currentUser) + ' (' + t('role_' + currentRole) + ')' : t('login');
     ['authBtn', 'authBtnGate'].forEach(function (id) { var b = $(id); b.hidden = !sb; b.textContent = label; });
-    $('gateReview').hidden = !currentUser;
     var lb = $('listBtn');
     lb.hidden = !currentUser;
     lb.textContent = t(isAnnotator() ? 'listAll' : 'listMy');
@@ -3670,7 +3672,7 @@
     var visible = !!(s.dbId && (isOwner(s) || isAnnotator()));
     var el = $('sheetStatus');
     el.textContent = visible ? t(statusKeyOf(s)) : '';
-    if (visible && s.status === 'pending' && isOwner(s)) { el.appendChild(document.createTextNode(' · ')); el.appendChild(reviewLink(s)); }
+    if (WEB && visible && s.status === 'pending' && isOwner(s)) { el.appendChild(document.createTextNode(' · ')); el.appendChild(reviewLink(s)); }
   }
 
   // ---- Λίστα ιστοριών: ο διευκολυντής βλέπει τις δικές του, ο σχολιαστής όλες (χωρίς περιορισμό απόστασης) ----
@@ -3692,7 +3694,7 @@
       .filter(function (x) { return !ann || f.value === 'all' || x.status === f.value; })
       .filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.consentCode || '')).toLowerCase().indexOf(q) >= 0; }).reverse();
     if (!items.length) { var p = document.createElement('p'); p.textContent = t('listEmpty'); body.appendChild(p); return; }
-    var nPend = ann ? 0 : items.filter(function (x) { return x.status === 'pending'; }).length;
+    var nPend = ann || !WEB ? 0 : items.filter(function (x) { return x.status === 'pending'; }).length;
     if (nPend) {
       var rp = document.createElement('p'); rp.className = 'sheet-sub'; rp.appendChild(document.createTextNode(t('listPendingNote', { n: nPend }) + ' '));
       rp.appendChild(reviewLink(null)); body.appendChild(rp);
@@ -5679,9 +5681,14 @@
       announce(t('published'));
       if (story.detailsDropped) alert(t('detailsNotSaved'));
       if (story.w4Dropped) alert(t('w4NotSaved'));
-      var goReview = confirm(t('uploadDone'));
-      finishStoryFlow();
-      if (goReview) location.href = 'review/?story=' + encodeURIComponent(story.dbId);
+      if (WEB) {      // the review is done on the website only, not in the AR app
+        var goReview = confirm(t('uploadDone'));
+        finishStoryFlow();
+        if (goReview) location.href = 'review/?story=' + encodeURIComponent(story.dbId);
+      } else {
+        alert(t('uploadDoneAr'));
+        finishStoryFlow();
+      }
     } catch (e) {
       $('publishError').textContent = t('publishError', { e: (e && e.message) ? e.message : e });
     } finally {
