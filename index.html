@@ -589,6 +589,7 @@
       <ol class="web-steps">
         <li data-i18n="webStep1"></li><li data-i18n="webStep2"></li><li data-i18n="webStep3"></li><li data-i18n="webStep4"></li>
       </ol>
+      <p class="sheet-sub"><a href="review/" data-i18n="webToReview"></a></p>
       <p class="sheet-sub"><a href="./" data-i18n="webToApp"></a></p>
     </section>
   </main>
@@ -1162,6 +1163,8 @@
       role_annotator: "σχολιαστής",
       statusDraft: "Πρόχειρη: δεν είναι δημόσια ακόμα",
       statusPublished: "Δημοσιευμένη",
+      statusPending: "Περιμένει τον έλεγχό σου πριν από τον σχολιασμό",
+      webToReview: "Έλεγχος των ιστοριών που ανέβασα →",
       pubStory: "Δημοσίευση για όλους",
       unpubStory: "Απόσυρση από τη δημοσίευση",
       pubError: "Η αλλαγή κατάστασης απέτυχε: {e}",
@@ -1277,7 +1280,7 @@
       lnkBad: "Βάλε έγκυρη αρχή και τέλος· το τέλος πρέπει να είναι μετά την αρχή.",
       lnkErr: "Η αποθήκευση της σύνδεσης απέτυχε: {e}",
       lnkNoAV: "Πρόσθεσε ήχο ή βίντεο στην ιστορία για να συνδέσεις εικόνες.",
-      uploadDone: "Η ιστορία ανέβηκε. Θα τη δουν οι σχολιαστές και θα δημοσιευτεί μετά τον σχολιασμό.",
+      uploadDone: "Η ιστορία ανέβηκε. Άνοιξε την ιστοσελίδα ελέγχου (…/review/) για να δεις τα αρχεία, να προσθέσεις σχόλια και να τη στείλεις για σχολιασμό.",
       tlImages: "Εικόνες",
       tlTerms: "Όροι",
       tlItemImg: "Εικόνα {n}",
@@ -1536,6 +1539,8 @@
       role_annotator: "annotator",
       statusDraft: "Draft: not public yet",
       statusPublished: "Published",
+      statusPending: "Waiting for your review before annotation",
+      webToReview: "Review the stories I uploaded →",
       pubStory: "Publish for everyone",
       unpubStory: "Unpublish",
       pubError: "Changing the status failed: {e}",
@@ -1651,7 +1656,7 @@
       lnkBad: "Enter a valid start and end; the end must be after the start.",
       lnkErr: "Saving the link failed: {e}",
       lnkNoAV: "Add an audio or video to this story to link images to it.",
-      uploadDone: "Story uploaded. Annotators will review it and it will be published after annotation.",
+      uploadDone: "Story uploaded. Open the review website (…/review/) to look through the files, add comments and send it to annotation.",
       tlImages: "Images",
       tlTerms: "Terms",
       tlItemImg: "Image {n}",
@@ -1910,6 +1915,8 @@
       role_annotator: "annotateur",
       statusDraft: "Brouillon : pas encore public",
       statusPublished: "Publiée",
+      statusPending: "En attente de votre relecture avant l'annotation",
+      webToReview: "Relire les histoires que j'ai envoyées →",
       pubStory: "Publier pour tous",
       unpubStory: "Dépublier",
       pubError: "Échec du changement de statut : {e}",
@@ -2025,7 +2032,7 @@
       lnkBad: "Saisissez un début et une fin valides ; la fin doit suivre le début.",
       lnkErr: "Échec de l'enregistrement du lien : {e}",
       lnkNoAV: "Ajoutez un audio ou une vidéo à cette histoire pour y lier des images.",
-      uploadDone: "Histoire envoyée. Les annotateurs la reverront et elle sera publiée après annotation.",
+      uploadDone: "Histoire envoyée. Ouvrez le site de relecture (…/review/) pour parcourir les fichiers, ajouter des commentaires et l'envoyer à l'annotation.",
       tlImages: "Images",
       tlTerms: "Termes",
       tlItemImg: "Image {n}",
@@ -2284,6 +2291,8 @@
       role_annotator: "annotatore",
       statusDraft: "Bozza: non ancora pubblica",
       statusPublished: "Pubblicata",
+      statusPending: "In attesa della tua revisione prima dell'annotazione",
+      webToReview: "Rivedi le storie che ho caricato →",
       pubStory: "Pubblica per tutti",
       unpubStory: "Ritira dalla pubblicazione",
       pubError: "Cambio di stato non riuscito: {e}",
@@ -2399,7 +2408,7 @@
       lnkBad: "Inserisci un inizio e una fine validi; la fine deve seguire l'inizio.",
       lnkErr: "Salvataggio del collegamento non riuscito: {e}",
       lnkNoAV: "Aggiungi un audio o un video alla storia per collegarvi le immagini.",
-      uploadDone: "Storia caricata. Gli annotatori la esamineranno e sarà pubblicata dopo l'annotazione.",
+      uploadDone: "Storia caricata. Apri il sito di revisione (…/review/) per esaminare i file, aggiungere commenti e inviarla all'annotazione.",
       tlImages: "Immagini",
       tlTerms: "Termini",
       tlItemImg: "Immagine {n}",
@@ -2830,7 +2839,7 @@
       el.querySelector('.closest-badge').textContent = t('closest');
       var no = walkNo(s);
       el.querySelector('.mt').textContent = (no ? no + ' · ' : '') + tr.title;
-      el.querySelector('.m-sub').textContent = tr.sub + (s.status === 'draft' ? ' · ' + t('statusDraft') : '');
+      el.querySelector('.m-sub').textContent = tr.sub + (s.status && s.status !== 'published' ? ' · ' + t(statusKeyOf(s)) : '');
       el.querySelector('.m-dist').textContent = s.d != null ? t('distance', { d: fmtDist(s.d) }) : t('calculating');
       el._label = null;
     });
@@ -3371,6 +3380,8 @@
   renderChoosers();
   loadWalks();
 
+  // Κατάσταση ιστορίας για τον χρήστη: περιμένει τον έλεγχο του διευκολυντή, πρόχειρη (σχολιασμός) ή δημοσιευμένη
+  function statusKeyOf(s) { return s.status === 'published' ? 'statusPublished' : s.status === 'pending' ? 'statusPending' : 'statusDraft'; }
   function storyFromRow(r) {
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
@@ -3449,7 +3460,7 @@
         if (uploaded.length) { try { await sb.storage.from(BUCKET).remove(uploaded); } catch (_) {} }
         throw e;
       }
-      var created = storyFromRow({ id: sid, user_id: uid, status: 'draft', consent_id: consentId, consents: consentCode ? { code: consentCode } : null, title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
+      var created = storyFromRow({ id: sid, user_id: uid, status: 'pending', consent_id: consentId, consents: consentCode ? { code: consentCode } : null, title: title, lat: pos.lat, lon: pos.lon, radius: 40, author_name: userName(currentUser),
         story_media: rows.map(function (r) { return detailsDropped ? { id: r.id, kind: r.kind, path: r.path, position: r.position } : w4Dropped ? { id: r.id, kind: r.kind, path: r.path, position: r.position, title: r.title, about: r.about, recorded_at: r.recorded_at, period: r.period, lat: r.lat, lon: r.lon } : r; }) });
       created.detailsDropped = detailsDropped;
       created.w4Dropped = w4Dropped && !detailsDropped;
@@ -3565,7 +3576,7 @@
 
   function renderPublishUI(s) {
     var visible = !!(s.dbId && (isOwner(s) || isAnnotator()));
-    $('sheetStatus').textContent = visible ? t(s.status === 'published' ? 'statusPublished' : 'statusDraft') : '';
+    $('sheetStatus').textContent = visible ? t(statusKeyOf(s)) : '';
   }
 
   // ---- Λίστα ιστοριών: ο διευκολυντής βλέπει τις δικές του, ο σχολιαστής όλες (χωρίς περιορισμό απόστασης) ----
@@ -3591,7 +3602,7 @@
       var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item';
       var ti = document.createElement('span'); ti.className = 't'; ti.textContent = st(x).title;
       var me_ = document.createElement('span'); me_.className = 'm';
-      var chip = document.createElement('span'); chip.className = x.status === 'published' ? 'chip-pub' : 'chip-draft'; chip.textContent = t(x.status === 'published' ? 'statusPublished' : 'statusDraft');
+      var chip = document.createElement('span'); chip.className = x.status === 'published' ? 'chip-pub' : 'chip-draft'; chip.textContent = t(statusKeyOf(x));
       me_.appendChild(chip);
       me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length + (x.consentCode ? ' · ' + x.consentCode : '')));
       b.appendChild(ti); b.appendChild(me_);

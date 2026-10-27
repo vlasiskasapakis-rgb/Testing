@@ -130,6 +130,23 @@ and the RDF export declares the object as `hdto:HC1_Heritage_Entity` and says th
 (`crm:P67_refers_to`), so ECCCH can find the oral stories about that object. No 3D model is needed on our side. Table
 `story_heritage` — re-run `supabase/roles.sql` once.
 
+## Facilitator review before annotation (review/ page)
+A story uploaded from the app or the upload website first **waits for its facilitator's review** (status `pending`, shown as
+"Waiting for your review before annotation"); annotators do not see it yet (the annotation site says how many are waiting).
+- The facilitator opens `…/review/` (linked from the upload website: "Review the stories I uploaded") and signs in with the same
+  account. The page lists **only their own** stories that are waiting.
+- A story shows its **fragments as tiles** (photo thumbnails, 🎙 audio, 🎬 video) with how many of who/what/where/when are answered.
+  Opening a tile shows the file (player or photo) and its details, read-only (nothing can be changed after upload), with
+  **← Previous / Next →**. Tiles get ✓ once opened and 💬 when they have comments; the page counts "You have looked at n of m".
+- **Comments**: for the whole story or for one fragment (from the comment form or inside a fragment). The facilitator can delete
+  their own comments while the story is waiting. Annotators see them on the annotation site ("Facilitator's comments"), read-only.
+- **Send to annotation** finishes the review (it warns if some fragments were never opened): the story becomes a draft and goes
+  to the annotators as before. After that the comments are frozen and the story cannot go back to review.
+- The database enforces it: new stories must start as `pending`; only the uploader can move a waiting story on, and only to
+  annotation; nobody can put a story back to `pending`; comments can be added only by the uploader while the story is waiting
+  and are readable only by the uploader and the annotation team. Stories that were already uploaded keep their status.
+  Re-run `supabase/roles.sql` once (it adds the status and the `facilitator_comments` table).
+
 ## Validation before publishing (validate/ page)
 Annotators no longer publish directly: a **validator** approves every story and every walk first.
 - **Stories**: on the annotation site the button is **Submit for validation** (with an optional message). The story becomes

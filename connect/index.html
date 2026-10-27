@@ -431,7 +431,7 @@
     if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');   // βάση χωρίς τι/πού
     if (r.error) r = await sb.from('stories').select(cols).order('created_at');
     if (r.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('loadErr', { e: errText(r.error) }); return; }
-    STORIES = r.data.map(storyFromRow); byId = {}; STORIES.forEach(function (s) { byId[s.id] = s; });
+    STORIES = r.data.filter(function (x) { return x.status !== 'pending'; }).map(storyFromRow); byId = {}; STORIES.forEach(function (s) { byId[s.id] = s; });   // όχι όσες περιμένουν τον έλεγχο του διευκολυντή
     var b = await sb.from('story_boards').select('id,title,created_at,is_walk,description,walk_status').order('created_at');
     if (b.error && /walk_status/i.test(b.error.message || '')) b = await sb.from('story_boards').select('id,title,created_at,is_walk,description').order('created_at');   // βάση χωρίς έλεγχο
     if (b.error && /is_walk|description/i.test(b.error.message || '')) b = await sb.from('story_boards').select('id,title,created_at').order('created_at');   // βάση χωρίς διαδρομές

@@ -350,6 +350,9 @@
   .review-box summary { cursor: pointer; color: var(--petrol); font-weight: 600; }
   .review-box ol { margin: 6px 0 0; padding-left: 20px; }
   .review-box li { margin: 3px 0; } .review-box li q { color: var(--muted); }
+  .fac-box ol { margin: 0 0 6px; padding-left: 20px; font-size: 14px; }
+  .fac-box li { margin: 4px 0; } .fac-box li p { margin: 2px 0 0; white-space: pre-wrap; }
+  .fac-box .fac-meta { color: var(--muted); font-size: 13px; }
   .sync-stage { border: 3px solid var(--amber); border-radius: 16px; padding: 10px; background: #fff; }
   .sync-stage[hidden] { display: none; }
   .stage-view { height: 38vh; min-height: 200px; display: flex; gap: 8px; align-items: center; justify-content: center; background: var(--mist); border-radius: 12px; overflow: hidden; }
@@ -667,6 +670,7 @@
           <span id="sheetConsent" class="story-status" hidden></span>
         </div>
         <div id="reviewBox" class="review-box" hidden></div>
+        <details id="facBox" class="fold fac-box" hidden open><summary id="facSum"></summary><ol id="facList"></ol></details>
         <div id="sheetTools" hidden>
           <button id="publishBtn" class="btn-primary" hidden></button>
           <button id="exportBtn" class="btn-secondary" hidden data-i18n="annExport"></button>
@@ -1022,6 +1026,9 @@
       valNeedSql: "Ο έλεγχος χρειάζεται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.",
       revReturned: "Επιστράφηκε από {n} · {d}",
       revHistory: "Ιστορικό ελέγχου ({n})",
+      pendingNote: "{n} ιστορίες περιμένουν ακόμα τον έλεγχο του διευκολυντή τους και θα εμφανιστούν εδώ μετά.",
+      facTitle: "Σχόλια του διευκολυντή ({n})",
+      facWhole: "όλη η ιστορία",
       rev_submitted: "Υποβολή",
       rev_withdrawn: "Απόσυρση",
       rev_returned: "Επιστροφή",
@@ -1486,6 +1493,9 @@
       valNeedSql: "Validation needs a database update: run supabase/roles.sql once.",
       revReturned: "Returned by {n} · {d}",
       revHistory: "Validation history ({n})",
+      pendingNote: "{n} stories are still waiting for their facilitator's review and will appear here afterwards.",
+      facTitle: "Facilitator's comments ({n})",
+      facWhole: "whole story",
       rev_submitted: "Submitted",
       rev_withdrawn: "Withdrawn",
       rev_returned: "Returned",
@@ -1950,6 +1960,9 @@
       valNeedSql: "La validation nécessite une mise à jour de la base : exécutez une fois supabase/roles.sql.",
       revReturned: "Renvoyée par {n} · {d}",
       revHistory: "Historique de validation ({n})",
+      pendingNote: "{n} histoires attendent encore la relecture de leur facilitateur et apparaîtront ici ensuite.",
+      facTitle: "Commentaires du facilitateur ({n})",
+      facWhole: "toute l'histoire",
       rev_submitted: "Soumission",
       rev_withdrawn: "Retrait",
       rev_returned: "Renvoi",
@@ -2414,6 +2427,9 @@
       valNeedSql: "La validazione richiede un aggiornamento del database: esegui una volta supabase/roles.sql.",
       revReturned: "Restituita da {n} · {d}",
       revHistory: "Storico della validazione ({n})",
+      pendingNote: "{n} storie aspettano ancora la revisione del loro facilitatore e appariranno qui dopo.",
+      facTitle: "Commenti del facilitatore ({n})",
+      facWhole: "tutta la storia",
       rev_submitted: "Invio",
       rev_withdrawn: "Ritiro",
       rev_returned: "Restituzione",
@@ -2755,7 +2771,7 @@
   // ==========================================
   // Ιστοσελίδα σχολιαστών: σύνδεση, λίστα ιστοριών και χώρος εργασίας
   // ==========================================
-  var STORIES = [];
+  var STORIES = [], PENDING_N = 0;
   function st(s) { return s.t[LANG] || s.t.el; }
   function tr_(s) { return st(s).title; }
   var BUCKET = 'story-media';
@@ -2920,6 +2936,23 @@
     pb.textContent = t({ draft: 'submitBtn', returned: 'resubmitBtn', submitted: 'withdrawBtn', published: 'unpubStory' }[s.status] || 'submitBtn');
     pb.className = s.status === 'submitted' || s.status === 'published' ? 'btn-secondary' : 'btn-primary';
     loadReviews(s);
+    loadFacComments(s);
+  }
+  // Σχόλια του διευκολυντή από τον έλεγχο πριν από τον σχολιασμό (μόνο ανάγνωση)
+  async function loadFacComments(s) {
+    var box = $('facBox'); box.hidden = true; $('facList').innerHTML = '';
+    if (!sb || !s.dbId || !isAnnotator()) return;
+    var r = await sb.from('facilitator_comments').select('id,media_id,body,user_name,created_at').eq('story_id', s.dbId).order('created_at');
+    if (r.error || !r.data || !r.data.length || currentSheetStory !== s) return;
+    $('facSum').textContent = t('facTitle', { n: r.data.length });
+    r.data.forEach(function (c) {
+      var li = document.createElement('li'), meta = document.createElement('span'); meta.className = 'fac-meta';
+      var m = c.media_id ? s.media.filter(function (x) { return x.id === c.media_id; })[0] : null;
+      meta.textContent = [String(c.created_at).slice(0, 16).replace('T', ' '), c.user_name || '', m ? (KIND_ICON[m.kind] || '') + ' ' + mediaName(s, m) : t('facWhole')].filter(Boolean).join(' · ');
+      var p = document.createElement('p'); p.textContent = c.body;
+      li.appendChild(meta); li.appendChild(p); $('facList').appendChild(li);
+    });
+    box.hidden = false;
   }
   // Ιστορικό ελέγχου: το τελευταίο σχόλιο επιστροφής του ελεγκτή φαίνεται καθαρά πάνω από την ιστορία
   async function loadReviews(s) {
@@ -5282,6 +5315,7 @@
       .filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.consentCode || '')).toLowerCase().indexOf(q) >= 0; }).reverse();
     var RANK = { returned: 0, draft: 1, submitted: 2, published: 3 };
     items.sort(function (a, b) { return (RANK[a.status] || 0) - (RANK[b.status] || 0); });   // πρώτα όσα θέλουν δουλειά (επιστραμμένα, πρόχειρα)
+    if (PENDING_N) { var pn = document.createElement('p'); pn.className = 'sheet-sub'; pn.textContent = t('pendingNote', { n: PENDING_N }); body.appendChild(pn); }
     if (!items.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('listEmpty'); body.appendChild(p); return; }
     items.forEach(function (x) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item' + (currentSheetStory === x ? ' current' : '');
@@ -5311,7 +5345,9 @@
       if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
       if (r.error) throw r.error;
-      STORIES = r.data.map(storyFromRow);
+      // ιστορίες που περιμένουν ακόμα τον έλεγχο του διευκολυντή δεν φτάνουν στον σχολιασμό
+      PENDING_N = r.data.filter(function (x) { return x.status === 'pending'; }).length;
+      STORIES = r.data.filter(function (x) { return x.status !== 'pending'; }).map(storyFromRow);
     } catch (e) { $('listBody').innerHTML = ''; var ep = document.createElement('p'); ep.className = 'field-error'; ep.textContent = t('loadStoriesError') + ' ' + errText(e); $('listBody').appendChild(ep); return; }
     var again = keep && STORIES.filter(function (x) { return x.dbId === keep; })[0];
     if (!again && currentSheetStory) closeStory();

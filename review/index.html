@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Walking Memory · Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,700&display=swap" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+  :root {
+    --petrol: #186078; --petrol-deep: #0E3F50; --sky: #249CCC; --sky-soft: #E7F4FA; --amber: #E0904F; --amber-text: #9A5413;
+    --ink: #12303B; --muted: #4B6470; --line: #D3E3EA; --line-strong: #6F8D99; --mist: #F2F7F9; --danger: #B3261E; --ok: #2E7D32;
+    --font: "Exo 2", "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--mist); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.45; }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; }
+  button { cursor: pointer; border: 0; border-radius: 999px; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+  header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 24px; background: var(--petrol); color: #fff; }
+  header h1 { margin: 0; font-size: 22px; font-style: italic; flex: 1 1 auto; }
+  header select, header button, header a.hbtn { min-height: 38px; padding: 6px 14px; border-radius: 999px; border: 0; font-weight: 700; color: var(--petrol); background: #fff; text-decoration: none; display: inline-flex; align-items: center; }
+  header a.hbtn { background: rgba(255,255,255,.15); color: #fff; }
+  #userName { font-weight: 600; }
+  main { max-width: 1180px; margin: 0 auto; padding: 20px 24px 60px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; }
+  .login { max-width: 460px; margin: 40px auto; }
+  .login label { display: block; font-weight: 600; color: var(--petrol); margin: 10px 0 4px; }
+  .login input { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 10px; }
+  h2 { margin: 0 0 6px; color: var(--petrol); font-size: 22px; font-style: italic; }
+  h3 { margin: 16px 0 6px; font-size: 18px; color: var(--petrol); font-style: italic; }
+  .lead, .note { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  .err { color: var(--danger); font-weight: 600; }
+  .btn { background: var(--petrol); color: #fff; font-weight: 700; padding: 10px 20px; min-height: 44px; }
+  .btn-ok { background: var(--ok); color: #fff; font-weight: 700; padding: 10px 22px; min-height: 48px; font-size: 17px; }
+  .btn-sec { background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); font-weight: 700; padding: 8px 18px; min-height: 44px; }
+  .btn-x { background: none; color: var(--danger); font-weight: 700; padding: 4px 10px; min-height: 32px; text-decoration: underline; }
+  .btn:disabled, .btn-ok:disabled { opacity: .55; cursor: default; }
+
+  .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; align-items: start; }
+  .layout > * { min-width: 0; }
+  @media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } main { padding: 14px 12px 50px; } header { padding: 10px 12px; } }
+  .queue { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .queue button { width: 100%; text-align: left; border-radius: 14px; border: 1px solid var(--line); background: #fff; padding: 10px 14px; color: var(--ink); }
+  .queue button[aria-current="true"] { border: 2px solid var(--amber); background: #FFF8F1; }
+  .queue b { display: block; color: var(--petrol); font-style: italic; }
+  .queue span { font-size: 13px; color: var(--muted); }
+  .empty { color: var(--muted); font-size: 15px; padding: 6px 0; }
+
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; color: var(--muted); margin: 0 0 10px; }
+  .meta a { color: var(--petrol); font-weight: 600; }
+  .progress { font-weight: 700; color: var(--amber-text); font-size: 14px; margin: 0 0 6px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .tile { position: relative; display: flex; flex-direction: column; text-align: left; padding: 0; border-radius: 14px; overflow: hidden; background: #fff; border: 2px solid var(--line); color: var(--ink); min-height: 190px; }
+  .tile:hover { border-color: var(--sky); }
+  .tile.seen { border-color: var(--ok); }
+  .tile .th { height: 120px; background: var(--sky-soft); display: flex; align-items: center; justify-content: center; font-size: 42px; }
+  .tile .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tile .tx { padding: 8px 10px 10px; display: grid; gap: 2px; }
+  .tile .tx b { font-size: 14px; color: var(--petrol); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .tx span { font-size: 12px; color: var(--muted); }
+  .tile .no { position: absolute; top: 8px; left: 8px; background: rgba(14,63,80,.85); color: #fff; font-weight: 700; font-size: 13px; border-radius: 999px; min-width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
+  .tile .badges { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; }
+  .tile .badges span { background: #fff; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 2px 8px; color: var(--petrol); box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+  .tile .badges .ok { color: var(--ok); }
+
+  .comments { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .comments li { border-left: 4px solid var(--sky); background: var(--sky-soft); border-radius: 8px; padding: 8px 12px; }
+  .comments .c-meta { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+  .comments .c-meta button.frag { background: #fff; color: var(--petrol); border: 1px solid var(--line-strong); font-size: 12px; font-weight: 700; padding: 1px 8px; }
+  .comments p { margin: 4px 0 0; white-space: pre-wrap; }
+  .add { display: grid; gap: 8px; margin-top: 10px; }
+  .add label { font-weight: 600; color: var(--petrol); }
+  .add textarea { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 10px; resize: vertical; }
+  .add select { justify-self: stretch; width: 100%; text-overflow: ellipsis; padding: 8px 12px; border: 2px solid var(--line-strong); border-radius: 999px; background: #fff; color: var(--petrol); font-weight: 700; max-width: 100%; }
+  .finish { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+  dialog { width: min(760px, calc(100% - 20px)); max-height: calc(100% - 20px); border: 0; border-radius: 18px; padding: 18px 20px; color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  dialog::backdrop { background: rgba(14,63,80,.55); }
+  .fd-media img, .fd-media video { width: 100%; max-height: 52vh; object-fit: contain; background: #000; border-radius: 12px; display: block; }
+  .fd-media audio { width: 100%; }
+  dl.w4 { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 14px 0; }
+  dl.w4 dt { font-weight: 700; color: var(--petrol); }
+  dl.w4 dd { margin: 0; }
+  dl.w4 dd.none { color: var(--muted); font-style: italic; }
+  .fd-nav { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-top: 14px; }
+  #status { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--petrol-deep); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 30; max-width: calc(100% - 24px); }
+  #status.bad { background: var(--danger); }
+</style>
+</head>
+<body>
+<header>
+  <h1 data-i="title"></h1>
+  <a class="hbtn" href="../upload/" data-i="toUpload"></a>
+  <select id="lang" aria-label="Language"><option value="el">EL</option><option value="en">EN</option><option value="fr">FR</option><option value="it">IT</option></select>
+  <span id="userName"></span>
+  <button id="logout" type="button" hidden data-i="logout"></button>
+</header>
+<main>
+  <section id="loginView" class="card login" hidden>
+    <h2 data-i="login"></h2>
+    <p class="note" data-i="loginHint"></p>
+    <form id="loginForm" novalidate>
+      <label for="email" data-i="email"></label><input id="email" type="email" autocomplete="email" required>
+      <label for="pass" data-i="password"></label><input id="pass" type="password" autocomplete="current-password" required>
+      <p id="loginErr" class="err" role="alert"></p>
+      <button class="btn" type="submit" data-i="login" style="margin-top:12px"></button>
+    </form>
+  </section>
+  <div id="app" class="layout" hidden>
+    <section class="card" aria-labelledby="hQueue">
+      <h2 id="hQueue"></h2>
+      <p class="lead" data-i="queueLead"></p>
+      <p id="loadInfo" class="note" role="status"></p>
+      <ul id="queue" class="queue"></ul>
+    </section>
+    <section class="card" aria-labelledby="sTitle" id="storyPane">
+      <div id="noStory"><p class="empty" data-i="pickStory"></p></div>
+      <div id="story" hidden>
+        <h2 id="sTitle" tabindex="-1"></h2>
+        <div id="sMeta" class="meta"></div>
+        <p class="lead" data-i="storyLead"></p>
+        <h3 id="hFrags"></h3>
+        <p id="seenInfo" class="progress" aria-live="polite"></p>
+        <div id="tiles" class="tiles"></div>
+        <h3 id="hComments"></h3>
+        <ul id="comments" class="comments"></ul>
+        <div class="add">
+          <label for="cBody" data-i="addLabel"></label>
+          <select id="cAbout" aria-label="About"></select>
+          <textarea id="cBody" rows="3" maxlength="4000"></textarea>
+          <div><button type="button" class="btn" id="cAdd" data-i="addBtn"></button> <span id="cErr" class="err" role="alert"></span></div>
+        </div>
+        <div class="finish">
+          <button type="button" class="btn-ok" id="sendBtn" data-i="sendBtn"></button>
+          <span class="note" data-i="sendHint" style="margin:0"></span>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- one fragment -->
+<dialog id="fragDlg" aria-labelledby="fdTitle">
+  <h2 id="fdTitle"></h2>
+  <div id="fdMedia" class="fd-media"></div>
+  <dl id="fdW4" class="w4"></dl>
+  <ul id="fdComments" class="comments"></ul>
+  <div class="add">
+    <label for="fdBody" data-i="fragCommentLabel"></label>
+    <textarea id="fdBody" rows="2" maxlength="4000"></textarea>
+    <div><button type="button" class="btn" id="fdAdd" data-i="addBtn"></button> <span id="fdErr" class="err" role="alert"></span></div>
+  </div>
+  <div class="fd-nav">
+    <span><button type="button" class="btn-sec" id="fdPrev" data-i="prev"></button> <button type="button" class="btn-sec" id="fdNext" data-i="next"></button></span>
+    <button type="button" class="btn" id="fdClose" data-i="close"></button>
+  </div>
+</dialog>
+<div id="status" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var I18N = {
+    el: {
+      title: 'Walking Memory · Έλεγχος από τον διευκολυντή', toUpload: 'Ανέβασμα ιστοριών', logout: 'Αποσύνδεση', login: 'Σύνδεση', email: 'E-mail', password: 'Κωδικός',
+      loginHint: 'Για διευκολυντές: δες τις ιστορίες που ανέβασες πριν πάνε για σχολιασμό.', loginFail: 'Η σύνδεση απέτυχε: {e}',
+      queueTitle: 'Περιμένουν τον έλεγχό σου ({n})', queueLead: 'Οι ιστορίες που ανέβασες και δεν έχουν σταλεί ακόμα για σχολιασμό.',
+      none: 'Δεν υπάρχει ιστορία που να περιμένει τον έλεγχό σου.', loading: 'Φόρτωση…', loadErr: 'Δεν φορτώθηκαν οι ιστορίες: {e}',
+      needSql: 'Ο έλεγχος χρειάζεται ενημέρωση της βάσης: ο διαχειριστής πρέπει να τρέξει το supabase/roles.sql.',
+      pickStory: 'Διάλεξε μια ιστορία από τη λίστα.', uploaded: 'Ανέβηκε {d}', consent: 'Συναίνεση {c}', location: '📍 Τοποθεσία στον χάρτη', files: '{n} αρχεία',
+      storyLead: 'Άνοιξε κάθε κομμάτι και δες το αρχείο και τα στοιχεία του. Αν κάτι δεν είναι σωστό ή χρειάζεται προσοχή, γράψε ένα σχόλιο για τους σχολιαστές. Όταν τελειώσεις, στείλε την ιστορία για σχολιασμό.',
+      fragsTitle: 'Κομμάτια της ιστορίας ({n})', seen: 'Είδες {a} από {n} κομμάτια', seenAll: 'Είδες όλα τα κομμάτια ✓', answered: '{n}/4 απαντήσεις',
+      commentsTitle: 'Σχόλια ({n})', noComments: 'Δεν υπάρχουν ακόμα σχόλια.', addLabel: 'Νέο σχόλιο για τους σχολιαστές', addBtn: 'Προσθήκη σχολίου',
+      wholeStory: 'Για όλη την ιστορία', aboutFrag: 'Για το κομμάτι {n}: {t}', del: 'Διαγραφή', delQ: 'Διαγραφή αυτού του σχολίου;', needText: 'Γράψε πρώτα το σχόλιο.',
+      saveErr: 'Δεν αποθηκεύτηκε: {e}', added: 'Το σχόλιο προστέθηκε.',
+      sendBtn: 'Αποστολή για σχολιασμό', sendHint: 'Μετά την αποστολή δεν μπορείς να προσθέσεις σχόλια.',
+      sendQ: 'Αποστολή της «{t}» για σχολιασμό; Μετά δεν θα μπορείς να προσθέσεις σχόλια.', sendQUnseen: 'Δεν έχεις ανοίξει {n} κομμάτια. Αποστολή της «{t}» για σχολιασμό;',
+      sent: 'Στάλθηκε για σχολιασμό: {t}', gone: 'Η ιστορία δεν περιμένει πια έλεγχο (στάλθηκε ή διαγράφηκε).',
+      fragCommentLabel: 'Σχόλιο για αυτό το κομμάτι', prev: '← Προηγούμενο', next: 'Επόμενο →', close: 'Κλείσιμο',
+      who: 'Ποιος', what: 'Τι', where: 'Πού', when: 'Πότε', recorded: 'Καταγράφηκε', noAnswer: 'χωρίς απάντηση', openMap: 'άνοιγμα στον χάρτη',
+      kind_image: 'Φωτογραφία', kind_audio: 'Ήχος', kind_video: 'Βίντεο'
+    },
+    en: {
+      title: 'Walking Memory · Facilitator review', toUpload: 'Upload stories', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password',
+      loginHint: 'For facilitators: look through the stories you uploaded before they go to annotation.', loginFail: 'Login failed: {e}',
+      queueTitle: 'Waiting for your review ({n})', queueLead: 'Stories you uploaded that have not been sent to annotation yet.',
+      none: 'No story is waiting for your review.', loading: 'Loading…', loadErr: 'Could not load the stories: {e}',
+      needSql: 'The review needs a database update: the administrator needs to run supabase/roles.sql.',
+      pickStory: 'Choose a story from the list.', uploaded: 'Uploaded {d}', consent: 'Consent {c}', location: '📍 Location on the map', files: '{n} files',
+      storyLead: 'Open each fragment and look at the file and its details. If something is wrong or needs attention, write a comment for the annotators. When you are done, send the story to annotation.',
+      fragsTitle: 'Fragments of the story ({n})', seen: 'You have looked at {a} of {n} fragments', seenAll: 'You have looked at every fragment ✓', answered: '{n}/4 answered',
+      commentsTitle: 'Comments ({n})', noComments: 'No comments yet.', addLabel: 'New comment for the annotators', addBtn: 'Add comment',
+      wholeStory: 'About the whole story', aboutFrag: 'About fragment {n}: {t}', del: 'Delete', delQ: 'Delete this comment?', needText: 'Write the comment first.',
+      saveErr: 'Not saved: {e}', added: 'Comment added.',
+      sendBtn: 'Send to annotation', sendHint: 'After sending, you can no longer add comments.',
+      sendQ: 'Send “{t}” to annotation? You will not be able to add comments afterwards.', sendQUnseen: 'You have not opened {n} fragments. Send “{t}” to annotation?',
+      sent: 'Sent to annotation: {t}', gone: 'The story is no longer waiting for review (sent or deleted).',
+      fragCommentLabel: 'Comment on this fragment', prev: '← Previous', next: 'Next →', close: 'Close',
+      who: 'Who', what: 'What', where: 'Where', when: 'When', recorded: 'Recorded', noAnswer: 'not answered', openMap: 'open on the map',
+      kind_image: 'Photo', kind_audio: 'Audio', kind_video: 'Video'
+    },
+    fr: {
+      title: 'Walking Memory · Relecture du facilitateur', toUpload: 'Envoyer des histoires', logout: 'Déconnexion', login: 'Connexion', email: 'E-mail', password: 'Mot de passe',
+      loginHint: 'Pour les facilitateurs : relisez les histoires que vous avez envoyées avant qu’elles partent à l’annotation.', loginFail: 'Échec de connexion : {e}',
+      queueTitle: 'En attente de votre relecture ({n})', queueLead: 'Les histoires que vous avez envoyées et qui ne sont pas encore parties à l’annotation.',
+      none: 'Aucune histoire n’attend votre relecture.', loading: 'Chargement…', loadErr: 'Impossible de charger les histoires : {e}',
+      needSql: 'La relecture nécessite une mise à jour de la base : l’administrateur doit exécuter supabase/roles.sql.',
+      pickStory: 'Choisissez une histoire dans la liste.', uploaded: 'Envoyée le {d}', consent: 'Consentement {c}', location: '📍 Lieu sur la carte', files: '{n} fichiers',
+      storyLead: 'Ouvrez chaque fragment et regardez le fichier et ses détails. Si quelque chose ne va pas ou demande de l’attention, écrivez un commentaire pour les annotateurs. Quand vous avez fini, envoyez l’histoire à l’annotation.',
+      fragsTitle: 'Fragments de l’histoire ({n})', seen: 'Vous avez regardé {a} fragments sur {n}', seenAll: 'Vous avez regardé tous les fragments ✓', answered: '{n}/4 réponses',
+      commentsTitle: 'Commentaires ({n})', noComments: 'Pas encore de commentaires.', addLabel: 'Nouveau commentaire pour les annotateurs', addBtn: 'Ajouter le commentaire',
+      wholeStory: 'Sur toute l’histoire', aboutFrag: 'Sur le fragment {n} : {t}', del: 'Supprimer', delQ: 'Supprimer ce commentaire ?', needText: 'Écrivez d’abord le commentaire.',
+      saveErr: 'Non enregistré : {e}', added: 'Commentaire ajouté.',
+      sendBtn: 'Envoyer à l’annotation', sendHint: 'Après l’envoi, vous ne pourrez plus ajouter de commentaires.',
+      sendQ: 'Envoyer « {t} » à l’annotation ? Vous ne pourrez plus ajouter de commentaires ensuite.', sendQUnseen: 'Vous n’avez pas ouvert {n} fragments. Envoyer « {t} » à l’annotation ?',
+      sent: 'Envoyée à l’annotation : {t}', gone: 'L’histoire n’attend plus de relecture (envoyée ou supprimée).',
+      fragCommentLabel: 'Commentaire sur ce fragment', prev: '← Précédent', next: 'Suivant →', close: 'Fermer',
+      who: 'Qui', what: 'Quoi', where: 'Où', when: 'Quand', recorded: 'Enregistré', noAnswer: 'sans réponse', openMap: 'ouvrir sur la carte',
+      kind_image: 'Photo', kind_audio: 'Audio', kind_video: 'Vidéo'
+    },
+    it: {
+      title: 'Walking Memory · Revisione del facilitatore', toUpload: 'Carica storie', logout: 'Esci', login: 'Accedi', email: 'E-mail', password: 'Password',
+      loginHint: 'Per i facilitatori: rivedi le storie che hai caricato prima che vadano all’annotazione.', loginFail: 'Accesso non riuscito: {e}',
+      queueTitle: 'In attesa della tua revisione ({n})', queueLead: 'Le storie che hai caricato e che non sono ancora state inviate all’annotazione.',
+      none: 'Nessuna storia aspetta la tua revisione.', loading: 'Caricamento…', loadErr: 'Impossibile caricare le storie: {e}',
+      needSql: 'La revisione richiede un aggiornamento del database: l’amministratore deve eseguire supabase/roles.sql.',
+      pickStory: 'Scegli una storia dall’elenco.', uploaded: 'Caricata il {d}', consent: 'Consenso {c}', location: '📍 Luogo sulla mappa', files: '{n} file',
+      storyLead: 'Apri ogni frammento e guarda il file e i suoi dettagli. Se qualcosa non va o richiede attenzione, scrivi un commento per gli annotatori. Quando hai finito, invia la storia all’annotazione.',
+      fragsTitle: 'Frammenti della storia ({n})', seen: 'Hai guardato {a} frammenti su {n}', seenAll: 'Hai guardato tutti i frammenti ✓', answered: '{n}/4 risposte',
+      commentsTitle: 'Commenti ({n})', noComments: 'Ancora nessun commento.', addLabel: 'Nuovo commento per gli annotatori', addBtn: 'Aggiungi commento',
+      wholeStory: 'Su tutta la storia', aboutFrag: 'Sul frammento {n}: {t}', del: 'Elimina', delQ: 'Eliminare questo commento?', needText: 'Scrivi prima il commento.',
+      saveErr: 'Non salvato: {e}', added: 'Commento aggiunto.',
+      sendBtn: 'Invia all’annotazione', sendHint: 'Dopo l’invio non potrai più aggiungere commenti.',
+      sendQ: 'Inviare «{t}» all’annotazione? Dopo non potrai più aggiungere commenti.', sendQUnseen: 'Non hai aperto {n} frammenti. Inviare «{t}» all’annotazione?',
+      sent: 'Inviata all’annotazione: {t}', gone: 'La storia non aspetta più la revisione (inviata o eliminata).',
+      fragCommentLabel: 'Commento su questo frammento', prev: '← Precedente', next: 'Successivo →', close: 'Chiudi',
+      who: 'Chi', what: 'Cosa', where: 'Dove', when: 'Quando', recorded: 'Registrato', noAnswer: 'senza risposta', openMap: 'apri sulla mappa',
+      kind_image: 'Foto', kind_audio: 'Audio', kind_video: 'Video'
+    }
+  };
+  var LANG = (function () {
+    try { var v = localStorage.getItem('dm_lang'); if (I18N[v]) return v; } catch (e) {}
+    var p = navigator.languages || [navigator.language || 'el'];
+    for (var i = 0; i < p.length; i++) { var c = String(p[i]).slice(0, 2).toLowerCase(); if (I18N[c]) return c; }
+    return 'el';
+  })();
+  function t(k, v) { var s = (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k; if (v) Object.keys(v).forEach(function (x) { s = s.split('{' + x + '}').join(v[x]); }); return s; }
+  function applyLang() {
+    document.documentElement.lang = LANG; $('lang').value = LANG; document.title = t('title');
+    document.querySelectorAll('[data-i]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i')); });
+  }
+  $('lang').onchange = function () { LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang(); renderAll(); };
+
+  var CFG = window.WM_CONFIG || {}, sb = null, BUCKET = 'story-media';
+  try { if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { sb = null; }
+  var KIND_ICON = { image: '🖼', audio: '🎙', video: '🎬' };
+  function errText(e) { return (e && (e.message || e.details)) || String(e); }
+  function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
+  function when(d) { return String(d || '').slice(0, 16).replace('T', ' '); }
+  function mediaUrl(path) { return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl; }
+  function osm(lat, lon) { return 'https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lon + '#map=17/' + lat + '/' + lon; }
+  var statusTimer = null;
+  function say(msg, bad) { var s = $('status'); s.textContent = msg; s.className = bad ? 'bad' : ''; s.hidden = false; clearTimeout(statusTimer); statusTimer = setTimeout(function () { s.hidden = true; }, 4500); }
+  function isMissing(e) { return /does not exist|could not find the table|schema cache|42P01|PGRST205/i.test(errText(e) + ' ' + ((e && e.code) || '')); }
+
+  // ---- sign in ----
+  var user = null, loadedFor = null;
+  function show(v) { $('loginView').hidden = v !== 'login'; $('app').hidden = v !== 'app'; $('logout').hidden = !user; }
+  function myName() { return user ? String((user.user_metadata && user.user_metadata.display_name) || (user.email || '').split('@')[0]).slice(0, 120) : ''; }
+  $('loginForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault(); $('loginErr').textContent = '';
+    var r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pass').value });
+    if (r.error) $('loginErr').textContent = t('loginFail', { e: errText(r.error) });
+  });
+  $('logout').onclick = function () { if (sb) sb.auth.signOut(); };
+  function onSession(session) {
+    if (session && loadedFor === session.user.id) { user = session.user; return; }
+    user = session ? session.user : null; loadedFor = null;
+    $('userName').textContent = user ? myName() : '';
+    if (!user) { show('login'); return; }
+    loadedFor = user.id; show('app'); load();
+  }
+
+  // ---- data: the signed-in facilitator's stories waiting for review ----
+  var D = { stories: [], cur: null, comments: [], seen: {} };
+  var MCOLS = 'id,kind,path,position,title,about,what,place_name,recorded_at,period,lat,lon';
+  async function load() {
+    $('loadInfo').textContent = t('loading');
+    var cols = 'id,title,author_name,lat,lon,status,created_at,consents(code),story_media(' + MCOLS + ')';
+    var r = await sb.from('stories').select(cols).eq('user_id', user.id).eq('status', 'pending').order('created_at');
+    if (r.error && /what|place_name/i.test(errText(r.error))) r = await sb.from('stories').select(cols.replace(',what,place_name', '')).eq('user_id', user.id).eq('status', 'pending').order('created_at');
+    if (r.error) { $('loadInfo').textContent = /status|check|schema cache/i.test(errText(r.error)) ? t('needSql') : t('loadErr', { e: errText(r.error) }); D.stories = []; renderAll(); return; }
+    $('loadInfo').textContent = '';
+    D.stories = (r.data || []).map(function (s) { s.story_media = (s.story_media || []).slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0); }); return s; });
+    var keep = D.cur && D.stories.filter(function (s) { return s.id === D.cur.id; })[0];
+    D.cur = keep || null;
+    renderAll();
+    if (D.cur) loadComments();
+  }
+  function renderAll() { renderQueue(); renderStory(); }
+  function renderQueue() {
+    $('hQueue').textContent = t('queueTitle', { n: D.stories.length });
+    var ul = $('queue'); ul.innerHTML = '';
+    if (!D.stories.length && !$('loadInfo').textContent) { var p = el('li', 'empty', t('none')); ul.appendChild(p); }
+    D.stories.forEach(function (s) {
+      var li = el('li'), b = el('button'); b.type = 'button';
+      if (D.cur && D.cur.id === s.id) b.setAttribute('aria-current', 'true');
+      b.appendChild(el('b', null, s.title));
+      b.appendChild(el('span', null, [t('uploaded', { d: when(s.created_at) }), t('files', { n: s.story_media.length })].join(' · ')));
+      b.onclick = function () { openStory(s); };
+      li.appendChild(b); ul.appendChild(li);
+    });
+  }
+  function openStory(s) { D.cur = s; D.comments = []; renderAll(); loadComments(); $('sTitle').focus(); }
+  async function loadComments() {
+    var s = D.cur; if (!s) return;
+    var r = await sb.from('facilitator_comments').select('id,media_id,body,user_id,user_name,created_at').eq('story_id', s.id).order('created_at');
+    if (D.cur !== s) return;
+    if (r.error) { say(isMissing(r.error) ? t('needSql') : t('loadErr', { e: errText(r.error) }), true); D.comments = []; }
+    else D.comments = r.data || [];
+    renderStory();
+  }
+
+  // ---- one story: fragments as tiles, comments, send to annotation ----
+  function answered(m) { return ['about', 'what', 'place_name', 'period'].filter(function (k) { return m[k] || (k === 'place_name' && m.lat != null); }).length; }
+  function fragName(m, i) { return m.title || (t('kind_' + m.kind) + ' ' + (i + 1)); }
+  function commentsFor(mid) { return D.comments.filter(function (c) { return (c.media_id || null) === mid; }); }
+  function renderStory() {
+    var s = D.cur;
+    $('noStory').hidden = !!s; $('story').hidden = !s;
+    if (!s) return;
+    $('sTitle').textContent = s.title;
+    var meta = $('sMeta'); meta.innerHTML = '';
+    meta.appendChild(el('span', null, t('uploaded', { d: when(s.created_at) })));
+    if (s.consents && s.consents.code) meta.appendChild(el('span', null, t('consent', { c: s.consents.code })));
+    if (s.lat != null) { var a = el('a', null, t('location')); a.href = osm(s.lat, s.lon); a.target = '_blank'; a.rel = 'noopener'; meta.appendChild(a); }
+    var frags = s.story_media, seen = D.seen[s.id] || {};
+    $('hFrags').textContent = t('fragsTitle', { n: frags.length });
+    var nSeen = frags.filter(function (m) { return seen[m.id]; }).length;
+    $('seenInfo').textContent = nSeen === frags.length ? t('seenAll') : t('seen', { a: nSeen, n: frags.length });
+    var g = $('tiles'); g.innerHTML = '';
+    frags.forEach(function (m, i) {
+      var b = el('button', 'tile' + (seen[m.id] ? ' seen' : '')); b.type = 'button';
+      var th = el('span', 'th');
+      if (m.kind === 'image') { var im = el('img'); im.src = mediaUrl(m.path); im.alt = ''; im.loading = 'lazy'; th.appendChild(im); }
+      else th.textContent = KIND_ICON[m.kind] || '•';
+      b.appendChild(th);
+      b.appendChild(el('span', 'no', String(i + 1)));
+      var bd = el('span', 'badges'), nc = commentsFor(m.id).length;
+      if (nc) bd.appendChild(el('span', null, '💬 ' + nc));
+      if (seen[m.id]) bd.appendChild(el('span', 'ok', '✓'));
+      b.appendChild(bd);
+      var tx = el('span', 'tx'); tx.appendChild(el('b', null, fragName(m, i)));
+      tx.appendChild(el('span', null, (KIND_ICON[m.kind] || '') + ' ' + t('kind_' + m.kind) + ' · ' + t('answered', { n: answered(m) })));
+      b.appendChild(tx);
+      b.setAttribute('aria-label', (i + 1) + '. ' + fragName(m, i) + ' · ' + t('kind_' + m.kind) + ' · ' + t('answered', { n: answered(m) }) + (nc ? ' · 💬 ' + nc : '') + (seen[m.id] ? ' · ✓' : ''));
+      b.onclick = function () { openFrag(i); };
+      g.appendChild(b);
+    });
+    // comments
+    $('hComments').textContent = t('commentsTitle', { n: D.comments.length });
+    renderComments($('comments'), D.comments, true);
+    var sel = $('cAbout'), cur = sel.value; sel.innerHTML = '';
+    var o0 = el('option', null, t('wholeStory')); o0.value = ''; sel.appendChild(o0);
+    frags.forEach(function (m, i) { var o = el('option', null, t('aboutFrag', { n: i + 1, t: fragName(m, i) })); o.value = m.id; sel.appendChild(o); });
+    sel.value = frags.some(function (m) { return m.id === cur; }) ? cur : '';
+    renderQueue();
+  }
+  function renderComments(ul, list, showFrag) {
+    ul.innerHTML = '';
+    if (!list.length) { ul.appendChild(el('li', 'empty', t('noComments'))).style.cssText = 'background:none;border:0;padding:0'; return; }
+    var s = D.cur;
+    list.forEach(function (c) {
+      var li = el('li'), meta = el('div', 'c-meta');
+      meta.appendChild(el('span', null, when(c.created_at) + (c.user_name ? ' · ' + c.user_name : '')));
+      var i = s.story_media.findIndex(function (m) { return m.id === c.media_id; });
+      if (showFrag) {
+        if (i >= 0) { var fb = el('button', 'frag', (KIND_ICON[s.story_media[i].kind] || '') + ' ' + (i + 1) + '. ' + fragName(s.story_media[i], i)); fb.type = 'button'; fb.onclick = function () { openFrag(i); }; meta.appendChild(fb); }
+        else meta.appendChild(el('span', null, t('wholeStory')));
+      }
+      if (c.user_id === user.id) {
+        var x = el('button', 'btn-x', t('del')); x.type = 'button';
+        x.onclick = async function () {
+          if (!window.confirm(t('delQ'))) return;
+          var r = await sb.from('facilitator_comments').delete().eq('id', c.id).select('id');
+          if (r.error || !r.data || !r.data.length) { say(t('saveErr', { e: r.error ? errText(r.error) : '—' }), true); return; }
+          D.comments = D.comments.filter(function (z) { return z.id !== c.id; }); renderStory(); if ($('fragDlg').open) renderFragComments();
+        };
+        meta.appendChild(x);
+      }
+      li.appendChild(meta); li.appendChild(el('p', null, c.body)); ul.appendChild(li);
+    });
+  }
+  async function addComment(mediaId, ta, errEl, btn) {
+    var body = ta.value.trim(); errEl.textContent = '';
+    if (!body) { errEl.textContent = t('needText'); ta.focus(); return; }
+    btn.disabled = true;
+    var r = await sb.from('facilitator_comments').insert({ story_id: D.cur.id, media_id: mediaId || null, body: body.slice(0, 4000), user_name: myName() || null })
+      .select('id,media_id,body,user_id,user_name,created_at').single();
+    btn.disabled = false;
+    if (r.error) { errEl.textContent = isMissing(r.error) ? t('needSql') : /row-level security/i.test(errText(r.error)) ? t('gone') : t('saveErr', { e: errText(r.error) }); return; }
+    D.comments.push(r.data); ta.value = ''; say(t('added'));
+    renderStory(); if ($('fragDlg').open) renderFragComments();
+  }
+  $('cAdd').onclick = function () { addComment($('cAbout').value, $('cBody'), $('cErr'), this); };
+
+  // ---- one fragment (dialog) ----
+  var fi = 0;
+  function openFrag(i) {
+    var s = D.cur, m = s.story_media[i]; if (!m) return;
+    fi = i; (D.seen[s.id] = D.seen[s.id] || {})[m.id] = true;
+    stopMedia();
+    $('fdTitle').textContent = (i + 1) + '. ' + fragName(m, i);
+    var box = $('fdMedia'); box.innerHTML = '';
+    var x;
+    if (m.kind === 'image') { x = el('img'); x.alt = fragName(m, i); }
+    else { x = el(m.kind === 'video' ? 'video' : 'audio'); x.controls = true; x.preload = 'metadata'; if (m.kind === 'video') x.playsInline = true; }
+    x.src = mediaUrl(m.path); box.appendChild(x);
+    var dl = $('fdW4'); dl.innerHTML = '';
+    function row(k, val, link) {
+      dl.appendChild(el('dt', null, t(k)));
+      var dd = el('dd', val ? null : 'none', val || t('noAnswer'));
+      if (link) { dd.appendChild(document.createTextNode(' · ')); var a = el('a', null, t('openMap')); a.href = link; a.target = '_blank'; a.rel = 'noopener'; dd.appendChild(a); }
+      dl.appendChild(dd);
+    }
+    row('who', m.about); row('what', m.what);
+    var pt = m.lat != null && m.lon != null;
+    row('where', m.place_name || (pt ? (+m.lat).toFixed(5) + ', ' + (+m.lon).toFixed(5) : ''), pt ? osm(m.lat, m.lon) : null);
+    row('when', m.period); row('recorded', m.recorded_at);
+    renderFragComments();
+    $('fdBody').value = ''; $('fdErr').textContent = '';
+    $('fdPrev').disabled = i === 0; $('fdNext').disabled = i === s.story_media.length - 1;
+    if (!$('fragDlg').open) $('fragDlg').showModal();
+    renderStory();
+  }
+  function renderFragComments() { var m = D.cur.story_media[fi]; renderComments($('fdComments'), commentsFor(m.id), false); }
+  function stopMedia() { $('fdMedia').querySelectorAll('audio, video').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); }); }
+  $('fdAdd').onclick = function () { addComment(D.cur.story_media[fi].id, $('fdBody'), $('fdErr'), this); };
+  $('fdPrev').onclick = function () { openFrag(fi - 1); };
+  $('fdNext').onclick = function () { openFrag(fi + 1); };
+  $('fdClose').onclick = function () { $('fragDlg').close(); };
+  $('fragDlg').addEventListener('close', function () {
+    stopMedia();
+    var b = $('tiles').children[fi]; if (b) b.focus();
+  });
+
+  // ---- finish: send to annotation ----
+  $('sendBtn').onclick = async function () {
+    var s = D.cur; if (!s) return;
+    var seen = D.seen[s.id] || {}, unseen = s.story_media.filter(function (m) { return !seen[m.id]; }).length;
+    if (!window.confirm(unseen ? t('sendQUnseen', { n: unseen, t: s.title }) : t('sendQ', { t: s.title }))) return;
+    var b = this; b.disabled = true;
+    var r = await sb.from('stories').update({ status: 'draft' }).eq('id', s.id).eq('status', 'pending').select('id');
+    b.disabled = false;
+    if (r.error) { say(/status|check|schema cache/i.test(errText(r.error)) ? t('needSql') : t('saveErr', { e: errText(r.error) }), true); return; }
+    if (!r.data || !r.data.length) { say(t('gone'), true); await load(); return; }
+    D.stories = D.stories.filter(function (x) { return x.id !== s.id; }); D.cur = null; D.comments = [];
+    renderAll(); say(t('sent', { t: s.title }));
+  };
+
+  applyLang();
+  if (!sb) { $('loginView').hidden = false; $('loginErr').textContent = 'Supabase is not configured (config.js).'; return; }
+  sb.auth.onAuthStateChange(function (_e, session) { setTimeout(function () { onSession(session); }, 0); });   // as on the validation page (no database call inside the callback)
+})();
+</script>
+</body>
+</html>

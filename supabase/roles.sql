@@ -104,9 +104,10 @@ drop policy if exists "annotators publish"    on public.stories;
 drop policy if exists "owners delete own stories" on public.stories;
 create policy "read visible stories" on public.stories for select
   using (status = 'published' or user_id = auth.uid() or public.is_annotator() or public.is_admin());
+-- A new story waits for its facilitator's review (status 'pending'); the facilitator then sends it to annotation ('draft').
 create policy "owners add drafts" on public.stories for insert to authenticated
   with check (
-    user_id = auth.uid() and status = 'draft'
+    user_id = auth.uid() and status = 'pending'
     and consent_id is not null
     and exists (select 1 from public.consents c where c.id = consent_id and c.user_id = auth.uid())
   );
@@ -468,17 +469,28 @@ alter table public.profiles add column if not exists is_validator boolean not nu
 create or replace function public.is_validator() returns boolean language sql stable security definer set search_path = public as $$ select exists (select 1 from public.profiles where user_id = auth.uid() and is_validator) $$;
 grant execute on function public.is_validator() to anon, authenticated;
 
--- Story status: draft -> submitted (annotator) -> published (validator) or returned (validator, with comments) -> submitted ...
+-- Story status: pending (facilitator review) -> draft (annotation) -> submitted (annotator) -> published (validator)
+-- or returned (validator, with comments) -> submitted ...
 alter table public.stories drop constraint if exists stories_status_check;
-alter table public.stories add constraint stories_status_check check (status in ('draft', 'submitted', 'returned', 'published'));
+alter table public.stories add constraint stories_status_check check (status in ('pending', 'draft', 'submitted', 'returned', 'published'));
+alter table public.stories alter column status set default 'pending';
 create or replace function public.check_story_status() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   if new.status is distinct from old.status and auth.uid() is not null and new.status in ('published', 'returned') and not public.is_validator() then
     raise exception 'Only a validator can publish or return a story' using errcode = '42501';
   end if;
+  if new.status is distinct from old.status and auth.uid() is not null and (
+       (old.status = 'pending' and new.status <> 'draft') or new.status = 'pending') then
+    raise exception 'A story waiting for review can only be sent to annotation' using errcode = '42501';
+  end if;
   return new;
 end $$;
+-- The facilitator who uploaded a story finishes the review: pending -> draft (only the status column is granted).
+drop policy if exists "owners finish review" on public.stories;
+create policy "owners finish review" on public.stories for update to authenticated
+  using (user_id = auth.uid() and status = 'pending')
+  with check (user_id = auth.uid() and status in ('pending', 'draft'));
 drop trigger if exists stories_status_guard on public.stories;
 create trigger stories_status_guard before update of status on public.stories for each row execute function public.check_story_status();
 
@@ -523,6 +535,35 @@ create policy "staff add reviews" on public.reviews for insert to authenticated
   with check (public.is_annotator() and user_id = auth.uid() and (action in ('submitted', 'withdrawn', 'unpublished') or public.is_validator()));
 revoke all on public.reviews from anon;
 grant select, insert on public.reviews to authenticated;
+
+-- ---------- facilitator comments during the review (read by the facilitator and the annotation team) ----------
+create table if not exists public.facilitator_comments (
+  id         uuid primary key default gen_random_uuid(),
+  story_id   uuid not null references public.stories(id) on delete cascade,
+  media_id   uuid references public.story_media(id) on delete cascade,   -- null: about the whole story
+  body       text not null check (char_length(body) between 1 and 4000),
+  user_id    uuid default auth.uid() references auth.users(id) on delete set null,
+  user_name  text check (user_name is null or char_length(user_name) <= 120),
+  created_at timestamptz not null default now()
+);
+create index if not exists facilitator_comments_story_idx on public.facilitator_comments(story_id);
+alter table public.facilitator_comments enable row level security;
+drop policy if exists "read story comments" on public.facilitator_comments;
+drop policy if exists "owners comment while reviewing" on public.facilitator_comments;
+drop policy if exists "owners delete comments while reviewing" on public.facilitator_comments;
+create policy "read story comments" on public.facilitator_comments for select to authenticated
+  using (public.is_annotator() or public.is_admin()
+         or exists (select 1 from public.stories s where s.id = facilitator_comments.story_id and s.user_id = auth.uid()));
+create policy "owners comment while reviewing" on public.facilitator_comments for insert to authenticated
+  with check (user_id = auth.uid()
+    and exists (select 1 from public.stories s where s.id = facilitator_comments.story_id and s.user_id = auth.uid() and s.status = 'pending')
+    and (facilitator_comments.media_id is null
+         or exists (select 1 from public.story_media m where m.id = facilitator_comments.media_id and m.story_id = facilitator_comments.story_id)));
+create policy "owners delete comments while reviewing" on public.facilitator_comments for delete to authenticated
+  using (user_id = auth.uid()
+    and exists (select 1 from public.stories s where s.id = facilitator_comments.story_id and s.user_id = auth.uid() and s.status = 'pending'));
+revoke all on public.facilitator_comments from anon;
+grant select, insert, delete on public.facilitator_comments to authenticated;
 
 -- Make the API pick up new columns immediately (avoids "could not find the column ... in the schema cache")
 notify pgrst, 'reload schema';
