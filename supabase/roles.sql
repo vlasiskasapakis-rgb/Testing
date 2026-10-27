@@ -591,5 +591,45 @@ create policy "owners delete comments while reviewing" on public.facilitator_com
 revoke all on public.facilitator_comments from anon;
 grant select, insert, delete on public.facilitator_comments to authenticated;
 
+-- ---------- corrections during the review ----------
+-- While a story waits for review, its uploader can correct the story title and location and each file's details
+-- (title, who, what, where, when, date recorded), e.g. after the community has looked at them. After "Send to annotation"
+-- they are fixed again. The SQL editor (no signed-in user) is not limited.
+grant update (title, lat, lon) on public.stories to authenticated;
+grant update (title, about, what, place_name, period, recorded_at, lat, lon) on public.story_media to authenticated;
+create or replace function public.check_review_edit() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then return new; end if;
+  if tg_table_name = 'stories' then
+    if (new.title, new.lat, new.lon) is not distinct from (old.title, old.lat, old.lon) then return new; end if;
+    if not (old.user_id = auth.uid() and old.status = 'pending') then
+      raise exception 'Details can only be corrected by the uploader while the story waits for review' using errcode = '42501';
+    end if;
+    return new;
+  end if;
+  if (new.title, new.about, new.what, new.place_name, new.period, new.recorded_at, new.lat, new.lon)
+     is not distinct from (old.title, old.about, old.what, old.place_name, old.period, old.recorded_at, old.lat, old.lon) then
+    return new;
+  end if;
+  if not exists (select 1 from public.stories s where s.id = old.story_id and s.user_id = auth.uid() and s.status = 'pending') then
+    raise exception 'Details can only be corrected by the uploader while the story waits for review' using errcode = '42501';
+  end if;
+  if (new.lat is null) <> (new.lon is null) or (new.lat is not null and (new.lat not between -90 and 90 or new.lon not between -180 and 180)) then
+    raise exception 'A map point needs a valid latitude and longitude' using errcode = '22023';
+  end if;
+  if char_length(coalesce(new.title, '')) > 120 or char_length(coalesce(new.about, '')) > 200 or char_length(coalesce(new.what, '')) > 200
+     or char_length(coalesce(new.place_name, '')) > 200 or char_length(coalesce(new.period, '')) > 120 then
+    raise exception 'A detail is too long' using errcode = '22001';
+  end if;
+  return new;
+end $$;
+drop trigger if exists stories_review_edit on public.stories;
+create trigger stories_review_edit before update of title, lat, lon on public.stories
+  for each row execute function public.check_review_edit();
+drop trigger if exists story_media_review_edit on public.story_media;
+create trigger story_media_review_edit before update of title, about, what, place_name, period, recorded_at, lat, lon on public.story_media
+  for each row execute function public.check_review_edit();
+
 -- Make the API pick up new columns immediately (avoids "could not find the column ... in the schema cache")
 notify pgrst, 'reload schema';

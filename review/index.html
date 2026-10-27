@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,700&display=swap" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../config.js"></script>
 <style>
@@ -89,6 +91,21 @@
   dl.w4 dd { margin: 0; }
   dl.w4 dd.none { color: var(--muted); font-style: italic; }
   .fd-nav { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-top: 14px; }
+  .edit { display: grid; gap: 6px; margin: 12px 0; padding: 14px 16px; border: 2px solid var(--sky); border-radius: 14px; background: #F7FBFD; }
+  .edit label, .edit .lbl { font-weight: 600; color: var(--petrol); margin-top: 6px; }
+  .edit input { width: 100%; padding: 9px 12px; border: 2px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--ink); }
+  .edit .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
+  .edit .note { margin: 0; }
+  .edit-btn { margin: 0 0 12px; }
+  .pk { display: grid; gap: 6px; }
+  .pk-search { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pk-search input { flex: 1 1 180px; min-width: 0; }
+  .pk-results { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .pk-results button { width: 100%; text-align: left; border-radius: 10px; background: #fff; border: 1px solid var(--line); padding: 6px 10px; color: var(--ink); font-size: 14px; }
+  .pk-results .none { color: var(--muted); font-size: 14px; }
+  .pk-map { height: 240px; border-radius: 12px; border: 1px solid var(--line); }
+  .pk-foot { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 14px; color: var(--muted); }
+  .pk-foot .btn-sec { min-height: 36px; padding: 4px 14px; font-size: 14px; }
   #status { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--petrol-deep); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 30; max-width: calc(100% - 24px); }
   #status.bad { background: var(--danger); }
 </style>
@@ -124,6 +141,16 @@
       <div id="story" hidden>
         <h2 id="sTitle" tabindex="-1"></h2>
         <div id="sMeta" class="meta"></div>
+        <button type="button" class="btn-sec edit-btn" id="sEditBtn" data-i="editStory"></button>
+        <form id="sEdit" class="edit" hidden novalidate>
+          <p class="note" data-i="editNote"></p>
+          <label for="sTitleIn" data-i="storyTitleL"></label>
+          <input id="sTitleIn" type="text" maxlength="120" autocomplete="off" required>
+          <span class="lbl" id="sLocL" data-i="storyLocL"></span>
+          <p class="note" data-i="mapHint"></p>
+          <div id="sPk" class="pk" role="group" aria-labelledby="sLocL"></div>
+          <div class="row"><button type="submit" class="btn" data-i="save"></button> <button type="button" class="btn-sec" id="sEditCancel" data-i="cancel"></button> <span id="sEditErr" class="err" role="alert"></span></div>
+        </form>
         <p class="lead" data-i="storyLead"></p>
         <h3 id="hFrags"></h3>
         <p id="seenInfo" class="progress" aria-live="polite"></p>
@@ -150,6 +177,20 @@
   <h2 id="fdTitle"></h2>
   <div id="fdMedia" class="fd-media"></div>
   <dl id="fdW4" class="w4"></dl>
+  <button type="button" class="btn-sec edit-btn" id="fdEditBtn" data-i="editFrag"></button>
+  <form id="fdEdit" class="edit" hidden novalidate>
+    <p class="note" data-i="editNote"></p>
+    <label for="fTitleIn" data-i="fTitle"></label><input id="fTitleIn" type="text" maxlength="120" autocomplete="off">
+    <label for="fWhoIn" data-i="fWho"></label><input id="fWhoIn" type="text" maxlength="200" autocomplete="off">
+    <label for="fWhatIn" data-i="fWhat"></label><input id="fWhatIn" type="text" maxlength="200" autocomplete="off">
+    <label for="fPlaceIn" data-i="fWhere"></label><input id="fPlaceIn" type="text" maxlength="200" autocomplete="off">
+    <span class="lbl" id="fPointL" data-i="fPoint"></span>
+    <p class="note" data-i="mapHint"></p>
+    <div id="fPk" class="pk" role="group" aria-labelledby="fPointL"></div>
+    <label for="fWhenIn" data-i="fWhen"></label><input id="fWhenIn" type="text" maxlength="120" autocomplete="off">
+    <label for="fDateIn" data-i="fRecorded"></label><input id="fDateIn" type="date">
+    <div class="row"><button type="submit" class="btn" data-i="save"></button> <button type="button" class="btn-sec" id="fdEditCancel" data-i="cancel"></button> <span id="fdEditErr" class="err" role="alert"></span></div>
+  </form>
   <ul id="fdComments" class="comments"></ul>
   <div class="add">
     <label for="fdBody" data-i="fragCommentLabel"></label>
@@ -175,17 +216,18 @@
       none: 'Δεν υπάρχει ιστορία που να περιμένει τον έλεγχό σου.', loading: 'Φόρτωση…', loadErr: 'Δεν φορτώθηκαν οι ιστορίες: {e}',
       needSql: 'Ο έλεγχος χρειάζεται ενημέρωση της βάσης: ο διαχειριστής πρέπει να τρέξει το supabase/roles.sql.',
       pickStory: 'Διάλεξε μια ιστορία από τη λίστα.', uploaded: 'Ανέβηκε {d}', consent: 'Συναίνεση {c}', location: '📍 Τοποθεσία στον χάρτη', files: '{n} αρχεία',
-      storyLead: 'Άνοιξε κάθε κομμάτι και δες το αρχείο και τα στοιχεία του. Αν κάτι δεν είναι σωστό ή χρειάζεται προσοχή, γράψε ένα σχόλιο για τους σχολιαστές. Όταν τελειώσεις, στείλε την ιστορία για σχολιασμό.',
+      storyLead: 'Άνοιξε κάθε κομμάτι και δες το αρχείο και τα στοιχεία του. Αν κάτι δεν είναι σωστό, μπορείς να διορθώσεις τον τίτλο και τα στοιχεία (π.χ. μετά από όσα είπε η κοινότητα) ή να γράψεις ένα σχόλιο για τους σχολιαστές. Όταν τελειώσεις, στείλε την ιστορία για σχολιασμό.',
       fragsTitle: 'Κομμάτια της ιστορίας ({n})', seen: 'Είδες {a} από {n} κομμάτια', seenAll: 'Είδες όλα τα κομμάτια ✓', answered: '{n}/4 απαντήσεις',
       commentsTitle: 'Σχόλια ({n})', noComments: 'Δεν υπάρχουν ακόμα σχόλια.', addLabel: 'Νέο σχόλιο για τους σχολιαστές', addBtn: 'Προσθήκη σχολίου',
       wholeStory: 'Για όλη την ιστορία', aboutFrag: 'Για το κομμάτι {n}: {t}', del: 'Διαγραφή', delQ: 'Διαγραφή αυτού του σχολίου;', needText: 'Γράψε πρώτα το σχόλιο.',
       saveErr: 'Δεν αποθηκεύτηκε: {e}', added: 'Το σχόλιο προστέθηκε.',
-      sendBtn: 'Αποστολή για σχολιασμό', sendHint: 'Μετά την αποστολή δεν μπορείς να προσθέσεις σχόλια.',
-      sendQ: 'Αποστολή της «{t}» για σχολιασμό; Μετά δεν θα μπορείς να προσθέσεις σχόλια.', sendQUnseen: 'Δεν έχεις ανοίξει {n} κομμάτια. Αποστολή της «{t}» για σχολιασμό;',
+      sendBtn: 'Αποστολή για σχολιασμό', sendHint: 'Μετά την αποστολή δεν μπορείς να διορθώσεις στοιχεία ούτε να προσθέσεις σχόλια.',
+      sendQ: 'Αποστολή της «{t}» για σχολιασμό; Μετά δεν θα μπορείς να διορθώσεις στοιχεία ούτε να προσθέσεις σχόλια.', sendQUnseen: 'Δεν έχεις ανοίξει {n} κομμάτια. Αποστολή της «{t}» για σχολιασμό;',
       sent: 'Στάλθηκε για σχολιασμό: {t}', gone: 'Η ιστορία δεν περιμένει πια έλεγχο (στάλθηκε ή διαγράφηκε).',
       fragCommentLabel: 'Σχόλιο για αυτό το κομμάτι', prev: '← Προηγούμενο', next: 'Επόμενο →', close: 'Κλείσιμο',
       who: 'Ποιος', what: 'Τι', where: 'Πού', when: 'Πότε', recorded: 'Καταγράφηκε', noAnswer: 'χωρίς απάντηση', openMap: 'άνοιγμα στον χάρτη',
-      licShown: 'Άδεια:', projectOnly: 'Μόνο για το έργο', kind_image: 'Φωτογραφία', kind_audio: 'Ήχος', kind_video: 'Βίντεο'
+      licShown: 'Άδεια:', projectOnly: 'Μόνο για το έργο', kind_image: 'Φωτογραφία', kind_audio: 'Ήχος', kind_video: 'Βίντεο',
+      editStory: '✎ Διόρθωση τίτλου και τοποθεσίας', editFrag: '✎ Διόρθωση στοιχείων', editNote: 'Μπορείς να τα διορθώσεις μέχρι να στείλεις την ιστορία για σχολιασμό.', storyTitleL: 'Τίτλος ιστορίας', storyLocL: 'Πού τοποθετείται η ιστορία στον χάρτη', mapHint: 'Πάτησε στον χάρτη ή σύρε την πινέζα. Με την αναζήτηση πας σε έναν τόπο.', fTitle: 'Τίτλος', fWho: 'Ποιος; Ποιοι είναι μέσα ή για ποιον μιλάει', fWhat: 'Τι; Τι είναι (αντικείμενο, γεγονός, έθιμο, μαγαζί…)', fWhere: 'Πού έγινε; (όνομα του τόπου)', fPoint: 'Σημείο στον χάρτη (προαιρετικό)', fWhen: 'Πότε έγινε;', fRecorded: 'Ημερομηνία καταγραφής', noPoint: 'Χωρίς σημείο στον χάρτη', pointAt: 'Σημείο: {p}', removePoint: 'Αφαίρεση σημείου', searchPh: 'Αναζήτηση τόπου ή διεύθυνσης…', searchBtn: 'Αναζήτηση', placeNone: 'Δεν βρέθηκε τίποτα.', placeErr: 'Η αναζήτηση απέτυχε: {e}', save: 'Αποθήκευση', cancel: 'Ακύρωση', saved: 'Οι διορθώσεις αποθηκεύτηκαν.', needTitle: 'Η ιστορία χρειάζεται τίτλο.', discardQ: 'Να χαθούν οι αλλαγές σου;'
     },
     en: {
       title: 'Walking Memory · Facilitator review', toUpload: 'Upload stories', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password',
@@ -194,17 +236,18 @@
       none: 'No story is waiting for your review.', loading: 'Loading…', loadErr: 'Could not load the stories: {e}',
       needSql: 'The review needs a database update: the administrator needs to run supabase/roles.sql.',
       pickStory: 'Choose a story from the list.', uploaded: 'Uploaded {d}', consent: 'Consent {c}', location: '📍 Location on the map', files: '{n} files',
-      storyLead: 'Open each fragment and look at the file and its details. If something is wrong or needs attention, write a comment for the annotators. When you are done, send the story to annotation.',
+      storyLead: 'Open each fragment and look at the file and its details. If something is wrong, you can correct the title and details (for example after the community has looked at them) or write a comment for the annotators. When you are done, send the story to annotation.',
       fragsTitle: 'Fragments of the story ({n})', seen: 'You have looked at {a} of {n} fragments', seenAll: 'You have looked at every fragment ✓', answered: '{n}/4 answered',
       commentsTitle: 'Comments ({n})', noComments: 'No comments yet.', addLabel: 'New comment for the annotators', addBtn: 'Add comment',
       wholeStory: 'About the whole story', aboutFrag: 'About fragment {n}: {t}', del: 'Delete', delQ: 'Delete this comment?', needText: 'Write the comment first.',
       saveErr: 'Not saved: {e}', added: 'Comment added.',
-      sendBtn: 'Send to annotation', sendHint: 'After sending, you can no longer add comments.',
-      sendQ: 'Send “{t}” to annotation? You will not be able to add comments afterwards.', sendQUnseen: 'You have not opened {n} fragments. Send “{t}” to annotation?',
+      sendBtn: 'Send to annotation', sendHint: 'After sending, you can no longer correct details or add comments.',
+      sendQ: 'Send “{t}” to annotation? You will not be able to correct details or add comments afterwards.', sendQUnseen: 'You have not opened {n} fragments. Send “{t}” to annotation?',
       sent: 'Sent to annotation: {t}', gone: 'The story is no longer waiting for review (sent or deleted).',
       fragCommentLabel: 'Comment on this fragment', prev: '← Previous', next: 'Next →', close: 'Close',
       who: 'Who', what: 'What', where: 'Where', when: 'When', recorded: 'Recorded', noAnswer: 'not answered', openMap: 'open on the map',
-      licShown: 'Licence:', projectOnly: 'Project use only', kind_image: 'Photo', kind_audio: 'Audio', kind_video: 'Video'
+      licShown: 'Licence:', projectOnly: 'Project use only', kind_image: 'Photo', kind_audio: 'Audio', kind_video: 'Video',
+      editStory: '✎ Correct the title and location', editFrag: '✎ Correct the details', editNote: 'You can correct these until you send the story to annotation.', storyTitleL: 'Story title', storyLocL: 'Where the story is placed on the map', mapHint: 'Click the map or drag the pin. Search to jump to a place.', fTitle: 'Title', fWho: 'Who? Who is in it or who is it about', fWhat: 'What? What is it (an object, an event, a custom, a shop…)', fWhere: 'Where did it happen? (name of the place)', fPoint: 'Point on the map (optional)', fWhen: 'When did it happen?', fRecorded: 'Date recorded', noPoint: 'No point on the map', pointAt: 'Point: {p}', removePoint: 'Remove the point', searchPh: 'Search for a place or address…', searchBtn: 'Search', placeNone: 'Nothing found.', placeErr: 'Search failed: {e}', save: 'Save', cancel: 'Cancel', saved: 'Corrections saved.', needTitle: 'The story needs a title.', discardQ: 'Discard your changes?'
     },
     fr: {
       title: 'Walking Memory · Relecture du facilitateur', toUpload: 'Envoyer des histoires', logout: 'Déconnexion', login: 'Connexion', email: 'E-mail', password: 'Mot de passe',
@@ -213,17 +256,18 @@
       none: 'Aucune histoire n’attend votre relecture.', loading: 'Chargement…', loadErr: 'Impossible de charger les histoires : {e}',
       needSql: 'La relecture nécessite une mise à jour de la base : l’administrateur doit exécuter supabase/roles.sql.',
       pickStory: 'Choisissez une histoire dans la liste.', uploaded: 'Envoyée le {d}', consent: 'Consentement {c}', location: '📍 Lieu sur la carte', files: '{n} fichiers',
-      storyLead: 'Ouvrez chaque fragment et regardez le fichier et ses détails. Si quelque chose ne va pas ou demande de l’attention, écrivez un commentaire pour les annotateurs. Quand vous avez fini, envoyez l’histoire à l’annotation.',
+      storyLead: 'Ouvrez chaque fragment et regardez le fichier et ses détails. Si quelque chose ne va pas, vous pouvez corriger le titre et les détails (par exemple après l’avis de la communauté) ou écrire un commentaire pour les annotateurs. Quand vous avez fini, envoyez l’histoire à l’annotation.',
       fragsTitle: 'Fragments de l’histoire ({n})', seen: 'Vous avez regardé {a} fragments sur {n}', seenAll: 'Vous avez regardé tous les fragments ✓', answered: '{n}/4 réponses',
       commentsTitle: 'Commentaires ({n})', noComments: 'Pas encore de commentaires.', addLabel: 'Nouveau commentaire pour les annotateurs', addBtn: 'Ajouter le commentaire',
       wholeStory: 'Sur toute l’histoire', aboutFrag: 'Sur le fragment {n} : {t}', del: 'Supprimer', delQ: 'Supprimer ce commentaire ?', needText: 'Écrivez d’abord le commentaire.',
       saveErr: 'Non enregistré : {e}', added: 'Commentaire ajouté.',
-      sendBtn: 'Envoyer à l’annotation', sendHint: 'Après l’envoi, vous ne pourrez plus ajouter de commentaires.',
-      sendQ: 'Envoyer « {t} » à l’annotation ? Vous ne pourrez plus ajouter de commentaires ensuite.', sendQUnseen: 'Vous n’avez pas ouvert {n} fragments. Envoyer « {t} » à l’annotation ?',
+      sendBtn: 'Envoyer à l’annotation', sendHint: 'Après l’envoi, vous ne pourrez plus corriger les détails ni ajouter de commentaires.',
+      sendQ: 'Envoyer « {t} » à l’annotation ? Vous ne pourrez plus corriger les détails ni ajouter de commentaires ensuite.', sendQUnseen: 'Vous n’avez pas ouvert {n} fragments. Envoyer « {t} » à l’annotation ?',
       sent: 'Envoyée à l’annotation : {t}', gone: 'L’histoire n’attend plus de relecture (envoyée ou supprimée).',
       fragCommentLabel: 'Commentaire sur ce fragment', prev: '← Précédent', next: 'Suivant →', close: 'Fermer',
       who: 'Qui', what: 'Quoi', where: 'Où', when: 'Quand', recorded: 'Enregistré', noAnswer: 'sans réponse', openMap: 'ouvrir sur la carte',
-      licShown: 'Licence :', projectOnly: 'Usage du projet uniquement', kind_image: 'Photo', kind_audio: 'Audio', kind_video: 'Vidéo'
+      licShown: 'Licence :', projectOnly: 'Usage du projet uniquement', kind_image: 'Photo', kind_audio: 'Audio', kind_video: 'Vidéo',
+      editStory: '✎ Corriger le titre et le lieu', editFrag: '✎ Corriger les détails', editNote: 'Vous pouvez les corriger jusqu’à l’envoi de l’histoire à l’annotation.', storyTitleL: 'Titre de l’histoire', storyLocL: 'Où l’histoire est placée sur la carte', mapHint: 'Cliquez sur la carte ou faites glisser l’épingle. La recherche vous amène à un lieu.', fTitle: 'Titre', fWho: 'Qui ? Qui y figure ou de qui parle-t-on', fWhat: 'Quoi ? De quoi s’agit-il (objet, événement, coutume, boutique…)', fWhere: 'Où cela s’est-il passé ? (nom du lieu)', fPoint: 'Point sur la carte (facultatif)', fWhen: 'Quand cela s’est-il passé ?', fRecorded: 'Date d’enregistrement', noPoint: 'Pas de point sur la carte', pointAt: 'Point : {p}', removePoint: 'Retirer le point', searchPh: 'Rechercher un lieu ou une adresse…', searchBtn: 'Rechercher', placeNone: 'Aucun résultat.', placeErr: 'La recherche a échoué : {e}', save: 'Enregistrer', cancel: 'Annuler', saved: 'Corrections enregistrées.', needTitle: 'L’histoire a besoin d’un titre.', discardQ: 'Abandonner vos modifications ?'
     },
     it: {
       title: 'Walking Memory · Revisione del facilitatore', toUpload: 'Carica storie', logout: 'Esci', login: 'Accedi', email: 'E-mail', password: 'Password',
@@ -232,17 +276,18 @@
       none: 'Nessuna storia aspetta la tua revisione.', loading: 'Caricamento…', loadErr: 'Impossibile caricare le storie: {e}',
       needSql: 'La revisione richiede un aggiornamento del database: l’amministratore deve eseguire supabase/roles.sql.',
       pickStory: 'Scegli una storia dall’elenco.', uploaded: 'Caricata il {d}', consent: 'Consenso {c}', location: '📍 Luogo sulla mappa', files: '{n} file',
-      storyLead: 'Apri ogni frammento e guarda il file e i suoi dettagli. Se qualcosa non va o richiede attenzione, scrivi un commento per gli annotatori. Quando hai finito, invia la storia all’annotazione.',
+      storyLead: 'Apri ogni frammento e guarda il file e i suoi dettagli. Se qualcosa non va, puoi correggere il titolo e i dettagli (per esempio dopo il parere della comunità) o scrivere un commento per gli annotatori. Quando hai finito, invia la storia all’annotazione.',
       fragsTitle: 'Frammenti della storia ({n})', seen: 'Hai guardato {a} frammenti su {n}', seenAll: 'Hai guardato tutti i frammenti ✓', answered: '{n}/4 risposte',
       commentsTitle: 'Commenti ({n})', noComments: 'Ancora nessun commento.', addLabel: 'Nuovo commento per gli annotatori', addBtn: 'Aggiungi commento',
       wholeStory: 'Su tutta la storia', aboutFrag: 'Sul frammento {n}: {t}', del: 'Elimina', delQ: 'Eliminare questo commento?', needText: 'Scrivi prima il commento.',
       saveErr: 'Non salvato: {e}', added: 'Commento aggiunto.',
-      sendBtn: 'Invia all’annotazione', sendHint: 'Dopo l’invio non potrai più aggiungere commenti.',
-      sendQ: 'Inviare «{t}» all’annotazione? Dopo non potrai più aggiungere commenti.', sendQUnseen: 'Non hai aperto {n} frammenti. Inviare «{t}» all’annotazione?',
+      sendBtn: 'Invia all’annotazione', sendHint: 'Dopo l’invio non potrai più correggere i dettagli né aggiungere commenti.',
+      sendQ: 'Inviare «{t}» all’annotazione? Dopo non potrai più correggere i dettagli né aggiungere commenti.', sendQUnseen: 'Non hai aperto {n} frammenti. Inviare «{t}» all’annotazione?',
       sent: 'Inviata all’annotazione: {t}', gone: 'La storia non aspetta più la revisione (inviata o eliminata).',
       fragCommentLabel: 'Commento su questo frammento', prev: '← Precedente', next: 'Successivo →', close: 'Chiudi',
       who: 'Chi', what: 'Cosa', where: 'Dove', when: 'Quando', recorded: 'Registrato', noAnswer: 'senza risposta', openMap: 'apri sulla mappa',
-      licShown: 'Licenza:', projectOnly: 'Solo per il progetto', kind_image: 'Foto', kind_audio: 'Audio', kind_video: 'Video'
+      licShown: 'Licenza:', projectOnly: 'Solo per il progetto', kind_image: 'Foto', kind_audio: 'Audio', kind_video: 'Video',
+      editStory: '✎ Correggi titolo e luogo', editFrag: '✎ Correggi i dettagli', editNote: 'Puoi correggerli finché non invii la storia all’annotazione.', storyTitleL: 'Titolo della storia', storyLocL: 'Dove si trova la storia sulla mappa', mapHint: 'Tocca la mappa o trascina il segnaposto. Con la ricerca vai a un luogo.', fTitle: 'Titolo', fWho: 'Chi? Chi c’è o di chi si parla', fWhat: 'Cosa? Che cos’è (un oggetto, un evento, un’usanza, un negozio…)', fWhere: 'Dove è successo? (nome del luogo)', fPoint: 'Punto sulla mappa (facoltativo)', fWhen: 'Quando è successo?', fRecorded: 'Data di registrazione', noPoint: 'Nessun punto sulla mappa', pointAt: 'Punto: {p}', removePoint: 'Rimuovi il punto', searchPh: 'Cerca un luogo o un indirizzo…', searchBtn: 'Cerca', placeNone: 'Nessun risultato.', placeErr: 'Ricerca non riuscita: {e}', save: 'Salva', cancel: 'Annulla', saved: 'Correzioni salvate.', needTitle: 'La storia ha bisogno di un titolo.', discardQ: 'Scartare le modifiche?'
     }
   };
   var LANG = (function () {
@@ -256,7 +301,11 @@
     document.documentElement.lang = LANG; $('lang').value = LANG; document.title = t('title');
     document.querySelectorAll('[data-i]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i')); });
   }
-  $('lang').onchange = function () { LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang(); renderAll(); };
+  $('lang').onchange = function () {
+    LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang(); renderAll();
+    [sPk, fPk].forEach(function (p) { if (p) p.label(); });
+    if ($('fragDlg').open) { renderFragInfo(); renderFragComments(); }
+  };
 
   var CFG = window.WM_CONFIG || {}, sb = null, BUCKET = 'story-media';
   try { if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { sb = null; }
@@ -324,7 +373,7 @@
       li.appendChild(b); ul.appendChild(li);
     });
   }
-  function openStory(s) { D.cur = s; D.comments = []; renderAll(); loadComments(); $('sTitle').focus(); }
+  function openStory(s) { closeStoryEdit(); D.cur = s; D.comments = []; renderAll(); loadComments(); $('sTitle').focus(); }
   async function loadComments() {
     var s = D.cur; if (!s) return;
     var r = await sb.from('facilitator_comments').select('id,media_id,body,user_id,user_name,created_at').eq('story_id', s.id).order('created_at');
@@ -341,6 +390,7 @@
   function renderStory() {
     var s = D.cur;
     $('noStory').hidden = !!s; $('story').hidden = !s;
+    if (!s || sEditFor !== s.id) closeStoryEdit();
     if (!s) return;
     $('sTitle').textContent = s.title;
     var meta = $('sMeta'); meta.innerHTML = '';
@@ -424,12 +474,22 @@
     var s = D.cur, m = s.story_media[i]; if (!m) return;
     fi = i; (D.seen[s.id] = D.seen[s.id] || {})[m.id] = true;
     stopMedia();
-    $('fdTitle').textContent = (i + 1) + '. ' + fragName(m, i);
     var box = $('fdMedia'); box.innerHTML = '';
     var x;
     if (m.kind === 'image') { x = el('img'); x.alt = fragName(m, i); }
     else { x = el(m.kind === 'video' ? 'video' : 'audio'); x.controls = true; x.preload = 'metadata'; if (m.kind === 'video') x.playsInline = true; }
     x.src = mediaUrl(m.path); box.appendChild(x);
+    closeFragEdit();
+    renderFragInfo();
+    renderFragComments();
+    $('fdBody').value = ''; $('fdErr').textContent = '';
+    if (!$('fragDlg').open) $('fragDlg').showModal();
+    renderStory();
+  }
+  function renderFragInfo() {
+    var i = fi, m = D.cur.story_media[i];
+    $('fdTitle').textContent = (i + 1) + '. ' + fragName(m, i);
+    var im = $('fdMedia').querySelector('img'); if (im) im.alt = fragName(m, i);
     var dl = $('fdW4'); dl.innerHTML = '';
     function row(k, val, link) {
       dl.appendChild(el('dt', null, t(k)));
@@ -441,21 +501,160 @@
     var pt = m.lat != null && m.lon != null;
     row('where', m.place_name || (pt ? (+m.lat).toFixed(5) + ', ' + (+m.lon).toFixed(5) : ''), pt ? osm(m.lat, m.lon) : null);
     row('when', m.period); row('recorded', m.recorded_at);
-    renderFragComments();
-    $('fdBody').value = ''; $('fdErr').textContent = '';
-    $('fdPrev').disabled = i === 0; $('fdNext').disabled = i === s.story_media.length - 1;
-    if (!$('fragDlg').open) $('fragDlg').showModal();
-    renderStory();
+    $('fdPrev').disabled = i === 0; $('fdNext').disabled = i === D.cur.story_media.length - 1;
   }
   function renderFragComments() { var m = D.cur.story_media[fi]; renderComments($('fdComments'), commentsFor(m.id), false); }
   function stopMedia() { $('fdMedia').querySelectorAll('audio, video').forEach(function (m) { m.pause(); m.removeAttribute('src'); m.load(); }); }
   $('fdAdd').onclick = function () { addComment(D.cur.story_media[fi].id, $('fdBody'), $('fdErr'), this); };
   $('fdPrev').onclick = function () { openFrag(fi - 1); };
   $('fdNext').onclick = function () { openFrag(fi + 1); };
-  $('fdClose').onclick = function () { $('fragDlg').close(); };
+  $('fdClose').onclick = function () { if (fragDirty() && !window.confirm(t('discardQ'))) return; $('fragDlg').close(); };
+  $('fragDlg').addEventListener('cancel', function (ev) { if (fragDirty() && !window.confirm(t('discardQ'))) ev.preventDefault(); });
   $('fragDlg').addEventListener('close', function () {
+    closeFragEdit();
     stopMedia();
     var b = $('tiles').children[fi]; if (b) b.focus();
+  });
+
+  // ---- corrections while the story waits for review (the database refuses them after "Send to annotation") ----
+  function editErr(e) {
+    var m = errText(e) + ' ' + ((e && e.code) || '');
+    if (/permission denied|schema cache|does not exist/i.test(m)) return t('needSql');
+    if (/row-level security|42501|waits for review/i.test(m)) return t('gone');
+    return t('saveErr', { e: errText(e) });
+  }
+  // A small map with place search: click or drag the pin to set the point; "required" hides "Remove the point"
+  function makePicker(box, required) {
+    var P = { lat: null, lon: null, map: null, mk: null, onPick: null };
+    var bar = el('div', 'pk-search'), q = el('input'), go = el('button', 'btn-sec'), ul = el('ul', 'pk-results'), mapDiv = el('div', 'pk-map');
+    var foot = el('div', 'pk-foot'), info = el('span'), rm = el('button', 'btn-sec');
+    q.type = 'search'; q.autocomplete = 'off'; go.type = 'button'; rm.type = 'button';
+    bar.appendChild(q); bar.appendChild(go); foot.appendChild(info); if (!required) foot.appendChild(rm);
+    box.innerHTML = ''; box.appendChild(bar); box.appendChild(ul); box.appendChild(mapDiv); box.appendChild(foot);
+    function label() {
+      q.placeholder = t('searchPh'); q.setAttribute('aria-label', t('searchPh')); go.textContent = t('searchBtn'); rm.textContent = t('removePoint');
+      info.textContent = P.lat == null ? t('noPoint') : t('pointAt', { p: P.lat.toFixed(5) + ', ' + P.lon.toFixed(5) });
+      rm.hidden = P.lat == null;
+    }
+    function set(la, lo, center) {
+      P.lat = la == null ? null : +la; P.lon = lo == null ? null : +lo;
+      if (P.map) {
+        if (P.lat == null) { if (P.mk) { P.map.removeLayer(P.mk); P.mk = null; } }
+        else {
+          if (!P.mk) { P.mk = L.marker([P.lat, P.lon], { draggable: true }).addTo(P.map); P.mk.on('dragend', function () { var c = P.mk.getLatLng(); set(c.lat, c.lng); }); }
+          else P.mk.setLatLng([P.lat, P.lon]);
+          if (center) P.map.setView([P.lat, P.lon], Math.max(P.map.getZoom(), 16));
+        }
+      }
+      label();
+    }
+    async function search() {
+      var text = q.value.trim(); ul.innerHTML = ''; if (!text) return;
+      try {
+        var r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=' + encodeURIComponent(LANG) + '&q=' + encodeURIComponent(text));
+        if (!r.ok) throw new Error(r.status);
+        var d = await r.json();
+        if (!d.length) { ul.appendChild(el('li', 'none', t('placeNone'))); return; }
+        d.forEach(function (x) {
+          var li = el('li'), b = el('button', null, x.display_name); b.type = 'button';
+          b.onclick = function () { ul.innerHTML = ''; set(+x.lat, +x.lon, true); if (P.onPick) P.onPick(x); };
+          li.appendChild(b); ul.appendChild(li);
+        });
+      } catch (e) { ul.appendChild(el('li', 'none', t('placeErr', { e: e.message || e }))); }
+    }
+    go.onclick = search;
+    q.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); search(); } });
+    rm.onclick = function () { set(null, null); };
+    // open(lat, lon, search text, centre when there is no point)
+    P.open = function (la, lo, text, around) {
+      q.value = text || ''; ul.innerHTML = '';
+      if (window.L && !P.map) {
+        P.map = L.map(mapDiv);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(P.map);
+        P.map.on('click', function (ev) { set(ev.latlng.lat, ev.latlng.lng); });
+      }
+      mapDiv.hidden = !P.map;
+      if (P.map) { if (P.mk) { P.map.removeLayer(P.mk); P.mk = null; } var c = la != null ? [la, lo] : around; P.map.setView(c, la != null ? 16 : 14); }
+      set(la, lo);
+      if (P.map) setTimeout(function () { P.map.invalidateSize(); }, 60);
+    };
+    P.label = label;
+    return P;
+  }
+
+  // story title and location
+  var sPk = null, sEditFor = null;
+  function closeStoryEdit() { sEditFor = null; $('sEdit').hidden = true; $('sEditBtn').hidden = false; }
+  $('sEditBtn').onclick = function () {
+    var s = D.cur; if (!s) return;
+    sEditFor = s.id; $('sEdit').hidden = false; $('sEditBtn').hidden = true; $('sEditErr').textContent = '';
+    $('sTitleIn').value = s.title;
+    if (!sPk) sPk = makePicker($('sPk'), true);
+    sPk.open(s.lat, s.lon, '', [s.lat, s.lon]);
+    $('sTitleIn').focus();
+  };
+  $('sEditCancel').onclick = function () { closeStoryEdit(); $('sEditBtn').focus(); };
+  $('sEdit').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var s = D.cur, err = $('sEditErr'), title = $('sTitleIn').value.trim().slice(0, 120), patch = {};
+    err.textContent = '';
+    if (!title) { err.textContent = t('needTitle'); $('sTitleIn').focus(); return; }
+    if (title !== s.title) patch.title = title;
+    if (sPk.lat !== +s.lat || sPk.lon !== +s.lon) { patch.lat = sPk.lat; patch.lon = sPk.lon; }
+    if (!Object.keys(patch).length) { closeStoryEdit(); $('sEditBtn').focus(); return; }
+    var btn = this.querySelector('[type=submit]'); btn.disabled = true;
+    var r = await sb.from('stories').update(patch).eq('id', s.id).eq('status', 'pending').select('id');
+    btn.disabled = false;
+    if (r.error) { err.textContent = editErr(r.error); return; }
+    if (!r.data || !r.data.length) { closeStoryEdit(); say(t('gone'), true); await load(); return; }
+    Object.assign(s, patch); closeStoryEdit(); renderAll(); say(t('saved')); $('sEditBtn').focus();
+  });
+
+  // one fragment's details
+  var fPk = null, fEditing = false, fStart = '';
+  var FFIELDS = [['title', 'fTitleIn'], ['about', 'fWhoIn'], ['what', 'fWhatIn'], ['place_name', 'fPlaceIn'], ['period', 'fWhenIn'], ['recorded_at', 'fDateIn']];
+  function fragForm() {
+    var v = {};
+    FFIELDS.forEach(function (f) { v[f[0]] = $(f[1]).value.trim() || null; });
+    v.lat = fPk ? fPk.lat : null; v.lon = fPk ? fPk.lon : null;
+    return v;
+  }
+  function fragDirty() { return fEditing && JSON.stringify(fragForm()) !== fStart; }
+  function closeFragEdit() {
+    if (!fEditing) return;
+    fEditing = false; $('fdEdit').hidden = true; $('fdW4').hidden = false; $('fdEditBtn').hidden = false;
+    if (D.cur) { $('fdPrev').disabled = fi === 0; $('fdNext').disabled = fi === D.cur.story_media.length - 1; }
+  }
+  $('fdEditBtn').onclick = function () {
+    var s = D.cur, m = s.story_media[fi];
+    fEditing = true; $('fdEdit').hidden = false; $('fdW4').hidden = true; $('fdEditBtn').hidden = true; $('fdEditErr').textContent = '';
+    FFIELDS.forEach(function (f) { $(f[1]).value = m[f[0]] || ''; });
+    if (!fPk) {
+      fPk = makePicker($('fPk'), false);
+      fPk.onPick = function (x) { if (!$('fPlaceIn').value.trim()) $('fPlaceIn').value = String(x.name || x.display_name || '').split(',')[0].slice(0, 200); };
+    }
+    fPk.open(m.lat, m.lon, m.place_name || '', [s.lat, s.lon]);
+    $('fdPrev').disabled = $('fdNext').disabled = true;   // save or cancel first
+    fStart = JSON.stringify(fragForm());
+    $('fTitleIn').focus();
+  };
+  $('fdEditCancel').onclick = function () { closeFragEdit(); $('fdEditBtn').focus(); };
+  $('fdEdit').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var m = D.cur.story_media[fi], v = fragForm(), patch = {}, err = $('fdEditErr');
+    err.textContent = '';
+    Object.keys(v).forEach(function (k) {
+      var old = m[k] == null ? null : (k === 'lat' || k === 'lon') ? +m[k] : String(m[k]);
+      if (v[k] !== old) patch[k] = v[k];
+    });
+    if ('lat' in patch || 'lon' in patch) { patch.lat = v.lat; patch.lon = v.lon; }
+    if (!Object.keys(patch).length) { closeFragEdit(); $('fdEditBtn').focus(); return; }
+    var btn = this.querySelector('[type=submit]'); btn.disabled = true;
+    var r = await sb.from('story_media').update(patch).eq('id', m.id).select('id');
+    btn.disabled = false;
+    if (r.error) { err.textContent = editErr(r.error); return; }
+    if (!r.data || !r.data.length) { err.textContent = t('gone'); return; }
+    Object.assign(m, patch); closeFragEdit(); renderFragInfo(); renderStory(); say(t('saved')); $('fdEditBtn').focus();
   });
 
   // ---- finish: send to annotation ----

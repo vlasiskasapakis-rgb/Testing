@@ -26,8 +26,9 @@ The order of a story's files is the order they appear in the story (and in the a
 ## Details for each file (facilitators): who, what, where, when
 In the upload form the questions open as soon as a file is added (**Later** closes them). Each file then has a button under it,
 "+ Add who, what, where, when" or "✎ Who, what, where, when: n of 4", to fill in or correct the answers at any time **before the
-story is uploaded**. After upload they cannot be changed (by facilitators or annotators). Every question is optional and an
-approximate answer is fine:
+story is uploaded**. After upload the facilitator can still correct them on the review page (see "Facilitator review before
+annotation") until the story is sent to annotation; after that they cannot be changed (by facilitators or annotators).
+Every question is optional and an approximate answer is fine:
 - **Title**
 - **Who?** Who is in it or who is it about (e.g. "Grandma Maria", "the harbour fishermen"). The narrator's own name is not asked here.
 - **What?** What it is: an object, an event, a custom, a shop… (e.g. "Nikos's café", "the 1965 village feast").
@@ -139,12 +140,17 @@ Both use the same upload code, so AR stories follow exactly the same path.
   ("Review the stories I uploaded", when signed in); "My stories" in the AR app (how many are waiting, with a link); the story view
   of a waiting story ("Open the review website →"); and the upload website home. A link can point at one story: `review/?story=<id>`.
 - A story shows its **fragments as tiles** (photo thumbnails, 🎙 audio, 🎬 video) with how many of who/what/where/when are answered.
-  Opening a tile shows the file (player or photo) and its details, read-only (nothing can be changed after upload), with
-  **← Previous / Next →**. Tiles get ✓ once opened and 💬 when they have comments; the page counts "You have looked at n of m".
+  Opening a tile shows the file (player or photo) and its details, with **← Previous / Next →**. Tiles get ✓ once opened and
+  💬 when they have comments; the page counts "You have looked at n of m".
+- **Corrections** (e.g. after the community has looked at the story): **✎ Correct the title and location** (story title and
+  where the story is placed: click the map, drag the pin or search for a place) and, inside a fragment, **✎ Correct the details**
+  (title, who, what, where with its optional map point, when, date recorded). Previous/Next wait until you save or cancel, and
+  closing with unsaved changes asks first. Corrections are possible only while the story is waiting; after **Send to annotation**
+  the database refuses them (for everyone, annotators included). Corrections overwrite the old values; there is no history.
 - **Comments**: for the whole story or for one fragment (from the comment form or inside a fragment). The facilitator can delete
   their own comments while the story is waiting. Annotators see them on the annotation site ("Facilitator's comments"), read-only.
 - **Send to annotation** finishes the review (it warns if some fragments were never opened): the story becomes a draft and goes
-  to the annotators as before. After that the comments are frozen and the story cannot go back to review.
+  to the annotators as before. After that the comments and details are frozen and the story cannot go back to review.
 - The database enforces it: new stories must start as `pending`; only the uploader can move a waiting story on, and only to
   annotation; nobody can put a story back to `pending`; comments can be added only by the uploader while the story is waiting
   and are readable only by the uploader and the annotation team. Stories that were already uploaded keep their status.
