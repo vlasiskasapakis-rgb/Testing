@@ -179,7 +179,10 @@ analytics like the app's map/list.
 ## Uploading stories from a computer (facilitator website)
 `…/upload/` (it opens `index.html?web=1`; the app's start screen also links to it: "On a computer? Upload stories from the
 website") is the same story upload as in the app, for a desktop browser: log in, **+ New story**, the narrator's consent, title,
-files (add, edit — blur, crop, mute — and give details), **Finish story**, check and submit. **My stories** lists your stories
+files (add them and answer who, what, where, when), **Finish story**, check and submit. The website has **no redaction tools**
+(no blur, crop or mute): files are uploaded as they are, so anything that must be hidden has to be handled before, or the story
+uploaded from the AR app, which keeps those tools. Photos are still re-saved as JPEG before upload, which removes hidden data such
+as the camera's GPS position. **My stories** lists your stories
 (open, play, delete). There is no AR, camera or GPS here, so the **story location is always chosen on the map** — the map has a
 **place search** (OpenStreetMap); finishing without a location asks for one. Files' own locations are also chosen on the map.
 The place search is also available in the app's map picker.
