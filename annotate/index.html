@@ -668,6 +668,7 @@
           <span id="sheetAuthor" class="story-author"></span>
           <span id="sheetStatus" class="story-status"></span>
           <span id="sheetConsent" class="story-status" hidden></span>
+          <span id="sheetLicense" class="story-status chip-pub" hidden></span>
         </div>
         <div id="reviewBox" class="review-box" hidden></div>
         <details id="facBox" class="fold fac-box" hidden open><summary id="facSum"></summary><ol id="facList"></ol></details>
@@ -1026,6 +1027,8 @@
       valNeedSql: "Ο έλεγχος χρειάζεται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.",
       revReturned: "Επιστράφηκε από {n} · {d}",
       revHistory: "Ιστορικό ελέγχου ({n})",
+      licShown: "Άδεια:",
+      projectOnly: "Μόνο για το έργο",
       pendingNote: "{n} ιστορίες περιμένουν ακόμα τον έλεγχο του διευκολυντή τους και θα εμφανιστούν εδώ μετά.",
       facTitle: "Σχόλια του διευκολυντή ({n})",
       facWhole: "όλη η ιστορία",
@@ -1493,6 +1496,8 @@
       valNeedSql: "Validation needs a database update: run supabase/roles.sql once.",
       revReturned: "Returned by {n} · {d}",
       revHistory: "Validation history ({n})",
+      licShown: "Licence:",
+      projectOnly: "Project use only",
       pendingNote: "{n} stories are still waiting for their facilitator's review and will appear here afterwards.",
       facTitle: "Facilitator's comments ({n})",
       facWhole: "whole story",
@@ -1960,6 +1965,8 @@
       valNeedSql: "La validation nécessite une mise à jour de la base : exécutez une fois supabase/roles.sql.",
       revReturned: "Renvoyée par {n} · {d}",
       revHistory: "Historique de validation ({n})",
+      licShown: "Licence :",
+      projectOnly: "Usage du projet uniquement",
       pendingNote: "{n} histoires attendent encore la relecture de leur facilitateur et apparaîtront ici ensuite.",
       facTitle: "Commentaires du facilitateur ({n})",
       facWhole: "toute l'histoire",
@@ -2427,6 +2434,8 @@
       valNeedSql: "La validazione richiede un aggiornamento del database: esegui una volta supabase/roles.sql.",
       revReturned: "Restituita da {n} · {d}",
       revHistory: "Storico della validazione ({n})",
+      licShown: "Licenza:",
+      projectOnly: "Solo per il progetto",
       pendingNote: "{n} storie aspettano ancora la revisione del loro facilitatore e appariranno qui dopo.",
       facTitle: "Commenti del facilitatore ({n})",
       facWhole: "tutta la storia",
@@ -2805,7 +2814,7 @@
   function storyFromRow(r) {
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
-      id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published',
+      id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', license: r.license || null,
       consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
@@ -2913,6 +2922,9 @@
   }
 
   function renderConsentUI(s) {
+    // η άδεια που διαλέχτηκε με τη συναίνεση
+    var lic = $('sheetLicense'); lic.hidden = !s.license;
+    lic.textContent = s.license ? t('licShown') + ' ' + licName(s.license) : '';
     var el = $('sheetConsent');
     el.innerHTML = '';
     var show = !!(s.consentCode && (isOwner(s) || isAnnotator()));
@@ -2923,6 +2935,10 @@
     b.onclick = function () { copyText(s.consentCode, b); };
     el.appendChild(txt); el.appendChild(b);
   }
+  var LICENSES = { 'CC-BY-4.0': 'https://creativecommons.org/licenses/by/4.0/', 'CC-BY-SA-4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
+    'CC-BY-NC-4.0': 'https://creativecommons.org/licenses/by-nc/4.0/', 'CC-BY-NC-SA-4.0': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
+    'CC-BY-NC-ND-4.0': 'https://creativecommons.org/licenses/by-nc-nd/4.0/', 'PROJECT-ONLY': null };
+  function licName(id) { return id === 'PROJECT-ONLY' ? t('projectOnly') : String(id).replace(/^CC-/, 'CC ').replace(/-4\.0$/, ' 4.0'); }
 
   var STATUS_KEY = { draft: 'statusDraft', submitted: 'statusSubmitted', returned: 'statusReturned', published: 'statusPublished' };
   var STATUS_CHIP = { draft: 'chip-draft', submitted: 'chip-sub', returned: 'chip-ret', published: 'chip-pub' };
@@ -4915,12 +4931,20 @@
       'hdto:HP1_has_digital_twin': { '@id': twin }, 'hdto:HP2_has_story': { '@id': narrative }
     };
     graph.push(ent, { '@id': twin, '@type': 'hdto:HC2_Heritage_Digital_Twin', 'crm:P67_refers_to': { '@id': entity } }, narr);
+    // άδεια από τη συναίνεση: URI της Creative Commons, ή δικαιώματα μόνο για το έργο
+    function addLicense(n) {
+      if (!s.license) return;
+      if (LICENSES[s.license]) n['dcterms:license'] = { '@id': LICENSES[s.license] };
+      else n['dcterms:rights'] = 'Walking Memory project use only (no public reuse)';
+    }
+    addLicense(narr);
 
     var repById = {};
     s.media.forEach(function (m) {
       if (!m.id) return;
       var rep = { '@id': m.url, '@type': m.kind === 'audio' ? 'hdto:HC5_Digital_Representation' : 'hdto:HC7_Digital_Visual_Object', 'hdto:HP22_represents': { '@id': entity },
         'dcterms:format': m.kind };
+      addLicense(rep);
       // στοιχεία αρχείου: τίτλος, ποιος, τι, πού (όνομα και σημείο), πότε, ημερομηνία καταγραφής
       if (m.title) rep['rdfs:label'] = m.title;
       if (m.about) rep['crm:P3_has_note'] = m.about;
@@ -5340,7 +5364,8 @@
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
-      var r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');
+      var r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code),license').order('created_at');
+      if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');   // βάση χωρίς άδεια ιστορίας
       if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');

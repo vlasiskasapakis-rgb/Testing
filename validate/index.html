@@ -133,7 +133,7 @@
       approved: 'Εγκρίθηκε: {t}', returned: 'Επιστράφηκε: {t}', gone: 'Δεν περιμένει πια έλεγχο (αποσύρθηκε ή αποφασίστηκε ήδη).',
       stops: 'Στάσεις με τη σειρά', stopsShown: '{a} από {n} στάσεις θα φαίνονται (οι υπόλοιπες δεν είναι δημοσιευμένες)', noStops: 'Η διαδρομή δεν έχει ιστορίες.',
       st_published: 'δημοσιευμένη', st_other: 'μη δημοσιευμένη', a_approved: 'Εγκρίθηκε', a_returned: 'Επιστράφηκε', storyW: 'Ιστορία', walkW: 'Διαδρομή',
-      loading: 'Φόρτωση…', loadErr: 'Δεν φορτώθηκαν τα δεδομένα: {e}', needSql: 'Ο έλεγχος χρειάζεται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.', untitled: 'Χωρίς τίτλο'
+      loading: 'Φόρτωση…', loadErr: 'Δεν φορτώθηκαν τα δεδομένα: {e}', needSql: 'Ο έλεγχος χρειάζεται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.', untitled: 'Χωρίς τίτλο', licF: 'Άδεια: {l}', projectOnly: 'Μόνο για το έργο'
     },
     en: {
       title: 'Walking Memory · Validation', toAnnotate: 'Annotation', toConnect: 'Story links', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password',
@@ -151,7 +151,7 @@
       approved: 'Approved: {t}', returned: 'Returned: {t}', gone: 'It is no longer waiting (withdrawn or already decided).',
       stops: 'Stops in order', stopsShown: '{a} of {n} stops will be shown (the others are not published)', noStops: 'The walk has no stories.',
       st_published: 'published', st_other: 'not published', a_approved: 'Approved', a_returned: 'Returned', storyW: 'Story', walkW: 'Walk',
-      loading: 'Loading…', loadErr: 'Could not load the data: {e}', needSql: 'Validation needs a database update: run supabase/roles.sql once.', untitled: 'Untitled'
+      loading: 'Loading…', loadErr: 'Could not load the data: {e}', needSql: 'Validation needs a database update: run supabase/roles.sql once.', untitled: 'Untitled', licF: 'Licence: {l}', projectOnly: 'Project use only'
     },
     fr: {
       title: 'Walking Memory · Validation', toAnnotate: 'Annotation', toConnect: 'Liens entre histoires', logout: 'Déconnexion', login: 'Connexion', email: 'E-mail', password: 'Mot de passe',
@@ -169,7 +169,7 @@
       approved: 'Approuvée : {t}', returned: 'Renvoyée : {t}', gone: 'Ce n’est plus en attente (retiré ou déjà décidé).',
       stops: 'Étapes dans l’ordre', stopsShown: '{a} étapes sur {n} seront montrées (les autres ne sont pas publiées)', noStops: 'Le parcours n’a pas d’histoires.',
       st_published: 'publiée', st_other: 'non publiée', a_approved: 'Approuvée', a_returned: 'Renvoyée', storyW: 'Histoire', walkW: 'Parcours',
-      loading: 'Chargement…', loadErr: 'Impossible de charger les données : {e}', needSql: 'La validation nécessite une mise à jour de la base : exécutez une fois supabase/roles.sql.', untitled: 'Sans titre'
+      loading: 'Chargement…', loadErr: 'Impossible de charger les données : {e}', needSql: 'La validation nécessite une mise à jour de la base : exécutez une fois supabase/roles.sql.', untitled: 'Sans titre', licF: 'Licence : {l}', projectOnly: 'Usage du projet uniquement'
     },
     it: {
       title: 'Walking Memory · Validazione', toAnnotate: 'Annotazione', toConnect: 'Collegamenti tra storie', logout: 'Esci', login: 'Accedi', email: 'E-mail', password: 'Password',
@@ -187,7 +187,7 @@
       approved: 'Approvata: {t}', returned: 'Restituita: {t}', gone: 'Non è più in attesa (ritirata o già decisa).',
       stops: 'Tappe in ordine', stopsShown: '{a} tappe su {n} saranno mostrate (le altre non sono pubblicate)', noStops: 'Il percorso non ha storie.',
       st_published: 'pubblicata', st_other: 'non pubblicata', a_approved: 'Approvata', a_returned: 'Restituita', storyW: 'Storia', walkW: 'Percorso',
-      loading: 'Caricamento…', loadErr: 'Impossibile caricare i dati: {e}', needSql: 'La validazione richiede un aggiornamento del database: esegui una volta supabase/roles.sql.', untitled: 'Senza titolo'
+      loading: 'Caricamento…', loadErr: 'Impossibile caricare i dati: {e}', needSql: 'La validazione richiede un aggiornamento del database: esegui una volta supabase/roles.sql.', untitled: 'Senza titolo', licF: 'Licenza: {l}', projectOnly: 'Solo per il progetto'
     }
   };
   var LANG = 'el';
@@ -247,7 +247,7 @@
     $('loadInfo').textContent = t('loading');
     try {
       var cols = 'id,title,author_name,lat,lon,status,created_at,story_media(id,kind,path,position,title,about,period,recorded_at),consents(code)';
-      var colsW = cols.replace('recorded_at)', 'recorded_at,what,place_name)');   // ποιος/τι/πού/πότε
+      var colsW = cols.replace('recorded_at)', 'recorded_at,what,place_name)') + ',license';   // ποιος/τι/πού/πότε, άδεια
       var r = await Promise.all([
         sb.from('stories').select(colsW).eq('status', 'submitted').order('created_at'),
         sb.from('stories').select('id,title,status'),
@@ -346,6 +346,7 @@
       if (c.open) facts.appendChild(el('span', 'warn', t('openTerms', { n: c.open })));
       if (c.comments) facts.appendChild(el('span', null, t('comments', { n: c.comments })));
       if (s.consents && s.consents.code) facts.appendChild(el('span', null, t('consent', { c: s.consents.code })));
+      if (s.license) facts.appendChild(el('span', null, t('licF', { l: s.license === 'PROJECT-ONLY' ? t('projectOnly') : s.license.replace(/^CC-/, 'CC ').replace(/-4\.0$/, ' 4.0') })));
       if (s.lat != null) { var a = el('a', null, '📍 ' + t('location')); a.href = 'https://www.openstreetmap.org/?mlat=' + s.lat + '&mlon=' + s.lon + '#map=17/' + s.lat + '/' + s.lon; a.target = '_blank'; a.rel = 'noopener'; var sp = el('span'); sp.appendChild(a); facts.appendChild(sp); }
       it.appendChild(facts);
       // προεπισκόπηση αρχείων

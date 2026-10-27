@@ -343,6 +343,25 @@ A term points at the seconds where its word is spoken, not at its whole transcri
   you already adjusted is left alone.
 - Editing a line's text in the box drops its word timings (they no longer match); re-run the transcription to get them back.
 
+## Consent and licence at the interview (consent/ page)
+The facilitator gets consent **in person, at the interview**, on `…/consent/` (linked from the upload website, the review page
+and the consent step of the app). Signed in with their account, they read the four statements with the narrator in the
+narrator's language, **choose the licence together** and press **I consent: generate the code**. The page shows the code
+(WM-XXXX-XXXX) with the licence and date, can **copy** it and **print a slip** (code, licence, date, the statements and signature
+lines for narrator and facilitator) to keep with the signed paper form. **My consent codes** lists every code with its licence and
+how many stories use it.
+- Licences offered (none is preselected): **CC BY 4.0**, **CC BY-SA 4.0**, **CC BY-NC 4.0**, **CC BY-NC-SA 4.0**, **CC BY-NC-ND 4.0**
+  and **Project use only** (no public reuse). Each is explained in plain words in the four languages.
+- When uploading, the facilitator picks that code under "Consent code from the interview"; the upload screen shows
+  "Licence: …". A new consent can still be created in the upload step, and it then needs a licence too.
+- The licence belongs to the consent and **cannot be changed later**; the database copies it to every story uploaded with that
+  code (`stories.license`, not editable). Consents created before licences existed have none, and their stories show no licence.
+- The licence is shown on the story (app and stories website, with a link to the licence in the viewer's language), on the
+  review, annotation and validation pages, and exported as `dcterms:license` (Creative Commons URI) or, for project use only,
+  `dcterms:rights`.
+- Re-run `supabase/roles.sql` once (it adds `consents.license`, `stories.license` and the rule that copies it). Until then the
+  consent page says the database needs updating and does not create codes.
+
 ## Consent before every upload
 Pressing **+** first opens a consent screen for the participant (the facilitator can switch its language). All four statements must be
 ticked; the app then creates a record and shows a code like `WM-7K3Q-9D2F`, derived from the record's id, with a **Copy code**

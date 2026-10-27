@@ -68,11 +68,37 @@ drop policy if exists "read own or all consents" on public.consents;
 drop policy if exists "add own consent"          on public.consents;
 create policy "read own or all consents" on public.consents for select to authenticated
   using (user_id = auth.uid() or public.is_annotator());
+-- Licence chosen with the narrator when the consent is given (consent page). Older consents have none (null).
+alter table public.consents add column if not exists license text;
+alter table public.consents drop constraint if exists consents_license_check;
+alter table public.consents add constraint consents_license_check check (license is null or license in
+  ('CC-BY-4.0', 'CC-BY-SA-4.0', 'CC-BY-NC-4.0', 'CC-BY-NC-SA-4.0', 'CC-BY-NC-ND-4.0', 'PROJECT-ONLY'));
 create policy "add own consent" on public.consents for insert to authenticated
-  with check (user_id = auth.uid());
--- No update/delete policies: a consent record is permanent.
+  with check (user_id = auth.uid() and license is not null);   -- every new consent carries a licence
+-- No update/delete policies: a consent record (and its licence) is permanent.
 
 alter table public.stories add column if not exists consent_id uuid references public.consents(id) on delete restrict;
+
+-- Every story carries the licence of its consent, copied by the database (not chosen again at upload).
+alter table public.stories add column if not exists license text;
+alter table public.stories alter column license drop not null;   -- (an earlier test version made it required)
+alter table public.stories alter column license drop default;
+alter table public.stories drop constraint if exists stories_license_check;
+alter table public.stories add constraint stories_license_check check (license is null or license in
+  ('CC-BY-4.0', 'CC-BY-SA-4.0', 'CC-BY-NC-4.0', 'CC-BY-NC-SA-4.0', 'CC-BY-NC-ND-4.0', 'PROJECT-ONLY'));
+create or replace function public.story_license_from_consent() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.consent_id is not null then
+    select c.license into new.license from public.consents c where c.id = new.consent_id;
+  end if;
+  return new;
+end $$;
+drop trigger if exists stories_license_from_consent on public.stories;
+create trigger stories_license_from_consent before insert or update of consent_id on public.stories
+  for each row execute function public.story_license_from_consent();
+update public.stories s set license = c.license from public.consents c
+  where c.id = s.consent_id and s.license is distinct from c.license;
 
 -- To find the story behind a paper form (run as the project owner):
 --   select c.code, s.title, s.status, s.created_at

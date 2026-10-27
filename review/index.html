@@ -185,7 +185,7 @@
       sent: 'Στάλθηκε για σχολιασμό: {t}', gone: 'Η ιστορία δεν περιμένει πια έλεγχο (στάλθηκε ή διαγράφηκε).',
       fragCommentLabel: 'Σχόλιο για αυτό το κομμάτι', prev: '← Προηγούμενο', next: 'Επόμενο →', close: 'Κλείσιμο',
       who: 'Ποιος', what: 'Τι', where: 'Πού', when: 'Πότε', recorded: 'Καταγράφηκε', noAnswer: 'χωρίς απάντηση', openMap: 'άνοιγμα στον χάρτη',
-      kind_image: 'Φωτογραφία', kind_audio: 'Ήχος', kind_video: 'Βίντεο'
+      licShown: 'Άδεια:', projectOnly: 'Μόνο για το έργο', kind_image: 'Φωτογραφία', kind_audio: 'Ήχος', kind_video: 'Βίντεο'
     },
     en: {
       title: 'Walking Memory · Facilitator review', toUpload: 'Upload stories', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password',
@@ -204,7 +204,7 @@
       sent: 'Sent to annotation: {t}', gone: 'The story is no longer waiting for review (sent or deleted).',
       fragCommentLabel: 'Comment on this fragment', prev: '← Previous', next: 'Next →', close: 'Close',
       who: 'Who', what: 'What', where: 'Where', when: 'When', recorded: 'Recorded', noAnswer: 'not answered', openMap: 'open on the map',
-      kind_image: 'Photo', kind_audio: 'Audio', kind_video: 'Video'
+      licShown: 'Licence:', projectOnly: 'Project use only', kind_image: 'Photo', kind_audio: 'Audio', kind_video: 'Video'
     },
     fr: {
       title: 'Walking Memory · Relecture du facilitateur', toUpload: 'Envoyer des histoires', logout: 'Déconnexion', login: 'Connexion', email: 'E-mail', password: 'Mot de passe',
@@ -223,7 +223,7 @@
       sent: 'Envoyée à l’annotation : {t}', gone: 'L’histoire n’attend plus de relecture (envoyée ou supprimée).',
       fragCommentLabel: 'Commentaire sur ce fragment', prev: '← Précédent', next: 'Suivant →', close: 'Fermer',
       who: 'Qui', what: 'Quoi', where: 'Où', when: 'Quand', recorded: 'Enregistré', noAnswer: 'sans réponse', openMap: 'ouvrir sur la carte',
-      kind_image: 'Photo', kind_audio: 'Audio', kind_video: 'Vidéo'
+      licShown: 'Licence :', projectOnly: 'Usage du projet uniquement', kind_image: 'Photo', kind_audio: 'Audio', kind_video: 'Vidéo'
     },
     it: {
       title: 'Walking Memory · Revisione del facilitatore', toUpload: 'Carica storie', logout: 'Esci', login: 'Accedi', email: 'E-mail', password: 'Password',
@@ -242,7 +242,7 @@
       sent: 'Inviata all’annotazione: {t}', gone: 'La storia non aspetta più la revisione (inviata o eliminata).',
       fragCommentLabel: 'Commento su questo frammento', prev: '← Precedente', next: 'Successivo →', close: 'Chiudi',
       who: 'Chi', what: 'Cosa', where: 'Dove', when: 'Quando', recorded: 'Registrato', noAnswer: 'senza risposta', openMap: 'apri sulla mappa',
-      kind_image: 'Foto', kind_audio: 'Audio', kind_video: 'Video'
+      licShown: 'Licenza:', projectOnly: 'Solo per il progetto', kind_image: 'Foto', kind_audio: 'Audio', kind_video: 'Video'
     }
   };
   var LANG = (function () {
@@ -293,8 +293,9 @@
   var MCOLS = 'id,kind,path,position,title,about,what,place_name,recorded_at,period,lat,lon';
   async function load() {
     $('loadInfo').textContent = t('loading');
-    var cols = 'id,title,author_name,lat,lon,status,created_at,consents(code),story_media(' + MCOLS + ')';
+    var cols = 'id,title,author_name,lat,lon,status,created_at,license,consents(code),story_media(' + MCOLS + ')';
     var r = await sb.from('stories').select(cols).eq('user_id', user.id).eq('status', 'pending').order('created_at');
+    if (r.error && /license/i.test(errText(r.error))) { cols = cols.replace(',license', ''); r = await sb.from('stories').select(cols).eq('user_id', user.id).eq('status', 'pending').order('created_at'); }
     if (r.error && /what|place_name/i.test(errText(r.error))) r = await sb.from('stories').select(cols.replace(',what,place_name', '')).eq('user_id', user.id).eq('status', 'pending').order('created_at');
     if (r.error) { $('loadInfo').textContent = /status|check|schema cache/i.test(errText(r.error)) ? t('needSql') : t('loadErr', { e: errText(r.error) }); D.stories = []; renderAll(); return; }
     $('loadInfo').textContent = '';
@@ -340,6 +341,7 @@
     var meta = $('sMeta'); meta.innerHTML = '';
     meta.appendChild(el('span', null, t('uploaded', { d: when(s.created_at) })));
     if (s.consents && s.consents.code) meta.appendChild(el('span', null, t('consent', { c: s.consents.code })));
+    if (s.license) meta.appendChild(el('span', null, t('licShown') + ' ' + (s.license === 'PROJECT-ONLY' ? t('projectOnly') : s.license.replace(/^CC-/, 'CC ').replace(/-4\.0$/, ' 4.0'))));
     if (s.lat != null) { var a = el('a', null, t('location')); a.href = osm(s.lat, s.lon); a.target = '_blank'; a.rel = 'noopener'; meta.appendChild(a); }
     var frags = s.story_media, seen = D.seen[s.id] || {};
     $('hFrags').textContent = t('fragsTitle', { n: frags.length });

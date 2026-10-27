@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Walking Memory · Consent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,700&display=swap" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+  :root {
+    --petrol: #186078; --petrol-deep: #0E3F50; --sky: #249CCC; --sky-soft: #E7F4FA; --amber: #E0904F; --amber-text: #9A5413;
+    --ink: #12303B; --muted: #4B6470; --line: #D3E3EA; --line-strong: #6F8D99; --mist: #F2F7F9; --danger: #B3261E; --ok: #2E7D32;
+    --font: "Exo 2", "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--mist); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.45; }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; }
+  button { cursor: pointer; border: 0; border-radius: 999px; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+  header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 24px; background: var(--petrol); color: #fff; }
+  header h1 { margin: 0; font-size: 22px; font-style: italic; flex: 1 1 auto; }
+  header select, header button, header a.hbtn { min-height: 38px; padding: 6px 14px; border-radius: 999px; border: 0; font-weight: 700; color: var(--petrol); background: #fff; text-decoration: none; display: inline-flex; align-items: center; }
+  header a.hbtn { background: rgba(255,255,255,.15); color: #fff; }
+  #userName { font-weight: 600; }
+  main { max-width: 980px; margin: 0 auto; padding: 20px 24px 60px; }
+  @media (max-width: 700px) { main { padding: 14px 12px 50px; } header { padding: 10px 12px; position: static; } header h1 { font-size: 19px; flex-basis: 100%; } td, th { padding: 6px; } }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; }
+  .login { max-width: 460px; margin: 40px auto; }
+  .login label { display: block; font-weight: 600; color: var(--petrol); margin: 10px 0 4px; }
+  .login input, .search { width: 100%; padding: 10px 12px; border: 2px solid var(--line-strong); border-radius: 10px; }
+  h2 { margin: 0 0 6px; color: var(--petrol); font-size: 22px; font-style: italic; }
+  .lead, .note { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  .err { color: var(--danger); font-weight: 600; }
+  .btn { background: var(--petrol); color: #fff; font-weight: 700; padding: 10px 20px; min-height: 44px; }
+  .btn-ok { background: var(--ok); color: #fff; font-weight: 700; padding: 10px 22px; min-height: 48px; font-size: 17px; }
+  .btn-sec { background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); font-weight: 700; padding: 8px 18px; min-height: 44px; }
+  .btn-ok:disabled, .btn:disabled { opacity: .5; cursor: default; }
+  .check { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 12px; }
+  .check input { flex: none; width: 24px; height: 24px; margin-top: 2px; }
+  fieldset { border: 2px solid var(--line-strong); border-radius: 14px; padding: 8px 16px 6px; margin: 16px 0; }
+  legend { font-weight: 700; color: var(--petrol); padding: 0 6px; }
+  .lic { display: grid; grid-template-columns: 24px 1fr; gap: 4px 12px; align-items: start; padding: 8px 0; border-top: 1px solid var(--line); }
+  .lic:first-of-type { border-top: 0; }
+  .lic input { width: 22px; height: 22px; margin-top: 2px; }
+  .lic b { color: var(--petrol); }
+  .lic span { display: block; font-size: 14px; color: var(--muted); }
+  .lic a { font-size: 13px; color: var(--petrol); }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+  .code-big { display: block; white-space: nowrap; font-size: clamp(26px, 8.5vw, 40px); font-weight: 700; letter-spacing: .06em; color: var(--petrol-deep); margin: 6px 0; font-family: "Courier New", monospace; }
+  .result { border: 3px solid var(--ok); border-radius: 16px; padding: 16px 18px; background: #F3FAF3; }
+  .result dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 10px 0; }
+  .result dt { font-weight: 700; color: var(--petrol); }
+  .result dd { margin: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); background: var(--mist); padding: 6px 10px; }
+  td { padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+  td.code { font-family: "Courier New", monospace; font-weight: 700; white-space: nowrap; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; margin-top: 10px; }
+  .link-btn { background: none; color: var(--petrol); text-decoration: underline; font-weight: 600; padding: 2px 4px; }
+  #status { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--petrol-deep); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 30; max-width: calc(100% - 24px); }
+  #status.bad { background: var(--danger); }
+  /* the printed slip: only it is printed */
+  #slip { display: none; }
+  @media print {
+    body > *:not(#slip) { display: none !important; }
+    #slip { display: block !important; font-family: var(--font); color: #000; padding: 10mm; }
+    #slip h1 { font-size: 20pt; margin: 0 0 4mm; }
+    #slip .code-big { color: #000; font-size: 30pt; }
+    #slip ol { padding-left: 6mm; } #slip li { margin: 2mm 0; }
+    #slip .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin-top: 14mm; }
+    #slip .sign div { border-top: 1px solid #000; padding-top: 2mm; font-size: 10pt; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1 data-i="title"></h1>
+  <a class="hbtn" href="../upload/" data-i="toUpload"></a>
+  <a class="hbtn" href="../review/" data-i="toReview"></a>
+  <select id="lang" data-i-aria="language"><option value="el" lang="el">Ελληνικά</option><option value="en" lang="en">English</option><option value="fr" lang="fr">Français</option><option value="it" lang="it">Italiano</option></select>
+  <span id="userName"></span>
+  <button id="logout" type="button" hidden data-i="logout"></button>
+</header>
+<main>
+  <section id="loginView" class="card login" hidden>
+    <h2 data-i="login"></h2>
+    <p class="note" data-i="loginHint"></p>
+    <form id="loginForm" novalidate>
+      <label for="email" data-i="email"></label><input id="email" type="email" autocomplete="email" required>
+      <label for="pass" data-i="password"></label><input id="pass" type="password" autocomplete="current-password" required>
+      <p id="loginErr" class="err" role="alert"></p>
+      <button class="btn" type="submit" data-i="login" style="margin-top:12px"></button>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <section class="card" aria-labelledby="hNew">
+      <h2 id="hNew" data-i="newTitle"></h2>
+      <p class="lead" data-i="newLead"></p>
+      <p id="sqlInfo" class="err" role="alert" hidden data-i="needSql"></p>
+      <div id="form">
+        <p data-i="consentIntro"></p>
+        <label class="check"><input type="checkbox" class="cb"><span data-i="consentC1"></span></label>
+        <label class="check"><input type="checkbox" class="cb"><span data-i="consentC2"></span></label>
+        <label class="check"><input type="checkbox" class="cb"><span data-i="consentC3"></span></label>
+        <label class="check"><input type="checkbox" class="cb"><span data-i="consentC4"></span></label>
+        <fieldset>
+          <legend data-i="licLegend"></legend>
+          <p class="note" data-i="licLead" style="margin:4px 0 6px"></p>
+          <div id="licList"></div>
+        </fieldset>
+        <p id="formErr" class="err" role="alert"></p>
+        <div class="actions"><button type="button" class="btn-ok" id="createBtn" data-i="createBtn" disabled></button></div>
+      </div>
+      <div id="result" class="result" hidden>
+        <strong data-i="codeLabel"></strong>
+        <output id="rCode" class="code-big" aria-live="polite"></output>
+        <dl><dt data-i="licLabel"></dt><dd id="rLic"></dd><dt data-i="dateLabel"></dt><dd id="rDate"></dd><dt data-i="langLabel"></dt><dd id="rLang"></dd></dl>
+        <p class="note" data-i="codeHint"></p>
+        <div class="actions">
+          <button type="button" class="btn" id="copyBtn" data-i="copy"></button>
+          <button type="button" class="btn-sec" id="printBtn" data-i="print"></button>
+          <button type="button" class="btn-sec" id="againBtn" data-i="again"></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="hMine">
+      <h2 id="hMine"></h2>
+      <p class="lead" data-i="mineLead"></p>
+      <label for="search" class="note" data-i="search"></label>
+      <input type="search" id="search" class="search" autocomplete="off">
+      <div class="tablewrap"><table>
+        <thead><tr><th data-i="thCode"></th><th data-i="thDate"></th><th data-i="thLic"></th><th data-i="thStories"></th><th></th></tr></thead>
+        <tbody id="mine"></tbody>
+      </table></div>
+    </section>
+  </div>
+</main>
+<div id="slip" aria-hidden="true"></div>
+<div id="status" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // Licences offered with a consent (the database accepts exactly these ids)
+  var LIC = [
+    { id: 'CC-BY-4.0', name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
+    { id: 'CC-BY-SA-4.0', name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+    { id: 'CC-BY-NC-4.0', name: 'CC BY-NC 4.0', url: 'https://creativecommons.org/licenses/by-nc/4.0/' },
+    { id: 'CC-BY-NC-SA-4.0', name: 'CC BY-NC-SA 4.0', url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/' },
+    { id: 'CC-BY-NC-ND-4.0', name: 'CC BY-NC-ND 4.0', url: 'https://creativecommons.org/licenses/by-nc-nd/4.0/' },
+    { id: 'PROJECT-ONLY', name: null, url: null }
+  ];
+  var I18N = {
+    el: {
+      title: 'Walking Memory · Συναίνεση και άδεια', toUpload: 'Ανέβασμα ιστοριών', toReview: 'Έλεγχος ιστοριών', language: 'Γλώσσα', logout: 'Αποσύνδεση', login: 'Σύνδεση', email: 'E-mail', password: 'Κωδικός',
+      loginHint: 'Για διευκολυντές: δημιούργησε τον κωδικό συναίνεσης κατά τη συνέντευξη.', loginFail: 'Η σύνδεση απέτυχε: {e}',
+      newTitle: 'Νέα συναίνεση', newLead: 'Στη συνέντευξη: διάβασε τις δηλώσεις με τον αφηγητή στη γλώσσα του (αλλαγή γλώσσας πάνω δεξιά), διαλέξτε μαζί την άδεια και δημιούργησε τον κωδικό. Γράψε τον κωδικό στο έντυπο που υπογράφεται ή τύπωσε το φύλλο.',
+      needSql: 'Η άδεια χρειάζεται ενημέρωση της βάσης: ο διαχειριστής πρέπει να τρέξει το supabase/roles.sql.',
+      consentIntro: 'Παρακαλούμε διαβάστε το κείμενο μαζί με το άτομο που συμμετέχει πριν ξεκινήσει η καταγραφή.',
+      consentC1: 'Κατανοώ ότι η ιστορία μου (ηχογραφήσεις, φωτογραφίες ή βίντεο που επιλέγω να μοιραστώ) θα συλλεχθεί και θα ανέβει από τον διευκολυντή του έργου.',
+      consentC2: 'Συμφωνώ ότι εκπαιδευμένοι σχολιαστές μπορούν να την ακούσουν, να γράψουν απομαγνητοφώνηση και να προσθέσουν περιγραφικές ετικέτες, μαζί με συνδέσμους σε τόπους, πρόσωπα και πράγματα.',
+      consentC3: 'Συμφωνώ ότι, μετά από έλεγχο, η ιστορία μου μπορεί να δημοσιευτεί ώστε να τη βλέπει και να την ακούει οποιοσδήποτε.',
+      consentC4: 'Κατανοώ ότι η συμμετοχή είναι εθελοντική και ότι μπορώ να αποσύρω την ιστορία μου οποτεδήποτε δίνοντας στον διευκολυντή τον κωδικό συναίνεσής μου.',
+      licLegend: 'Άδεια για την ιστορία', licLead: 'Διαλέξτε μαζί πώς μπορούν άλλοι να ξαναχρησιμοποιήσουν την ιστορία. Ισχύει για όλες τις ιστορίες με αυτόν τον κωδικό και δεν αλλάζει αργότερα.',
+      'lic_CC-BY-4.0': 'Ο καθένας μπορεί να τη μοιραστεί και να την ξαναχρησιμοποιήσει, και για εμπορικούς σκοπούς, αρκεί να αναφέρει τον αφηγητή.',
+      'lic_CC-BY-SA-4.0': 'Όπως το CC BY, και ό,τι φτιαχτεί από αυτήν μοιράζεται με την ίδια άδεια.',
+      'lic_CC-BY-NC-4.0': 'Ο καθένας μπορεί να τη μοιραστεί και να την ξαναχρησιμοποιήσει με αναφορά στον αφηγητή, όχι όμως για εμπορικούς σκοπούς.',
+      'lic_CC-BY-NC-SA-4.0': 'Μη εμπορική χρήση με αναφορά στον αφηγητή, και ό,τι φτιαχτεί από αυτήν μοιράζεται με την ίδια άδεια.',
+      'lic_CC-BY-NC-ND-4.0': 'Μπορεί να μοιραστεί αυτούσια, με αναφορά και όχι εμπορικά· χωρίς τροποποιήσεις.',
+      'lic_PROJECT-ONLY': 'Καμία δημόσια επαναχρησιμοποίηση: τη δείχνει μόνο το έργο Walking Memory.', projectOnly: 'Μόνο για το έργο',
+      licMore: 'περισσότερα', createBtn: 'Συναινώ: δημιουργία κωδικού', needAll: 'Τσέκαρε όλες τις δηλώσεις και διάλεξε άδεια.',
+      createErr: 'Δεν δημιουργήθηκε η συναίνεση: {e}', codeLabel: 'Κωδικός συναίνεσης', licLabel: 'Άδεια', dateLabel: 'Ημερομηνία', langLabel: 'Γλώσσα',
+      codeHint: 'Γράψε τον κωδικό στο έντυπο που υπογράφει ο αφηγητής (ή τύπωσε το φύλλο και επισύναψέ το). Όταν ανεβάσεις την ιστορία, διάλεξε αυτόν τον κωδικό: η άδεια πάει μαζί του.',
+      copy: 'Αντιγραφή κωδικού', copied: 'Αντιγράφηκε', print: 'Εκτύπωση φύλλου', again: 'Νέα συναίνεση',
+      mineTitle: 'Οι κωδικοί μου ({n})', mineLead: 'Όλοι οι κωδικοί συναίνεσης που δημιούργησες, με την άδεια και πόσες ιστορίες τους χρησιμοποιούν.',
+      search: 'Αναζήτηση κωδικού', thCode: 'Κωδικός', thDate: 'Ημερομηνία', thLic: 'Άδεια', thStories: 'Ιστορίες', none: 'Δεν έχεις δημιουργήσει ακόμα κωδικό.', noLic: 'χωρίς άδεια (παλιά συναίνεση)',
+      slipTitle: 'Walking Memory · Συναίνεση συμμετοχής', slipAgreed: 'Δηλώσεις που έγιναν δεκτές:', slipNarrator: 'Αφηγητής: όνομα και υπογραφή', slipFac: 'Διευκολυντής: όνομα και υπογραφή',
+      slipKeep: 'Κρατήστε αυτό το φύλλο μαζί με το υπογεγραμμένο έντυπο συναίνεσης.', loading: 'Φόρτωση…', loadErr: 'Δεν φορτώθηκαν οι κωδικοί: {e}'
+    },
+    en: {
+      title: 'Walking Memory · Consent and licence', toUpload: 'Upload stories', toReview: 'Review stories', language: 'Language', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password',
+      loginHint: 'For facilitators: create the consent code during the interview.', loginFail: 'Login failed: {e}',
+      newTitle: 'New consent', newLead: 'At the interview: read the statements with the narrator in their language (switch the language at the top), choose the licence together and create the code. Write the code on the signed paper form or print the slip.',
+      needSql: 'The licence needs a database update: the administrator needs to run supabase/roles.sql.',
+      consentIntro: 'Please read this together with the participant before recording starts.',
+      consentC1: 'I understand that my story (recordings, photos or video I choose to share) will be collected and uploaded by the project facilitator.',
+      consentC2: 'I agree that trained annotators may listen to it, write a transcript and add descriptive tags, including links to places, people and things.',
+      consentC3: 'I agree that, after review, my story may be published so that anyone can see and hear it.',
+      consentC4: 'I understand that taking part is voluntary and that I can withdraw my story at any time by giving the facilitator my consent code.',
+      licLegend: 'Licence for the story', licLead: 'Choose together how others may reuse the story. It applies to every story with this code and cannot be changed later.',
+      'lic_CC-BY-4.0': 'Anyone may share and reuse it, also commercially, as long as they credit the narrator.',
+      'lic_CC-BY-SA-4.0': 'Like CC BY, and anything made from it must be shared under the same licence.',
+      'lic_CC-BY-NC-4.0': 'Anyone may share and reuse it with credit to the narrator, but not for commercial purposes.',
+      'lic_CC-BY-NC-SA-4.0': 'Non-commercial reuse with credit to the narrator, and anything made from it must use the same licence.',
+      'lic_CC-BY-NC-ND-4.0': 'May be shared unchanged, with credit and not commercially; no adaptations.',
+      'lic_PROJECT-ONLY': 'No public reuse: only the Walking Memory project shows it.', projectOnly: 'Project use only',
+      licMore: 'more', createBtn: 'I consent: generate the code', needAll: 'Tick every statement and choose a licence.',
+      createErr: 'The consent was not created: {e}', codeLabel: 'Consent code', licLabel: 'Licence', dateLabel: 'Date', langLabel: 'Language',
+      codeHint: 'Write the code on the paper form the narrator signs (or print the slip and attach it). When you upload the story, choose this code: the licence comes with it.',
+      copy: 'Copy code', copied: 'Copied', print: 'Print slip', again: 'New consent',
+      mineTitle: 'My consent codes ({n})', mineLead: 'Every consent code you created, with its licence and how many stories use it.',
+      search: 'Search a code', thCode: 'Code', thDate: 'Date', thLic: 'Licence', thStories: 'Stories', none: 'You have not created a code yet.', noLic: 'no licence (older consent)',
+      slipTitle: 'Walking Memory · Consent to take part', slipAgreed: 'Statements agreed:', slipNarrator: 'Narrator: name and signature', slipFac: 'Facilitator: name and signature',
+      slipKeep: 'Keep this slip with the signed consent form.', loading: 'Loading…', loadErr: 'Could not load the codes: {e}'
+    },
+    fr: {
+      title: 'Walking Memory · Consentement et licence', toUpload: 'Envoyer des histoires', toReview: 'Relire les histoires', language: 'Langue', logout: 'Déconnexion', login: 'Connexion', email: 'E-mail', password: 'Mot de passe',
+      loginHint: 'Pour les facilitateurs : créez le code de consentement pendant l’entretien.', loginFail: 'Échec de connexion : {e}',
+      newTitle: 'Nouveau consentement', newLead: 'Pendant l’entretien : lisez les déclarations avec le narrateur dans sa langue (changez la langue en haut), choisissez ensemble la licence et créez le code. Écrivez le code sur le formulaire signé ou imprimez la fiche.',
+      needSql: 'La licence nécessite une mise à jour de la base : l’administrateur doit exécuter supabase/roles.sql.',
+      consentIntro: 'Veuillez lire ce texte avec la personne qui participe avant de commencer l\'enregistrement.',
+      consentC1: 'Je comprends que mon histoire (enregistrements, photos ou vidéos que je choisis de partager) sera recueillie et envoyée par le facilitateur du projet.',
+      consentC2: 'J\'accepte que des annotateurs formés l\'écoutent, rédigent une transcription et ajoutent des étiquettes descriptives, avec des liens vers des lieux, des personnes et des choses.',
+      consentC3: 'J\'accepte qu\'après relecture mon histoire puisse être publiée afin que chacun puisse la voir et l\'entendre.',
+      consentC4: 'Je comprends que la participation est volontaire et que je peux retirer mon histoire à tout moment en donnant mon code de consentement au facilitateur.',
+      licLegend: 'Licence de l’histoire', licLead: 'Choisissez ensemble comment d’autres peuvent réutiliser l’histoire. Elle s’applique à toutes les histoires de ce code et ne peut pas être changée ensuite.',
+      'lic_CC-BY-4.0': 'Chacun peut la partager et la réutiliser, y compris commercialement, en citant le narrateur.',
+      'lic_CC-BY-SA-4.0': 'Comme CC BY, et tout ce qui en est tiré doit être partagé sous la même licence.',
+      'lic_CC-BY-NC-4.0': 'Chacun peut la partager et la réutiliser en citant le narrateur, mais pas à des fins commerciales.',
+      'lic_CC-BY-NC-SA-4.0': 'Réutilisation non commerciale en citant le narrateur, et tout ce qui en est tiré doit utiliser la même licence.',
+      'lic_CC-BY-NC-ND-4.0': 'Peut être partagée telle quelle, en citant et sans usage commercial ; pas d’adaptations.',
+      'lic_PROJECT-ONLY': 'Aucune réutilisation publique : seul le projet Walking Memory la montre.', projectOnly: 'Usage du projet uniquement',
+      licMore: 'en savoir plus', createBtn: 'Je consens : générer le code', needAll: 'Cochez toutes les déclarations et choisissez une licence.',
+      createErr: 'Le consentement n’a pas été créé : {e}', codeLabel: 'Code de consentement', licLabel: 'Licence', dateLabel: 'Date', langLabel: 'Langue',
+      codeHint: 'Écrivez le code sur le formulaire que signe le narrateur (ou imprimez la fiche et joignez-la). Quand vous envoyez l’histoire, choisissez ce code : la licence l’accompagne.',
+      copy: 'Copier le code', copied: 'Copié', print: 'Imprimer la fiche', again: 'Nouveau consentement',
+      mineTitle: 'Mes codes de consentement ({n})', mineLead: 'Tous les codes que vous avez créés, avec leur licence et le nombre d’histoires qui les utilisent.',
+      search: 'Rechercher un code', thCode: 'Code', thDate: 'Date', thLic: 'Licence', thStories: 'Histoires', none: 'Vous n’avez pas encore créé de code.', noLic: 'sans licence (ancien consentement)',
+      slipTitle: 'Walking Memory · Consentement de participation', slipAgreed: 'Déclarations acceptées :', slipNarrator: 'Narrateur : nom et signature', slipFac: 'Facilitateur : nom et signature',
+      slipKeep: 'Conservez cette fiche avec le formulaire de consentement signé.', loading: 'Chargement…', loadErr: 'Impossible de charger les codes : {e}'
+    },
+    it: {
+      title: 'Walking Memory · Consenso e licenza', toUpload: 'Carica storie', toReview: 'Rivedi storie', language: 'Lingua', logout: 'Esci', login: 'Accedi', email: 'E-mail', password: 'Password',
+      loginHint: 'Per i facilitatori: crea il codice di consenso durante l’intervista.', loginFail: 'Accesso non riuscito: {e}',
+      newTitle: 'Nuovo consenso', newLead: 'Durante l’intervista: leggi le dichiarazioni con chi racconta nella sua lingua (cambia la lingua in alto), scegliete insieme la licenza e crea il codice. Scrivi il codice sul modulo firmato o stampa il foglio.',
+      needSql: 'La licenza richiede un aggiornamento del database: l’amministratore deve eseguire supabase/roles.sql.',
+      consentIntro: 'Leggete questo testo insieme alla persona che partecipa prima di iniziare la registrazione.',
+      consentC1: 'Capisco che la mia storia (registrazioni, foto o video che scelgo di condividere) sarà raccolta e caricata dal facilitatore del progetto.',
+      consentC2: 'Accetto che annotatori formati possano ascoltarla, scrivere una trascrizione e aggiungere etichette descrittive, compresi collegamenti a luoghi, persone e cose.',
+      consentC3: 'Accetto che, dopo la revisione, la mia storia possa essere pubblicata affinché chiunque possa vederla e ascoltarla.',
+      consentC4: 'Capisco che la partecipazione è volontaria e che posso ritirare la mia storia in qualsiasi momento dando al facilitatore il mio codice di consenso.',
+      licLegend: 'Licenza della storia', licLead: 'Scegliete insieme come altri possono riutilizzare la storia. Vale per tutte le storie con questo codice e non si può cambiare dopo.',
+      'lic_CC-BY-4.0': 'Chiunque può condividerla e riutilizzarla, anche commercialmente, citando chi racconta.',
+      'lic_CC-BY-SA-4.0': 'Come CC BY, e ciò che ne deriva va condiviso con la stessa licenza.',
+      'lic_CC-BY-NC-4.0': 'Chiunque può condividerla e riutilizzarla citando chi racconta, ma non a fini commerciali.',
+      'lic_CC-BY-NC-SA-4.0': 'Riutilizzo non commerciale citando chi racconta, e ciò che ne deriva usa la stessa licenza.',
+      'lic_CC-BY-NC-ND-4.0': 'Può essere condivisa così com’è, citando e non commercialmente; senza modifiche.',
+      'lic_PROJECT-ONLY': 'Nessun riutilizzo pubblico: la mostra solo il progetto Walking Memory.', projectOnly: 'Solo per il progetto',
+      licMore: 'di più', createBtn: 'Acconsento: genera il codice', needAll: 'Spunta tutte le dichiarazioni e scegli una licenza.',
+      createErr: 'Il consenso non è stato creato: {e}', codeLabel: 'Codice di consenso', licLabel: 'Licenza', dateLabel: 'Data', langLabel: 'Lingua',
+      codeHint: 'Scrivi il codice sul modulo firmato da chi racconta (o stampa il foglio e allegalo). Quando carichi la storia, scegli questo codice: la licenza lo accompagna.',
+      copy: 'Copia il codice', copied: 'Copiato', print: 'Stampa il foglio', again: 'Nuovo consenso',
+      mineTitle: 'I miei codici di consenso ({n})', mineLead: 'Tutti i codici che hai creato, con la licenza e quante storie li usano.',
+      search: 'Cerca un codice', thCode: 'Codice', thDate: 'Data', thLic: 'Licenza', thStories: 'Storie', none: 'Non hai ancora creato un codice.', noLic: 'senza licenza (consenso precedente)',
+      slipTitle: 'Walking Memory · Consenso a partecipare', slipAgreed: 'Dichiarazioni accettate:', slipNarrator: 'Chi racconta: nome e firma', slipFac: 'Facilitatore: nome e firma',
+      slipKeep: 'Conserva questo foglio con il modulo di consenso firmato.', loading: 'Caricamento…', loadErr: 'Impossibile caricare i codici: {e}'
+    }
+  };
+  var LANG_NAME = { el: 'Ελληνικά', en: 'English', fr: 'Français', it: 'Italiano' };
+  var LANG = (function () {
+    try { var v = localStorage.getItem('dm_lang'); if (I18N[v]) return v; } catch (e) {}
+    var p = navigator.languages || [navigator.language || 'el'];
+    for (var i = 0; i < p.length; i++) { var c = String(p[i]).slice(0, 2).toLowerCase(); if (I18N[c]) return c; }
+    return 'el';
+  })();
+  function t(k, v) { var s = (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k; if (v) Object.keys(v).forEach(function (x) { s = s.split('{' + x + '}').join(v[x]); }); return s; }
+  function licName(id) { var l = LIC.filter(function (x) { return x.id === id; })[0]; return !l ? t('noLic') : l.name || t('projectOnly'); }
+  function licLink(id) { var l = LIC.filter(function (x) { return x.id === id; })[0]; return l && l.url ? l.url + 'deed.' + LANG : null; }
+  function applyLang() {
+    document.documentElement.lang = LANG; $('lang').value = LANG; document.title = t('title');
+    document.querySelectorAll('[data-i]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i')); });
+    document.querySelectorAll('[data-i-aria]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i-aria'))); });
+    renderLicences();
+  }
+  $('lang').onchange = function () { LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang(); renderMine(); if (last) showResult(last); };
+
+  var CFG = window.WM_CONFIG || {}, sb = null;
+  try { if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { sb = null; }
+  function errText(e) { return (e && (e.message || e.details)) || String(e); }
+  function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
+  var statusTimer = null;
+  function say(msg, bad) { var s = $('status'); s.textContent = msg; s.className = bad ? 'bad' : ''; s.hidden = false; clearTimeout(statusTimer); statusTimer = setTimeout(function () { s.hidden = true; }, 4000); }
+
+  // ---- licence choice: none is preselected, the narrator chooses ----
+  function renderLicences() {
+    var box = $('licList'), cur = chosen(); box.innerHTML = '';
+    LIC.forEach(function (l) {
+      var lab = el('label', 'lic'), r = el('input'); r.type = 'radio'; r.name = 'lic'; r.value = l.id; if (cur === l.id) r.checked = true;
+      r.onchange = updateCreate;
+      var tx = el('div'); tx.appendChild(el('b', null, l.name || t('projectOnly')));
+      var sp = el('span', null, t('lic_' + l.id) + ' ');
+      if (l.url) { var a = el('a', null, t('licMore')); a.href = l.url + 'deed.' + LANG; a.target = '_blank'; a.rel = 'noopener'; sp.appendChild(a); }
+      tx.appendChild(sp); lab.appendChild(r); lab.appendChild(tx); box.appendChild(lab);
+    });
+  }
+  function chosen() { var r = document.querySelector('input[name="lic"]:checked'); return r ? r.value : null; }
+  function ready() { return Array.prototype.every.call(document.querySelectorAll('.cb'), function (c) { return c.checked; }) && !!chosen(); }
+  function updateCreate() { $('createBtn').disabled = !ready() || !$('sqlInfo').hidden; }
+  document.querySelectorAll('.cb').forEach(function (c) { c.onchange = updateCreate; });
+
+  // ---- the code: derived from the record's id, easy to read (no 0/O, 1/I/L) ----
+  var CODE_ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', CONSENT_VERSION = 'v2';
+  function codeFor(uuid) {
+    var n = BigInt('0x' + uuid.replace(/-/g, '').slice(0, 10)), out = '', base = BigInt(CODE_ALPHA.length);
+    for (var i = 0; i < 8; i++) { out = CODE_ALPHA[Number(n % base)] + out; n = n / base; }
+    return 'WM-' + out.slice(0, 4) + '-' + out.slice(4);
+  }
+  var last = null;
+  $('createBtn').onclick = async function () {
+    $('formErr').textContent = '';
+    if (!ready()) { $('formErr').textContent = t('needAll'); return; }
+    var b = this, lic = chosen(); b.disabled = true;
+    try {
+      var data = null;
+      for (var tries = 0; tries < 4 && !data; tries++) {
+        var id = crypto.randomUUID(), code = codeFor(id);
+        var r = await sb.from('consents').insert({ id: id, code: code, statement_version: CONSENT_VERSION, lang: LANG, license: lic,
+          accepted: { record: true, annotate: true, publish: true, voluntary: true } }).select('id,code,created_at,license,lang').single();
+        if (!r.error) data = r.data;
+        else if (r.error.code !== '23505') throw r.error;          // only a code collision is retried
+      }
+      if (!data) throw new Error('code collision');
+      last = data; mine.unshift(Object.assign({ n: 0 }, data));
+      showResult(data); renderMine();
+    } catch (e) {
+      $('formErr').textContent = /license|schema cache|column/i.test(errText(e)) ? t('needSql') : t('createErr', { e: errText(e) });
+      b.disabled = false;
+    }
+  };
+  function showResult(c) {
+    $('form').hidden = true; $('result').hidden = false;
+    $('rCode').textContent = c.code;
+    var dd = $('rLic'); dd.innerHTML = ''; dd.appendChild(document.createTextNode(licName(c.license) + ' · ' + t('lic_' + c.license) + ' '));
+    var u = licLink(c.license); if (u) { var a = el('a', null, t('licMore')); a.href = u; a.target = '_blank'; a.rel = 'noopener'; dd.appendChild(a); }
+    $('rDate').textContent = String(c.created_at).slice(0, 10); $('rLang').textContent = LANG_NAME[c.lang] || c.lang || '';
+    buildSlip(c);
+    $('copyBtn').focus();
+  }
+  $('againBtn').onclick = function () {
+    last = null; $('result').hidden = true; $('form').hidden = false;
+    document.querySelectorAll('.cb').forEach(function (c) { c.checked = false; });
+    document.querySelectorAll('input[name="lic"]').forEach(function (r) { r.checked = false; });
+    updateCreate(); document.querySelector('.cb').focus();
+  };
+  async function copy(text, btn) {
+    var ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+    if (!ok) { var ta = el('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); }
+    if (ok) say(t('copied') + ': ' + text);
+  }
+  $('copyBtn').onclick = function () { if (last) copy(last.code, this); };
+  // printed slip (in the consent's language): code, licence, date, statements, signature lines
+  function buildSlip(c) {
+    var keep = LANG; LANG = I18N[c.lang] ? c.lang : LANG;
+    var s = $('slip'); s.innerHTML = '';
+    s.appendChild(el('h1', null, t('slipTitle')));
+    s.appendChild(el('div', null, t('codeLabel'))); s.appendChild(el('div', 'code-big', c.code));
+    s.appendChild(el('p', null, t('licLabel') + ': ' + licName(c.license) + ' · ' + t('lic_' + c.license) + (licLink(c.license) ? ' (' + licLink(c.license) + ')' : '')));
+    s.appendChild(el('p', null, t('dateLabel') + ': ' + String(c.created_at).slice(0, 10)));
+    s.appendChild(el('p', null, t('slipAgreed')));
+    var ol = el('ol'); ['consentC1', 'consentC2', 'consentC3', 'consentC4'].forEach(function (k) { ol.appendChild(el('li', null, t(k))); }); s.appendChild(ol);
+    var sign = el('div', 'sign'); sign.appendChild(el('div', null, t('slipNarrator'))); sign.appendChild(el('div', null, t('slipFac'))); s.appendChild(sign);
+    s.appendChild(el('p', null, t('slipKeep')));
+    LANG = keep;
+  }
+  $('printBtn').onclick = function () { if (last) { buildSlip(last); window.print(); } };
+
+  // ---- my consent codes ----
+  var mine = [];
+  async function loadMine() {
+    var r = await sb.from('consents').select('id,code,created_at,license,lang').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1000);
+    if (r.error && /license/i.test(errText(r.error))) {     // database without the licence column
+      $('sqlInfo').hidden = false; updateCreate();
+      r = await sb.from('consents').select('id,code,created_at,lang').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1000);
+    }
+    if (r.error) { say(t('loadErr', { e: errText(r.error) }), true); mine = []; renderMine(); return; }
+    var st = await sb.from('stories').select('consent_id').eq('user_id', user.id);
+    var count = {}; (st.data || []).forEach(function (x) { if (x.consent_id) count[x.consent_id] = (count[x.consent_id] || 0) + 1; });
+    mine = (r.data || []).map(function (c) { return Object.assign({ n: count[c.id] || 0 }, c); });
+    renderMine();
+  }
+  function renderMine() {
+    $('hMine').textContent = t('mineTitle', { n: mine.length });
+    var q = ($('search').value || '').trim().toUpperCase(), tb = $('mine'); tb.innerHTML = '';
+    var list = mine.filter(function (c) { return !q || c.code.indexOf(q) >= 0; });
+    if (!list.length) { var tr0 = el('tr'), td0 = el('td', null, t('none')); td0.colSpan = 5; tr0.appendChild(td0); tb.appendChild(tr0); return; }
+    list.forEach(function (c) {
+      var tr = el('tr');
+      tr.appendChild(el('td', 'code', c.code));
+      tr.appendChild(el('td', null, String(c.created_at).slice(0, 10)));
+      var tl = el('td'), u = licLink(c.license);
+      if (u) { var a = el('a', null, licName(c.license)); a.href = u; a.target = '_blank'; a.rel = 'noopener'; tl.appendChild(a); } else tl.textContent = licName(c.license);
+      tr.appendChild(tl);
+      tr.appendChild(el('td', null, String(c.n)));
+      var tc = el('td'), b = el('button', 'link-btn', t('copy')); b.type = 'button'; b.onclick = function () { copy(c.code, b); }; tc.appendChild(b); tr.appendChild(tc);
+      tb.appendChild(tr);
+    });
+  }
+  $('search').oninput = renderMine;
+
+  // ---- sign in ----
+  var user = null, loadedFor = null;
+  function show(v) { $('loginView').hidden = v !== 'login'; $('app').hidden = v !== 'app'; $('logout').hidden = !user; }
+  function myName() { return user ? String((user.user_metadata && user.user_metadata.display_name) || (user.email || '').split('@')[0]) : ''; }
+  $('loginForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault(); $('loginErr').textContent = '';
+    var r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pass').value });
+    if (r.error) $('loginErr').textContent = t('loginFail', { e: errText(r.error) });
+  });
+  $('logout').onclick = function () { if (sb) sb.auth.signOut(); };
+  function onSession(session) {
+    if (session && loadedFor === session.user.id) { user = session.user; return; }
+    user = session ? session.user : null; loadedFor = null;
+    $('userName').textContent = user ? myName() : '';
+    if (!user) { show('login'); return; }
+    loadedFor = user.id; show('app'); loadMine();
+  }
+
+  applyLang();
+  if (!sb) { show('login'); $('loginErr').textContent = 'Supabase is not configured (config.js).'; return; }
+  sb.auth.onAuthStateChange(function (_e, session) { setTimeout(function () { onSession(session); }, 0); });
+})();
+</script>
+</body>
+</html>

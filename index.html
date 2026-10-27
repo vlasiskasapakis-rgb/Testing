@@ -418,6 +418,10 @@
   .mi-w4.todo { background: var(--petrol); color: #fff; }
   .check { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 12px; font-weight: 400; color: var(--ink); line-height: 1.4; }
   .check input { flex: none; width: 24px; height: 24px; margin-top: 2px; }
+  .lic-set { border: 2px solid var(--line-strong); border-radius: 12px; padding: 4px 14px 2px; margin: 4px 0 12px; }
+  .lic-set legend { font-weight: 700; color: var(--petrol); padding: 0 6px; }
+  .lic-set .check { margin: 0 0 10px; } .lic-set .check b { color: var(--petrol); display: block; } .lic-set .check small { color: var(--muted); font-size: 14px; }
+  .story-license { font-size: 14px; color: var(--muted); margin: 0 0 8px; } .story-license a { color: var(--petrol); font-weight: 600; }
   .code-big { display: block; margin: 6px 0 10px; padding: 12px; text-align: center; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 30px; font-weight: 700; letter-spacing: .08em; color: var(--petrol); background: var(--mist); border: 2px dashed var(--line-strong); border-radius: 12px; user-select: all; -webkit-user-select: all; }
   .subtitle-bar { box-sizing: border-box; height: calc(3 * 1.35em + 16px); margin: 4px 0 8px; padding: 8px 12px; border-radius: 10px; background: rgba(14,63,80,.94); color: #fff; font-size: 17px; line-height: 1.35; text-align: center; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .subtitle-bar[hidden] { display: none; }
@@ -589,6 +593,7 @@
       <ol class="web-steps">
         <li data-i18n="webStep1"></li><li data-i18n="webStep2"></li><li data-i18n="webStep3"></li><li data-i18n="webStep4"></li>
       </ol>
+      <p class="sheet-sub"><a href="consent/" data-i18n="webToConsent"></a></p>
       <p class="sheet-sub"><a href="review/" data-i18n="webToReview"></a></p>
       <p class="sheet-sub"><a href="./" data-i18n="webToApp"></a></p>
     </section>
@@ -671,6 +676,7 @@
     <h2 id="sheetTitle"></h2>
     <p id="sheetSub" class="sheet-sub"></p>
     <p id="sheetAuthor" class="story-author"></p>
+    <p id="sheetLicense" class="story-license" hidden></p>
     <p id="sheetStatus" class="story-status"></p>
     <p id="sheetConsent" class="story-status" hidden></p>
     <p id="sheetBody"></p>
@@ -700,6 +706,7 @@
     </div>
     <div id="consentForm">
       <p data-i18n="consentIntro"></p>
+      <p class="sheet-sub"><a href="consent/" target="_blank" rel="noopener" data-i18n="consentPageLink"></a></p>
       <div id="consentReuseWrap" class="input-group" hidden>
         <label for="consentReuse" data-i18n="consentReuse"></label>
         <select id="consentReuse" class="lang-select"></select>
@@ -709,12 +716,18 @@
         <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC2"></span></label>
         <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC3"></span></label>
         <label class="check"><input type="checkbox" class="consent-cb"><span data-i18n="consentC4"></span></label>
+        <fieldset class="lic-set">
+          <legend data-i18n="licLegend"></legend>
+          <p class="sheet-sub" data-i18n="licLead" style="margin:2px 0 6px"></p>
+          <div id="consentLicList"></div>
+        </fieldset>
       </div>
       <p id="consentError" class="field-error" role="alert"></p>
     </div>
     <div id="consentCodeBox" hidden>
       <span class="group-label" data-i18n="consentCodeLabel"></span>
       <output id="consentCode" class="code-big" aria-live="polite"></output>
+      <p id="consentLicShow" class="sheet-sub"></p>
       <button type="button" id="consentCopy" class="btn-secondary" data-i18n="consentCopy"></button>
       <p class="sheet-sub" data-i18n="consentCodeHint"></p>
     </div>
@@ -732,6 +745,7 @@
     <div class="input-group">
       <span class="group-label" id="uploadConsentLabel" data-i18n="consentCodeLabel"></span>
       <div class="loc-box"><strong id="uploadConsentCode"></strong> <button type="button" id="uploadConsentCopy" class="link-btn" data-i18n="consentCopy"></button></div>
+      <p id="uploadLicense" class="sheet-sub" style="margin:6px 0 0"></p>
     </div>
     <div class="input-group">
       <span class="group-label" id="locLabel" data-i18n="locLabel"></span>
@@ -1165,6 +1179,7 @@
       statusPublished: "Δημοσιευμένη",
       statusPending: "Περιμένει τον έλεγχό σου πριν από τον σχολιασμό",
       webToReview: "Έλεγχος των ιστοριών που ανέβασα →",
+      webToConsent: "Νέος κωδικός συναίνεσης και άδεια (στη συνέντευξη) →",
       pubStory: "Δημοσίευση για όλους",
       unpubStory: "Απόσυρση από τη δημοσίευση",
       pubError: "Η αλλαγή κατάστασης απέτυχε: {e}",
@@ -1308,7 +1323,21 @@
       consentC2: "Συμφωνώ ότι εκπαιδευμένοι σχολιαστές μπορούν να την ακούσουν, να γράψουν απομαγνητοφώνηση και να προσθέσουν περιγραφικές ετικέτες, μαζί με συνδέσμους σε τόπους, πρόσωπα και πράγματα.",
       consentC3: "Συμφωνώ ότι, μετά από έλεγχο, η ιστορία μου μπορεί να δημοσιευτεί ώστε να τη βλέπει και να την ακούει οποιοσδήποτε.",
       consentC4: "Κατανοώ ότι η συμμετοχή είναι εθελοντική και ότι μπορώ να αποσύρω την ιστορία μου οποτεδήποτε δίνοντας στον διευκολυντή τον κωδικό συναίνεσής μου.",
-      consentReuse: "Χρήση κωδικού που έχεις ήδη δημιουργήσει",
+      consentReuse: "Κωδικός συναίνεσης από τη συνέντευξη (ή κωδικός που έχεις ήδη χρησιμοποιήσει)",
+      licLegend: "Άδεια για την ιστορία",
+      licLead: "Διαλέξτε μαζί με τον αφηγητή πώς μπορούν άλλοι να ξαναχρησιμοποιήσουν την ιστορία. Πηγαίνει με τον κωδικό και δεν αλλάζει αργότερα.",
+      "lic_CC-BY-4.0": "Ο καθένας μπορεί να τη μοιραστεί και να την ξαναχρησιμοποιήσει, και για εμπορικούς σκοπούς, αρκεί να αναφέρει τον αφηγητή.",
+      "lic_CC-BY-SA-4.0": "Όπως το CC BY, και ό,τι φτιαχτεί από αυτήν μοιράζεται με την ίδια άδεια.",
+      "lic_CC-BY-NC-4.0": "Ο καθένας μπορεί να τη μοιραστεί και να την ξαναχρησιμοποιήσει με αναφορά στον αφηγητή, όχι όμως για εμπορικούς σκοπούς.",
+      "lic_CC-BY-NC-SA-4.0": "Μη εμπορική χρήση με αναφορά στον αφηγητή, και ό,τι φτιαχτεί από αυτήν μοιράζεται με την ίδια άδεια.",
+      "lic_CC-BY-NC-ND-4.0": "Μπορεί να μοιραστεί αυτούσια, με αναφορά και όχι εμπορικά· χωρίς τροποποιήσεις.",
+      "lic_PROJECT-ONLY": "Καμία δημόσια επαναχρησιμοποίηση: τη δείχνει μόνο το έργο Walking Memory.",
+      projectOnly: "Μόνο για το έργο",
+      noLic: "χωρίς άδεια",
+      licShown: "Άδεια:",
+      consentNeedLic: "Τσέκαρε όλα τα πλαίσια και διάλεξε άδεια για να συνεχίσεις.",
+      licNeedSql: "Η άδεια χρειάζεται ενημέρωση της βάσης: ο διαχειριστής πρέπει να τρέξει το supabase/roles.sql.",
+      consentPageLink: "Οι κωδικοί συναίνεσης δημιουργούνται καλύτερα στη συνέντευξη, στη σελίδα συναίνεσης →",
       consentNewOpt: "Νέα συναίνεση",
       consentCreate: "Συναινώ: δημιουργία κωδικού",
       consentContinue: "Συνέχεια στο ανέβασμα",
@@ -1541,6 +1570,7 @@
       statusPublished: "Published",
       statusPending: "Waiting for your review before annotation",
       webToReview: "Review the stories I uploaded →",
+      webToConsent: "New consent code and licence (at the interview) →",
       pubStory: "Publish for everyone",
       unpubStory: "Unpublish",
       pubError: "Changing the status failed: {e}",
@@ -1684,7 +1714,21 @@
       consentC2: "I agree that trained annotators may listen to it, write a transcript and add descriptive tags, including links to places, people and things.",
       consentC3: "I agree that, after review, my story may be published so that anyone can see and hear it.",
       consentC4: "I understand that taking part is voluntary and that I can withdraw my story at any time by giving the facilitator my consent code.",
-      consentReuse: "Use a code you already created",
+      consentReuse: "Consent code from the interview (or one you already used)",
+      licLegend: "Licence for the story",
+      licLead: "Choose with the narrator how others may reuse the story. It goes with the code and cannot be changed later.",
+      "lic_CC-BY-4.0": "Anyone may share and reuse it, also commercially, as long as they credit the narrator.",
+      "lic_CC-BY-SA-4.0": "Like CC BY, and anything made from it must be shared under the same licence.",
+      "lic_CC-BY-NC-4.0": "Anyone may share and reuse it with credit to the narrator, but not for commercial purposes.",
+      "lic_CC-BY-NC-SA-4.0": "Non-commercial reuse with credit to the narrator, and anything made from it must use the same licence.",
+      "lic_CC-BY-NC-ND-4.0": "May be shared unchanged, with credit and not commercially; no adaptations.",
+      "lic_PROJECT-ONLY": "No public reuse: only the Walking Memory project shows it.",
+      projectOnly: "Project use only",
+      noLic: "no licence",
+      licShown: "Licence:",
+      consentNeedLic: "Tick every box and choose a licence to continue.",
+      licNeedSql: "The licence needs a database update: the administrator needs to run supabase/roles.sql.",
+      consentPageLink: "Consent codes are best created at the interview, on the consent page →",
       consentNewOpt: "New consent",
       consentCreate: "I consent: generate my code",
       consentContinue: "Continue to upload",
@@ -1917,6 +1961,7 @@
       statusPublished: "Publiée",
       statusPending: "En attente de votre relecture avant l'annotation",
       webToReview: "Relire les histoires que j'ai envoyées →",
+      webToConsent: "Nouveau code de consentement et licence (pendant l'entretien) →",
       pubStory: "Publier pour tous",
       unpubStory: "Dépublier",
       pubError: "Échec du changement de statut : {e}",
@@ -2060,7 +2105,21 @@
       consentC2: "J'accepte que des annotateurs formés l'écoutent, rédigent une transcription et ajoutent des étiquettes descriptives, avec des liens vers des lieux, des personnes et des choses.",
       consentC3: "J'accepte qu'après relecture mon histoire puisse être publiée afin que chacun puisse la voir et l'entendre.",
       consentC4: "Je comprends que la participation est volontaire et que je peux retirer mon histoire à tout moment en donnant mon code de consentement au facilitateur.",
-      consentReuse: "Utiliser un code déjà créé",
+      consentReuse: "Code de consentement de l'entretien (ou un code déjà utilisé)",
+      licLegend: "Licence de l'histoire",
+      licLead: "Choisissez avec le narrateur comment d'autres peuvent réutiliser l'histoire. Elle accompagne le code et ne peut pas être changée ensuite.",
+      "lic_CC-BY-4.0": "Chacun peut la partager et la réutiliser, y compris commercialement, en citant le narrateur.",
+      "lic_CC-BY-SA-4.0": "Comme CC BY, et tout ce qui en est tiré doit être partagé sous la même licence.",
+      "lic_CC-BY-NC-4.0": "Chacun peut la partager et la réutiliser en citant le narrateur, mais pas à des fins commerciales.",
+      "lic_CC-BY-NC-SA-4.0": "Réutilisation non commerciale en citant le narrateur, et tout ce qui en est tiré doit utiliser la même licence.",
+      "lic_CC-BY-NC-ND-4.0": "Peut être partagée telle quelle, en citant et sans usage commercial ; pas d'adaptations.",
+      "lic_PROJECT-ONLY": "Aucune réutilisation publique : seul le projet Walking Memory la montre.",
+      projectOnly: "Usage du projet uniquement",
+      noLic: "sans licence",
+      licShown: "Licence :",
+      consentNeedLic: "Cochez toutes les cases et choisissez une licence pour continuer.",
+      licNeedSql: "La licence nécessite une mise à jour de la base : l'administrateur doit exécuter supabase/roles.sql.",
+      consentPageLink: "Les codes de consentement se créent de préférence pendant l'entretien, sur la page de consentement →",
       consentNewOpt: "Nouveau consentement",
       consentCreate: "Je consens : générer mon code",
       consentContinue: "Continuer vers l'envoi",
@@ -2293,6 +2352,7 @@
       statusPublished: "Pubblicata",
       statusPending: "In attesa della tua revisione prima dell'annotazione",
       webToReview: "Rivedi le storie che ho caricato →",
+      webToConsent: "Nuovo codice di consenso e licenza (durante l'intervista) →",
       pubStory: "Pubblica per tutti",
       unpubStory: "Ritira dalla pubblicazione",
       pubError: "Cambio di stato non riuscito: {e}",
@@ -2436,7 +2496,21 @@
       consentC2: "Accetto che annotatori formati possano ascoltarla, scrivere una trascrizione e aggiungere etichette descrittive, compresi collegamenti a luoghi, persone e cose.",
       consentC3: "Accetto che, dopo la revisione, la mia storia possa essere pubblicata affinché chiunque possa vederla e ascoltarla.",
       consentC4: "Capisco che la partecipazione è volontaria e che posso ritirare la mia storia in qualsiasi momento dando al facilitatore il mio codice di consenso.",
-      consentReuse: "Usa un codice già creato",
+      consentReuse: "Codice di consenso dell'intervista (o uno già usato)",
+      licLegend: "Licenza della storia",
+      licLead: "Scegliete con chi racconta come altri possono riutilizzare la storia. Accompagna il codice e non si può cambiare dopo.",
+      "lic_CC-BY-4.0": "Chiunque può condividerla e riutilizzarla, anche commercialmente, citando chi racconta.",
+      "lic_CC-BY-SA-4.0": "Come CC BY, e ciò che ne deriva va condiviso con la stessa licenza.",
+      "lic_CC-BY-NC-4.0": "Chiunque può condividerla e riutilizzarla citando chi racconta, ma non a fini commerciali.",
+      "lic_CC-BY-NC-SA-4.0": "Riutilizzo non commerciale citando chi racconta, e ciò che ne deriva usa la stessa licenza.",
+      "lic_CC-BY-NC-ND-4.0": "Può essere condivisa così com'è, citando e non commercialmente; senza modifiche.",
+      "lic_PROJECT-ONLY": "Nessun riutilizzo pubblico: la mostra solo il progetto Walking Memory.",
+      projectOnly: "Solo per il progetto",
+      noLic: "senza licenza",
+      licShown: "Licenza:",
+      consentNeedLic: "Spunta tutte le caselle e scegli una licenza per continuare.",
+      licNeedSql: "La licenza richiede un aggiornamento del database: l'amministratore deve eseguire supabase/roles.sql.",
+      consentPageLink: "I codici di consenso si creano meglio durante l'intervista, nella pagina del consenso →",
       consentNewOpt: "Nuovo consenso",
       consentCreate: "Acconsento: genera il mio codice",
       consentContinue: "Continua con il caricamento",
@@ -2712,6 +2786,8 @@
     $('sheetSub').textContent = tr.sub;
     $('sheetBody').textContent = tr.text;
     $('sheetAuthor').textContent = s.author ? t('byAuthor', { n: s.author }) : '';
+    var sl = $('sheetLicense'); sl.innerHTML = ''; sl.hidden = !s.license;      // η άδεια από τη συναίνεση της ιστορίας
+    if (s.license) { sl.appendChild(document.createTextNode(t('licShown') + ' ')); sl.appendChild(licLinkEl(s.license)); }
     renderSheetMedia(s);
     renderKnowledge(s);
     renderConnections(s, via);
@@ -3385,7 +3461,7 @@
   function storyFromRow(r) {
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
-      id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published',
+      id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', license: r.license || null,
       consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
@@ -3408,7 +3484,8 @@
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
-      var r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');
+      var r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code),license').order('created_at');
+      if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');   // βάση χωρίς άδεια ιστορίας
       if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');   // βάση χωρίς πίνακα συναινέσεων
@@ -4712,7 +4789,36 @@
 
   // ---- Συναίνεση πριν από κάθε καταγραφή: δημιουργεί κωδικό (από το id της εγγραφής) που γράφεται στο έντυπο ----
   var activeConsent = null;                       // { id, code } της συναίνεσης που ισχύει για το ανέβασμα που ετοιμάζεται
-  var CONSENT_VERSION = 'v1';
+  var CONSENT_VERSION = 'v2';                     // v2: η άδεια επιλέγεται μαζί με τη συναίνεση
+  // Άδειες που προσφέρονται με τη συναίνεση (η βάση δέχεται ακριβώς αυτές)· η ιστορία παίρνει την άδεια του κωδικού της
+  var LICENSES = { 'CC-BY-4.0': 'https://creativecommons.org/licenses/by/4.0/', 'CC-BY-SA-4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
+    'CC-BY-NC-4.0': 'https://creativecommons.org/licenses/by-nc/4.0/', 'CC-BY-NC-SA-4.0': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
+    'CC-BY-NC-ND-4.0': 'https://creativecommons.org/licenses/by-nc-nd/4.0/', 'PROJECT-ONLY': null };
+  function licName(id) { return id === 'PROJECT-ONLY' ? t('projectOnly') : id ? id.replace(/^CC-/, 'CC ').replace(/-4\.0$/, ' 4.0') : t('noLic'); }
+  function licLinkEl(id) {
+    var u = LICENSES[id];
+    if (!u) { var sp = document.createElement('span'); sp.textContent = licName(id); return sp; }
+    var a = document.createElement('a'); a.href = u + 'deed.' + LANG; a.target = '_blank'; a.rel = 'noopener license'; a.textContent = licName(id); return a;
+  }
+  function renderLicChoice() {
+    var box = $('consentLicList'), cur = consentLic(); box.innerHTML = '';
+    Object.keys(LICENSES).forEach(function (id) {
+      var lab = document.createElement('label'); lab.className = 'check';
+      var r = document.createElement('input'); r.type = 'radio'; r.name = 'consentLic'; r.value = id; if (cur === id) r.checked = true;
+      r.onchange = function () { $('consentCreate').disabled = !consentReady(); };
+      var sp = document.createElement('span'), b = document.createElement('b'), sm = document.createElement('small');
+      b.textContent = licName(id); sm.textContent = t('lic_' + id); sp.appendChild(b); sp.appendChild(sm);
+      lab.appendChild(r); lab.appendChild(sp); box.appendChild(lab);
+    });
+  }
+  function consentLic() { var r = document.querySelector('input[name="consentLic"]:checked'); return r ? r.value : null; }
+  function consentReady() { return consentBoxes().every(function (x) { return x.checked; }) && !!consentLic(); }
+  function showConsentLicense(lic) {
+    [$('consentLicShow'), $('uploadLicense')].forEach(function (p) {
+      p.innerHTML = ''; p.appendChild(document.createTextNode(t('licShown') + ' ')); p.appendChild(licLinkEl(lic));
+    });
+  }
+  onLangChange(function () { renderLicChoice(); if (activeConsent) showConsentLicense(activeConsent.license); });
   var CODE_ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';   // χωρίς 0/O, 1/I/L για να διαβάζεται εύκολα
 
   function consentCodeFor(uuid) {
@@ -4721,10 +4827,10 @@
     return 'WM-' + out.slice(0, 4) + '-' + out.slice(4);
   }
 
-  async function createConsent(accepted) {
+  async function createConsent(accepted, license) {
     for (var tries = 0; tries < 4; tries++) {
       var id = crypto.randomUUID(), code = consentCodeFor(id);
-      var r = await sb.from('consents').insert({ id: id, code: code, statement_version: CONSENT_VERSION, lang: LANG, accepted: accepted }).select('id,code').single();
+      var r = await sb.from('consents').insert({ id: id, code: code, statement_version: CONSENT_VERSION, lang: LANG, accepted: accepted, license: license }).select('id,code,license').single();
       if (!r.error) return r.data;
       if (r.error.code !== '23505') throw r.error;     // μόνο σύγκρουση κωδικού ξαναδοκιμάζεται
     }
@@ -4751,6 +4857,7 @@
   function consentShowCode(c) {
     activeConsent = c;
     $('consentCode').textContent = c.code;
+    showConsentLicense(c.license || null);
     $('consentCodeBox').hidden = false;
     $('consentChecks').hidden = true; $('consentCreate').hidden = true; $('consentContinue').hidden = false;
     $('consentError').textContent = '';
@@ -4758,6 +4865,7 @@
   function consentResetForm() {
     activeConsent = null;
     consentBoxes().forEach(function (b) { b.checked = false; });
+    renderLicChoice(); document.querySelectorAll('input[name="consentLic"]').forEach(function (r) { r.checked = false; });
     $('consentChecks').hidden = false; $('consentCreate').hidden = false; $('consentCreate').disabled = true;
     $('consentContinue').hidden = true; $('consentCodeBox').hidden = true; $('consentError').textContent = '';
   }
@@ -4769,32 +4877,37 @@
     openDialog('consentSheet');
     // Προηγούμενοι κωδικοί του ίδιου χρήστη (π.χ. το ίδιο άτομο λέει δεύτερη ιστορία με την ίδια υπογεγραμμένη φόρμα)
     try {
-      var r = await sb.from('consents').select('id,code,created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(20);
+      var r = await sb.from('consents').select('id,code,created_at,license').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(200);
+      if (r.error && /license/i.test(r.error.message || '')) r = await sb.from('consents').select('id,code,created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(200);
       if (!r.error && r.data && r.data.length) {
         var sel = $('consentReuse'); sel.innerHTML = '';
         var o0 = document.createElement('option'); o0.value = ''; o0.textContent = t('consentNewOpt'); sel.appendChild(o0);
-        r.data.forEach(function (c) { var o = document.createElement('option'); o.value = c.id; o.dataset.code = c.code; o.textContent = c.code + ' · ' + String(c.created_at).slice(0, 10); sel.appendChild(o); });
+        r.data.forEach(function (c) { var o = document.createElement('option'); o.value = c.id; o.dataset.code = c.code; o.dataset.license = c.license || ''; o.textContent = c.code + ' · ' + String(c.created_at).slice(0, 10) + ' · ' + licName(c.license); sel.appendChild(o); });
         $('consentReuseWrap').hidden = false;
       }
     } catch (e) {}
   }
 
   consentBoxes().forEach(function (b) {
-    b.addEventListener('change', function () { $('consentCreate').disabled = !consentBoxes().every(function (x) { return x.checked; }); });
+    b.addEventListener('change', function () { $('consentCreate').disabled = !consentReady(); });
   });
   $('consentReuse').onchange = function () {
     var o = this.selectedOptions[0];
-    if (o && o.value) consentShowCode({ id: o.value, code: o.dataset.code });
+    if (o && o.value) consentShowCode({ id: o.value, code: o.dataset.code, license: o.dataset.license || null });
     else consentResetForm();
   };
   $('consentCreate').onclick = async function () {
-    if (!consentBoxes().every(function (x) { return x.checked; })) { $('consentError').textContent = t('consentNeedAll'); return; }
+    if (!consentReady()) { $('consentError').textContent = t('consentNeedLic'); return; }
     var b = this; b.disabled = true;
     try {
-      var c = await createConsent({ record: true, annotate: true, publish: true, voluntary: true });
+      var c = await createConsent({ record: true, annotate: true, publish: true, voluntary: true }, consentLic());
       consentShowCode(c);
       $('consentCopy').focus();
-    } catch (e) { $('consentError').textContent = t('consentError', { e: e.message || e }); b.disabled = false; }
+    } catch (e) {
+      var m = (e && e.message) || String(e);
+      $('consentError').textContent = /license|schema cache|row-level security/i.test(m) ? t('licNeedSql') : t('consentError', { e: m });
+      b.disabled = false;
+    }
   };
   $('consentCopy').onclick = function () { if (activeConsent) copyText(activeConsent.code, this); };
   $('uploadConsentCopy').onclick = function () { if (activeConsent) copyText(activeConsent.code, this); };
