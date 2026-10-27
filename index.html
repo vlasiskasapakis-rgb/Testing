@@ -626,6 +626,7 @@
   <button id="authBtnGate" class="link-btn" hidden></button>
   <p class="gate-web"><a href="?view=1" data-i18n="gateBrowse"></a></p>
   <p class="gate-web"><a href="?web=1" data-i18n="gateWeb"></a></p>
+  <p class="gate-web" id="gateReview" hidden><a href="review/" data-i18n="webToReview"></a></p>
 </div>
 </main>
 
@@ -1295,7 +1296,9 @@
       lnkBad: "Βάλε έγκυρη αρχή και τέλος· το τέλος πρέπει να είναι μετά την αρχή.",
       lnkErr: "Η αποθήκευση της σύνδεσης απέτυχε: {e}",
       lnkNoAV: "Πρόσθεσε ήχο ή βίντεο στην ιστορία για να συνδέσεις εικόνες.",
-      uploadDone: "Η ιστορία ανέβηκε. Άνοιξε την ιστοσελίδα ελέγχου (…/review/) για να δεις τα αρχεία, να προσθέσεις σχόλια και να τη στείλεις για σχολιασμό.",
+      uploadDone: "Η ιστορία ανέβηκε και περιμένει τον έλεγχό σου. Να ανοίξει τώρα η ιστοσελίδα ελέγχου, για να δεις τα αρχεία, να προσθέσεις σχόλια και να τη στείλεις για σχολιασμό;",
+      openReview: "Άνοιγμα της ιστοσελίδας ελέγχου →",
+      listPendingNote: "Ιστορίες που περιμένουν τον έλεγχό σου: {n}.",
       tlImages: "Εικόνες",
       tlTerms: "Όροι",
       tlItemImg: "Εικόνα {n}",
@@ -1686,7 +1689,9 @@
       lnkBad: "Enter a valid start and end; the end must be after the start.",
       lnkErr: "Saving the link failed: {e}",
       lnkNoAV: "Add an audio or video to this story to link images to it.",
-      uploadDone: "Story uploaded. Open the review website (…/review/) to look through the files, add comments and send it to annotation.",
+      uploadDone: "Story uploaded. It is now waiting for your review. Open the review website now to look through the files, add comments and send it to annotation?",
+      openReview: "Open the review website →",
+      listPendingNote: "Stories waiting for your review: {n}.",
       tlImages: "Images",
       tlTerms: "Terms",
       tlItemImg: "Image {n}",
@@ -2077,7 +2082,9 @@
       lnkBad: "Saisissez un début et une fin valides ; la fin doit suivre le début.",
       lnkErr: "Échec de l'enregistrement du lien : {e}",
       lnkNoAV: "Ajoutez un audio ou une vidéo à cette histoire pour y lier des images.",
-      uploadDone: "Histoire envoyée. Ouvrez le site de relecture (…/review/) pour parcourir les fichiers, ajouter des commentaires et l'envoyer à l'annotation.",
+      uploadDone: "Histoire envoyée. Elle attend maintenant votre relecture. Ouvrir le site de relecture maintenant pour parcourir les fichiers, ajouter des commentaires et l'envoyer à l'annotation ?",
+      openReview: "Ouvrir le site de relecture →",
+      listPendingNote: "Histoires en attente de votre relecture : {n}.",
       tlImages: "Images",
       tlTerms: "Termes",
       tlItemImg: "Image {n}",
@@ -2468,7 +2475,9 @@
       lnkBad: "Inserisci un inizio e una fine validi; la fine deve seguire l'inizio.",
       lnkErr: "Salvataggio del collegamento non riuscito: {e}",
       lnkNoAV: "Aggiungi un audio o un video alla storia per collegarvi le immagini.",
-      uploadDone: "Storia caricata. Apri il sito di revisione (…/review/) per esaminare i file, aggiungere commenti e inviarla all'annotazione.",
+      uploadDone: "Storia caricata. Ora attende la tua revisione. Aprire subito il sito di revisione per esaminare i file, aggiungere commenti e inviarla all'annotazione?",
+      openReview: "Apri il sito di revisione →",
+      listPendingNote: "Storie in attesa della tua revisione: {n}.",
       tlImages: "Immagini",
       tlTerms: "Termini",
       tlItemImg: "Immagine {n}",
@@ -3150,6 +3159,7 @@
   function renderAuth() {
     var label = currentUser ? t('logout') + ' · ' + userName(currentUser) + ' (' + t('role_' + currentRole) + ')' : t('login');
     ['authBtn', 'authBtnGate'].forEach(function (id) { var b = $(id); b.hidden = !sb; b.textContent = label; });
+    $('gateReview').hidden = !currentUser;
     var lb = $('listBtn');
     lb.hidden = !currentUser;
     lb.textContent = t(isAnnotator() ? 'listAll' : 'listMy');
@@ -3651,9 +3661,16 @@
     el.appendChild(txt); el.appendChild(b);
   }
 
+  function reviewLink(s) {
+    var a = document.createElement('a'); a.href = 'review/' + (s ? '?story=' + encodeURIComponent(s.dbId) : ''); a.textContent = t('openReview');
+    return a;
+  }
+
   function renderPublishUI(s) {
     var visible = !!(s.dbId && (isOwner(s) || isAnnotator()));
-    $('sheetStatus').textContent = visible ? t(statusKeyOf(s)) : '';
+    var el = $('sheetStatus');
+    el.textContent = visible ? t(statusKeyOf(s)) : '';
+    if (visible && s.status === 'pending' && isOwner(s)) { el.appendChild(document.createTextNode(' · ')); el.appendChild(reviewLink(s)); }
   }
 
   // ---- Λίστα ιστοριών: ο διευκολυντής βλέπει τις δικές του, ο σχολιαστής όλες (χωρίς περιορισμό απόστασης) ----
@@ -3675,6 +3692,11 @@
       .filter(function (x) { return !ann || f.value === 'all' || x.status === f.value; })
       .filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.consentCode || '')).toLowerCase().indexOf(q) >= 0; }).reverse();
     if (!items.length) { var p = document.createElement('p'); p.textContent = t('listEmpty'); body.appendChild(p); return; }
+    var nPend = ann ? 0 : items.filter(function (x) { return x.status === 'pending'; }).length;
+    if (nPend) {
+      var rp = document.createElement('p'); rp.className = 'sheet-sub'; rp.appendChild(document.createTextNode(t('listPendingNote', { n: nPend }) + ' '));
+      rp.appendChild(reviewLink(null)); body.appendChild(rp);
+    }
     items.forEach(function (x) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item';
       var ti = document.createElement('span'); ti.className = 't'; ti.textContent = st(x).title;
@@ -5657,8 +5679,9 @@
       announce(t('published'));
       if (story.detailsDropped) alert(t('detailsNotSaved'));
       if (story.w4Dropped) alert(t('w4NotSaved'));
-      alert(t('uploadDone'));
+      var goReview = confirm(t('uploadDone'));
       finishStoryFlow();
+      if (goReview) location.href = 'review/?story=' + encodeURIComponent(story.dbId);
     } catch (e) {
       $('publishError').textContent = t('publishError', { e: (e && e.message) ? e.message : e });
     } finally {

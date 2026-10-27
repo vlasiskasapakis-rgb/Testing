@@ -291,6 +291,8 @@
   // ---- data: the signed-in facilitator's stories waiting for review ----
   var D = { stories: [], cur: null, comments: [], seen: {} };
   var MCOLS = 'id,kind,path,position,title,about,what,place_name,recorded_at,period,lat,lon';
+  // ?story=<id> from the app opens that story straight away
+  var wantStory = new URLSearchParams(location.search).get('story');
   async function load() {
     $('loadInfo').textContent = t('loading');
     var cols = 'id,title,author_name,lat,lon,status,created_at,license,consents(code),story_media(' + MCOLS + ')';
@@ -301,9 +303,12 @@
     $('loadInfo').textContent = '';
     D.stories = (r.data || []).map(function (s) { s.story_media = (s.story_media || []).slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0); }); return s; });
     var keep = D.cur && D.stories.filter(function (s) { return s.id === D.cur.id; })[0];
-    D.cur = keep || null;
+    var fromLink = !keep && wantStory && D.stories.filter(function (s) { return s.id === wantStory; })[0];
+    wantStory = null;
+    D.cur = keep || fromLink || null;
     renderAll();
     if (D.cur) loadComments();
+    if (fromLink) $('sTitle').focus();
   }
   function renderAll() { renderQueue(); renderStory(); }
   function renderQueue() {
