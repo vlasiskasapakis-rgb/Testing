@@ -1029,7 +1029,7 @@
       revHistory: "Ιστορικό ελέγχου ({n})",
       licShown: "Άδεια:",
       projectOnly: "Μόνο για το έργο",
-      pendingNote: "{n} ιστορίες είναι ακόμα στους διευκολυντές (πρόχειρες ή για το εργαστήριο) και θα εμφανιστούν εδώ όταν τις επιβεβαιώσει το εργαστήριο.",
+      pendingNote: "{n} ιστορίες είναι ακόμα στους διευκολυντές (πρόχειρες ή σε επικύρωση από την κοινότητα) και θα εμφανιστούν εδώ μόλις τις επικυρώσει η κοινότητα.",
       facTitle: "Σχόλια του διευκολυντή ({n})",
       facWhole: "όλη η ιστορία",
       rev_submitted: "Υποβολή",
@@ -1498,7 +1498,7 @@
       revHistory: "Validation history ({n})",
       licShown: "Licence:",
       projectOnly: "Project use only",
-      pendingNote: "{n} stories are still with their facilitators (drafts or waiting for the workshop) and will appear here once the workshop has confirmed them.",
+      pendingNote: "{n} stories are still with their facilitators (drafts or in community validation) and will appear here once the community has validated them.",
       facTitle: "Facilitator's comments ({n})",
       facWhole: "whole story",
       rev_submitted: "Submitted",
@@ -1967,7 +1967,7 @@
       revHistory: "Historique de validation ({n})",
       licShown: "Licence :",
       projectOnly: "Usage du projet uniquement",
-      pendingNote: "{n} histoires sont encore chez leurs facilitateurs (brouillons ou en attente de l’atelier) et apparaîtront ici quand l’atelier les aura confirmées.",
+      pendingNote: "{n} histoires sont encore chez leurs facilitateurs (brouillons ou en validation par la communauté) et apparaîtront ici une fois validées par la communauté.",
       facTitle: "Commentaires du facilitateur ({n})",
       facWhole: "toute l'histoire",
       rev_submitted: "Soumission",
@@ -2436,7 +2436,7 @@
       revHistory: "Storico della validazione ({n})",
       licShown: "Licenza:",
       projectOnly: "Solo per il progetto",
-      pendingNote: "{n} storie sono ancora presso i loro facilitatori (bozze o in attesa del laboratorio) e appariranno qui quando il laboratorio le avrà confermate.",
+      pendingNote: "{n} storie sono ancora presso i loro facilitatori (bozze o in validazione della comunità) e appariranno qui quando la comunità le avrà validate.",
       facTitle: "Commenti del facilitatore ({n})",
       facWhole: "tutta la storia",
       rev_submitted: "Invio",
@@ -2815,7 +2815,7 @@
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
       id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', license: r.license || null,
-      consentId: r.consent_id || null, consentCode: (r.consents && (r.consents.code || [r.consents.session_date, r.consents.place, r.consents.initials].filter(Boolean).join(' · '))) || null,
+      consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null,
       lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
@@ -5371,7 +5371,7 @@
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
       var colsV = colsW.replace('what,place_name)', 'what,place_name,who,when_kind,when_date)');            // several names, exact/approximate when
-      var r = await sb.from('stories').select(colsV + ',status,consent_id,consents(code,session_date,place,initials),license').order('created_at');
+      var r = await sb.from('stories').select(colsV + ',status,consent_id,consents(code),license').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code),license').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');   // βάση χωρίς άδεια ιστορίας
       if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
@@ -5379,8 +5379,8 @@
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
       if (r.error) throw r.error;
       // ιστορίες που περιμένουν ακόμα τον έλεγχο του διευκολυντή δεν φτάνουν στον σχολιασμό
-      var FAC_PHASE = ['draft', 'ready_for_workshop', 'withdrawn'];   // still with the facilitators (or withdrawn): not for annotation
-      PENDING_N = r.data.filter(function (x) { return x.status === 'draft' || x.status === 'ready_for_workshop'; }).length;
+      var FAC_PHASE = ['draft', 'community_validation', 'withdrawn'];   // still with the facilitators and the community (or withdrawn): not for annotation
+      PENDING_N = r.data.filter(function (x) { return x.status === 'draft' || x.status === 'community_validation'; }).length;
       STORIES = r.data.filter(function (x) { return FAC_PHASE.indexOf(x.status) < 0; }).map(storyFromRow);
     } catch (e) { $('listBody').innerHTML = ''; var ep = document.createElement('p'); ep.className = 'field-error'; ep.textContent = t('loadStoriesError') + ' ' + errText(e); $('listBody').appendChild(ep); return; }
     var again = keep && STORIES.filter(function (x) { return x.dbId === keep; })[0];

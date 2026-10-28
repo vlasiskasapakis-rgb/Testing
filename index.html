@@ -340,9 +340,10 @@
   .ann-time-panel { flex-basis: 100%; }
   .ann-player { width: 100%; max-height: 220px; margin: 6px 0; }
   #consentSheet { z-index: 66; }
-  .dup-box { background: #FFF3E8; border: 2px solid #E0904F; border-radius: 12px; padding: 10px 12px; margin-top: 8px; }
-  .dup-box ul { margin: 6px 0; padding-left: 20px; }
-  .src-sel { margin-top: 6px; font-size: 14px; }
+  .code-box { background: #EEF6F3; border: 2px solid #2E7D6B; border-radius: 12px; padding: 12px; margin-top: 10px; display: grid; gap: 8px; justify-items: start; }
+  .code-box[hidden] { display: none; }
+  .code-big { font: 700 26px/1.2 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 2px; overflow-wrap: anywhere; }
+  .code-box button { padding: 10px 18px; min-height: 44px; font-size: 16px; font-weight: 700; }
   #miWhenDate, #miPeriodIn { margin-top: 6px; width: 100%; }
   #mediaInfoSheet { z-index: 90; }
   #mapPickSheet { z-index: 95; }
@@ -717,24 +718,25 @@
       </div>
       <button type="button" class="btn-secondary btn-wide" id="consentNewBtn" data-i18n="arConsentNew"></button>
       <div id="consentNewForm" hidden>
-        <div class="input-group"><label for="cnDate" data-i18n="arSessionDate"></label><input type="date" id="cnDate"></div>
-        <div class="input-group"><label for="cnInitials" data-i18n="arInitials"></label><input type="text" id="cnInitials" maxlength="4" autocomplete="off" aria-describedby="cnInitHint"><p class="sheet-sub" id="cnInitHint" data-i18n="arInitialsHint" style="margin:4px 0 0"></p></div>
-        <div class="input-group"><label for="cnPlace" data-i18n="arPlace"></label><input type="text" id="cnPlace" maxlength="200" autocomplete="off">
-          <label class="check" style="margin-top:6px"><input type="checkbox" id="cnPlaceGps"><span data-i18n="arPlaceGps"></span></label></div>
+        <fieldset class="lic-set"><legend data-i18n="arAgreeLegend"></legend>
+          <label class="check"><input type="checkbox" name="cnAgree" value="provide"><span data-i18n="arAgree_provide"></span></label>
+          <label class="check"><input type="checkbox" name="cnAgree" value="cut"><span data-i18n="arAgree_cut"></span></label>
+          <label class="check"><input type="checkbox" name="cnAgree" value="comment"><span data-i18n="arAgree_comment"></span></label>
+          <label class="check"><input type="checkbox" name="cnAgree" value="share"><span data-i18n="arAgree_share"></span></label>
+          <label class="check"><input type="checkbox" name="cnAgree" value="voluntary"><span data-i18n="arAgree_voluntary"></span></label>
+        </fieldset>
         <div class="input-group"><label for="cnLicense" data-i18n="arLicence"></label><select id="cnLicense" class="lang-select"></select><p id="cnLicHelp" class="sheet-sub" style="margin:4px 0 0"></p></div>
-        <div class="input-group"><label for="cnAnon" data-i18n="arAnonymity"></label><select id="cnAnon" class="lang-select"></select></div>
-        <fieldset class="lic-set"><legend data-i18n="arReview"></legend>
-          <label class="check"><input type="radio" name="cnReview" value="yes"><span data-i18n="arYes"></span></label>
-          <label class="check"><input type="radio" name="cnReview" value="no"><span data-i18n="arNo"></span></label></fieldset>
-        <label class="check"><input type="checkbox" id="cnOral"><span data-i18n="arOral"></span></label>
-        <div class="input-group" id="cnNameWrap"><label for="cnName" data-i18n="arNarratorName"></label><input type="text" id="cnName" maxlength="200" autocomplete="off"><p class="sheet-sub" data-i18n="arNameRestricted" style="margin:4px 0 0"></p></div>
-        <div id="consentDup" class="dup-box" hidden role="alert"></div>
+      </div>
+      <div id="consentCodeBox" class="code-box" hidden>
+        <p data-i18n="arCodeIntro" style="margin:0"></p>
+        <output id="cnCode" class="code-big" aria-live="polite"></output>
+        <button type="button" class="btn-secondary" id="cnCopy" data-i18n="consentCopy"></button>
       </div>
       <p id="consentError" class="field-error" role="alert"></p>
     </div>
     <div class="btn-row">
       <button type="button" class="btn-secondary" id="consentCancel" data-i18n="cancel"></button>
-      <button type="button" class="btn-primary" id="consentCreate" data-i18n="arConsentSave" hidden></button>
+      <button type="button" class="btn-primary" id="consentCreate" data-i18n="arConsentCreate" hidden></button>
       <button type="button" class="btn-primary" id="consentContinue" data-i18n="consentContinue" disabled></button>
     </div>
   </div>
@@ -763,7 +765,8 @@
       <input type="text" id="storyTitle" data-i18n-ph="titlePh" autocomplete="off" aria-describedby="titleError" required>
       <p id="titleError" class="field-error" role="alert"></p>
     </div>
-    <div class="input-group"><label for="storyQuestion" data-i18n="arQuestion"></label><select id="storyQuestion" class="lang-select"></select></div>
+    <div class="input-group"><label for="storyTheme" data-i18n="arTheme"></label><input type="text" id="storyTheme" maxlength="500" autocomplete="off" data-i18n-ph="arThemePh" aria-describedby="themeHint">
+      <p class="sheet-sub" id="themeHint" data-i18n="arThemeHint" style="margin:4px 0 0"></p></div>
     <div class="input-group"><label for="storyLanguage" data-i18n="arLanguage"></label><select id="storyLanguage" class="lang-select"></select></div>
     <fieldset class="lic-set" id="storySensSet"><legend data-i18n="arSensitive"></legend>
       <label class="check"><input type="radio" name="storySens" value="no"><span data-i18n="arNo"></span></label>
@@ -964,11 +967,9 @@
     <p class="sheet-sub" data-i18n="miIntro"></p>
     <div class="input-group"><label for="miTitleIn" data-i18n="arFragTitle"></label><input type="text" id="miTitleIn" maxlength="200" autocomplete="off" data-i18n-ph="miWhatPh"></div>
     <div class="input-group"><label for="miAboutIn" data-i18n="miAbout"></label><input type="text" id="miAboutIn" maxlength="600" autocomplete="off" data-i18n-ph="miAboutPh" aria-describedby="miWhoHint">
-      <p class="sheet-sub" id="miWhoHint" data-i18n="arWhoHint" style="margin:4px 0 0"></p>
-      <select id="miWhoSrc" class="lang-select src-sel" data-i18n-aria="arSourceOf"></select></div>
+      <p class="sheet-sub" id="miWhoHint" data-i18n="arWhoHint" style="margin:4px 0 0"></p></div>
     <div class="input-group">
       <label for="miPlaceIn" data-i18n="miWhere"></label><input type="text" id="miPlaceIn" maxlength="200" autocomplete="off" data-i18n-ph="miWherePh">
-      <select id="miWhereSrc" class="lang-select src-sel" data-i18n-aria="arSourceOf"></select>
       <span class="group-label" id="miLocLabel" data-i18n="miLoc" style="margin-top:10px"></span>
       <div id="miLocText" class="loc-box" aria-labelledby="miLocLabel"></div>
       <div class="loc-actions">
@@ -984,7 +985,6 @@
       <label class="check"><input type="radio" name="miWhenKind" value=""><span data-i18n="arWhenBlank"></span></label>
       <input type="date" id="miWhenDate" data-i18n-aria="arWhenExact">
       <input type="text" id="miPeriodIn" maxlength="120" autocomplete="off" data-i18n-ph="miPeriodPh" data-i18n-aria="arWhenApprox">
-      <select id="miWhenSrc" class="lang-select src-sel" data-i18n-aria="arSourceOf"></select>
     </fieldset>
     <div class="input-group"><label for="miDateIn" data-i18n="miDate"></label><input type="date" id="miDateIn"></div>
     <div class="btn-row">
@@ -1026,49 +1026,38 @@
   var LANGS = ['el', 'en', 'fr', 'it'];
   var I18N = {
     el: {
-      arConsentIntro: "Διάλεξε το αρχείο συναίνεσης του αφηγητή ή κατέγραψε νέο. Το υπογεγραμμένο έντυπο μένει στην περιοχή.",
-      arConsentPick: "Αρχείο συναίνεσης",
+      arConsentIntro: "Διάλεξε τον κωδικό συναίνεσης του αφηγητή ή φτιάξε νέο. Το υπογεγραμμένο έντυπο, με τα στοιχεία του, μένει στο χαρτί.",
+      arConsentPick: "Κωδικός συναίνεσης",
       arConsentNew: "+ Νέα συναίνεση",
-      arConsentChoose: "— διάλεξε (ημερομηνία · τόπος · αρχικά) —",
-      arSessionDate: "Ημερομηνία συνάντησης",
-      arInitials: "Αρχικά του αφηγητή",
-      arInitialsHint: "2 έως 4 γράμματα",
-      arPlace: "Τόπος",
-      arPlaceGps: "Κράτησε και το στίγμα μου στον χάρτη",
+      arConsentChoose: "— διάλεξε κωδικό —",
       arLicence: "Άδεια",
-      arAnonymity: "Ανωνυμία",
-      arReview: "Ο αφηγητής ελέγχει την ιστορία πριν από τη δημοσίευση",
       arYes: "Ναι",
       arNo: "Όχι",
-      arOral: "Καταγράφηκε προφορική συναίνεση αντί για υπογραφή",
-      arNarratorName: "Όνομα του αφηγητή",
-      arNameRestricted: "Με περιορισμένη πρόσβαση: το βλέπουν μόνο οι διευκολυντές της περιοχής και οι διαχειριστές.",
-      arConsentSave: "Αποθήκευση συναίνεσης",
-      arConsentMissing: "Συμπλήρωσε ημερομηνία, αρχικά (2–4 γράμματα), τόπο, άδεια, ανωνυμία και αν ελέγχει ο αφηγητής.",
-      arDupTitle: "Ίδιος αφηγητής;",
-      arDupText: "Υπάρχουν ήδη αρχεία με τα αρχικά {i} μέσα σε 30 ημέρες:",
-      arDupUse: "Χρήση του υπάρχοντος",
-      arDupSave: "Είναι νέο: αποθήκευση",
-      arConsentSaved: "Η συναίνεση καταγράφηκε.",
+      arConsentMissing: "Τσέκαρε όλες τις συμφωνίες και διάλεξε άδεια.",
+      arConsentSaved: "Ο κωδικός δημιουργήθηκε: γράψ’ τον στο έντυπο.",
+      arConsentCreate: "Δημιουργία κωδικού",
+      arCodeIntro: "Γράψε αυτόν τον κωδικό στο έντυπο συναίνεσης:",
+      arTheme: "Γιατί (το θέμα)",
+      arThemePh: "π.χ. τα πανηγύρια του χωριού, η φυγή από το σπίτι, η δουλειά στο λιμάνι",
+      arThemeHint: "Με δικά σου λόγια: για τι μιλάει η ιστορία. Είναι το «γιατί» όλων των κομματιών της.",
+      statusCommunity: "Περιμένει επικύρωση από την κοινότητα",
+      arAgreeLegend: "Ο αφηγητής συμφωνεί",
+      arAgree_provide: "να δώσει την ιστορία του (ηχογραφήσεις, φωτογραφίες, βίντεο) στο έργο·",
+      arAgree_cut: "η ιστορία να κοπεί σε κομμάτια·",
+      arAgree_comment: "άλλοι (η κοινότητα και η ομάδα του έργου) να τη σχολιάζουν και να προσθέτουν στοιχεία·",
+      arAgree_share: "να προβάλλεται και να μοιράζεται με την άδεια που θα διαλέξετε παρακάτω·",
+      arAgree_voluntary: "και συμμετέχει ελεύθερα, ξέροντας ότι μπορεί να ανακαλέσει την ιστορία όποτε θέλει.",
       arChoose: "— διάλεξε —",
-      an_full_name: "Ονοματεπώνυμο",
-      an_first_name: "Μόνο μικρό όνομα",
-      an_anonymous: "Ανώνυμα",
-      arQuestion: "Ερώτηση / θέμα",
       arLanguage: "Γλώσσα / διάλεκτος",
       arSensitive: "Ευαίσθητο υλικό",
-      arStoryFieldsNeeded: "Διάλεξε την ερώτηση, τη γλώσσα και αν υπάρχει ευαίσθητο υλικό.",
+      arStoryFieldsNeeded: "Γράψε το γιατί (θέμα), διάλεξε τη γλώσσα και αν υπάρχει ευαίσθητο υλικό.",
       arNeedAudio: "Χρειάζεται τουλάχιστον ένα κομμάτι ήχου.",
       arNeedTitles: "Κάθε αρχείο χρειάζεται τίτλο.",
       arFragTitle: "Τίτλος (= τι) *",
       arWhoHint: "Περισσότερα ονόματα: χώρισέ τα με κόμμα.",
-      arSourceOf: "Προέλευση της απάντησης",
-      arSrcStated: "Το είπε ο αφηγητής",
-      arSrcInferred: "Εκτίμηση του διευκολυντή",
       arWhenExact: "Ακριβής ημερομηνία",
       arWhenApprox: "Κατά προσέγγιση",
       arWhenBlank: "Κενό",
-      statusReadyWs: "Έτοιμη για το εργαστήριο",
       statusFacDraft: "Πρόχειρη",
       pageTitle: "Walking Memory — Μυτιλήνη", language: "Γλώσσα",
       gateTitle: "Διαδρομή μνήμης, κέντρο Μυτιλήνης",
@@ -1300,7 +1289,7 @@
       webFinalNote: "Αυτά είναι τα αρχεία που θα ανέβουν. Αν κάτι δεν είναι σωστό, γύρνα πίσω στα αρχεία.",
       webStep4: "Έλεγχος και υποβολή",
       webToApp: "Άνοιγμα της εφαρμογής AR",
-      gateWeb: "Ιστοσελίδα διευκολυντών (συναινέσεις, ιστορίες, εργαστήρια) →",
+      gateWeb: "Ιστοσελίδα διευκολυντών (συναινέσεις, ιστορίες, επικύρωση από την κοινότητα) →",
       locNeededWeb: "Διάλεξε την τοποθεσία της ιστορίας στον χάρτη.",
       locHintWeb: "Εκεί θα εμφανίζεται η ιστορία στην εφαρμογή.",
       placeSearch: "Αναζήτηση τόπου",
@@ -1356,7 +1345,7 @@
       lnkNoAV: "Πρόσθεσε ήχο ή βίντεο στην ιστορία για να συνδέσεις εικόνες.",
       uploadDone: "Η ιστορία ανέβηκε και περιμένει τον έλεγχό σου. Να ανοίξει τώρα η ιστοσελίδα ελέγχου, για να δεις τα αρχεία, να προσθέσεις σχόλια και να τη στείλεις για σχολιασμό;",
       openReview: "Άνοιγμα της ιστοσελίδας ελέγχου →",
-      uploadDoneAr: "Η ιστορία ανέβηκε και είναι έτοιμη για το εργαστήριο. Θα τη βρεις και στην ιστοσελίδα διευκολυντών (…/facilitator/).",
+      uploadDoneAr: "Η ιστορία ανέβηκε. Περιμένει τώρα την επικύρωση από την κοινότητα, στην ιστοσελίδα διευκολυντών (…/facilitator/).",
       listPendingNote: "Ιστορίες που περιμένουν τον έλεγχό σου: {n}.",
       tlImages: "Εικόνες",
       tlTerms: "Όροι",
@@ -1464,49 +1453,38 @@
       listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
     },
     en: {
-      arConsentIntro: "Choose the narrator’s consent record, or record a new one. The signed printed form stays at the site.",
-      arConsentPick: "Consent record",
+      arConsentIntro: "Choose the narrator’s consent code, or make a new one. The signed printed form, with the narrator’s details, stays on paper.",
+      arConsentPick: "Consent code",
       arConsentNew: "+ New consent",
-      arConsentChoose: "— choose (date · place · initials) —",
-      arSessionDate: "Session date",
-      arInitials: "Narrator initials",
-      arInitialsHint: "2 to 4 letters",
-      arPlace: "Place",
-      arPlaceGps: "Also keep my position on the map",
+      arConsentChoose: "— choose a code —",
       arLicence: "Licence",
-      arAnonymity: "Anonymity",
-      arReview: "The narrator reviews the story before publication",
       arYes: "Yes",
       arNo: "No",
-      arOral: "Oral consent recorded instead of a signature",
-      arNarratorName: "Narrator name",
-      arNameRestricted: "Restricted access: only this site’s facilitators and admins can read it.",
-      arConsentSave: "Save consent",
-      arConsentMissing: "Fill in the date, initials (2–4 letters), place, licence, anonymity and whether the narrator reviews.",
-      arDupTitle: "Same narrator?",
-      arDupText: "There are already records with the initials {i} within 30 days:",
-      arDupUse: "Use the existing one",
-      arDupSave: "It is new: save it",
-      arConsentSaved: "Consent recorded.",
+      arConsentMissing: "Tick every agreement and choose a licence.",
+      arConsentSaved: "Code created: write it on the printed form.",
+      arConsentCreate: "Create the code",
+      arCodeIntro: "Write this code on the printed consent form:",
+      arTheme: "Why (the theme)",
+      arThemePh: "e.g. the village feasts, leaving home, the harbour at work",
+      arThemeHint: "In your own words: what the story is about. It is the “why” of all its fragments.",
+      statusCommunity: "Waiting for community validation",
+      arAgreeLegend: "The narrator agrees",
+      arAgree_provide: "to give their story (recordings, photos, videos) to the project;",
+      arAgree_cut: "that the story may be cut into pieces (fragments);",
+      arAgree_comment: "that others (the community and the project team) may comment on it and add details;",
+      arAgree_share: "that it may be shown and shared under the licence chosen below;",
+      arAgree_voluntary: "and takes part freely, knowing they can withdraw the story at any time.",
       arChoose: "— choose —",
-      an_full_name: "Full name",
-      an_first_name: "First name only",
-      an_anonymous: "Anonymous",
-      arQuestion: "Question / theme",
       arLanguage: "Language / dialect",
       arSensitive: "Sensitive material",
-      arStoryFieldsNeeded: "Choose the question, the language and whether there is sensitive material.",
+      arStoryFieldsNeeded: "Write the why (theme), and choose the language and whether there is sensitive material.",
       arNeedAudio: "At least one audio fragment is needed.",
       arNeedTitles: "Every file needs a title.",
       arFragTitle: "Title (= what) *",
       arWhoHint: "Several names: separate them with commas.",
-      arSourceOf: "Where the answer comes from",
-      arSrcStated: "Stated by narrator",
-      arSrcInferred: "Inferred by facilitator",
       arWhenExact: "Exact date",
       arWhenApprox: "Approximate",
       arWhenBlank: "Blank",
-      statusReadyWs: "Ready for the workshop",
       statusFacDraft: "Draft",
       pageTitle: "Walking Memory — Mytilene", language: "Language",
       gateTitle: "Memory trail, Mytilene centre",
@@ -1738,7 +1716,7 @@
       webFinalNote: "These are the files that will be uploaded. If something is wrong, go back to the files.",
       webStep4: "Check and submit",
       webToApp: "Open the AR app",
-      gateWeb: "Facilitator website (consents, stories, workshops) →",
+      gateWeb: "Facilitator website (consents, stories, community validation) →",
       locNeededWeb: "Choose the story’s location on the map.",
       locHintWeb: "This is where the story appears in the app.",
       placeSearch: "Search for a place",
@@ -1794,7 +1772,7 @@
       lnkNoAV: "Add an audio or video to this story to link images to it.",
       uploadDone: "Story uploaded. It is now waiting for your review. Open the review website now to look through the files, add comments and send it to annotation?",
       openReview: "Open the review website →",
-      uploadDoneAr: "Story uploaded and ready for the workshop. You will also find it on the facilitator website (…/facilitator/).",
+      uploadDoneAr: "Story uploaded. It now waits for community validation on the facilitator website (…/facilitator/).",
       listPendingNote: "Stories waiting for your review: {n}.",
       tlImages: "Images",
       tlTerms: "Terms",
@@ -1902,49 +1880,38 @@
       listSearch: "Search by title, name or consent code"
     },
     fr: {
-      arConsentIntro: "Choisissez la fiche de consentement du narrateur, ou enregistrez-en une nouvelle. Le formulaire signé reste sur le site.",
-      arConsentPick: "Fiche de consentement",
+      arConsentIntro: "Choisissez le code de consentement du narrateur, ou créez-en un. Le formulaire signé, avec les coordonnées du narrateur, reste sur papier.",
+      arConsentPick: "Code de consentement",
       arConsentNew: "+ Nouveau consentement",
-      arConsentChoose: "— choisir (date · lieu · initiales) —",
-      arSessionDate: "Date de la séance",
-      arInitials: "Initiales du narrateur",
-      arInitialsHint: "2 à 4 lettres",
-      arPlace: "Lieu",
-      arPlaceGps: "Garder aussi ma position sur la carte",
+      arConsentChoose: "— choisir un code —",
       arLicence: "Licence",
-      arAnonymity: "Anonymat",
-      arReview: "Le narrateur relit l’histoire avant publication",
       arYes: "Oui",
       arNo: "Non",
-      arOral: "Consentement oral enregistré au lieu d’une signature",
-      arNarratorName: "Nom du narrateur",
-      arNameRestricted: "Accès restreint : seuls les facilitateurs de ce site et les administrateurs peuvent le lire.",
-      arConsentSave: "Enregistrer le consentement",
-      arConsentMissing: "Indiquez la date, les initiales (2 à 4 lettres), le lieu, la licence, l’anonymat et si le narrateur relit.",
-      arDupTitle: "Même narrateur ?",
-      arDupText: "Il existe déjà des fiches avec les initiales {i} à moins de 30 jours :",
-      arDupUse: "Utiliser la fiche existante",
-      arDupSave: "C’est une nouvelle fiche : enregistrer",
-      arConsentSaved: "Consentement enregistré.",
+      arConsentMissing: "Cochez tous les accords et choisissez une licence.",
+      arConsentSaved: "Code créé : écrivez-le sur le formulaire imprimé.",
+      arConsentCreate: "Créer le code",
+      arCodeIntro: "Écrivez ce code sur le formulaire de consentement imprimé :",
+      arTheme: "Pourquoi (le thème)",
+      arThemePh: "p. ex. les fêtes du village, le départ, le port au travail",
+      arThemeHint: "Avec vos mots : de quoi parle l’histoire. C’est le « pourquoi » de tous ses fragments.",
+      statusCommunity: "En attente de validation par la communauté",
+      arAgreeLegend: "Le narrateur accepte",
+      arAgree_provide: "de donner son histoire (enregistrements, photos, vidéos) au projet ;",
+      arAgree_cut: "que l’histoire soit découpée en morceaux (fragments) ;",
+      arAgree_comment: "que d’autres (la communauté et l’équipe du projet) la commentent et y ajoutent des détails ;",
+      arAgree_share: "qu’elle soit montrée et partagée sous la licence choisie ci-dessous ;",
+      arAgree_voluntary: "et participe librement, sachant qu’il peut retirer l’histoire à tout moment.",
       arChoose: "— choisir —",
-      an_full_name: "Nom complet",
-      an_first_name: "Prénom seulement",
-      an_anonymous: "Anonyme",
-      arQuestion: "Question / thème",
       arLanguage: "Langue / dialecte",
       arSensitive: "Contenu sensible",
-      arStoryFieldsNeeded: "Choisissez la question, la langue et s’il y a du contenu sensible.",
+      arStoryFieldsNeeded: "Écrivez le pourquoi (thème), et choisissez la langue et s’il y a du contenu sensible.",
       arNeedAudio: "Il faut au moins un fragment audio.",
       arNeedTitles: "Chaque fichier a besoin d’un titre.",
       arFragTitle: "Titre (= quoi) *",
       arWhoHint: "Plusieurs noms : séparez-les par des virgules.",
-      arSourceOf: "Origine de la réponse",
-      arSrcStated: "Dit par le narrateur",
-      arSrcInferred: "Déduit par le facilitateur",
       arWhenExact: "Date exacte",
       arWhenApprox: "Approximatif",
       arWhenBlank: "Vide",
-      statusReadyWs: "Prête pour l’atelier",
       statusFacDraft: "Brouillon",
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
       gateTitle: "Parcours de mémoire, centre de Mytilène",
@@ -2176,7 +2143,7 @@
       webFinalNote: "Voici les fichiers qui seront envoyés. Si quelque chose ne va pas, revenez aux fichiers.",
       webStep4: "Vérifier et envoyer",
       webToApp: "Ouvrir l’application AR",
-      gateWeb: "Site des facilitateurs (consentements, histoires, ateliers) →",
+      gateWeb: "Site des facilitateurs (consentements, histoires, validation par la communauté) →",
       locNeededWeb: "Choisissez le lieu de l’histoire sur la carte.",
       locHintWeb: "C’est là que l’histoire apparaît dans l’application.",
       placeSearch: "Rechercher un lieu",
@@ -2232,7 +2199,7 @@
       lnkNoAV: "Ajoutez un audio ou une vidéo à cette histoire pour y lier des images.",
       uploadDone: "Histoire envoyée. Elle attend maintenant votre relecture. Ouvrir le site de relecture maintenant pour parcourir les fichiers, ajouter des commentaires et l'envoyer à l'annotation ?",
       openReview: "Ouvrir le site de relecture →",
-      uploadDoneAr: "Histoire envoyée et prête pour l’atelier. Vous la retrouverez aussi sur le site des facilitateurs (…/facilitator/).",
+      uploadDoneAr: "Histoire envoyée. Elle attend maintenant la validation par la communauté sur le site des facilitateurs (…/facilitator/).",
       listPendingNote: "Histoires en attente de votre relecture : {n}.",
       tlImages: "Images",
       tlTerms: "Termes",
@@ -2340,49 +2307,38 @@
       listSearch: "Rechercher par titre, nom ou code de consentement"
     },
     it: {
-      arConsentIntro: "Scegli la scheda di consenso del narratore, o registrane una nuova. Il modulo firmato resta nel sito.",
-      arConsentPick: "Scheda di consenso",
+      arConsentIntro: "Scegli il codice di consenso del narratore, o creane uno nuovo. Il modulo firmato, con i dati del narratore, resta su carta.",
+      arConsentPick: "Codice di consenso",
       arConsentNew: "+ Nuovo consenso",
-      arConsentChoose: "— scegli (data · luogo · iniziali) —",
-      arSessionDate: "Data della sessione",
-      arInitials: "Iniziali del narratore",
-      arInitialsHint: "Da 2 a 4 lettere",
-      arPlace: "Luogo",
-      arPlaceGps: "Conserva anche la mia posizione sulla mappa",
+      arConsentChoose: "— scegli un codice —",
       arLicence: "Licenza",
-      arAnonymity: "Anonimato",
-      arReview: "Il narratore rivede la storia prima della pubblicazione",
       arYes: "Sì",
       arNo: "No",
-      arOral: "Consenso orale registrato al posto della firma",
-      arNarratorName: "Nome del narratore",
-      arNameRestricted: "Accesso limitato: solo i facilitatori di questo sito e gli amministratori possono leggerlo.",
-      arConsentSave: "Salva il consenso",
-      arConsentMissing: "Indica data, iniziali (2–4 lettere), luogo, licenza, anonimato e se il narratore rivede.",
-      arDupTitle: "Stesso narratore?",
-      arDupText: "Ci sono già schede con le iniziali {i} entro 30 giorni:",
-      arDupUse: "Usa quella esistente",
-      arDupSave: "È nuova: salva",
-      arConsentSaved: "Consenso registrato.",
+      arConsentMissing: "Spunta tutti gli accordi e scegli una licenza.",
+      arConsentSaved: "Codice creato: scrivilo sul modulo stampato.",
+      arConsentCreate: "Crea il codice",
+      arCodeIntro: "Scrivi questo codice sul modulo di consenso stampato:",
+      arTheme: "Perché (il tema)",
+      arThemePh: "es. le feste del paese, la partenza da casa, il porto al lavoro",
+      arThemeHint: "Con parole tue: di cosa parla la storia. È il «perché» di tutti i suoi frammenti.",
+      statusCommunity: "In attesa di validazione da parte della comunità",
+      arAgreeLegend: "Il narratore accetta",
+      arAgree_provide: "di dare la sua storia (registrazioni, foto, video) al progetto;",
+      arAgree_cut: "che la storia sia tagliata in pezzi (frammenti);",
+      arAgree_comment: "che altri (la comunità e il gruppo del progetto) la commentino e aggiungano dettagli;",
+      arAgree_share: "che sia mostrata e condivisa con la licenza scelta qui sotto;",
+      arAgree_voluntary: "e partecipa liberamente, sapendo di poter ritirare la storia in qualsiasi momento.",
       arChoose: "— scegli —",
-      an_full_name: "Nome e cognome",
-      an_first_name: "Solo nome",
-      an_anonymous: "Anonimo",
-      arQuestion: "Domanda / tema",
       arLanguage: "Lingua / dialetto",
       arSensitive: "Materiale sensibile",
-      arStoryFieldsNeeded: "Scegli la domanda, la lingua e se c’è materiale sensibile.",
+      arStoryFieldsNeeded: "Scrivi il perché (tema), e scegli la lingua e se c’è materiale sensibile.",
       arNeedAudio: "Serve almeno un frammento audio.",
       arNeedTitles: "Ogni file ha bisogno di un titolo.",
       arFragTitle: "Titolo (= cosa) *",
       arWhoHint: "Più nomi: separali con una virgola.",
-      arSourceOf: "Da dove viene la risposta",
-      arSrcStated: "Detto dal narratore",
-      arSrcInferred: "Dedotto dal facilitatore",
       arWhenExact: "Data esatta",
       arWhenApprox: "Approssimativo",
       arWhenBlank: "Vuoto",
-      statusReadyWs: "Pronta per il laboratorio",
       statusFacDraft: "Bozza",
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
       gateTitle: "Percorso della memoria, centro di Mitilene",
@@ -2614,7 +2570,7 @@
       webFinalNote: "Questi sono i file che verranno caricati. Se qualcosa non va, torna ai file.",
       webStep4: "Controlla e invia",
       webToApp: "Apri l’app AR",
-      gateWeb: "Sito dei facilitatori (consensi, storie, laboratori) →",
+      gateWeb: "Sito dei facilitatori (consensi, storie, validazione della comunità) →",
       locNeededWeb: "Scegli il luogo della storia sulla mappa.",
       locHintWeb: "È qui che la storia appare nell’app.",
       placeSearch: "Cerca un luogo",
@@ -2670,7 +2626,7 @@
       lnkNoAV: "Aggiungi un audio o un video alla storia per collegarvi le immagini.",
       uploadDone: "Storia caricata. Ora attende la tua revisione. Aprire subito il sito di revisione per esaminare i file, aggiungere commenti e inviarla all'annotazione?",
       openReview: "Apri il sito di revisione →",
-      uploadDoneAr: "Storia caricata e pronta per il laboratorio. La trovi anche sul sito dei facilitatori (…/facilitator/).",
+      uploadDoneAr: "Storia caricata. Ora attende la validazione della comunità sul sito dei facilitatori (…/facilitator/).",
       listPendingNote: "Storie in attesa della tua revisione: {n}.",
       tlImages: "Immagini",
       tlTerms: "Termini",
@@ -3325,7 +3281,7 @@
   var BUCKET = 'story-media';
   var CFG = window.WM_CONFIG || {};
   var sb = null, currentUser = null, currentRole = 'facilitator', currentSite = null;
-  var SITE = { questions: [], languages: [] };      // the facilitator's site: its 5 questions, and the languages offered
+  var SITE = { languages: [] };      // the languages and dialects offered for a story
   try {
     if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) {
       sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
@@ -3353,9 +3309,8 @@
       if (!r.error && r.data && r.data.role) currentRole = r.data.role;
       if (!r.error && r.data) currentSite = r.data.site_id || null;
       if (currentSite && currentRole === 'facilitator') {
-        var q = await Promise.all([sb.from('site_questions').select('id,position,text').eq('site_id', currentSite).order('position'),
-                                   sb.from('story_languages').select('code,label,position').order('position').order('label')]);
-        SITE.questions = q[0].data || []; SITE.languages = q[1].data || [];
+        var q = await sb.from('story_languages').select('code,label,position').order('position').order('label');
+        SITE.languages = q.data || [];
       }
     } catch (e) { /* χωρίς πίνακα ρόλων: συμπεριφέρεται ως διευκολυντής */ }
   }
@@ -3673,13 +3628,13 @@
 
   // Κατάσταση ιστορίας για τον χρήστη: περιμένει τον έλεγχο του διευκολυντή, πρόχειρη (σχολιασμός) ή δημοσιευμένη
   function statusKeyOf(s) {
-    return s.status === 'published' ? 'statusPublished' : s.status === 'ready_for_workshop' ? 'statusReadyWs' : s.status === 'draft' ? 'statusFacDraft' : 'statusDraft';
+    return s.status === 'published' ? 'statusPublished' : s.status === 'community_validation' ? 'statusCommunity' : s.status === 'draft' ? 'statusFacDraft' : 'statusDraft';
   }
   function storyFromRow(r) {
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
       id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', license: r.license || null,
-      consentId: r.consent_id || null, consentCode: (r.consents && (r.consents.code || [r.consents.session_date, r.consents.place, r.consents.initials].filter(Boolean).join(' · '))) || null,
+      consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null,
       lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
@@ -3704,7 +3659,7 @@
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
       var colsV = colsW.replace('what,place_name)', 'what,place_name,who,when_kind,when_date)');            // several names, exact/approximate when
-      var r = await sb.from('stories').select(colsV + ',status,consent_id,consents(code,session_date,place,initials),license').order('created_at');
+      var r = await sb.from('stories').select(colsV + ',status,consent_id,consents(code),license').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code),license').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');   // βάση χωρίς άδεια ιστορίας
       if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
@@ -3726,8 +3681,8 @@
     catch (e) { return null; }
   }
   window.WM = {
-    // story: { title, question_id, language, sensitive }; consent: { id, label }. The story starts as a draft (the database checks
-    // the consent, the site and the question), gets its fragments, and then goes to "ready for the workshop".
+    // story: { title, theme, language, sensitive }; consent: { id, label }. The story starts as a draft (the database checks
+    // the consent and the site), gets its fragments, and then waits for the community to validate it.
     publish: async function (story, pos, files, onProgress, consent) {
       if (!sb || !currentUser) throw new Error(t('loginToAdd'));
       if (!consent || !consent.id) throw new Error(t('consentNeedAll'));
@@ -3746,17 +3701,16 @@
           rows.push({ story_id: sid, kind: f.kind, path: path, position: i, title: inf.title || null, who: who.length ? who : null,
             place_name: inf.place || null, lat: inf.lat == null ? null : inf.lat, lon: inf.lon == null ? null : inf.lon,
             when_kind: wk || null, when_date: wk === 'exact' ? inf.whenDate : null, period: wk === 'approx' ? inf.period : null,
-            who_src: inf.whoSrc || 'stated', where_src: inf.whereSrc || 'stated', when_src: inf.whenSrc || 'stated',
             recorded_at: inf.recorded || null, mime: type, original_name: String(f.name || '').slice(0, 255) || null, sha256: sum });
         }
         var ins = await sb.from('stories').insert({ id: sid, title: story.title, lat: pos.lat, lon: pos.lon, author_name: userName(currentUser), consent_id: consent.id,
-          question_id: story.question_id, language: story.language, sensitive: story.sensitive, source: 'ar' });
+          theme: story.theme, language: story.language, sensitive: story.sensitive, source: 'ar' });
         if (ins.error) throw ins.error;
         stored = true;
         var mi = await sb.from('story_media').insert(rows).select('id,position');
         if (mi.error) throw mi.error;
         mi.data.forEach(function (d) { rows[d.position].id = d.id; });
-        var rd = await sb.from('stories').update({ status: 'ready_for_workshop' }).eq('id', sid).select('id');
+        var rd = await sb.from('stories').update({ status: 'community_validation' }).eq('id', sid).select('id');
         if (rd.error) throw rd.error;
       } catch (e) {
         if (stored) { try { await sb.from('stories').delete().eq('id', sid); } catch (_) {} }
@@ -3765,7 +3719,7 @@
         if (/schema cache|does not exist|could not find|violates check constraint "stories_status_check"/i.test(m)) throw new Error(t('licNeedSql'));
         throw e;
       }
-      return storyFromRow({ id: sid, user_id: uid, status: 'ready_for_workshop', consent_id: consent.id, title: story.title, lat: pos.lat, lon: pos.lon, radius: 40,
+      return storyFromRow({ id: sid, user_id: uid, status: 'community_validation', consent_id: consent.id, title: story.title, lat: pos.lat, lon: pos.lon, radius: 40,
         author_name: userName(currentUser), story_media: rows });
     }
   };
@@ -5024,8 +4978,8 @@
   }
 
   // ---- Consent record before each recording: the narrator signed (or gave orally) the printed form, which stays at the site.
-  // The facilitator picks the site's record (date · place · initials) or records a new one; the story takes its licence.
-  var activeConsent = null;                       // { id, label, license, anonymity } of the consent for the upload being prepared
+  // The facilitator picks the site's consent code or makes a new one (the agreements and the licence); the story takes its licence.
+  var activeConsent = null;                       // { id, label (the code), license } of the consent for the upload being prepared
   var LICENSES = { 'CC-BY-4.0': 'https://creativecommons.org/licenses/by/4.0/', 'CC-BY-SA-4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
     'CC-BY-NC-4.0': 'https://creativecommons.org/licenses/by-nc/4.0/', 'CC-BY-NC-SA-4.0': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     'CC-BY-NC-ND-4.0': 'https://creativecommons.org/licenses/by-nc-nd/4.0/', 'PROJECT-ONLY': null };
@@ -5038,7 +4992,8 @@
   function showConsentLicense(lic) {
     var p = $('uploadLicense'); p.innerHTML = ''; p.appendChild(document.createTextNode(t('licShown') + ' ')); p.appendChild(licLinkEl(lic));
   }
-  function consentLabelOf(c) { return [c.session_date, c.place, c.initials].filter(Boolean).join(' · '); }
+  function consentLabelOf(c) { return c.code; }
+  var AGREE = ['provide', 'cut', 'comment', 'share', 'voluntary'];
   var SITE_CONSENTS = [];
 
   async function copyText(text, btn) {
@@ -5068,22 +5023,19 @@
   }
   function consentPicked() {
     var c = SITE_CONSENTS.filter(function (x) { return x.id === $('consentPick').value; })[0];
-    activeConsent = c ? { id: c.id, label: consentLabelOf(c), license: c.license, anonymity: c.anonymity } : null;
-    $('consentInfo').textContent = c ? t('licShown') + ' ' + licName(c.license) + ' · ' + t('arAnonymity') + ': ' + t('an_' + c.anonymity) : '';
+    activeConsent = c ? { id: c.id, label: consentLabelOf(c), license: c.license } : null;
+    $('consentInfo').textContent = c ? t('licShown') + ' ' + licName(c.license) : '';
     $('consentContinue').disabled = !activeConsent;
   }
   function renderConsentNewForm() {
     fillSelect($('cnLicense'), [['', t('arChoose')]].concat(Object.keys(LICENSES).map(function (l) { return [l, licName(l)]; })), $('cnLicense').value || '');
-    fillSelect($('cnAnon'), [['', t('arChoose')]].concat(['full_name', 'first_name', 'anonymous'].map(function (a) { return [a, t('an_' + a)]; })), $('cnAnon').value || '');
     $('cnLicHelp').textContent = $('cnLicense').value ? t('lic_' + $('cnLicense').value) : '';
   }
   function consentResetForm() {
     activeConsent = null;
     $('consentNewForm').hidden = true; $('consentNewBtn').hidden = false; $('consentCreate').hidden = true;
-    ['cnInitials', 'cnPlace', 'cnName'].forEach(function (id) { $(id).value = ''; });
-    $('cnDate').value = isoDate(Date.now()); $('cnLicense').value = ''; $('cnAnon').value = ''; $('cnOral').checked = false; $('cnPlaceGps').checked = false;
-    document.querySelectorAll('input[name="cnReview"]').forEach(function (r) { r.checked = false; });
-    $('consentDup').hidden = true; $('consentDup').dataset.ok = ''; $('consentError').textContent = ''; $('cnNameWrap').hidden = false;
+    document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { x.checked = false; });
+    $('cnLicense').value = ''; $('consentError').textContent = ''; $('consentCodeBox').hidden = true;
     renderConsentNewForm();
   }
   onLangChange(function () { if ($('consentSheet').classList.contains('on')) { renderConsentPick($('consentPick').value); renderConsentNewForm(); } if (activeConsent) showConsentLicense(activeConsent.license); });
@@ -5095,7 +5047,7 @@
     SITE_CONSENTS = [];
     renderConsentPick('');
     try {
-      var r = await sb.from('consents').select('id,session_date,place,initials,license,anonymity,status').eq('site_id', currentSite).eq('status', 'active').order('session_date', { ascending: false }).limit(300);
+      var r = await sb.from('consents').select('id,code,license,status,created_at').eq('site_id', currentSite).eq('status', 'active').order('created_at', { ascending: false }).limit(300);
       if (r.error) throw r.error;
       SITE_CONSENTS = r.data || [];
       renderConsentPick('');
@@ -5103,54 +5055,34 @@
   }
   $('consentPick').onchange = consentPicked;
   $('consentNewBtn').onclick = function () {
-    $('consentNewForm').hidden = false; this.hidden = true; $('consentCreate').hidden = false; $('consentPick').value = ''; consentPicked(); $('cnInitials').focus();
+    $('consentNewForm').hidden = false; this.hidden = true; $('consentCreate').hidden = false; $('consentPick').value = ''; consentPicked(); document.querySelector('input[name="cnAgree"]').focus();
   };
-  $('cnLicense').onchange = function () { $('cnLicHelp').textContent = this.value ? t('lic_' + this.value) : ''; };
-  $('cnAnon').onchange = function () { $('cnNameWrap').hidden = this.value === 'anonymous'; if (this.value === 'anonymous') $('cnName').value = ''; };
-  ['cnInitials', 'cnDate'].forEach(function (id) { $(id).addEventListener('input', function () { $('consentDup').hidden = true; $('consentDup').dataset.ok = ''; }); });
-  function addDaysIso(iso, n) { var d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+  $('cnLicense').onchange = function () { $('cnLicHelp').textContent = this.value ? t('lic_' + this.value) : ''; $('consentError').textContent = ''; };
+  document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { x.addEventListener('change', function () { $('consentError').textContent = ''; }); });
   $('consentCreate').onclick = async function () {
     var err = $('consentError'); err.textContent = '';
-    var d = $('cnDate').value, ini = $('cnInitials').value.trim().toUpperCase(), place = $('cnPlace').value.trim(), lic = $('cnLicense').value, an = $('cnAnon').value;
-    var rv = document.querySelector('input[name="cnReview"]:checked');
-    var miss = !d ? 'cnDate' : !/^[^\s\d]{2,4}$/.test(ini) ? 'cnInitials' : !place ? 'cnPlace' : !lic ? 'cnLicense' : !an ? 'cnAnon' : !rv ? 'cnReview' : null;
-    if (miss) { err.textContent = t('arConsentMissing'); if (miss !== 'cnReview') $(miss).focus(); return; }
+    var acc = {}; document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { acc[x.value] = x.checked; });
+    var lic = $('cnLicense').value;
+    if (!AGREE.every(function (k) { return acc[k]; }) || !lic) { err.textContent = t('arConsentMissing'); (lic ? document.querySelector('input[name="cnAgree"]:not(:checked)') : $('cnLicense')).focus(); return; }
     var b = this; b.disabled = true;
     try {
-      // "Same narrator?": the same initials on this site within 30 days
-      if (!$('consentDup').dataset.ok) {
-        var r0 = await sb.from('consents').select('id,session_date,place,initials').eq('site_id', currentSite).ilike('initials', ini).gte('session_date', addDaysIso(d, -30)).lte('session_date', addDaysIso(d, 30));
-        if (!r0.error && r0.data && r0.data.length) {
-          var box = $('consentDup'); box.innerHTML = '';
-          var h = document.createElement('b'); h.textContent = t('arDupTitle'); box.appendChild(h);
-          var pp = document.createElement('p'); pp.textContent = t('arDupText', { i: ini }); box.appendChild(pp);
-          var ul = document.createElement('ul'); r0.data.forEach(function (c) { var li = document.createElement('li'); li.textContent = consentLabelOf(c); ul.appendChild(li); }); box.appendChild(ul);
-          var use = document.createElement('button'); use.type = 'button'; use.className = 'btn-secondary'; use.textContent = t('arDupUse');
-          use.onclick = function () { var c = r0.data[0]; if (!SITE_CONSENTS.some(function (x) { return x.id === c.id; })) return; consentResetForm(); renderConsentPick(c.id); };
-          box.appendChild(use);
-          box.dataset.ok = '1'; box.hidden = false; b.textContent = t('arDupSave'); use.focus();
-          return;
-        }
-      }
-      var row = { user_id: currentUser.id, session_date: d, place: place, initials: ini, license: lic, anonymity: an, narrator_review: rv.value === 'yes', oral_consent: $('cnOral').checked };
-      if ($('cnPlaceGps').checked && me) { row.place_lat = me.lat; row.place_lon = me.lon; }
-      var r = await sb.from('consents').insert(row).select('id,session_date,place,initials,license,anonymity,status').single();
+      // the database makes the code (WM-XXXX-XXXX) that is written on the printed form
+      var r = await sb.from('consents').insert({ user_id: currentUser.id, license: lic, accepted: acc, statement_version: 'v3', lang: LANG }).select('id,code,license,status,created_at').single();
       if (r.error) throw r.error;
-      var nm = $('cnName').value.trim();
-      if (nm && an !== 'anonymous') await sb.from('consent_narrators').insert({ consent_id: r.data.id, narrator_name: nm.slice(0, 200) });
       SITE_CONSENTS.unshift(r.data);
       consentResetForm(); renderConsentPick(r.data.id);
-      announce(t('arConsentSaved')); $('consentContinue').focus();
+      $('cnCode').textContent = r.data.code; $('consentCodeBox').hidden = false;
+      announce(t('arConsentSaved')); $('cnCopy').focus();
     } catch (e) {
       var m = (e && e.message) || String(e);
       err.textContent = /schema cache|row-level security|does not exist/i.test(m) ? t('licNeedSql') : t('consentError', { e: m });
-    } finally { b.disabled = false; if ($('consentDup').hidden) b.textContent = t('arConsentSave'); }
+    } finally { b.disabled = false; }
   };
+  $('cnCopy').onclick = function () { copyText($('cnCode').textContent, this); };
   $('consentCancel').onclick = function () { activeConsent = null; closeDialog('consentSheet'); setAR(true); };
   escHandlers.consentSheet = function () { $('consentCancel').click(); };
-  // the story's own fields: one of the site's 5 questions, the language or dialect, sensitive material
+  // the story's own fields: why (the theme, typed by the facilitator), the language or dialect, sensitive material
   function renderStoryFields() {
-    fillSelect($('storyQuestion'), [['', t('arChoose')]].concat(SITE.questions.map(function (q) { return [q.id, q.position + '. ' + q.text]; })), $('storyQuestion').value || '');
     fillSelect($('storyLanguage'), [['', t('arChoose')]].concat(SITE.languages.map(function (l) { return [l.code, l.label]; })), $('storyLanguage').value || '');
   }
   onLangChange(function () { if ($('uploadSheet').classList.contains('on')) renderStoryFields(); });
@@ -5498,8 +5430,7 @@
   function isoDate(ms) { var d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function defaultInfo(file) {
     var lm = file && file.lastModified ? file.lastModified : Date.now();
-    return { title: '', about: '', what: '', place: '', recorded: isoDate(lm), period: '', whenKind: '', whenDate: '', lat: null, lon: null,
-             whoSrc: 'stated', whereSrc: 'stated', whenSrc: 'stated' };   // πού: όπου έγινε, όχι όπου γίνεται η καταγραφή
+    return { title: '', about: '', what: '', place: '', recorded: isoDate(lm), period: '', whenKind: '', whenDate: '', lat: null, lon: null };   // πού: όπου έγινε, όχι όπου γίνεται η καταγραφή
   }
   function infoOf(f) { if (!f.info) f.info = defaultInfo(f.originalFile); return f.info; }
   function infoSummary(f) {
@@ -5576,16 +5507,10 @@
     $('miTitleIn').value = info.title; $('miAboutIn').value = info.about; $('miPlaceIn').value = info.place || '';
     $('miDateIn').value = info.recorded; $('miPeriodIn').value = info.whenKind === 'approx' ? info.period : ''; $('miWhenDate').value = info.whenDate || '';
     document.querySelectorAll('input[name="miWhenKind"]').forEach(function (r) { r.checked = r.value === (info.whenKind || ''); });
-    renderSrcSelects(info); miWhenVis();
+    miWhenVis();
     miLoc = { lat: info.lat, lon: info.lon }; miShowLoc();
     $('miLocGps').disabled = !me;
     openDialog('mediaInfoSheet', $('miTitleIn'));
-  }
-  // stated by the narrator / inferred by the facilitator, for who, where and when
-  function renderSrcSelects(info) {
-    [['miWhoSrc', 'whoSrc'], ['miWhereSrc', 'whereSrc'], ['miWhenSrc', 'whenSrc']].forEach(function (x) {
-      fillSelect($(x[0]), [['stated', t('arSrcStated')], ['inferred', t('arSrcInferred')]], (info && info[x[1]]) || $(x[0]).value || 'stated');
-    });
   }
   function miWhenKind() { var r = document.querySelector('input[name="miWhenKind"]:checked'); return r ? r.value : ''; }
   function miWhenVis() { var k = miWhenKind(); $('miWhenDate').hidden = k !== 'exact'; $('miPeriodIn').hidden = k !== 'approx'; }
@@ -5605,11 +5530,11 @@
     if (wk === 'approx' && !$('miPeriodIn').value.trim()) wk = '';
     f.info = { title: $('miTitleIn').value.trim(), about: $('miAboutIn').value.trim(), what: '', place: $('miPlaceIn').value.trim(),
       recorded: $('miDateIn').value, whenKind: wk, whenDate: wk === 'exact' ? $('miWhenDate').value : '', period: wk === 'approx' ? $('miPeriodIn').value.trim() : '',
-      lat: miLoc.lat, lon: miLoc.lon, whoSrc: $('miWhoSrc').value, whereSrc: $('miWhereSrc').value, whenSrc: $('miWhenSrc').value };
+      lat: miLoc.lat, lon: miLoc.lon };
     updateMediaListUI();
     closeMediaInfo();
   };
-  onLangChange(function () { if ($('mediaInfoSheet').classList.contains('on')) { miShowLoc(); renderSrcSelects(null); var f = processedFiles[miIndex]; if (f) $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f); } });
+  onLangChange(function () { if ($('mediaInfoSheet').classList.contains('on')) { miShowLoc(); var f = processedFiles[miIndex]; if (f) $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f); } });
 
   // Επιλογή τοποθεσίας από χάρτη (Leaflet)
   var pickMap = null, pickMarker = null, pickPoint = null;
@@ -5718,9 +5643,9 @@
       return;
     }
     var sens = document.querySelector('input[name="storySens"]:checked');
-    if (!$('storyQuestion').value || !$('storyLanguage').value || !sens) {
+    if (!$('storyTheme').value.trim() || !$('storyLanguage').value || !sens) {
       $('storyFieldsError').textContent = t('arStoryFieldsNeeded');
-      (!$('storyQuestion').value ? $('storyQuestion') : !$('storyLanguage').value ? $('storyLanguage') : document.querySelector('input[name="storySens"]')).focus();
+      (!$('storyTheme').value.trim() ? $('storyTheme') : !$('storyLanguage').value ? $('storyLanguage') : document.querySelector('input[name="storySens"]')).focus();
       return;
     }
     if (!processedFiles.length) {
@@ -5899,7 +5824,7 @@
   escHandlers.previewSheet = function () { $('backToUploadBtn').click(); };
 
   function resetStoryFields() {
-    $('storyQuestion').value = ''; $('storyLanguage').value = ''; $('storyFieldsError').textContent = '';
+    $('storyTheme').value = ''; $('storyLanguage').value = ''; $('storyFieldsError').textContent = '';
     document.querySelectorAll('input[name="storySens"]').forEach(function (r) { r.checked = false; });
   }
   function finishStoryFlow() {
@@ -5925,7 +5850,7 @@
     try {
       if (!activeConsent) { $('publishError').textContent = t('consentNeedAll'); return; }
       var sens = document.querySelector('input[name="storySens"]:checked');
-      var story = await WM.publish({ title: $('storyTitle').value.trim(), question_id: $('storyQuestion').value, language: $('storyLanguage').value, sensitive: !!sens && sens.value === 'yes' },
+      var story = await WM.publish({ title: $('storyTitle').value.trim(), theme: $('storyTheme').value.trim(), language: $('storyLanguage').value, sensitive: !!sens && sens.value === 'yes' },
         { lat: pos.lat, lon: pos.lon }, processedFiles, function (i, n) { btn.textContent = t('publishing', { i: i, n: n }); }, activeConsent);
       addStoryRuntime(story);
       announce(t('published'));

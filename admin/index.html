@@ -48,9 +48,14 @@
   th { text-align: left; color: var(--muted); font-size: 13px; border-bottom: 2px solid var(--line); padding: 6px 8px; white-space: nowrap; }
   td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical-align: middle; }
   td input.inp, td select.inp { width: 100%; }
-  .qrow { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 8px; align-items: center; margin-bottom: 8px; }
-  .qrow b { color: var(--petrol); text-align: right; }
-  .qrow input { width: 100%; }
+  .who { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .who .site { border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--mist); }
+  .who .site.none { border-style: dashed; }
+  .who h3 { margin: 0 0 6px; color: var(--petrol); font-size: 18px; font-style: italic; }
+  .who h4 { margin: 8px 0 2px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .who ul { margin: 0; padding-left: 18px; }
+  .who li { overflow-wrap: anywhere; }
+  .who .n { color: var(--muted); font-size: 13px; }
   pre.json { margin: 0; font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 160px; overflow: auto; background: var(--mist); border-radius: 8px; padding: 6px 8px; }
   details summary { cursor: pointer; color: var(--petrol); font-weight: 600; }
   .chip { display: inline-block; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 1px 8px; background: var(--sky-soft); color: var(--petrol); }
@@ -65,8 +70,8 @@
   <span id="userName"></span>
   <button id="logout" type="button" hidden data-i="logout"></button>
   <nav id="nav" hidden aria-label="Sections">
-    <a href="#sites" data-i="navSites"></a><a href="#questions" data-i="navQuestions"></a><a href="#languages" data-i="navLanguages"></a>
-    <a href="#accounts" data-i="navAccounts"></a><a href="#audit" data-i="navAudit"></a>
+    <a href="#who" data-i="navOverview"></a><a href="#accounts" data-i="navAccounts"></a><a href="#sites" data-i="navSites"></a>
+    <a href="#languages" data-i="navLanguages"></a><a href="#audit" data-i="navAudit"></a>
   </nav>
 </header>
 <main>
@@ -82,6 +87,18 @@
   <section id="vNoAdmin" class="card" hidden><h2 data-i="noAdmin"></h2><p data-i="noAdminText"></p></section>
 
   <div id="vApp" hidden>
+    <section class="card" id="who">
+      <h2 data-i="overviewTitle"></h2>
+      <p class="lead" data-i="overviewLead"></p>
+      <div id="whoList" class="who"></div>
+    </section>
+
+    <section class="card" id="accounts">
+      <h2 data-i="accountsTitle"></h2>
+      <p class="lead" data-i="accountsLead"></p>
+      <div class="tbl-wrap"><table id="accTable"><thead><tr><th data-i="colEmail"></th><th data-i="colRole"></th><th data-i="site"></th><th data-i="colValidator"></th><th data-i="colAdmin"></th><th data-i="colLast"></th><th></th></tr></thead><tbody></tbody></table></div>
+    </section>
+
     <section class="card" id="sites">
       <h2 data-i="sitesTitle"></h2>
       <p class="lead" data-i="sitesLead"></p>
@@ -90,14 +107,6 @@
         <label for="newSite" data-i="newSite"></label><input id="newSite" class="inp" type="text" maxlength="120" autocomplete="off" style="flex:1 1 220px">
         <button type="submit" class="btn" data-i="add"></button>
       </form>
-    </section>
-
-    <section class="card" id="questions">
-      <h2 data-i="questionsTitle"></h2>
-      <p class="lead" data-i="questionsLead"></p>
-      <div class="field" style="max-width:420px"><label for="qSite" data-i="site"></label><select id="qSite" class="inp"></select></div>
-      <div id="qList"></div>
-      <div class="row"><button type="button" class="btn" id="qSave" data-i="saveQuestions"></button><span id="qErr" class="err" role="alert"></span></div>
     </section>
 
     <section class="card" id="languages">
@@ -110,12 +119,6 @@
         <button type="submit" class="btn" data-i="add"></button>
       </form>
       <p id="lErr" class="err" role="alert"></p>
-    </section>
-
-    <section class="card" id="accounts">
-      <h2 data-i="accountsTitle"></h2>
-      <p class="lead" data-i="accountsLead"></p>
-      <div class="tbl-wrap"><table id="accTable"><thead><tr><th data-i="colEmail"></th><th data-i="colRole"></th><th data-i="site"></th><th data-i="colValidator"></th><th data-i="colAdmin"></th><th data-i="colLast"></th><th></th></tr></thead><tbody></tbody></table></div>
     </section>
 
     <section class="card" id="audit">
@@ -137,24 +140,80 @@
   var $ = function (id) { return document.getElementById(id); };
   var I18N = {
     en: {
-      title: 'Walking Memory · Admin', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password', loginFail: 'Login failed: {e}',
-      noAdmin: 'Admins only', noAdminText: 'This page is for admins. Ask an admin to give your account admin rights.',
-      navSites: 'Sites', navQuestions: 'Questions', navLanguages: 'Languages', navAccounts: 'Accounts', navAudit: 'Audit log',
-      sitesTitle: 'Pilot sites', sitesLead: 'Every account belongs to one site. A facilitator sees and acts only on the consents, stories and workshops of their site.',
-      colName: 'Name', colPeople: 'Accounts', newSite: 'New site', add: 'Add', rename: 'Rename', del: 'Delete', save: 'Save', renameQ: 'New name for the site:', delSiteQ: 'Delete the site “{s}”?',
-      questionsTitle: 'The 5 questions of a site', questionsLead: 'The interview has 5 fixed questions; each story answers one of them. Facilitators choose it when they create a story.', site: 'Site',
-      saveQuestions: 'Save the questions', questionsSaved: 'Questions saved.', noSites: 'Add a site first.',
-      languagesTitle: 'Languages and dialects', languagesLead: 'Offered when a facilitator creates a story. The code is short and lower-case (e.g. el, el-lesvos).', colCode: 'Code', colLabel: 'Label', colOrder: 'Order', badCode: 'The code: 2–40 lower-case letters, digits or “-”.', needLabel: 'Write the label.',
-      accountsTitle: 'Accounts', accountsLead: 'Create an account in Supabase (Authentication → Users → Add user), then give it a role and a site here. A facilitator needs a site; annotators without a site see every site.',
-      colEmail: 'Account', colRole: 'Role', colValidator: 'Validator', colAdmin: 'Admin', colLast: 'Last sign-in', role_facilitator: 'Facilitator', role_annotator: 'Annotator', noSite: '— no site —', saved: 'Saved.', needSiteFac: 'A facilitator needs a site.',
-      auditTitle: 'Audit log', auditLead: 'Every write: who, when, what, the previous value and the change. The latest 200 entries.', refresh: 'Show', allEntities: 'Everything', allActions: 'All actions',
-      a_insert: 'added', a_update: 'changed', a_delete: 'deleted', colWhen: 'When', colWho: 'Who', colWhat: 'What', colChanges: 'Change', previous: 'previous value', inWorkshop: 'in a workshop', system: 'system / SQL editor',
-      loadErr: 'Could not load: {e}', saveErr: 'Not saved: {e}', needSql: 'This page needs a database update: run supabase/roles.sql.'
+      "title": "Walking Memory · Admin",
+      "logout": "Log out",
+      "login": "Log in",
+      "email": "E-mail",
+      "password": "Password",
+      "loginFail": "Login failed: {e}",
+      "noAdmin": "Admins only",
+      "noAdminText": "This page is for admins. Ask an admin to give your account admin rights.",
+      "navSites": "Sites",
+      "navLanguages": "Languages",
+      "navAccounts": "Accounts",
+      "navAudit": "Audit log",
+      "sitesTitle": "Pilot sites",
+      "sitesLead": "Every account belongs to one site. A facilitator sees and acts only on the consents and stories of their site.",
+      "colName": "Name",
+      "colPeople": "Accounts",
+      "newSite": "New site",
+      "add": "Add",
+      "rename": "Rename",
+      "del": "Delete",
+      "save": "Save",
+      "renameQ": "New name for the site:",
+      "delSiteQ": "Delete the site “{s}”?",
+      "site": "Site",
+      "noSites": "Add a pilot site first.",
+      "languagesTitle": "Languages and dialects",
+      "languagesLead": "Offered when a facilitator creates a story. The code is short and lower-case (e.g. el, el-lesvos).",
+      "colCode": "Code",
+      "colLabel": "Label",
+      "colOrder": "Order",
+      "badCode": "The code: 2–40 lower-case letters, digits or “-”.",
+      "needLabel": "Write the label.",
+      "accountsTitle": "Accounts",
+      "accountsLead": "Create an account in Supabase (Authentication → Users → Add user), then give it a role and a site here. A facilitator needs a site; annotators without a site see every site.",
+      "colEmail": "Account",
+      "colRole": "Role",
+      "colValidator": "Validator",
+      "colAdmin": "Admin",
+      "colLast": "Last sign-in",
+      "role_facilitator": "Facilitator",
+      "role_annotator": "Annotator",
+      "noSite": "— no site —",
+      "saved": "Saved.",
+      "needSiteFac": "A facilitator needs a site.",
+      "auditTitle": "Audit log",
+      "auditLead": "Every write: who, when, what, the previous value and the change. The latest 200 entries.",
+      "refresh": "Show",
+      "allEntities": "Everything",
+      "allActions": "All actions",
+      "a_insert": "added",
+      "a_update": "changed",
+      "a_delete": "deleted",
+      "colWhen": "When",
+      "colWho": "Who",
+      "colWhat": "What",
+      "colChanges": "Change",
+      "previous": "previous value",
+      "system": "system / SQL editor",
+      "loadErr": "Could not load: {e}",
+      "saveErr": "Not saved: {e}",
+      "needSql": "This page needs a database update: run supabase/roles.sql.",
+      "navOverview": "Who works where",
+      "overviewTitle": "Who works on which pilot site",
+      "overviewLead": "A facilitator sees and uploads only to their pilot site. Change an account’s site or role under Accounts; create accounts in Supabase first.",
+      "facilitatorsLabel": "Facilitators",
+      "annotatorsLabel": "Annotators",
+      "noSiteGroup": "Without a pilot site (a facilitator cannot upload yet)",
+      "storiesN": "{n} stories",
+      "story1": "1 story"
     }
   };
-  I18N.el = {"title": "Walking Memory · Διαχείριση", "logout": "Αποσύνδεση", "login": "Σύνδεση", "email": "E-mail", "password": "Κωδικός", "loginFail": "Η σύνδεση απέτυχε: {e}", "noAdmin": "Μόνο για διαχειριστές", "noAdminText": "Η σελίδα είναι για διαχειριστές. Ζήτησε από έναν διαχειριστή να δώσει στον λογαριασμό σου δικαιώματα διαχειριστή.", "navSites": "Περιοχές", "navQuestions": "Ερωτήσεις", "navLanguages": "Γλώσσες", "navAccounts": "Λογαριασμοί", "navAudit": "Αρχείο ενεργειών", "sitesTitle": "Πιλοτικές περιοχές", "sitesLead": "Κάθε λογαριασμός ανήκει σε μία περιοχή. Ο διευκολυντής βλέπει και χειρίζεται μόνο τις συναινέσεις, τις ιστορίες και τα εργαστήρια της περιοχής του.", "colName": "Όνομα", "colPeople": "Λογαριασμοί", "newSite": "Νέα περιοχή", "add": "Προσθήκη", "rename": "Μετονομασία", "del": "Διαγραφή", "save": "Αποθήκευση", "renameQ": "Νέο όνομα για την περιοχή:", "delSiteQ": "Διαγραφή της περιοχής «{s}»;", "questionsTitle": "Οι 5 ερωτήσεις μιας περιοχής", "questionsLead": "Η συνέντευξη έχει 5 σταθερές ερωτήσεις· κάθε ιστορία απαντά σε μία από αυτές. Οι διευκολυντές τη διαλέγουν όταν δημιουργούν μια ιστορία.", "site": "Περιοχή", "saveQuestions": "Αποθήκευση ερωτήσεων", "questionsSaved": "Οι ερωτήσεις αποθηκεύτηκαν.", "noSites": "Πρόσθεσε πρώτα μια περιοχή.", "languagesTitle": "Γλώσσες και διάλεκτοι", "languagesLead": "Εμφανίζονται όταν ένας διευκολυντής δημιουργεί μια ιστορία. Ο κωδικός είναι σύντομος και με μικρά (π.χ. el, el-lesvos).", "colCode": "Κωδικός", "colLabel": "Όνομα", "colOrder": "Σειρά", "badCode": "Ο κωδικός: 2–40 μικρά λατινικά γράμματα, ψηφία ή «-».", "needLabel": "Γράψε το όνομα.", "accountsTitle": "Λογαριασμοί", "accountsLead": "Δημιούργησε τον λογαριασμό στο Supabase (Authentication → Users → Add user) και μετά δώσ’ του ρόλο και περιοχή εδώ. Ο διευκολυντής χρειάζεται περιοχή· οι σχολιαστές χωρίς περιοχή βλέπουν όλες τις περιοχές.", "colEmail": "Λογαριασμός", "colRole": "Ρόλος", "colValidator": "Ελεγκτής", "colAdmin": "Διαχειριστής", "colLast": "Τελευταία σύνδεση", "role_facilitator": "Διευκολυντής", "role_annotator": "Σχολιαστής", "noSite": "— χωρίς περιοχή —", "saved": "Αποθηκεύτηκε.", "needSiteFac": "Ο διευκολυντής χρειάζεται περιοχή.", "auditTitle": "Αρχείο ενεργειών", "auditLead": "Κάθε εγγραφή: ποιος, πότε, τι, η προηγούμενη τιμή και η αλλαγή. Οι τελευταίες 200.", "refresh": "Εμφάνιση", "allEntities": "Όλα", "allActions": "Όλες οι ενέργειες", "a_insert": "προσθήκη", "a_update": "αλλαγή", "a_delete": "διαγραφή", "colWhen": "Πότε", "colWho": "Ποιος", "colWhat": "Τι", "colChanges": "Αλλαγή", "previous": "προηγούμενη τιμή", "inWorkshop": "σε εργαστήριο", "system": "σύστημα / SQL editor", "loadErr": "Δεν φορτώθηκε: {e}", "saveErr": "Δεν αποθηκεύτηκε: {e}", "needSql": "Η σελίδα χρειάζεται ενημέρωση της βάσης: τρέξε το supabase/roles.sql."};
-  I18N.fr = {"title": "Walking Memory · Administration", "logout": "Déconnexion", "login": "Connexion", "email": "E-mail", "password": "Mot de passe", "loginFail": "Échec de connexion : {e}", "noAdmin": "Réservé aux administrateurs", "noAdminText": "Cette page est réservée aux administrateurs. Demandez à un administrateur de donner les droits d’administration à votre compte.", "navSites": "Sites", "navQuestions": "Questions", "navLanguages": "Langues", "navAccounts": "Comptes", "navAudit": "Journal", "sitesTitle": "Sites pilotes", "sitesLead": "Chaque compte appartient à un site. Un facilitateur ne voit et ne gère que les consentements, histoires et ateliers de son site.", "colName": "Nom", "colPeople": "Comptes", "newSite": "Nouveau site", "add": "Ajouter", "rename": "Renommer", "del": "Supprimer", "save": "Enregistrer", "renameQ": "Nouveau nom du site :", "delSiteQ": "Supprimer le site « {s} » ?", "questionsTitle": "Les 5 questions d’un site", "questionsLead": "L’entretien a 5 questions fixes ; chaque histoire répond à l’une d’elles. Les facilitateurs la choisissent en créant une histoire.", "site": "Site", "saveQuestions": "Enregistrer les questions", "questionsSaved": "Questions enregistrées.", "noSites": "Ajoutez d’abord un site.", "languagesTitle": "Langues et dialectes", "languagesLead": "Proposés quand un facilitateur crée une histoire. Le code est court et en minuscules (p. ex. el, el-lesvos).", "colCode": "Code", "colLabel": "Libellé", "colOrder": "Ordre", "badCode": "Le code : 2 à 40 lettres minuscules, chiffres ou « - ».", "needLabel": "Écrivez le libellé.", "accountsTitle": "Comptes", "accountsLead": "Créez le compte dans Supabase (Authentication → Users → Add user), puis donnez-lui ici un rôle et un site. Un facilitateur a besoin d’un site ; les annotateurs sans site voient tous les sites.", "colEmail": "Compte", "colRole": "Rôle", "colValidator": "Validateur", "colAdmin": "Admin", "colLast": "Dernière connexion", "role_facilitator": "Facilitateur", "role_annotator": "Annotateur", "noSite": "— aucun site —", "saved": "Enregistré.", "needSiteFac": "Un facilitateur a besoin d’un site.", "auditTitle": "Journal", "auditLead": "Chaque écriture : qui, quand, quoi, la valeur précédente et la modification. Les 200 dernières.", "refresh": "Afficher", "allEntities": "Tout", "allActions": "Toutes les actions", "a_insert": "ajouté", "a_update": "modifié", "a_delete": "supprimé", "colWhen": "Quand", "colWho": "Qui", "colWhat": "Quoi", "colChanges": "Modification", "previous": "valeur précédente", "inWorkshop": "dans un atelier", "system": "système / éditeur SQL", "loadErr": "Chargement impossible : {e}", "saveErr": "Non enregistré : {e}", "needSql": "Cette page nécessite une mise à jour de la base : exécutez supabase/roles.sql."};
-  I18N.it = {"title": "Walking Memory · Amministrazione", "logout": "Esci", "login": "Accedi", "email": "E-mail", "password": "Password", "loginFail": "Accesso non riuscito: {e}", "noAdmin": "Solo amministratori", "noAdminText": "Questa pagina è per gli amministratori. Chiedi a un amministratore di dare al tuo account i diritti di amministrazione.", "navSites": "Siti", "navQuestions": "Domande", "navLanguages": "Lingue", "navAccounts": "Account", "navAudit": "Registro", "sitesTitle": "Siti pilota", "sitesLead": "Ogni account appartiene a un sito. Un facilitatore vede e gestisce solo i consensi, le storie e i laboratori del suo sito.", "colName": "Nome", "colPeople": "Account", "newSite": "Nuovo sito", "add": "Aggiungi", "rename": "Rinomina", "del": "Elimina", "save": "Salva", "renameQ": "Nuovo nome del sito:", "delSiteQ": "Eliminare il sito «{s}»?", "questionsTitle": "Le 5 domande di un sito", "questionsLead": "L’intervista ha 5 domande fisse; ogni storia risponde a una di esse. I facilitatori la scelgono quando creano una storia.", "site": "Sito", "saveQuestions": "Salva le domande", "questionsSaved": "Domande salvate.", "noSites": "Aggiungi prima un sito.", "languagesTitle": "Lingue e dialetti", "languagesLead": "Proposti quando un facilitatore crea una storia. Il codice è breve e minuscolo (es. el, el-lesvos).", "colCode": "Codice", "colLabel": "Etichetta", "colOrder": "Ordine", "badCode": "Il codice: da 2 a 40 lettere minuscole, cifre o «-».", "needLabel": "Scrivi l’etichetta.", "accountsTitle": "Account", "accountsLead": "Crea l’account in Supabase (Authentication → Users → Add user), poi assegnagli qui un ruolo e un sito. Un facilitatore ha bisogno di un sito; gli annotatori senza sito vedono tutti i siti.", "colEmail": "Account", "colRole": "Ruolo", "colValidator": "Validatore", "colAdmin": "Admin", "colLast": "Ultimo accesso", "role_facilitator": "Facilitatore", "role_annotator": "Annotatore", "noSite": "— nessun sito —", "saved": "Salvato.", "needSiteFac": "Un facilitatore ha bisogno di un sito.", "auditTitle": "Registro", "auditLead": "Ogni scrittura: chi, quando, cosa, il valore precedente e la modifica. Le ultime 200.", "refresh": "Mostra", "allEntities": "Tutto", "allActions": "Tutte le azioni", "a_insert": "aggiunto", "a_update": "modificato", "a_delete": "eliminato", "colWhen": "Quando", "colWho": "Chi", "colWhat": "Cosa", "colChanges": "Modifica", "previous": "valore precedente", "inWorkshop": "in un laboratorio", "system": "sistema / editor SQL", "loadErr": "Impossibile caricare: {e}", "saveErr": "Non salvato: {e}", "needSql": "Questa pagina richiede un aggiornamento del database: esegui supabase/roles.sql."};
+  I18N.el = {"title": "Walking Memory · Διαχείριση", "logout": "Αποσύνδεση", "login": "Σύνδεση", "email": "E-mail", "password": "Κωδικός", "loginFail": "Η σύνδεση απέτυχε: {e}", "noAdmin": "Μόνο για διαχειριστές", "noAdminText": "Η σελίδα είναι για διαχειριστές. Ζήτησε από έναν διαχειριστή να δώσει στον λογαριασμό σου δικαιώματα διαχειριστή.", "navSites": "Περιοχές", "navLanguages": "Γλώσσες", "navAccounts": "Λογαριασμοί", "navAudit": "Αρχείο ενεργειών", "sitesTitle": "Πιλοτικές περιοχές", "sitesLead": "Κάθε λογαριασμός ανήκει σε μία περιοχή. Ο διευκολυντής βλέπει και χειρίζεται μόνο τις συναινέσεις και τις ιστορίες της περιοχής του.", "colName": "Όνομα", "colPeople": "Λογαριασμοί", "newSite": "Νέα περιοχή", "add": "Προσθήκη", "rename": "Μετονομασία", "del": "Διαγραφή", "save": "Αποθήκευση", "renameQ": "Νέο όνομα για την περιοχή:", "delSiteQ": "Διαγραφή της περιοχής «{s}»;", "site": "Περιοχή", "noSites": "Πρόσθεσε πρώτα μια πιλοτική περιοχή.", "languagesTitle": "Γλώσσες και διάλεκτοι", "languagesLead": "Εμφανίζονται όταν ένας διευκολυντής δημιουργεί μια ιστορία. Ο κωδικός είναι σύντομος και με μικρά (π.χ. el, el-lesvos).", "colCode": "Κωδικός", "colLabel": "Όνομα", "colOrder": "Σειρά", "badCode": "Ο κωδικός: 2–40 μικρά λατινικά γράμματα, ψηφία ή «-».", "needLabel": "Γράψε το όνομα.", "accountsTitle": "Λογαριασμοί", "accountsLead": "Δημιούργησε τον λογαριασμό στο Supabase (Authentication → Users → Add user) και μετά δώσ’ του ρόλο και περιοχή εδώ. Ο διευκολυντής χρειάζεται περιοχή· οι σχολιαστές χωρίς περιοχή βλέπουν όλες τις περιοχές.", "colEmail": "Λογαριασμός", "colRole": "Ρόλος", "colValidator": "Ελεγκτής", "colAdmin": "Διαχειριστής", "colLast": "Τελευταία σύνδεση", "role_facilitator": "Διευκολυντής", "role_annotator": "Σχολιαστής", "noSite": "— χωρίς περιοχή —", "saved": "Αποθηκεύτηκε.", "needSiteFac": "Ο διευκολυντής χρειάζεται περιοχή.", "auditTitle": "Αρχείο ενεργειών", "auditLead": "Κάθε εγγραφή: ποιος, πότε, τι, η προηγούμενη τιμή και η αλλαγή. Οι τελευταίες 200.", "refresh": "Εμφάνιση", "allEntities": "Όλα", "allActions": "Όλες οι ενέργειες", "a_insert": "προσθήκη", "a_update": "αλλαγή", "a_delete": "διαγραφή", "colWhen": "Πότε", "colWho": "Ποιος", "colWhat": "Τι", "colChanges": "Αλλαγή", "previous": "προηγούμενη τιμή", "system": "σύστημα / SQL editor", "loadErr": "Δεν φορτώθηκε: {e}", "saveErr": "Δεν αποθηκεύτηκε: {e}", "needSql": "Η σελίδα χρειάζεται ενημέρωση της βάσης: τρέξε το supabase/roles.sql.", "navOverview": "Ποιος δουλεύει πού", "overviewTitle": "Ποιος δουλεύει σε ποια πιλοτική περιοχή", "overviewLead": "Ο διευκολυντής βλέπει και ανεβάζει μόνο στην πιλοτική του περιοχή. Αλλάζεις περιοχή ή ρόλο ενός λογαριασμού στους Λογαριασμούς· τους λογαριασμούς τους δημιουργείς πρώτα στο Supabase.", "facilitatorsLabel": "Διευκολυντές", "annotatorsLabel": "Σχολιαστές", "noSiteGroup": "Χωρίς πιλοτική περιοχή (ο διευκολυντής δεν μπορεί ακόμα να ανεβάσει)", "storiesN": "{n} ιστορίες", "story1": "1 ιστορία"};
+  I18N.fr = {"title": "Walking Memory · Administration", "logout": "Déconnexion", "login": "Connexion", "email": "E-mail", "password": "Mot de passe", "loginFail": "Échec de connexion : {e}", "noAdmin": "Réservé aux administrateurs", "noAdminText": "Cette page est réservée aux administrateurs. Demandez à un administrateur de donner les droits d’administration à votre compte.", "navSites": "Sites", "navLanguages": "Langues", "navAccounts": "Comptes", "navAudit": "Journal", "sitesTitle": "Sites pilotes", "sitesLead": "Chaque compte appartient à un site. Un facilitateur ne voit et ne gère que les consentements et histoires de son site.", "colName": "Nom", "colPeople": "Comptes", "newSite": "Nouveau site", "add": "Ajouter", "rename": "Renommer", "del": "Supprimer", "save": "Enregistrer", "renameQ": "Nouveau nom du site :", "delSiteQ": "Supprimer le site « {s} » ?", "site": "Site", "noSites": "Ajoutez d’abord un site pilote.", "languagesTitle": "Langues et dialectes", "languagesLead": "Proposés quand un facilitateur crée une histoire. Le code est court et en minuscules (p. ex. el, el-lesvos).", "colCode": "Code", "colLabel": "Libellé", "colOrder": "Ordre", "badCode": "Le code : 2 à 40 lettres minuscules, chiffres ou « - ».", "needLabel": "Écrivez le libellé.", "accountsTitle": "Comptes", "accountsLead": "Créez le compte dans Supabase (Authentication → Users → Add user), puis donnez-lui ici un rôle et un site. Un facilitateur a besoin d’un site ; les annotateurs sans site voient tous les sites.", "colEmail": "Compte", "colRole": "Rôle", "colValidator": "Validateur", "colAdmin": "Admin", "colLast": "Dernière connexion", "role_facilitator": "Facilitateur", "role_annotator": "Annotateur", "noSite": "— aucun site —", "saved": "Enregistré.", "needSiteFac": "Un facilitateur a besoin d’un site.", "auditTitle": "Journal", "auditLead": "Chaque écriture : qui, quand, quoi, la valeur précédente et la modification. Les 200 dernières.", "refresh": "Afficher", "allEntities": "Tout", "allActions": "Toutes les actions", "a_insert": "ajouté", "a_update": "modifié", "a_delete": "supprimé", "colWhen": "Quand", "colWho": "Qui", "colWhat": "Quoi", "colChanges": "Modification", "previous": "valeur précédente", "system": "système / éditeur SQL", "loadErr": "Chargement impossible : {e}", "saveErr": "Non enregistré : {e}", "needSql": "Cette page nécessite une mise à jour de la base : exécutez supabase/roles.sql.", "navOverview": "Qui travaille où", "overviewTitle": "Qui travaille sur quel site pilote", "overviewLead": "Un facilitateur ne voit et n’envoie que vers son site pilote. Changez le site ou le rôle d’un compte sous Comptes ; créez d’abord les comptes dans Supabase.", "facilitatorsLabel": "Facilitateurs", "annotatorsLabel": "Annotateurs", "noSiteGroup": "Sans site pilote (un facilitateur ne peut pas encore envoyer)", "storiesN": "{n} histoires", "story1": "1 histoire"};
+  I18N.it = {"title": "Walking Memory · Amministrazione", "logout": "Esci", "login": "Accedi", "email": "E-mail", "password": "Password", "loginFail": "Accesso non riuscito: {e}", "noAdmin": "Solo amministratori", "noAdminText": "Questa pagina è per gli amministratori. Chiedi a un amministratore di dare al tuo account i diritti di amministrazione.", "navSites": "Siti", "navLanguages": "Lingue", "navAccounts": "Account", "navAudit": "Registro", "sitesTitle": "Siti pilota", "sitesLead": "Ogni account appartiene a un sito. Un facilitatore vede e gestisce solo i consensi e le storie del suo sito.", "colName": "Nome", "colPeople": "Account", "newSite": "Nuovo sito", "add": "Aggiungi", "rename": "Rinomina", "del": "Elimina", "save": "Salva", "renameQ": "Nuovo nome del sito:", "delSiteQ": "Eliminare il sito «{s}»?", "site": "Sito", "noSites": "Aggiungi prima un sito pilota.", "languagesTitle": "Lingue e dialetti", "languagesLead": "Proposti quando un facilitatore crea una storia. Il codice è breve e minuscolo (es. el, el-lesvos).", "colCode": "Codice", "colLabel": "Etichetta", "colOrder": "Ordine", "badCode": "Il codice: da 2 a 40 lettere minuscole, cifre o «-».", "needLabel": "Scrivi l’etichetta.", "accountsTitle": "Account", "accountsLead": "Crea l’account in Supabase (Authentication → Users → Add user), poi assegnagli qui un ruolo e un sito. Un facilitatore ha bisogno di un sito; gli annotatori senza sito vedono tutti i siti.", "colEmail": "Account", "colRole": "Ruolo", "colValidator": "Validatore", "colAdmin": "Admin", "colLast": "Ultimo accesso", "role_facilitator": "Facilitatore", "role_annotator": "Annotatore", "noSite": "— nessun sito —", "saved": "Salvato.", "needSiteFac": "Un facilitatore ha bisogno di un sito.", "auditTitle": "Registro", "auditLead": "Ogni scrittura: chi, quando, cosa, il valore precedente e la modifica. Le ultime 200.", "refresh": "Mostra", "allEntities": "Tutto", "allActions": "Tutte le azioni", "a_insert": "aggiunto", "a_update": "modificato", "a_delete": "eliminato", "colWhen": "Quando", "colWho": "Chi", "colWhat": "Cosa", "colChanges": "Modifica", "previous": "valore precedente", "system": "sistema / editor SQL", "loadErr": "Impossibile caricare: {e}", "saveErr": "Non salvato: {e}", "needSql": "Questa pagina richiede un aggiornamento del database: esegui supabase/roles.sql.", "navOverview": "Chi lavora dove", "overviewTitle": "Chi lavora su quale sito pilota", "overviewLead": "Un facilitatore vede e carica solo nel suo sito pilota. Cambia sito o ruolo di un account in Account; crea prima gli account in Supabase.", "facilitatorsLabel": "Facilitatori", "annotatorsLabel": "Annotatori", "noSiteGroup": "Senza sito pilota (un facilitatore non può ancora caricare)", "storiesN": "{n} storie", "story1": "1 storia"};
   var LANG = (function () {
     try { var v = localStorage.getItem('dm_lang'); if (I18N[v]) return v; } catch (e) {}
     var p = navigator.languages || [navigator.language || 'el'];
@@ -192,11 +251,13 @@
     await loadAll();
   }
   async function loadAll() {
-    var r = await Promise.all([sb.from('sites').select('id,name').order('name'), sb.rpc('admin_users'), sb.from('story_languages').select('code,label,position').order('position').order('label')]);
+    var r = await Promise.all([sb.from('sites').select('id,name').order('name'), sb.rpc('admin_users'), sb.from('story_languages').select('code,label,position').order('position').order('label'),
+                               sb.from('stories').select('user_id,status').neq('status', 'withdrawn')]);
+    A.counts = {}; (r[3].data || []).forEach(function (x) { A.counts[x.user_id] = (A.counts[x.user_id] || 0) + 1; });
     if (r[0].error) { say(t('loadErr', { e: niceErr(r[0].error) }), true); return; }
     A.sites = r[0].data || []; A.users = r[1].data || []; A.langs = r[2].data || [];
     if (r[1].error) say(t('loadErr', { e: niceErr(r[1].error) }), true);
-    renderSites(); renderQuestionSites(); renderLangs(); renderUsers(); renderAuditFilters(); loadAudit();
+    renderWho(); renderSites(); renderLangs(); renderUsers(); renderAuditFilters(); loadAudit();
   }
 
   // ---- sites ----
@@ -206,8 +267,8 @@
       var tr = el('tr'); tr.appendChild(el('td', null, s.name));
       tr.appendChild(el('td', null, String(A.users.filter(function (u) { return u.site_id === s.id; }).length)));
       var td = el('td'), rn = el('button', 'btn-sec btn-sm', t('rename')), dl = el('button', 'btn-danger btn-sm', t('del')); rn.type = dl.type = 'button';
-      rn.onclick = async function () { var n = window.prompt(t('renameQ'), s.name); if (!n || !n.trim()) return; var r = await sb.from('sites').update({ name: n.trim().slice(0, 120) }).eq('id', s.id).select('id'); if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; } s.name = n.trim(); renderSites(); renderQuestionSites(); renderUsers(); say(t('saved')); };
-      dl.onclick = async function () { if (!window.confirm(t('delSiteQ', { s: s.name }))) return; var r = await sb.from('sites').delete().eq('id', s.id).select('id'); if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; } A.sites = A.sites.filter(function (x) { return x.id !== s.id; }); renderSites(); renderQuestionSites(); renderUsers(); };
+      rn.onclick = async function () { var n = window.prompt(t('renameQ'), s.name); if (!n || !n.trim()) return; var r = await sb.from('sites').update({ name: n.trim().slice(0, 120) }).eq('id', s.id).select('id'); if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; } s.name = n.trim(); renderSites(); renderWho(); renderUsers(); say(t('saved')); };
+      dl.onclick = async function () { if (!window.confirm(t('delSiteQ', { s: s.name }))) return; var r = await sb.from('sites').delete().eq('id', s.id).select('id'); if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; } A.sites = A.sites.filter(function (x) { return x.id !== s.id; }); renderSites(); renderWho(); renderUsers(); };
       td.appendChild(rn); td.appendChild(document.createTextNode(' ')); td.appendChild(dl); tr.appendChild(td); tb.appendChild(tr);
     });
   }
@@ -216,42 +277,33 @@
     var r = await sb.from('sites').insert({ name: n.slice(0, 120) }).select('id,name').single();
     if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; }
     A.sites.push(r.data); A.sites.sort(function (a, b) { return a.name.localeCompare(b.name); }); $('newSite').value = '';
-    renderSites(); renderQuestionSites(r.data.id); renderUsers(); say(t('saved'));
+    renderSites(); renderWho(); renderUsers(); say(t('saved'));
   });
 
-  // ---- the 5 questions of a site ----
-  var Q = { rows: [] };
-  function renderQuestionSites(pick) {
-    var s = $('qSite'), cur = pick || s.value; s.innerHTML = '';
-    A.sites.forEach(function (x) { s.appendChild(opt(x.id, x.name)); });
-    if (A.sites.some(function (x) { return x.id === cur; })) s.value = cur;
-    $('qSave').disabled = !A.sites.length; $('qErr').textContent = A.sites.length ? '' : t('noSites');
-    loadQuestions();
-  }
-  async function loadQuestions() {
-    var sid = $('qSite').value, box = $('qList'); box.innerHTML = '';
-    if (!sid) return;
-    var r = await sb.from('site_questions').select('id,position,text').eq('site_id', sid).order('position');
-    Q.rows = r.data || [];
-    for (var i = 1; i <= 5; i++) {
-      var q = Q.rows.filter(function (x) { return x.position === i; })[0];
-      var row = el('div', 'qrow'), inp = el('input', 'inp'); inp.type = 'text'; inp.maxLength = 500; inp.id = 'q' + i; inp.value = q ? q.text : ''; inp.setAttribute('aria-label', t('navQuestions') + ' ' + i);
-      row.appendChild(el('b', null, i + '.')); row.appendChild(inp); box.appendChild(row);
+  // ---- who works on which pilot site (and how many stories each has uploaded) ----
+  function renderWho() {
+    var box = $('whoList'); box.innerHTML = '';
+    function person(u) {
+      var li = el('li'); li.appendChild(document.createTextNode(u.email + (u.name && u.name !== u.email.split('@')[0] ? ' (' + u.name + ')' : '')));
+      if (u.role === 'facilitator') li.appendChild(el('span', 'n', ' · ' + ((A.counts[u.user_id] || 0) === 1 ? t('story1') : t('storiesN', { n: A.counts[u.user_id] || 0 }))));
+      if (u.is_validator) li.appendChild(el('span', 'n', ' · ' + t('colValidator')));
+      return li;
     }
-  }
-  $('qSite').onchange = loadQuestions;
-  $('qSave').onclick = async function () {
-    var sid = $('qSite').value, b = this; b.disabled = true; $('qErr').textContent = '';
-    for (var i = 1; i <= 5; i++) {
-      var txt = $('q' + i).value.trim(), q = Q.rows.filter(function (x) { return x.position === i; })[0], r = null;
-      if (txt && q && q.text !== txt) r = await sb.from('site_questions').update({ text: txt }).eq('id', q.id).select('id');
-      else if (txt && !q) r = await sb.from('site_questions').insert({ site_id: sid, position: i, text: txt }).select('id');
-      else if (!txt && q) r = await sb.from('site_questions').delete().eq('id', q.id).select('id');
-      if (r && r.error) { $('qErr').textContent = t('saveErr', { e: niceErr(r.error) }); break; }
+    function group(title, users, cls) {
+      var c = el('div', 'site' + (cls ? ' ' + cls : '')); c.appendChild(el('h3', null, title));
+      [['facilitator', 'facilitatorsLabel'], ['annotator', 'annotatorsLabel']].forEach(function (r) {
+        var list = users.filter(function (u) { return u.role === r[0]; });
+        c.appendChild(el('h4', null, t(r[1])));
+        if (!list.length) { c.appendChild(el('p', 'note', '—')).style.margin = '0'; return; }
+        var ul = el('ul'); list.forEach(function (u) { ul.appendChild(person(u)); }); c.appendChild(ul);
+      });
+      box.appendChild(c);
     }
-    b.disabled = false; if (!$('qErr').textContent) say(t('questionsSaved'));
-    loadQuestions();
-  };
+    A.sites.forEach(function (s) { group(s.name, A.users.filter(function (u) { return u.site_id === s.id; })); });
+    var none = A.users.filter(function (u) { return !u.site_id; });
+    if (none.length) group(t('noSiteGroup'), none, 'none');
+    if (!A.sites.length && !none.length) box.appendChild(el('p', 'note', t('noSites')));
+  }
 
   // ---- languages ----
   function renderLangs() {
@@ -296,20 +348,20 @@
         var r = await sb.rpc('admin_set_user', { p_user: u.user_id, p_role: role.value, p_site: site.value || null, p_validator: val.checked, p_admin: adm.checked });
         sv.disabled = false;
         if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; }
-        u.role = role.value; u.site_id = site.value || null; u.is_validator = val.checked; u.is_admin = adm.checked; renderSites(); say(t('saved'));
+        u.role = role.value; u.site_id = site.value || null; u.is_validator = val.checked; u.is_admin = adm.checked; renderSites(); renderWho(); say(t('saved'));
       };
       td5.appendChild(sv); tr.appendChild(td5); tb.appendChild(tr);
     });
   }
 
   // ---- audit log ----
-  var ENTITIES = ['consents', 'consent_narrators', 'stories', 'story_media', 'fragment_notes', 'workshops', 'workshop_stories', 'sites', 'site_questions', 'story_languages', 'profiles'];
+  var ENTITIES = ['consents', 'stories', 'story_media', 'fragment_notes', 'sites', 'story_languages', 'profiles'];
   function renderAuditFilters() {
     var e = $('aEntity'), cur = e.value; e.innerHTML = ''; e.appendChild(opt('', t('allEntities'))); ENTITIES.forEach(function (x) { e.appendChild(opt(x, x)); }); e.value = cur;
     var a = $('aAction'), ca = a.value; a.innerHTML = ''; a.appendChild(opt('', t('allActions'))); ['insert', 'update', 'delete'].forEach(function (x) { a.appendChild(opt(x, t('a_' + x))); }); a.value = ca;
   }
   async function loadAudit() {
-    var q = sb.from('audit_log').select('id,at,user_id,entity,entity_id,action,previous,changes,workshop_id').order('at', { ascending: false }).limit(200);
+    var q = sb.from('audit_log').select('id,at,user_id,entity,entity_id,action,previous,changes').order('at', { ascending: false }).limit(200);
     if ($('aEntity').value) q = q.eq('entity', $('aEntity').value);
     if ($('aAction').value) q = q.eq('action', $('aAction').value);
     var r = await q, tb = $('auditTable').tBodies[0]; tb.innerHTML = '';
@@ -318,7 +370,7 @@
     (r.data || []).forEach(function (x) {
       var tr = el('tr'); tr.appendChild(el('td', null, when(x.at)));
       tr.appendChild(el('td', null, x.user_id ? (names[x.user_id] || x.user_id) : t('system')));
-      var td = el('td'); td.appendChild(el('span', 'chip', x.entity)); td.appendChild(document.createTextNode(' ' + t('a_' + x.action) + ' · ' + (x.entity_id || '').slice(0, 13) + (x.workshop_id ? ' · ' + t('inWorkshop') : ''))); tr.appendChild(td);
+      var td = el('td'); td.appendChild(el('span', 'chip', x.entity)); td.appendChild(document.createTextNode(' ' + t('a_' + x.action) + ' · ' + (x.entity_id || '').slice(0, 13))); tr.appendChild(td);
       var tc = el('td');
       if (x.changes) tc.appendChild(el('pre', 'json', JSON.stringify(x.changes, null, 1)));
       if (x.previous) { var d = el('details'), s = el('summary', null, t('previous')); d.appendChild(s); d.appendChild(el('pre', 'json', JSON.stringify(x.previous, null, 1))); tc.appendChild(d); }
@@ -327,7 +379,7 @@
   }
   $('aLoad').onclick = loadAudit;
 
-  $('lang').onchange = function () { LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang(); if (!$('vApp').hidden) { renderSites(); renderLangs(); renderUsers(); renderAuditFilters(); loadAudit(); loadQuestions(); } };
+  $('lang').onchange = function () { LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang(); if (!$('vApp').hidden) { renderWho(); renderSites(); renderLangs(); renderUsers(); renderAuditFilters(); loadAudit(); } };
   applyLang();
   if (!sb) { $('vLogin').hidden = false; $('loginErr').textContent = 'Supabase is not configured (config.js).'; return; }
   sb.auth.onAuthStateChange(function (_e, session) { setTimeout(function () { onSession(session); }, 0); });
