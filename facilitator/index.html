@@ -69,7 +69,7 @@
   .st-draft { background: var(--grey-soft); color: #44535A; }
   .st-community_validation { background: var(--amber-soft); color: var(--amber-text); }
   .st-ready_for_annotation, .st-submitted, .st-returned { background: var(--sky-soft); color: var(--petrol); }
-  .st-published, .st-active { background: var(--ok-soft); color: var(--ok); }
+  .st-published, .st-validated { background: var(--ok-soft); color: var(--ok); }
   .st-withdrawn { background: #FDECEA; color: var(--danger); }
   .tbl-wrap { overflow-x: auto; }
   table.tbl { width: 100%; border-collapse: collapse; font-size: 15px; }
@@ -92,8 +92,6 @@
   .pk-results .none { color: var(--muted); font-size: 14px; }
   .pk-map { height: 280px; border-radius: 12px; border: 1px solid var(--line); }
   .pk-foot { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 14px; color: var(--muted); }
-
-  /* who chips */
 
   /* story editor */
   .story-head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-bottom: 10px; }
@@ -122,14 +120,21 @@
   .frag-body audio { background: none; }
   .fixed { font-size: 14px; color: var(--muted); background: var(--mist); border-radius: 8px; padding: 6px 10px; }
   .meta-line { font-size: 12px; color: var(--muted); margin: 0 0 10px; overflow-wrap: anywhere; }
-  .src { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
-  .src select { padding: 3px 8px; border: 1px solid var(--line-strong); border-radius: 8px; background: #fff; font-size: 13px; }
   .checklist { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 4px; }
   .checklist li::before { content: "✗ "; color: var(--danger); font-weight: 700; }
   .checklist li.done::before { content: "✓ "; color: var(--ok); }
-  .same { font-size: 14px; }
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; margin: 0 0 16px; padding: 12px 14px; background: var(--mist); border-radius: 12px; font-size: 15px; }
+  .facts dt { font-weight: 700; color: var(--petrol); }
+  .facts dd { margin: 0; overflow-wrap: anywhere; }
+  @media (max-width: 700px) { .facts { grid-template-columns: minmax(0, 1fr); gap: 2px; } .facts dd { margin-bottom: 8px; } }
+  .stlist { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 10px; }
+  .stcard { display: grid; gap: 4px; border: 2px solid var(--line); border-radius: 14px; padding: 10px 14px; background: #fff; min-width: 0; }
+  .stcard a { font-weight: 700; font-size: 17px; overflow-wrap: anywhere; }
+  .stcard > span { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+  .stcard > span.err { color: var(--danger); font-size: 13px; }
+  .stcard.gone { opacity: .6; }
 
-  /* consents */
+  /* testimony: consent agreements, licence, code */
   .agree { display: grid; gap: 8px; }
   .agree label { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; font-weight: 400; color: var(--ink); }
   .agree label input { margin-top: 4px; width: 18px; height: 18px; }
@@ -144,7 +149,7 @@
   .cccard b { color: var(--petrol); font-size: 17px; overflow-wrap: anywhere; }
   .cccard span { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
 
-  /* community validation: one story, large (projector or big screen) */
+  /* community validation: one testimony, large (projector or big screen) */
   body.present { background: #10262F; }
   body.present header.top, body.present main { display: none; }
   #vQuilt { min-height: 100vh; color: #fff; background: #10262F; padding: 16px 22px 40px; font-size: 18px; }
@@ -162,11 +167,14 @@
   .patch .pmedia img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in; }
   .patch .pmedia svg { width: 100%; height: 70%; }
   .patch .play { position: absolute; bottom: 10px; right: 10px; background: var(--petrol); color: #fff; font-weight: 700; min-height: 46px; padding: 6px 18px; font-size: 17px; }
-  .patch h3 { margin: 10px 0 6px; color: var(--petrol-deep); font-size: 21px; font-style: italic; overflow-wrap: anywhere; }
-  .patch dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 10px; margin: 0 0 10px; font-size: 17px; align-items: start; }
-  .patch dt { font-weight: 700; color: var(--petrol); }
-  .patch dd { margin: 0; overflow-wrap: anywhere; }
-  .patch dd.none { color: #8A979D; font-style: italic; }
+  .patch .pcap { margin: 10px 0 4px; font-size: 18px; overflow-wrap: anywhere; }
+  .patch .pcap.none { color: #6B7B82; font-style: italic; font-size: 16px; }
+  .qstory .row h2 { margin: 0; }
+  .qfacts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 4px 0 14px; font-size: 18px; color: #fff; }
+  .qfacts dt { font-weight: 700; color: #9FD3E6; }
+  .qfacts dd { margin: 0; overflow-wrap: anywhere; }
+  .qfacts dd.none { color: #8FA6AE; font-style: italic; }
+  .qhead h2 { font-size: 30px; }
   .patch .pfoot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   .patch .pfoot button { flex: 1 1 auto; min-height: 44px; }
   .qfoot { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; margin-top: 22px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.2); }
@@ -178,13 +186,10 @@
   dialog::backdrop { background: rgba(14,63,80,.55); }
   dialog h2 { margin-bottom: 12px; }
   .dlg-foot { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; margin-top: 14px; }
-  .dup { background: var(--amber-soft); border: 2px solid var(--amber); border-radius: 12px; padding: 10px 14px; margin-top: 10px; }
-  .dup ul { margin: 6px 0; padding-left: 20px; }
   .lightbox img { width: 100%; max-height: 80vh; object-fit: contain; display: block; background: #000; border-radius: 10px; }
   #status { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--petrol-deep); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 60; max-width: calc(100% - 24px); }
   #status.bad { background: var(--danger); }
 </style>
-</head>
 <body>
 <header class="top">
   <h1><span data-i="appTitle"></span> <small id="siteName"></small></h1>
@@ -192,8 +197,7 @@
   <span id="userName"></span>
   <button id="logout" type="button" hidden data-i="logout"></button>
   <nav id="nav" hidden aria-label="Sections">
-    <a href="#consents" data-v="consents" data-i="navConsents"></a>
-    <a href="#stories" data-v="stories" data-i="navStories"></a>
+    <a href="#testimonies" data-v="testimonies" data-i="navTestimonies"></a>
     <a href="#community" data-v="community" data-i="navCommunity"></a>
   </nav>
 </header>
@@ -215,66 +219,90 @@
     <p id="adminLink" hidden><a href="../admin/" data-i="toAdmin"></a></p>
   </section>
 
-  <!-- consents: a code written on the printed form, the licence, what the narrator agreed to -->
-  <section id="vConsents" hidden>
+  <!-- testimonies: one interview, one narrator, one printed consent form -->
+  <section id="vTestimonies" hidden>
     <div class="card">
-      <div class="row between"><h2 data-i="consentsTitle"></h2><button type="button" class="btn" id="newConsentBtn" data-i="newConsent"></button></div>
-      <p class="lead" data-i="consentsLead"></p>
+      <div class="row between"><h2 data-i="testimoniesTitle"></h2><a class="btn" href="#testimony/new" data-i="newTestimony" style="text-decoration:none;display:inline-flex;align-items:center"></a></div>
+      <p class="lead" data-i="testimoniesLead"></p>
       <div class="filters">
-        <div class="field"><label for="cSearch" data-i="searchCode"></label><input id="cSearch" type="search" autocomplete="off"></div>
+        <div class="field"><label for="tSearch" data-i="searchTestimony"></label><input id="tSearch" type="search" autocomplete="off"></div>
+        <div class="field"><label for="tFilter" data-i="colStatus"></label><select id="tFilter"></select></div>
       </div>
-      <p id="cInfo" class="note" role="status"></p>
-      <div class="tbl-wrap"><table class="tbl" id="cTable">
-        <thead><tr><th data-i="colCode"></th><th data-i="colLicence"></th><th data-i="colCreated"></th><th data-i="colStories"></th><th data-i="colStatus"></th></tr></thead>
+      <p id="tInfo" class="note" role="status"></p>
+      <div class="tbl-wrap"><table class="tbl" id="tTable">
+        <thead><tr><th data-i="colCode"></th><th data-i="colNarrator"></th><th data-i="colInterview"></th><th data-i="fLanguage"></th><th data-i="fLicence"></th><th data-i="colStories"></th><th data-i="colStatus"></th></tr></thead>
         <tbody></tbody>
       </table></div>
     </div>
   </section>
 
-  <!-- stories -->
-  <section id="vStories" hidden>
+  <!-- one testimony: its details, its stories, community validation -->
+  <section id="vTestimony" hidden>
+    <p><a href="#testimonies" data-i="backToTestimonies"></a></p>
     <div class="card">
-      <div class="row between"><h2 data-i="storiesTitle"></h2><a class="btn" href="#story/new" data-i="newStory" style="text-decoration:none;display:inline-flex;align-items:center"></a></div>
+      <div class="story-head"><h2 id="tmH"></h2><span id="tmStatus" class="chip"></span></div>
+      <div id="tmLock" class="lockbar" hidden></div>
+      <dl id="tmFixed" class="facts" hidden></dl>
+      <form id="tmForm" novalidate>
+        <div id="tmNewOnly">
+          <p class="note" data-i="newTestimonyLead"></p>
+          <div class="field"><label class="req" for="tmCode" data-i="fCode"></label><input id="tmCode" type="text" class="code-in" maxlength="40" autocomplete="off" spellcheck="false" data-i-ph="codePh"></div>
+          <fieldset><legend class="req" data-i="agreeLegend"></legend><div id="tmAgree" class="agree"></div></fieldset>
+          <fieldset><legend class="req" data-i="fLicence"></legend><div id="tmLic" class="agree"></div></fieldset>
+          <fieldset>
+            <legend class="req" data-i="fAnonymity"></legend>
+            <div class="choice"><label><input type="radio" name="tmAnon" value="yes"> <span data-i="anonYes"></span></label><label><input type="radio" name="tmAnon" value="no"> <span data-i="anonNo"></span></label></div>
+          </fieldset>
+        </div>
+        <div class="field"><label class="req" for="tmNarrator" data-i="fNarrator"></label><input id="tmNarrator" type="text" maxlength="200" autocomplete="off" aria-describedby="tmNarratorHint"><span id="tmNarratorHint" class="note" style="margin:0"></span></div>
+        <div class="grid2">
+          <div class="field"><label class="req" for="tmDate" data-i="fInterviewDate"></label><input id="tmDate" type="date"></div>
+          <div class="field"><label class="req" for="tmPlace" data-i="fInterviewPlace"></label><input id="tmPlace" type="text" maxlength="200" autocomplete="off" data-i-ph="interviewPlacePh"></div>
+        </div>
+        <div class="grid2"><div class="field"><label class="req" for="tmLanguage" data-i="fLanguage"></label><select id="tmLanguage"></select></div></div>
+        <p id="tmErr" class="err" role="alert"></p>
+        <div class="row"><button type="submit" class="btn" id="tmSave"></button><span id="tmSaved" class="okmsg" role="status"></span></div>
+      </form>
+    </div>
+    <div class="card" id="tmStoriesCard" hidden>
+      <div class="row between"><h2 id="tmStoriesH"></h2><a class="btn" id="tmNewStory" data-i="newStory" style="text-decoration:none;display:inline-flex;align-items:center"></a></div>
       <p class="lead" data-i="storiesLead"></p>
-      <div class="filters">
-        <div class="field"><label for="sSearch" data-i="searchTitle"></label><input id="sSearch" type="search" autocomplete="off"></div>
-        <div class="field"><label for="sFilter" data-i="colStatus"></label><select id="sFilter"></select></div>
+      <ol id="tmStories" class="stlist"></ol>
+      <h3 id="tmReadyH" data-i="readyTitle"></h3>
+      <ul id="tmChecklist" class="checklist"></ul>
+      <div class="row">
+        <button type="button" class="btn-ok" id="tmReadyBtn" data-i="readyBtn"></button>
+        <a class="btn" id="tmOpenCommunity" data-i="openWithCommunity" hidden style="text-decoration:none;display:inline-flex;align-items:center"></a>
+        <button type="button" class="btn-sec" id="tmBackDraft" data-i="backToDraft" hidden></button>
+        <span id="tmReadyErr" class="err" role="alert"></span>
       </div>
-      <p id="sInfo" class="note" role="status"></p>
-      <div class="tbl-wrap"><table class="tbl" id="sTable">
-        <thead><tr><th data-i="colTitle"></th><th data-i="colWhy"></th><th data-i="colConsent"></th><th data-i="colFragments"></th><th data-i="colSource"></th><th data-i="colStatus"></th></tr></thead>
-        <tbody></tbody>
-      </table></div>
+    </div>
+    <div class="card" id="tmEndCard" hidden>
+      <h3 data-i="withdrawTitle" style="margin-top:0"></h3>
+      <p class="note" data-i="withdrawTestimonyLead"></p>
+      <div class="row"><button type="button" class="btn-danger" id="tmWithdraw" data-i="withdrawTestimony"></button><button type="button" class="btn-sec" id="tmDelete" data-i="deleteTestimony" hidden></button></div>
     </div>
   </section>
 
-  <!-- one story: details + fragments -->
+  <!-- one story of a testimony: title, theme, who, where, when, and its fragments -->
   <section id="vStory" hidden>
-    <p><a href="#stories" data-i="backToStories"></a></p>
+    <p><a id="stBack" href="#testimonies" data-i="backToTestimony"></a></p>
     <div class="card">
       <div class="story-head"><h2 id="stTitleH"></h2><span id="stStatus" class="chip"></span><span id="stSource" class="chip"></span></div>
+      <p id="stOf" class="note"></p>
       <div id="stLock" class="lockbar" hidden></div>
       <form id="stForm" novalidate>
-        <div class="field">
-          <label for="stConsent" class="req" data-i="fConsent"></label>
-          <div class="row"><select id="stConsent" class="inp" style="flex:1 1 260px;width:auto"></select><button type="button" class="btn-sec" id="stNewConsent" data-i="newConsentShort"></button></div>
-          <span id="stConsentInfo" class="note" style="margin:0"></span>
-        </div>
         <div class="field"><label for="stTitle" class="req" data-i="fTitle"></label><input id="stTitle" type="text" maxlength="120" autocomplete="off"></div>
         <div class="field"><label for="stTheme" class="req" data-i="fTheme"></label><input id="stTheme" type="text" maxlength="500" autocomplete="off" data-i-ph="themePh" aria-describedby="stThemeHint"><span id="stThemeHint" class="note" data-i="themeHint" style="margin:0"></span></div>
-        <div class="grid2">
-          <div class="field"><label for="stLanguage" class="req" data-i="fLanguage"></label><select id="stLanguage"></select></div>
-        </div>
-        <fieldset>
-          <legend class="req" data-i="fSensitive"></legend>
-          <div class="choice"><label><input type="radio" name="stSens" value="no"> <span data-i="no"></span></label><label><input type="radio" name="stSens" value="yes"> <span data-i="yes"></span></label></div>
-        </fieldset>
+        <div class="field"><label for="stWho" data-i="fWho"></label><input id="stWho" type="text" maxlength="600" autocomplete="off" data-i-ph="whoPh"></div>
         <div class="field">
-          <span class="lbl req" id="stLocL" data-i="fLocation"></span>
-          <p class="note" data-i="locHint" style="margin:0"></p>
-          <div id="stPk" class="pk" role="group" aria-labelledby="stLocL"></div>
+          <label for="stPlace" data-i="fWhere"></label>
+          <input id="stPlace" type="text" maxlength="200" autocomplete="off" data-i-ph="wherePh">
+          <span class="lbl req" id="stPointL" data-i="fPoint"></span>
+          <p class="note" data-i="pointHint" style="margin:0"></p>
+          <div id="stPk" class="pk" role="group" aria-labelledby="stPointL"></div>
         </div>
-        <p id="stSame" class="same" hidden></p>
+        <div class="field"><label for="stWhen" data-i="fWhen"></label><input id="stWhen" type="text" maxlength="200" autocomplete="off" data-i-ph="whenPh"></div>
         <p id="stErr" class="err" role="alert"></p>
         <div class="row"><button type="submit" class="btn" id="stSave"></button><span id="stSaved" class="okmsg" role="status"></span></div>
       </form>
@@ -291,14 +319,9 @@
         <ul id="upQueue" class="queue-up" aria-live="polite"></ul>
       </div>
       <ol id="frags" class="frags"></ol>
-      <h3 data-i="readyTitle"></h3>
-      <ul id="checklist" class="checklist"></ul>
-      <div class="row">
-        <button type="button" class="btn-ok" id="readyBtn" data-i="readyBtn"></button>
-        <a class="btn" id="openCommunity" data-i="openWithCommunity" hidden style="text-decoration:none;display:inline-flex;align-items:center"></a>
-        <button type="button" class="btn-sec" id="backDraftBtn" data-i="backToDraft" hidden></button>
-        <span id="readyErr" class="err" role="alert"></span>
-      </div>
+      <h3 data-i="storyReadyTitle"></h3>
+      <ul id="stChecklist" class="checklist"></ul>
+      <p class="note" data-i="storyReadyHint"></p>
     </div>
     <div class="card" id="withdrawCard" hidden>
       <h3 data-i="withdrawTitle" style="margin-top:0"></h3>
@@ -307,7 +330,7 @@
     </div>
   </section>
 
-  <!-- community validation: the stories the community has not validated yet -->
+  <!-- community validation: the testimonies the community has not validated yet -->
   <section id="vCommunity" hidden>
     <div class="card">
       <h2 data-i="communityTitle"></h2>
@@ -318,59 +341,27 @@
   </section>
 </main>
 
-<!-- one story with the community (large, for a projector or a big screen) -->
-<section id="vQuilt" hidden aria-labelledby="qStoryTitle">
+<!-- one testimony with the community (large, for a projector or a big screen) -->
+<section id="vQuilt" hidden aria-labelledby="qTitleH">
   <div class="qbar">
-    <h1 id="qTitle" data-i="communityTitle"></h1>
+    <h1 data-i="communityTitle"></h1>
     <button type="button" id="qFull" class="ghost" data-i="fullscreen"></button>
-    <button type="button" id="qEditStory" class="ghost" data-i="correctStory"></button>
+    <button type="button" id="qEditT" class="ghost" data-i="correctTestimony"></button>
     <button type="button" id="qExit" data-i="exitPresent"></button>
   </div>
-  <div class="qstory">
-    <h2 id="qStoryTitle" tabindex="-1"></h2>
-    <p class="q" id="qQuestion"></p>
-    <p class="q" id="qMeta" style="font-size:15px"></p>
+  <div class="qstory qhead">
+    <h2 id="qTitleH" tabindex="-1"></h2>
+    <p class="q" id="qMeta"></p>
   </div>
-  <div id="quilt" class="quilt"></div>
+  <div id="qStories"></div>
   <div class="qfoot">
-    <p id="qFootNote" data-i="validateHint"></p>
+    <p id="qFootNote"></p>
     <button type="button" id="qValidate" class="btn-ok" data-i="validatedBtn"></button>
     <span id="qErr" class="err" role="alert"></span>
   </div>
 </section>
 
-<!-- new consent: the code printed on the form, what the narrator agreed to, the licence -->
-<dialog id="dlgConsent" aria-labelledby="dcTitle">
-  <h2 id="dcTitle" data-i="newConsentTitle"></h2>
-  <div id="dcForm">
-    <p class="note" data-i="newConsentLead"></p>
-    <div class="field"><label class="req" for="dcCodeIn" data-i="fCode"></label><input type="text" id="dcCodeIn" class="inp code-in" maxlength="40" autocomplete="off" spellcheck="false" data-i-ph="codePh"></div>
-    <fieldset><legend class="req" data-i="agreeLegend"></legend><div id="dcAgree" class="agree"></div></fieldset>
-    <fieldset><legend class="req" data-i="fLicence"></legend><div id="dcLic" class="agree"></div></fieldset>
-    <p id="dcErr" class="err" role="alert"></p>
-    <div class="dlg-foot"><button type="button" class="btn-sec" id="dcCancel" data-i="cancel"></button><button type="button" class="btn" id="dcSave" data-i="saveConsent"></button></div>
-  </div>
-</dialog>
-
-<!-- one consent -->
-<dialog id="dlgConsentView" aria-labelledby="cvTitle">
-  <h2 id="cvTitle"></h2>
-  <dl id="cvList" style="display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:0 0 12px"></dl>
-  <h3 data-i="consentStories"></h3>
-  <ul id="cvStories"></ul>
-  <p id="cvErr" class="err" role="alert"></p>
-  <div class="dlg-foot"><button type="button" class="btn-sec" id="cvCopy" data-i="copyCode"></button><button type="button" class="btn-danger" id="cvWithdraw" data-i="withdrawConsent"></button><button type="button" class="btn" id="cvClose" data-i="close"></button></div>
-</dialog>
-
-<!-- map for a fragment's "where" / a consent's place -->
-<dialog id="dlgMap" aria-labelledby="dmTitle">
-  <h2 id="dmTitle"></h2>
-  <p class="note" data-i="locHint"></p>
-  <div id="dmPk" class="pk"></div>
-  <div class="dlg-foot"><button type="button" class="btn-sec" id="dmCancel" data-i="cancel"></button><button type="button" class="btn" id="dmUse" data-i="useThis"></button></div>
-</dialog>
-
-<!-- community validation: correct a fragment or the story -->
+<!-- community validation: correct a story, a caption or the testimony's details -->
 <dialog id="dlgField" aria-labelledby="dfTitle">
   <h2 id="dfTitle"></h2>
   <div id="dfBody"></div>
@@ -400,7 +391,6 @@
   var I18N = {
     en: {
       "appTitle": "Walking Memory · Facilitator",
-      "fProvenance": "Provenance",
       "notEditable": "This story can no longer be changed here.",
       "logout": "Log out",
       "login": "Log in",
@@ -409,31 +399,16 @@
       "loginHint": "Sign in with the personal account an admin created for you.",
       "loginFail": "Login failed: {e}",
       "noSiteTitle": "Your account is not linked to a pilot site yet",
-      "noSiteText": "Ask an admin to link your account to your pilot site as a facilitator. Until then you cannot see or create consents or stories.",
+      "noSiteText": "Ask an admin to link your account to your pilot site as a facilitator. Until then you cannot see or create testimonies or stories.",
       "toAdmin": "Open the admin page →",
-      "navConsents": "Consents",
-      "navStories": "Stories",
-      "consentsTitle": "Consents",
-      "newConsent": "+ New consent",
-      "consentsLead": "One code for each consent, printed in advance on the consent form. The form stays at the pilot site with the date and the narrator’s details; the system keeps only the code, the licence and what the narrator agreed to.",
-      "colLicence": "Licence",
       "colStories": "Stories",
       "colStatus": "Status",
-      "colTitle": "Title",
-      "colConsent": "Consent",
-      "colFragments": "Fragments",
-      "colSource": "Source",
-      "nConsents": "{n} consent codes",
       "noneYet": "Nothing here yet.",
       "loading": "Loading…",
       "loadErr": "Could not load: {e}",
       "needSql": "This page needs a database update: the administrator needs to run supabase/roles.sql.",
-      "st_active": "Active",
-      "st_withdrawn": "Withdrawn",
-      "storiesTitle": "Stories",
       "newStory": "+ New story",
-      "storiesLead": "The stories of your site. A story needs a consent code; when it is ready it goes to the community for validation.",
-      "searchTitle": "Search title",
+      "storiesLead": "Each story answers one interview question (its theme), says who, where and when, and holds its fragments.",
       "f_all": "All",
       "s_draft": "Draft",
       "s_ready_for_annotation": "In annotation",
@@ -441,23 +416,12 @@
       "s_returned": "Returned to annotators",
       "s_published": "Published",
       "s_withdrawn": "Withdrawn",
-      "f_annot": "In annotation or validation",
-      "nStories": "{n} stories",
       "src_workshop_field": "Website",
       "src_ar": "AR app",
-      "backToStories": "← All stories",
       "newStoryH": "New story",
-      "fConsent": "Consent code",
-      "newConsentShort": "+ New consent",
-      "chooseConsent": "— choose the consent code —",
       "fTitle": "Title",
       "fLanguage": "Language / dialect",
-      "fSensitive": "Sensitive material",
-      "yes": "Yes",
-      "no": "No",
       "choose": "— choose —",
-      "fLocation": "Central location: a point or an area",
-      "locHint": "Point: click the map or drag the pin. Area: click the corners one by one. Search to jump to a place.",
       "modePoint": "Point",
       "modeArea": "Area",
       "searchPh": "Search for a place or address…",
@@ -475,15 +439,11 @@
       "saveStory": "Save story",
       "saved": "Saved.",
       "created": "Story created. Now add its fragments.",
-      "needConsent": "Choose a consent code.",
       "needTitle": "Write a title.",
       "needLanguage": "Choose the language or dialect.",
-      "needSens": "Say whether there is sensitive material.",
-      "needLoc": "Choose the central location on the map (a point, or an area with at least 3 corners).",
       "saveErr": "Not saved: {e}",
-      "sameNarr": "Same narrator / same session: ",
       "fragH": "Fragments ({n})",
-      "fragLead": "Add the redacted, already cut files (audio WAV/MP3/M4A, photos JPG/PNG/TIFF, video MP4). Their order is the order of the narrative: drag to reorder.",
+      "fragLead": "Add the redacted, already cut files (audio WAV/MP3/M4A, photos JPG/PNG/TIFF, video MP4); the type is detected from the file. Their order is the order of the narrative: drag to reorder. A photo or a video can have a caption.",
       "dropText": "Drag files here",
       "chooseFiles": "Choose files",
       "dropTypes": "Audio WAV, MP3, M4A · images JPG, PNG, TIFF · video MP4 · up to {mb} MB each.",
@@ -496,24 +456,15 @@
       "kind_audio": "Audio",
       "kind_image": "Photo",
       "kind_video": "Video",
-      "titleMissing": "Title needed",
-      "describe": "Describe",
       "close": "Close",
       "moveUp": "Move up",
       "moveDown": "Move down",
       "dragHint": "Drag to reorder",
-      "fFragTitle": "Title (= what)",
       "fWho": "Who",
       "whoPh": "e.g. Grandma Maria and her sister, the fishermen of the harbour",
       "fWhere": "Where",
       "wherePh": "Name of the place",
-      "mapPointArea": "Point or area on the map",
-      "mapSet": "Change on the map",
-      "mapNone": "No point or area",
       "fWhen": "When",
-      "provenance": "Own or family item, held by the narrator",
-      "fComment": "Comment",
-      "commentHint": "Only this site’s facilitators, annotators and validators see it. Never public.",
       "saveFrag": "Save fragment",
       "fragSaved": "Fragment saved.",
       "deleteFrag": "Delete",
@@ -523,14 +474,12 @@
       "checksumOk": "checksum stored ✓",
       "checksumServer": "server fingerprint ✓",
       "readyTitle": "Send to community validation",
-      "chkConsent": "A consent code is attached",
-      "chkAudio": "At least one audio fragment",
-      "chkTitles": "Every fragment has a title",
+      "chkAudio": "Every story has at least one audio fragment",
       "readyBtn": "Send to community validation",
       "backToDraft": "Back to draft",
-      "readyDone": "The story is with the community now. You can still correct it until the community has validated it.",
-      "lockStatus": "The community has validated this story ({s}); it can no longer be changed here.",
-      "readyNote": "With the community — you can still correct it until it is validated.",
+      "readyDone": "The testimony is with the community now. You can still correct it until the community has validated it.",
+      "lockStatus": "The community has validated this story’s testimony ({s}); it can no longer be changed here.",
+      "readyNote": "With the community — you can still correct it until the testimony is validated.",
       "withdrawTitle": "Withdraw",
       "withdrawStoryLead": "Withdrawing hides the story everywhere and cannot be undone. The action is logged.",
       "withdrawStory": "Withdraw this story…",
@@ -547,17 +496,10 @@
       "noteSaved": "Comment saved.",
       "noteLead": "Kept with the fragment for the annotators and validators; never public.",
       "noAnswer": "blank",
-      "newConsentTitle": "New consent",
-      "newConsentLead": "Type the code printed on the consent form, tick with the narrator what they agree to and choose the licence together.",
       "fLicence": "Licence",
       "cancel": "Cancel",
       "save": "Save",
-      "useThis": "Use this",
       "needLicence": "Choose the licence.",
-      "consentStories": "Stories with this consent",
-      "withdrawConsent": "Withdraw consent…",
-      "withdrawConsentQ": "Withdraw consent {c}? All its stories ({n}) will be withdrawn and hidden everywhere. This cannot be undone.",
-      "cvTitle": "Consent {c}",
       "leaveQ": "You have unsaved changes. Leave this page anyway?",
       "lic_CC-BY-4.0": "Anyone may share and reuse it, also commercially, as long as they credit the narrator.",
       "lic_CC-BY-SA-4.0": "Like CC BY, and anything made from it must be shared under the same licence.",
@@ -567,15 +509,13 @@
       "lic_PROJECT-ONLY": "No public reuse: only the Walking Memory project shows it.",
       "projectOnly": "Project use only",
       "navCommunity": "Community validation",
-      "searchCode": "Search a code",
       "colCode": "Code",
       "colCreated": "Created",
-      "colWhy": "Why (theme)",
       "s_community_validation": "With the community",
-      "fTheme": "Why (the theme)",
-      "themePh": "e.g. the village feasts, leaving home, the harbour at work",
-      "themeHint": "In your own words: what the story is about. It is the \"why\" of all its fragments.",
-      "needTheme": "Write the why (theme).",
+      "fTheme": "Theme (the interview question)",
+      "themePh": "e.g. What do you remember about the village feasts?",
+      "themeHint": "The question this story answers: it is the “why” of the story.",
+      "needTheme": "Write the theme (the interview question).",
       "agreeLegend": "The narrator agrees",
       "agree_provide": "to give their story (recordings, photos, videos) to the project;",
       "agree_cut": "that the story may be cut into pieces (fragments);",
@@ -588,32 +528,100 @@
       "agreeShort_share": "shared under the licence",
       "agreeShort_voluntary": "voluntary",
       "needAgree": "The narrator has to agree to every point.",
-      "copyCode": "Copy the code",
-      "copied": "Copied ✓",
       "openWithCommunity": "Open with the community",
       "communityTitle": "Community validation",
-      "communityLead": "The stories of your site that the community has not validated yet. Open one on a big screen, go through its fragments with the community, correct what they say, and mark it as validated: it then goes to annotation.",
-      "nWaiting": "{n} stories to validate",
-      "noneWaiting": "No story is waiting for the community.",
-      "correctStory": "✎ Title and why",
-      "correctFrag": "Correct fragment {n}",
+      "communityLead": "The testimonies of your site that the community has not validated yet. Open one on a big screen, go through its stories and fragments with the community, correct what they say, write down their comments, and mark it as validated: its stories then go to annotation.",
+      "nWaiting": "{n} testimonies to validate",
+      "noneWaiting": "No testimony is waiting for the community.",
+      "correctStory": "Correct “{t}”",
       "correct": "✎ Correct",
-      "validateHint": "When the community agrees with every fragment, mark the story as validated. It then goes to annotation and can no longer be changed here.",
+      "validateHint": "When the community agrees with all its stories, mark the testimony as validated. Its stories then go to annotation and can no longer be changed here.",
       "validatedBtn": "✓ Validated by the community",
-      "validateQ": "Has the community validated “{t}”? It then goes to annotation and can no longer be changed here.",
-      "validatedDone": "“{t}” validated by the community: it goes to annotation ✓",
+      "validateQ": "Has the community validated testimony {c} ({s})? Its stories then go to annotation and can no longer be changed here.",
+      "validatedDone": "Testimony {c} validated by the community: its stories go to annotation ✓",
       "whenPh": "e.g. 14/7/1965, summer 1965, ~1922, after the war",
       "fCode": "Consent code (printed on the form)",
       "codePh": "e.g. LES-0042",
-      "saveConsent": "Save consent",
       "needCode": "Type the code printed on the consent form (2 to 40 characters).",
       "codeExists": "The code {c} is already registered.",
-      "consentSaved": "Consent {c} saved: you can now choose it for a story."
+      "navTestimonies": "Testimonies",
+      "testimoniesTitle": "Testimonies",
+      "newTestimony": "+ New testimony",
+      "testimoniesLead": "One testimony for each interview: one narrator, one printed consent form. A testimony holds its stories, and a story holds its fragments. When all its stories are ready, the testimony goes to the community for validation.",
+      "searchTestimony": "Search code, narrator or place",
+      "colNarrator": "Narrator",
+      "colInterview": "Interview",
+      "nTestimonies": "{n} testimonies",
+      "backToTestimonies": "← All testimonies",
+      "newTestimonyH": "New testimony",
+      "newTestimonyLead": "Type the code printed on the consent form, tick with the narrator what they agree to, and choose the licence and the anonymity together. These cannot be changed later.",
+      "fAnonymity": "Anonymity",
+      "anonYes": "Yes: keep only the narrator’s initials",
+      "anonNo": "No: the narrator’s name may be used",
+      "anonShort": "anonymous",
+      "fNarrator": "Narrator",
+      "narratorHintAnon": "Initials only, e.g. E.K. Visitors never see them.",
+      "narratorHintName": "The name, as the consent allows. Visitors see it with the published stories (credit).",
+      "narratorHintChoose": "Initials, or the name if the narrator agrees (see Anonymity).",
+      "fInterviewDate": "Date of the interview",
+      "fInterviewPlace": "Place of the interview",
+      "interviewPlacePh": "e.g. the village square, Agia Paraskevi",
+      "fInterview": "Interview",
+      "saveTestimony": "Save testimony",
+      "createTestimony": "Create testimony",
+      "tmCreated": "Testimony {c} created. Now add its stories.",
+      "tmWithCommunity": "With the community — its stories can still be corrected until the community has validated the testimony.",
+      "tmLocked": "The community has validated this testimony: its stories are with the annotators and can no longer be changed here.",
+      "tmWithdrawnNote": "Withdrawn: hidden everywhere.",
+      "storiesH": "Stories ({n})",
+      "noStoriesYet": "No story yet.",
+      "noFragments": "no fragments yet",
+      "miss_theme": "theme missing",
+      "miss_audio": "no audio fragment",
+      "chkStories": "At least one story",
+      "chkThemes": "Every story has its theme",
+      "withdrawTestimonyLead": "Withdrawing hides the testimony and all its stories everywhere and cannot be undone. The action is logged. A new testimony without stories (e.g. a wrong code) can simply be deleted.",
+      "withdrawTestimony": "Withdraw this testimony…",
+      "withdrawTestimonyQ": "Withdraw testimony {c}? Its stories ({n}) will be withdrawn and hidden everywhere. This cannot be undone.",
+      "deleteTestimony": "Delete (no stories yet)",
+      "deleteTestimonyQ": "Delete testimony {c}? It has no stories yet.",
+      "deleted": "Deleted.",
+      "notReady": "Not ready yet: every story needs its theme and an audio fragment.",
+      "needInitials": "With anonymity, write only the initials (e.g. E.K.).",
+      "needAnon": "Choose whether the narrator is anonymous.",
+      "needNarrator": "Write the narrator (initials, or the name).",
+      "needInterviewDate": "Choose the date of the interview.",
+      "needInterviewPlace": "Write the place of the interview.",
+      "t_draft": "Draft",
+      "t_community_validation": "With the community",
+      "t_validated": "Validated by the community",
+      "t_withdrawn": "Withdrawn",
+      "backToTestimony": "← Back to the testimony",
+      "ofTestimony": "Testimony: {t}",
+      "noTestimony": "This testimony was not found.",
+      "storyWithdrawnNote": "Withdrawn: hidden everywhere.",
+      "fPoint": "Point on the map",
+      "pointHint": "Click the map or drag the pin; search to jump to a place.",
+      "needPoint": "Choose the point on the map.",
+      "openFrag": "Open",
+      "fCaption": "Caption",
+      "captionPh": "What the photo or video shows",
+      "noCaption": "no caption",
+      "storyReadyTitle": "Ready for the community?",
+      "chkTheme": "The theme is written",
+      "chkAudioStory": "At least one audio fragment",
+      "storyReadyHint": "When every story of the testimony is ready, send the whole testimony to community validation from its page.",
+      "storiesN": "{n} stories",
+      "storiesN1": "1 story",
+      "nWaiting1": "1 testimony to validate",
+      "nTestimonies1": "1 testimony",
+      "correctTestimony": "✎ Narrator, date, place, language",
+      "editCaption": "✎ Caption"
     }
   };
-  I18N.el = {"appTitle": "Walking Memory · Διευκολυντής", "logout": "Αποσύνδεση", "login": "Σύνδεση", "email": "E-mail", "password": "Κωδικός", "loginHint": "Συνδέσου με τον προσωπικό λογαριασμό που δημιούργησε για σένα ένας διαχειριστής.", "loginFail": "Η σύνδεση απέτυχε: {e}", "noSiteTitle": "Ο λογαριασμός σου δεν έχει συνδεθεί ακόμα με πιλοτική περιοχή", "noSiteText": "Ζήτησε από έναν διαχειριστή να συνδέσει τον λογαριασμό σου με την πιλοτική σου περιοχή ως διευκολυντή. Μέχρι τότε δεν μπορείς να δεις ή να δημιουργήσεις συναινέσεις ή ιστορίες.", "toAdmin": "Άνοιγμα της σελίδας διαχείρισης →", "navConsents": "Συναινέσεις", "navStories": "Ιστορίες", "consentsTitle": "Συναινέσεις", "newConsent": "+ Νέα συναίνεση", "consentsLead": "Ένας κωδικός για κάθε συναίνεση, τυπωμένος από πριν στο έντυπο. Το έντυπο μένει στην πιλοτική περιοχή με την ημερομηνία και τα στοιχεία του αφηγητή· το σύστημα κρατά μόνο τον κωδικό, την άδεια και σε τι συμφώνησε ο αφηγητής.", "colLicence": "Άδεια", "colStories": "Ιστορίες", "colStatus": "Κατάσταση", "colTitle": "Τίτλος", "colConsent": "Συναίνεση", "colFragments": "Κομμάτια", "colSource": "Προέλευση", "nConsents": "{n} κωδικοί συναίνεσης", "noneYet": "Δεν υπάρχει τίποτα ακόμα.", "loading": "Φόρτωση…", "loadErr": "Δεν φορτώθηκε: {e}", "needSql": "Η σελίδα χρειάζεται ενημέρωση της βάσης: ο διαχειριστής πρέπει να τρέξει το supabase/roles.sql.", "st_active": "Ενεργή", "st_withdrawn": "Ανακλήθηκε", "storiesTitle": "Ιστορίες", "newStory": "+ Νέα ιστορία", "storiesLead": "Οι ιστορίες της περιοχής σου. Κάθε ιστορία χρειάζεται κωδικό συναίνεσης· όταν είναι έτοιμη πηγαίνει στην κοινότητα για επικύρωση.", "searchTitle": "Αναζήτηση τίτλου", "f_all": "Όλες", "s_draft": "Πρόχειρη", "s_ready_for_annotation": "Σε σχολιασμό", "s_submitted": "Υποβλήθηκε για έλεγχο", "s_returned": "Επεστράφη στους σχολιαστές", "s_published": "Δημοσιευμένη", "s_withdrawn": "Ανακλήθηκε", "f_annot": "Σε σχολιασμό ή έλεγχο", "nStories": "{n} ιστορίες", "src_workshop_field": "Ιστοσελίδα", "src_ar": "Εφαρμογή AR", "backToStories": "← Όλες οι ιστορίες", "newStoryH": "Νέα ιστορία", "fConsent": "Κωδικός συναίνεσης", "newConsentShort": "+ Νέα συναίνεση", "chooseConsent": "— διάλεξε κωδικό συναίνεσης —", "fTitle": "Τίτλος", "fLanguage": "Γλώσσα / διάλεκτος", "fSensitive": "Ευαίσθητο υλικό", "yes": "Ναι", "no": "Όχι", "choose": "— διάλεξε —", "fLocation": "Κεντρική τοποθεσία: ένα σημείο ή μια περιοχή", "locHint": "Σημείο: πάτησε στον χάρτη ή σύρε την πινέζα. Περιοχή: πάτησε τις γωνίες μία μία. Με την αναζήτηση πας σε έναν τόπο.", "modePoint": "Σημείο", "modeArea": "Περιοχή", "searchPh": "Αναζήτηση τόπου ή διεύθυνσης…", "searchBtn": "Αναζήτηση", "placeNone": "Δεν βρέθηκε τίποτα.", "placeErr": "Η αναζήτηση απέτυχε: {e}", "noPoint": "Δεν έχει επιλεγεί τίποτα στον χάρτη", "pointAt": "Σημείο: {p}", "areaN": "Περιοχή με {n} γωνίες", "areaNeed": "Μια περιοχή χρειάζεται τουλάχιστον 3 γωνίες (μέχρι τώρα {n})", "undoCorner": "Αναίρεση τελευταίας γωνίας", "clearMap": "Καθαρισμός", "removePoint": "Αφαίρεση", "createStory": "Δημιουργία ιστορίας", "saveStory": "Αποθήκευση ιστορίας", "saved": "Αποθηκεύτηκε.", "created": "Η ιστορία δημιουργήθηκε. Τώρα πρόσθεσε τα κομμάτια της.", "needConsent": "Διάλεξε κωδικό συναίνεσης.", "needTitle": "Γράψε τίτλο.", "needLanguage": "Διάλεξε τη γλώσσα ή τη διάλεκτο.", "needSens": "Πες αν υπάρχει ευαίσθητο υλικό.", "needLoc": "Διάλεξε την κεντρική τοποθεσία στον χάρτη (ένα σημείο ή μια περιοχή με τουλάχιστον 3 γωνίες).", "saveErr": "Δεν αποθηκεύτηκε: {e}", "sameNarr": "Ίδιος αφηγητής / ίδια συνάντηση: ", "fragH": "Κομμάτια ({n})", "fragLead": "Πρόσθεσε τα αρχεία που έχουν ήδη ανωνυμοποιηθεί και κοπεί (ήχος WAV/MP3/M4A, φωτογραφίες JPG/PNG/TIFF, βίντεο MP4). Η σειρά τους είναι η σειρά της αφήγησης: σύρε για να την αλλάξεις.", "dropText": "Σύρε αρχεία εδώ", "chooseFiles": "Επιλογή αρχείων", "dropTypes": "Ήχος WAV, MP3, M4A · εικόνες JPG, PNG, TIFF · βίντεο MP4 · έως {mb} MB το καθένα.", "upChecking": "{f}: έλεγχος…", "upUploading": "{f}: ανέβασμα…", "upDone": "{f}: προστέθηκε ✓", "upBadType": "{f}: αυτός ο τύπος αρχείου δεν γίνεται δεκτός.", "upTooBig": "{f}: μεγαλύτερο από {mb} MB.", "upErr": "{f}: δεν προστέθηκε ({e})", "kind_audio": "Ήχος", "kind_image": "Φωτογραφία", "kind_video": "Βίντεο", "titleMissing": "Χρειάζεται τίτλο", "describe": "Περιγραφή", "close": "Κλείσιμο", "moveUp": "Μετακίνηση πάνω", "moveDown": "Μετακίνηση κάτω", "dragHint": "Σύρε για αλλαγή σειράς", "fFragTitle": "Τίτλος (= τι)", "fWho": "Ποιος", "whoPh": "π.χ. η γιαγιά Μαρία και η αδερφή της, οι ψαράδες του λιμανιού", "fWhere": "Πού", "wherePh": "Όνομα του τόπου", "mapPointArea": "Σημείο ή περιοχή στον χάρτη", "mapSet": "Αλλαγή στον χάρτη", "mapNone": "Χωρίς σημείο ή περιοχή", "fWhen": "Πότε", "provenance": "Δικό του ή οικογενειακό αντικείμενο, στην κατοχή του αφηγητή", "fComment": "Σχόλιο", "commentHint": "Το βλέπουν μόνο οι διευκολυντές της περιοχής, οι σχολιαστές και οι ελεγκτές. Ποτέ δημόσιο.", "saveFrag": "Αποθήκευση κομματιού", "fragSaved": "Το κομμάτι αποθηκεύτηκε.", "deleteFrag": "Διαγραφή", "deleteFragQ": "Διαγραφή αυτού του κομματιού; Το αρχείο που ανέβηκε μένει στην αποθήκευση.", "unsaved": "μη αποθηκευμένες αλλαγές", "fileInfo": "{name} · {size} · καταγραφή {date}", "checksumOk": "αποθηκεύτηκε checksum ✓", "checksumServer": "αποτύπωμα διακομιστή ✓", "readyTitle": "Αποστολή για επικύρωση από την κοινότητα", "chkConsent": "Υπάρχει κωδικός συναίνεσης", "chkAudio": "Τουλάχιστον ένα κομμάτι ήχου", "chkTitles": "Κάθε κομμάτι έχει τίτλο", "readyBtn": "Αποστολή για επικύρωση από την κοινότητα", "backToDraft": "Πίσω σε πρόχειρη", "readyDone": "Η ιστορία είναι τώρα στην κοινότητα. Μπορείς ακόμα να τη διορθώσεις μέχρι να την επικυρώσει η κοινότητα.", "lockStatus": "Η κοινότητα επικύρωσε αυτή την ιστορία ({s})· δεν αλλάζει πια εδώ.", "readyNote": "Στην κοινότητα — μπορείς ακόμα να τη διορθώσεις μέχρι να επικυρωθεί.", "withdrawTitle": "Ανάκληση", "withdrawStoryLead": "Η ανάκληση κρύβει την ιστορία παντού και δεν αναιρείται. Η ενέργεια καταγράφεται.", "withdrawStory": "Ανάκληση αυτής της ιστορίας…", "withdrawStoryQ": "Ανάκληση της «{t}»; Θα κρυφτεί παντού. Δεν αναιρείται.", "withdrawn": "Ανακλήθηκε.", "fullscreen": "Πλήρης οθόνη", "exitPresent": "Πίσω στη λίστα", "play": "▶ Αναπαραγωγή", "pause": "❚❚ Παύση", "addNote": "Σχόλιο…", "noteTitle": "Τι είπε η κοινότητα", "noteLabel": "Τι ειπώθηκε", "saveNote": "Αποθήκευση σχολίου", "noteSaved": "Το σχόλιο αποθηκεύτηκε.", "noteLead": "Μένει με το κομμάτι για τους σχολιαστές και τους ελεγκτές· ποτέ δημόσιο.", "noAnswer": "κενό", "newConsentTitle": "Νέα συναίνεση", "newConsentLead": "Γράψε τον κωδικό που είναι τυπωμένος στο έντυπο συναίνεσης, τσέκαρε μαζί με τον αφηγητή σε τι συμφωνεί και διαλέξτε μαζί την άδεια.", "fLicence": "Άδεια", "cancel": "Ακύρωση", "save": "Αποθήκευση", "useThis": "Χρήση", "needLicence": "Διάλεξε την άδεια.", "consentStories": "Ιστορίες με αυτή τη συναίνεση", "withdrawConsent": "Ανάκληση συναίνεσης…", "withdrawConsentQ": "Ανάκληση της συναίνεσης {c}; Όλες οι ιστορίες της ({n}) θα ανακληθούν και θα κρυφτούν παντού. Δεν αναιρείται.", "cvTitle": "Συναίνεση {c}", "leaveQ": "Έχεις μη αποθηκευμένες αλλαγές. Να φύγεις από τη σελίδα;", "lic_CC-BY-4.0": "Ο καθένας μπορεί να τη μοιραστεί και να την ξαναχρησιμοποιήσει, και για εμπορικούς σκοπούς, αρκεί να αναφέρει τον αφηγητή.", "lic_CC-BY-SA-4.0": "Όπως το CC BY, και ό,τι φτιαχτεί από αυτήν μοιράζεται με την ίδια άδεια.", "lic_CC-BY-NC-4.0": "Ο καθένας μπορεί να τη μοιραστεί και να την ξαναχρησιμοποιήσει με αναφορά στον αφηγητή, όχι όμως για εμπορικούς σκοπούς.", "lic_CC-BY-NC-SA-4.0": "Μη εμπορική χρήση με αναφορά στον αφηγητή, και ό,τι φτιαχτεί από αυτήν μοιράζεται με την ίδια άδεια.", "lic_CC-BY-NC-ND-4.0": "Μπορεί να μοιραστεί αυτούσια, με αναφορά και όχι εμπορικά· χωρίς τροποποιήσεις.", "lic_PROJECT-ONLY": "Καμία δημόσια επαναχρησιμοποίηση: τη δείχνει μόνο το έργο Walking Memory.", "projectOnly": "Μόνο για το έργο", "navCommunity": "Επικύρωση από την κοινότητα", "searchCode": "Αναζήτηση κωδικού", "colCode": "Κωδικός", "colCreated": "Δημιουργία", "colWhy": "Γιατί (θέμα)", "s_community_validation": "Στην κοινότητα", "fTheme": "Γιατί (το θέμα)", "themePh": "π.χ. τα πανηγύρια του χωριού, η φυγή από το σπίτι, η δουλειά στο λιμάνι", "themeHint": "Με δικά σου λόγια: για τι μιλάει η ιστορία. Είναι το «γιατί» όλων των κομματιών της.", "needTheme": "Γράψε το γιατί (θέμα).", "agreeLegend": "Ο αφηγητής συμφωνεί", "agree_provide": "να δώσει την ιστορία του (ηχογραφήσεις, φωτογραφίες, βίντεο) στο έργο·", "agree_cut": "η ιστορία να κοπεί σε κομμάτια·", "agree_comment": "άλλοι (η κοινότητα και η ομάδα του έργου) να τη σχολιάζουν και να προσθέτουν στοιχεία·", "agree_share": "να προβάλλεται και να μοιράζεται με την άδεια που θα διαλέξετε παρακάτω·", "agree_voluntary": "και συμμετέχει ελεύθερα, ξέροντας ότι μπορεί να ανακαλέσει την ιστορία όποτε θέλει.", "agreeShort_provide": "δίνει την ιστορία", "agreeShort_cut": "κόψιμο σε κομμάτια", "agreeShort_comment": "σχόλια από άλλους", "agreeShort_share": "μοίρασμα με την άδεια", "agreeShort_voluntary": "εθελοντικά", "needAgree": "Ο αφηγητής πρέπει να συμφωνεί σε όλα τα σημεία.", "copyCode": "Αντιγραφή κωδικού", "copied": "Αντιγράφηκε ✓", "openWithCommunity": "Άνοιγμα με την κοινότητα", "communityTitle": "Επικύρωση από την κοινότητα", "communityLead": "Οι ιστορίες της περιοχής σου που δεν έχει επικυρώσει ακόμα η κοινότητα. Άνοιξε μία σε μεγάλη οθόνη, περάστε τα κομμάτια της με την κοινότητα, διόρθωσε όσα λένε και σημείωσέ την ως επικυρωμένη: τότε πηγαίνει για σχολιασμό.", "nWaiting": "{n} ιστορίες για επικύρωση", "noneWaiting": "Καμία ιστορία δεν περιμένει την κοινότητα.", "correctStory": "✎ Τίτλος και γιατί", "correctFrag": "Διόρθωση κομματιού {n}", "correct": "✎ Διόρθωση", "validateHint": "Όταν η κοινότητα συμφωνεί με κάθε κομμάτι, σημείωσε την ιστορία ως επικυρωμένη. Τότε πηγαίνει για σχολιασμό και δεν αλλάζει πια εδώ.", "validatedBtn": "✓ Επικυρώθηκε από την κοινότητα", "validateQ": "Επικύρωσε η κοινότητα την «{t}»; Τότε πηγαίνει για σχολιασμό και δεν αλλάζει πια εδώ.", "validatedDone": "Η «{t}» επικυρώθηκε από την κοινότητα: πηγαίνει για σχολιασμό ✓", "fProvenance": "Προέλευση", "notEditable": "Αυτή η ιστορία δεν αλλάζει πια εδώ.", "whenPh": "π.χ. 14/7/1965, καλοκαίρι 1965, ~1922, μετά τον πόλεμο", "fCode": "Κωδικός συναίνεσης (τυπωμένος στο έντυπο)", "codePh": "π.χ. LES-0042", "saveConsent": "Αποθήκευση συναίνεσης", "needCode": "Γράψε τον κωδικό που είναι τυπωμένος στο έντυπο συναίνεσης (2 έως 40 χαρακτήρες).", "codeExists": "Ο κωδικός {c} είναι ήδη καταχωρισμένος.", "consentSaved": "Η συναίνεση {c} αποθηκεύτηκε: μπορείς τώρα να τη διαλέξεις σε μια ιστορία."};
-  I18N.fr = {"appTitle": "Walking Memory · Facilitateur", "logout": "Déconnexion", "login": "Connexion", "email": "E-mail", "password": "Mot de passe", "loginHint": "Connectez-vous avec le compte personnel qu’un administrateur a créé pour vous.", "loginFail": "Échec de connexion : {e}", "noSiteTitle": "Votre compte n’est pas encore rattaché à un site pilote", "noSiteText": "Demandez à un administrateur de rattacher votre compte à votre site pilote comme facilitateur. D’ici là, vous ne pouvez ni voir ni créer de consentements ou d’histoires.", "toAdmin": "Ouvrir la page d’administration →", "navConsents": "Consentements", "navStories": "Histoires", "consentsTitle": "Consentements", "newConsent": "+ Nouveau consentement", "consentsLead": "Un code par consentement, imprimé à l’avance sur le formulaire. Le formulaire reste sur le site pilote avec la date et les coordonnées du narrateur ; le système ne garde que le code, la licence et ce que le narrateur a accepté.", "colLicence": "Licence", "colStories": "Histoires", "colStatus": "Statut", "colTitle": "Titre", "colConsent": "Consentement", "colFragments": "Fragments", "colSource": "Source", "nConsents": "{n} codes de consentement", "noneYet": "Rien pour l’instant.", "loading": "Chargement…", "loadErr": "Chargement impossible : {e}", "needSql": "Cette page nécessite une mise à jour de la base : l’administrateur doit exécuter supabase/roles.sql.", "st_active": "Actif", "st_withdrawn": "Retiré", "storiesTitle": "Histoires", "newStory": "+ Nouvelle histoire", "storiesLead": "Les histoires de votre site. Une histoire a besoin d’un code de consentement ; quand elle est prête, elle va à la communauté pour validation.", "searchTitle": "Rechercher un titre", "f_all": "Toutes", "s_draft": "Brouillon", "s_ready_for_annotation": "En annotation", "s_submitted": "Soumise pour validation", "s_returned": "Renvoyée aux annotateurs", "s_published": "Publiée", "s_withdrawn": "Retirée", "f_annot": "En annotation ou validation", "nStories": "{n} histoires", "src_workshop_field": "Site web", "src_ar": "Application AR", "backToStories": "← Toutes les histoires", "newStoryH": "Nouvelle histoire", "fConsent": "Code de consentement", "newConsentShort": "+ Nouveau consentement", "chooseConsent": "— choisir le code de consentement —", "fTitle": "Titre", "fLanguage": "Langue / dialecte", "fSensitive": "Contenu sensible", "yes": "Oui", "no": "Non", "choose": "— choisir —", "fLocation": "Lieu central : un point ou une zone", "locHint": "Point : cliquez sur la carte ou faites glisser l’épingle. Zone : cliquez les coins un par un. La recherche vous amène à un lieu.", "modePoint": "Point", "modeArea": "Zone", "searchPh": "Rechercher un lieu ou une adresse…", "searchBtn": "Rechercher", "placeNone": "Aucun résultat.", "placeErr": "La recherche a échoué : {e}", "noPoint": "Rien de choisi sur la carte", "pointAt": "Point : {p}", "areaN": "Zone à {n} coins", "areaNeed": "Une zone a besoin d’au moins 3 coins ({n} pour l’instant)", "undoCorner": "Annuler le dernier coin", "clearMap": "Effacer", "removePoint": "Retirer", "createStory": "Créer l’histoire", "saveStory": "Enregistrer l’histoire", "saved": "Enregistré.", "created": "Histoire créée. Ajoutez maintenant ses fragments.", "needConsent": "Choisissez un code de consentement.", "needTitle": "Écrivez un titre.", "needLanguage": "Choisissez la langue ou le dialecte.", "needSens": "Indiquez s’il y a du contenu sensible.", "needLoc": "Choisissez le lieu central sur la carte (un point, ou une zone d’au moins 3 coins).", "saveErr": "Non enregistré : {e}", "sameNarr": "Même narrateur / même séance : ", "fragH": "Fragments ({n})", "fragLead": "Ajoutez les fichiers déjà anonymisés et découpés (audio WAV/MP3/M4A, photos JPG/PNG/TIFF, vidéo MP4). Leur ordre est celui du récit : faites-les glisser pour le changer.", "dropText": "Déposez des fichiers ici", "chooseFiles": "Choisir des fichiers", "dropTypes": "Audio WAV, MP3, M4A · images JPG, PNG, TIFF · vidéo MP4 · jusqu’à {mb} Mo chacun.", "upChecking": "{f} : vérification…", "upUploading": "{f} : envoi…", "upDone": "{f} : ajouté ✓", "upBadType": "{f} : ce type de fichier n’est pas accepté.", "upTooBig": "{f} : plus de {mb} Mo.", "upErr": "{f} : non ajouté ({e})", "kind_audio": "Audio", "kind_image": "Photo", "kind_video": "Vidéo", "titleMissing": "Titre requis", "describe": "Décrire", "close": "Fermer", "moveUp": "Monter", "moveDown": "Descendre", "dragHint": "Faire glisser pour réordonner", "fFragTitle": "Titre (= quoi)", "fWho": "Qui", "whoPh": "p. ex. grand-mère Maria et sa sœur, les pêcheurs du port", "fWhere": "Où", "wherePh": "Nom du lieu", "mapPointArea": "Point ou zone sur la carte", "mapSet": "Modifier sur la carte", "mapNone": "Ni point ni zone", "fWhen": "Quand", "provenance": "Objet personnel ou familial, détenu par le narrateur", "fComment": "Commentaire", "commentHint": "Visible seulement par les facilitateurs du site, les annotateurs et les validateurs. Jamais public.", "saveFrag": "Enregistrer le fragment", "fragSaved": "Fragment enregistré.", "deleteFrag": "Supprimer", "deleteFragQ": "Supprimer ce fragment ? Le fichier envoyé reste dans le stockage.", "unsaved": "modifications non enregistrées", "fileInfo": "{name} · {size} · enregistré le {date}", "checksumOk": "somme de contrôle conservée ✓", "checksumServer": "empreinte du serveur ✓", "readyTitle": "Envoyer à la validation par la communauté", "chkConsent": "Un code de consentement est joint", "chkAudio": "Au moins un fragment audio", "chkTitles": "Chaque fragment a un titre", "readyBtn": "Envoyer à la validation par la communauté", "backToDraft": "Revenir au brouillon", "readyDone": "L’histoire est maintenant avec la communauté. Vous pouvez encore la corriger jusqu’à ce que la communauté l’ait validée.", "lockStatus": "La communauté a validé cette histoire ({s}) ; elle ne peut plus être modifiée ici.", "readyNote": "Avec la communauté — vous pouvez encore la corriger jusqu’à sa validation.", "withdrawTitle": "Retrait", "withdrawStoryLead": "Le retrait masque l’histoire partout et ne peut pas être annulé. L’action est journalisée.", "withdrawStory": "Retirer cette histoire…", "withdrawStoryQ": "Retirer « {t} » ? Elle sera masquée partout. C’est irréversible.", "withdrawn": "Retiré.", "fullscreen": "Plein écran", "exitPresent": "Retour à la liste", "play": "▶ Lire", "pause": "❚❚ Pause", "addNote": "Commentaire…", "noteTitle": "Ce que la communauté a dit", "noteLabel": "Ce qui a été dit", "saveNote": "Enregistrer le commentaire", "noteSaved": "Commentaire enregistré.", "noteLead": "Gardé avec le fragment pour les annotateurs et les validateurs ; jamais public.", "noAnswer": "vide", "newConsentTitle": "Nouveau consentement", "newConsentLead": "Saisissez le code imprimé sur le formulaire de consentement, cochez avec le narrateur ce qu’il accepte et choisissez ensemble la licence.", "fLicence": "Licence", "cancel": "Annuler", "save": "Enregistrer", "useThis": "Utiliser", "needLicence": "Choisissez la licence.", "consentStories": "Histoires avec ce consentement", "withdrawConsent": "Retirer le consentement…", "withdrawConsentQ": "Retirer le consentement {c} ? Toutes ses histoires ({n}) seront retirées et masquées partout. C’est irréversible.", "cvTitle": "Consentement {c}", "leaveQ": "Vous avez des modifications non enregistrées. Quitter quand même la page ?", "lic_CC-BY-4.0": "Chacun peut la partager et la réutiliser, y compris commercialement, en citant le narrateur.", "lic_CC-BY-SA-4.0": "Comme CC BY, et tout ce qui en est tiré doit être partagé sous la même licence.", "lic_CC-BY-NC-4.0": "Chacun peut la partager et la réutiliser en citant le narrateur, mais pas à des fins commerciales.", "lic_CC-BY-NC-SA-4.0": "Réutilisation non commerciale en citant le narrateur, et tout ce qui en est tiré doit utiliser la même licence.", "lic_CC-BY-NC-ND-4.0": "Peut être partagée telle quelle, en citant et sans usage commercial ; pas d’adaptations.", "lic_PROJECT-ONLY": "Aucune réutilisation publique : seul le projet Walking Memory la montre.", "projectOnly": "Usage du projet uniquement", "navCommunity": "Validation par la communauté", "searchCode": "Rechercher un code", "colCode": "Code", "colCreated": "Créé le", "colWhy": "Pourquoi (thème)", "s_community_validation": "Avec la communauté", "fTheme": "Pourquoi (le thème)", "themePh": "p. ex. les fêtes du village, le départ, le port au travail", "themeHint": "Avec vos mots : de quoi parle l’histoire. C’est le « pourquoi » de tous ses fragments.", "needTheme": "Écrivez le pourquoi (thème).", "agreeLegend": "Le narrateur accepte", "agree_provide": "de donner son histoire (enregistrements, photos, vidéos) au projet ;", "agree_cut": "que l’histoire soit découpée en morceaux (fragments) ;", "agree_comment": "que d’autres (la communauté et l’équipe du projet) la commentent et y ajoutent des détails ;", "agree_share": "qu’elle soit montrée et partagée sous la licence choisie ci-dessous ;", "agree_voluntary": "et participe librement, sachant qu’il peut retirer l’histoire à tout moment.", "agreeShort_provide": "donne l’histoire", "agreeShort_cut": "découpage en morceaux", "agreeShort_comment": "commentaires d’autres", "agreeShort_share": "partage sous la licence", "agreeShort_voluntary": "volontaire", "needAgree": "Le narrateur doit accepter chaque point.", "copyCode": "Copier le code", "copied": "Copié ✓", "openWithCommunity": "Ouvrir avec la communauté", "communityTitle": "Validation par la communauté", "communityLead": "Les histoires de votre site que la communauté n’a pas encore validées. Ouvrez-en une sur un grand écran, parcourez ses fragments avec la communauté, corrigez ce qu’elle dit et marquez-la comme validée : elle part alors à l’annotation.", "nWaiting": "{n} histoires à valider", "noneWaiting": "Aucune histoire n’attend la communauté.", "correctStory": "✎ Titre et pourquoi", "correctFrag": "Corriger le fragment {n}", "correct": "✎ Corriger", "validateHint": "Quand la communauté est d’accord avec chaque fragment, marquez l’histoire comme validée. Elle part alors à l’annotation et ne peut plus être modifiée ici.", "validatedBtn": "✓ Validée par la communauté", "validateQ": "La communauté a-t-elle validé « {t} » ? Elle part alors à l’annotation et ne peut plus être modifiée ici.", "validatedDone": "« {t} » validée par la communauté : elle part à l’annotation ✓", "fProvenance": "Provenance", "notEditable": "Cette histoire ne peut plus être modifiée ici.", "whenPh": "p. ex. 14/7/1965, été 1965, ~1922, après la guerre", "fCode": "Code de consentement (imprimé sur le formulaire)", "codePh": "p. ex. LES-0042", "saveConsent": "Enregistrer le consentement", "needCode": "Saisissez le code imprimé sur le formulaire de consentement (2 à 40 caractères).", "codeExists": "Le code {c} est déjà enregistré.", "consentSaved": "Consentement {c} enregistré : vous pouvez maintenant le choisir pour une histoire."};
-  I18N.it = {"appTitle": "Walking Memory · Facilitatore", "logout": "Esci", "login": "Accedi", "email": "E-mail", "password": "Password", "loginHint": "Accedi con l’account personale che un amministratore ha creato per te.", "loginFail": "Accesso non riuscito: {e}", "noSiteTitle": "Il tuo account non è ancora collegato a un sito pilota", "noSiteText": "Chiedi a un amministratore di collegare il tuo account al tuo sito pilota come facilitatore. Fino ad allora non puoi vedere né creare consensi o storie.", "toAdmin": "Apri la pagina di amministrazione →", "navConsents": "Consensi", "navStories": "Storie", "consentsTitle": "Consensi", "newConsent": "+ Nuovo consenso", "consentsLead": "Un codice per ogni consenso, stampato in anticipo sul modulo. Il modulo resta nel sito pilota con la data e i dati del narratore; il sistema conserva solo il codice, la licenza e ciò che il narratore ha accettato.", "colLicence": "Licenza", "colStories": "Storie", "colStatus": "Stato", "colTitle": "Titolo", "colConsent": "Consenso", "colFragments": "Frammenti", "colSource": "Origine", "nConsents": "{n} codici di consenso", "noneYet": "Ancora niente.", "loading": "Caricamento…", "loadErr": "Impossibile caricare: {e}", "needSql": "Questa pagina richiede un aggiornamento del database: l’amministratore deve eseguire supabase/roles.sql.", "st_active": "Attivo", "st_withdrawn": "Ritirato", "storiesTitle": "Storie", "newStory": "+ Nuova storia", "storiesLead": "Le storie del tuo sito. Una storia ha bisogno di un codice di consenso; quando è pronta va alla comunità per la validazione.", "searchTitle": "Cerca titolo", "f_all": "Tutte", "s_draft": "Bozza", "s_ready_for_annotation": "In annotazione", "s_submitted": "Inviata per la validazione", "s_returned": "Restituita agli annotatori", "s_published": "Pubblicata", "s_withdrawn": "Ritirata", "f_annot": "In annotazione o validazione", "nStories": "{n} storie", "src_workshop_field": "Sito web", "src_ar": "App AR", "backToStories": "← Tutte le storie", "newStoryH": "Nuova storia", "fConsent": "Codice di consenso", "newConsentShort": "+ Nuovo consenso", "chooseConsent": "— scegli il codice di consenso —", "fTitle": "Titolo", "fLanguage": "Lingua / dialetto", "fSensitive": "Materiale sensibile", "yes": "Sì", "no": "No", "choose": "— scegli —", "fLocation": "Luogo centrale: un punto o un’area", "locHint": "Punto: tocca la mappa o trascina il segnaposto. Area: tocca gli angoli uno per uno. Con la ricerca vai a un luogo.", "modePoint": "Punto", "modeArea": "Area", "searchPh": "Cerca un luogo o un indirizzo…", "searchBtn": "Cerca", "placeNone": "Nessun risultato.", "placeErr": "Ricerca non riuscita: {e}", "noPoint": "Niente scelto sulla mappa", "pointAt": "Punto: {p}", "areaN": "Area con {n} angoli", "areaNeed": "Un’area richiede almeno 3 angoli (finora {n})", "undoCorner": "Annulla l’ultimo angolo", "clearMap": "Cancella", "removePoint": "Rimuovi", "createStory": "Crea la storia", "saveStory": "Salva la storia", "saved": "Salvato.", "created": "Storia creata. Ora aggiungi i suoi frammenti.", "needConsent": "Scegli un codice di consenso.", "needTitle": "Scrivi un titolo.", "needLanguage": "Scegli la lingua o il dialetto.", "needSens": "Indica se c’è materiale sensibile.", "needLoc": "Scegli il luogo centrale sulla mappa (un punto, o un’area con almeno 3 angoli).", "saveErr": "Non salvato: {e}", "sameNarr": "Stesso narratore / stessa sessione: ", "fragH": "Frammenti ({n})", "fragLead": "Aggiungi i file già anonimizzati e tagliati (audio WAV/MP3/M4A, foto JPG/PNG/TIFF, video MP4). Il loro ordine è quello del racconto: trascinali per cambiarlo.", "dropText": "Trascina qui i file", "chooseFiles": "Scegli i file", "dropTypes": "Audio WAV, MP3, M4A · immagini JPG, PNG, TIFF · video MP4 · fino a {mb} MB ciascuno.", "upChecking": "{f}: verifica…", "upUploading": "{f}: caricamento…", "upDone": "{f}: aggiunto ✓", "upBadType": "{f}: questo tipo di file non è accettato.", "upTooBig": "{f}: più di {mb} MB.", "upErr": "{f}: non aggiunto ({e})", "kind_audio": "Audio", "kind_image": "Foto", "kind_video": "Video", "titleMissing": "Serve un titolo", "describe": "Descrivi", "close": "Chiudi", "moveUp": "Sposta su", "moveDown": "Sposta giù", "dragHint": "Trascina per riordinare", "fFragTitle": "Titolo (= cosa)", "fWho": "Chi", "whoPh": "es. nonna Maria e sua sorella, i pescatori del porto", "fWhere": "Dove", "wherePh": "Nome del luogo", "mapPointArea": "Punto o area sulla mappa", "mapSet": "Cambia sulla mappa", "mapNone": "Nessun punto o area", "fWhen": "Quando", "provenance": "Oggetto proprio o di famiglia, custodito dal narratore", "fComment": "Commento", "commentHint": "Lo vedono solo i facilitatori del sito, gli annotatori e i validatori. Mai pubblico.", "saveFrag": "Salva il frammento", "fragSaved": "Frammento salvato.", "deleteFrag": "Elimina", "deleteFragQ": "Eliminare questo frammento? Il file caricato resta nell’archivio.", "unsaved": "modifiche non salvate", "fileInfo": "{name} · {size} · registrato il {date}", "checksumOk": "checksum conservato ✓", "checksumServer": "impronta del server ✓", "readyTitle": "Invia alla validazione della comunità", "chkConsent": "È collegato un codice di consenso", "chkAudio": "Almeno un frammento audio", "chkTitles": "Ogni frammento ha un titolo", "readyBtn": "Invia alla validazione della comunità", "backToDraft": "Torna a bozza", "readyDone": "La storia ora è con la comunità. Puoi ancora correggerla finché la comunità non l’ha validata.", "lockStatus": "La comunità ha validato questa storia ({s}); qui non si può più modificare.", "readyNote": "Con la comunità — puoi ancora correggerla finché non è validata.", "withdrawTitle": "Ritiro", "withdrawStoryLead": "Il ritiro nasconde la storia ovunque e non si può annullare. L’azione viene registrata.", "withdrawStory": "Ritira questa storia…", "withdrawStoryQ": "Ritirare «{t}»? Sarà nascosta ovunque. Non si può annullare.", "withdrawn": "Ritirato.", "fullscreen": "Schermo intero", "exitPresent": "Torna all’elenco", "play": "▶ Riproduci", "pause": "❚❚ Pausa", "addNote": "Commento…", "noteTitle": "Cosa ha detto la comunità", "noteLabel": "Cosa è stato detto", "saveNote": "Salva il commento", "noteSaved": "Commento salvato.", "noteLead": "Resta con il frammento per gli annotatori e i validatori; mai pubblico.", "noAnswer": "vuoto", "newConsentTitle": "Nuovo consenso", "newConsentLead": "Scrivi il codice stampato sul modulo di consenso, spunta con il narratore ciò che accetta e scegliete insieme la licenza.", "fLicence": "Licenza", "cancel": "Annulla", "save": "Salva", "useThis": "Usa questo", "needLicence": "Scegli la licenza.", "consentStories": "Storie con questo consenso", "withdrawConsent": "Ritira il consenso…", "withdrawConsentQ": "Ritirare il consenso {c}? Tutte le sue storie ({n}) saranno ritirate e nascoste ovunque. Non si può annullare.", "cvTitle": "Consenso {c}", "leaveQ": "Hai modifiche non salvate. Lasciare comunque la pagina?", "lic_CC-BY-4.0": "Chiunque può condividerla e riutilizzarla, anche commercialmente, citando chi racconta.", "lic_CC-BY-SA-4.0": "Come CC BY, e ciò che ne deriva va condiviso con la stessa licenza.", "lic_CC-BY-NC-4.0": "Chiunque può condividerla e riutilizzarla citando chi racconta, ma non a fini commerciali.", "lic_CC-BY-NC-SA-4.0": "Riutilizzo non commerciale citando chi racconta, e ciò che ne deriva usa la stessa licenza.", "lic_CC-BY-NC-ND-4.0": "Può essere condivisa così com’è, citando e non commercialmente; senza modifiche.", "lic_PROJECT-ONLY": "Nessun riutilizzo pubblico: la mostra solo il progetto Walking Memory.", "projectOnly": "Solo per il progetto", "navCommunity": "Validazione della comunità", "searchCode": "Cerca un codice", "colCode": "Codice", "colCreated": "Creato il", "colWhy": "Perché (tema)", "s_community_validation": "Con la comunità", "fTheme": "Perché (il tema)", "themePh": "es. le feste del paese, la partenza da casa, il porto al lavoro", "themeHint": "Con parole tue: di cosa parla la storia. È il «perché» di tutti i suoi frammenti.", "needTheme": "Scrivi il perché (tema).", "agreeLegend": "Il narratore accetta", "agree_provide": "di dare la sua storia (registrazioni, foto, video) al progetto;", "agree_cut": "che la storia sia tagliata in pezzi (frammenti);", "agree_comment": "che altri (la comunità e il gruppo del progetto) la commentino e aggiungano dettagli;", "agree_share": "che sia mostrata e condivisa con la licenza scelta qui sotto;", "agree_voluntary": "e partecipa liberamente, sapendo di poter ritirare la storia in qualsiasi momento.", "agreeShort_provide": "dà la storia", "agreeShort_cut": "taglio in pezzi", "agreeShort_comment": "commenti di altri", "agreeShort_share": "condivisa con la licenza", "agreeShort_voluntary": "volontario", "needAgree": "Il narratore deve accettare ogni punto.", "copyCode": "Copia il codice", "copied": "Copiato ✓", "openWithCommunity": "Apri con la comunità", "communityTitle": "Validazione della comunità", "communityLead": "Le storie del tuo sito che la comunità non ha ancora validato. Aprine una su uno schermo grande, guardate i suoi frammenti con la comunità, correggi ciò che dicono e segnala come validata: allora va all’annotazione.", "nWaiting": "{n} storie da validare", "noneWaiting": "Nessuna storia aspetta la comunità.", "correctStory": "✎ Titolo e perché", "correctFrag": "Correggi il frammento {n}", "correct": "✎ Correggi", "validateHint": "Quando la comunità è d’accordo su ogni frammento, segna la storia come validata. Va allora all’annotazione e qui non si può più modificare.", "validatedBtn": "✓ Validata dalla comunità", "validateQ": "La comunità ha validato «{t}»? Va allora all’annotazione e qui non si può più modificare.", "validatedDone": "«{t}» validata dalla comunità: va all’annotazione ✓", "fProvenance": "Provenienza", "notEditable": "Questa storia qui non si può più modificare.", "whenPh": "es. 14/7/1965, estate 1965, ~1922, dopo la guerra", "fCode": "Codice di consenso (stampato sul modulo)", "codePh": "es. LES-0042", "saveConsent": "Salva il consenso", "needCode": "Scrivi il codice stampato sul modulo di consenso (da 2 a 40 caratteri).", "codeExists": "Il codice {c} è già registrato.", "consentSaved": "Consenso {c} salvato: ora puoi sceglierlo per una storia."};
+  I18N.el = {"appTitle": "Walking Memory · Διευκολυντής", "logout": "Αποσύνδεση", "login": "Σύνδεση", "email": "E-mail", "password": "Κωδικός", "loginHint": "Συνδέσου με τον προσωπικό λογαριασμό που δημιούργησε για σένα ένας διαχειριστής.", "loginFail": "Η σύνδεση απέτυχε: {e}", "noSiteTitle": "Ο λογαριασμός σου δεν έχει συνδεθεί ακόμα με πιλοτική περιοχή", "noSiteText": "Ζήτησε από έναν διαχειριστή να συνδέσει τον λογαριασμό σου με την πιλοτική σου περιοχή ως διευκολυντή. Μέχρι τότε δεν μπορείς να δεις ή να δημιουργήσεις μαρτυρίες ή ιστορίες.", "toAdmin": "Άνοιγμα της σελίδας διαχείρισης →", "colStories": "Ιστορίες", "colStatus": "Κατάσταση", "noneYet": "Δεν υπάρχει τίποτα ακόμα.", "loading": "Φόρτωση…", "loadErr": "Δεν φορτώθηκε: {e}", "needSql": "Η σελίδα χρειάζεται ενημέρωση της βάσης: ο διαχειριστής πρέπει να τρέξει το supabase/roles.sql.", "newStory": "+ Νέα ιστορία", "storiesLead": "Κάθε ιστορία απαντά σε μία ερώτηση της συνέντευξης (το θέμα της), λέει ποιος, πού και πότε, και έχει τα κομμάτια της.", "f_all": "Όλες", "s_draft": "Πρόχειρη", "s_ready_for_annotation": "Σε σχολιασμό", "s_submitted": "Υποβλήθηκε για έλεγχο", "s_returned": "Επεστράφη στους σχολιαστές", "s_published": "Δημοσιευμένη", "s_withdrawn": "Ανακλήθηκε", "src_workshop_field": "Ιστοσελίδα", "src_ar": "Εφαρμογή AR", "newStoryH": "Νέα ιστορία", "fTitle": "Τίτλος", "fLanguage": "Γλώσσα / διάλεκτος", "choose": "— διάλεξε —", "modePoint": "Σημείο", "modeArea": "Περιοχή", "searchPh": "Αναζήτηση τόπου ή διεύθυνσης…", "searchBtn": "Αναζήτηση", "placeNone": "Δεν βρέθηκε τίποτα.", "placeErr": "Η αναζήτηση απέτυχε: {e}", "noPoint": "Δεν έχει επιλεγεί τίποτα στον χάρτη", "pointAt": "Σημείο: {p}", "areaN": "Περιοχή με {n} γωνίες", "areaNeed": "Μια περιοχή χρειάζεται τουλάχιστον 3 γωνίες (μέχρι τώρα {n})", "undoCorner": "Αναίρεση τελευταίας γωνίας", "clearMap": "Καθαρισμός", "removePoint": "Αφαίρεση", "createStory": "Δημιουργία ιστορίας", "saveStory": "Αποθήκευση ιστορίας", "saved": "Αποθηκεύτηκε.", "created": "Η ιστορία δημιουργήθηκε. Τώρα πρόσθεσε τα κομμάτια της.", "needTitle": "Γράψε τίτλο.", "needLanguage": "Διάλεξε τη γλώσσα ή τη διάλεκτο.", "saveErr": "Δεν αποθηκεύτηκε: {e}", "fragH": "Κομμάτια ({n})", "fragLead": "Πρόσθεσε τα επεξεργασμένα, ήδη κομμένα αρχεία (ήχος WAV/MP3/M4A, φωτογραφίες JPG/PNG/TIFF, βίντεο MP4)· ο τύπος αναγνωρίζεται από το αρχείο. Η σειρά τους είναι η σειρά της αφήγησης: σύρε για να αλλάξεις τη σειρά. Μια φωτογραφία ή ένα βίντεο μπορεί να έχει λεζάντα.", "dropText": "Σύρε αρχεία εδώ", "chooseFiles": "Επιλογή αρχείων", "dropTypes": "Ήχος WAV, MP3, M4A · εικόνες JPG, PNG, TIFF · βίντεο MP4 · έως {mb} MB το καθένα.", "upChecking": "{f}: έλεγχος…", "upUploading": "{f}: ανέβασμα…", "upDone": "{f}: προστέθηκε ✓", "upBadType": "{f}: αυτός ο τύπος αρχείου δεν γίνεται δεκτός.", "upTooBig": "{f}: μεγαλύτερο από {mb} MB.", "upErr": "{f}: δεν προστέθηκε ({e})", "kind_audio": "Ήχος", "kind_image": "Φωτογραφία", "kind_video": "Βίντεο", "close": "Κλείσιμο", "moveUp": "Μετακίνηση πάνω", "moveDown": "Μετακίνηση κάτω", "dragHint": "Σύρε για αλλαγή σειράς", "fWho": "Ποιος", "whoPh": "π.χ. η γιαγιά Μαρία και η αδερφή της, οι ψαράδες του λιμανιού", "fWhere": "Πού", "wherePh": "Όνομα του τόπου", "fWhen": "Πότε", "saveFrag": "Αποθήκευση κομματιού", "fragSaved": "Το κομμάτι αποθηκεύτηκε.", "deleteFrag": "Διαγραφή", "deleteFragQ": "Διαγραφή αυτού του κομματιού; Το αρχείο που ανέβηκε μένει στην αποθήκευση.", "unsaved": "μη αποθηκευμένες αλλαγές", "fileInfo": "{name} · {size} · καταγραφή {date}", "checksumOk": "αποθηκεύτηκε checksum ✓", "checksumServer": "αποτύπωμα διακομιστή ✓", "readyTitle": "Αποστολή για επικύρωση από την κοινότητα", "chkAudio": "Κάθε ιστορία έχει τουλάχιστον ένα κομμάτι ήχου", "readyBtn": "Αποστολή για επικύρωση από την κοινότητα", "backToDraft": "Πίσω σε πρόχειρη", "readyDone": "Η μαρτυρία είναι τώρα στην κοινότητα. Μπορείς ακόμα να τη διορθώνεις μέχρι να την επικυρώσει η κοινότητα.", "lockStatus": "Η κοινότητα επικύρωσε τη μαρτυρία αυτής της ιστορίας ({s})· δεν αλλάζει πια εδώ.", "readyNote": "Στην κοινότητα — μπορείς ακόμα να τη διορθώνεις μέχρι να επικυρωθεί η μαρτυρία.", "withdrawTitle": "Ανάκληση", "withdrawStoryLead": "Η ανάκληση κρύβει την ιστορία παντού και δεν αναιρείται. Η ενέργεια καταγράφεται.", "withdrawStory": "Ανάκληση αυτής της ιστορίας…", "withdrawStoryQ": "Ανάκληση της «{t}»; Θα κρυφτεί παντού. Δεν αναιρείται.", "withdrawn": "Ανακλήθηκε.", "fullscreen": "Πλήρης οθόνη", "exitPresent": "Πίσω στη λίστα", "play": "▶ Αναπαραγωγή", "pause": "❚❚ Παύση", "addNote": "Σχόλιο…", "noteTitle": "Τι είπε η κοινότητα", "noteLabel": "Τι ειπώθηκε", "saveNote": "Αποθήκευση σχολίου", "noteSaved": "Το σχόλιο αποθηκεύτηκε.", "noteLead": "Μένει με το κομμάτι για τους σχολιαστές και τους ελεγκτές· ποτέ δημόσιο.", "noAnswer": "κενό", "fLicence": "Άδεια", "cancel": "Ακύρωση", "save": "Αποθήκευση", "needLicence": "Διάλεξε την άδεια.", "leaveQ": "Έχεις μη αποθηκευμένες αλλαγές. Να φύγεις από τη σελίδα;", "lic_CC-BY-4.0": "Ο καθένας μπορεί να τη μοιραστεί και να την ξαναχρησιμοποιήσει, και για εμπορικούς σκοπούς, αρκεί να αναφέρει τον αφηγητή.", "lic_CC-BY-SA-4.0": "Όπως το CC BY, και ό,τι φτιαχτεί από αυτήν μοιράζεται με την ίδια άδεια.", "lic_CC-BY-NC-4.0": "Ο καθένας μπορεί να τη μοιραστεί και να την ξαναχρησιμοποιήσει με αναφορά στον αφηγητή, όχι όμως για εμπορικούς σκοπούς.", "lic_CC-BY-NC-SA-4.0": "Μη εμπορική χρήση με αναφορά στον αφηγητή, και ό,τι φτιαχτεί από αυτήν μοιράζεται με την ίδια άδεια.", "lic_CC-BY-NC-ND-4.0": "Μπορεί να μοιραστεί αυτούσια, με αναφορά και όχι εμπορικά· χωρίς τροποποιήσεις.", "lic_PROJECT-ONLY": "Καμία δημόσια επαναχρησιμοποίηση: τη δείχνει μόνο το έργο Walking Memory.", "projectOnly": "Μόνο για το έργο", "navCommunity": "Επικύρωση από την κοινότητα", "colCode": "Κωδικός", "colCreated": "Δημιουργία", "s_community_validation": "Στην κοινότητα", "fTheme": "Θέμα (η ερώτηση της συνέντευξης)", "themePh": "π.χ. Τι θυμάστε από τα πανηγύρια του χωριού;", "themeHint": "Η ερώτηση στην οποία απαντά αυτή η ιστορία: είναι το «γιατί» της.", "needTheme": "Γράψε το θέμα (την ερώτηση της συνέντευξης).", "agreeLegend": "Ο αφηγητής συμφωνεί", "agree_provide": "να δώσει την ιστορία του (ηχογραφήσεις, φωτογραφίες, βίντεο) στο έργο·", "agree_cut": "η ιστορία να κοπεί σε κομμάτια·", "agree_comment": "άλλοι (η κοινότητα και η ομάδα του έργου) να τη σχολιάζουν και να προσθέτουν στοιχεία·", "agree_share": "να προβάλλεται και να μοιράζεται με την άδεια που θα διαλέξετε παρακάτω·", "agree_voluntary": "και συμμετέχει ελεύθερα, ξέροντας ότι μπορεί να ανακαλέσει την ιστορία όποτε θέλει.", "agreeShort_provide": "δίνει την ιστορία", "agreeShort_cut": "κόψιμο σε κομμάτια", "agreeShort_comment": "σχόλια από άλλους", "agreeShort_share": "μοίρασμα με την άδεια", "agreeShort_voluntary": "εθελοντικά", "needAgree": "Ο αφηγητής πρέπει να συμφωνεί σε όλα τα σημεία.", "openWithCommunity": "Άνοιγμα με την κοινότητα", "communityTitle": "Επικύρωση από την κοινότητα", "communityLead": "Οι μαρτυρίες της περιοχής σου που δεν έχει επικυρώσει ακόμα η κοινότητα. Άνοιξε μία σε μεγάλη οθόνη, περάστε μαζί με την κοινότητα τις ιστορίες και τα κομμάτια της, διόρθωσε ό,τι λένε, κράτα τα σχόλιά τους και σημείωσέ την ως επικυρωμένη: οι ιστορίες της πηγαίνουν τότε για σχολιασμό.", "nWaiting": "{n} μαρτυρίες για επικύρωση", "noneWaiting": "Καμία μαρτυρία δεν περιμένει την κοινότητα.", "correctStory": "Διόρθωση «{t}»", "correct": "✎ Διόρθωση", "validateHint": "Όταν η κοινότητα συμφωνεί με όλες τις ιστορίες, σημείωσε τη μαρτυρία ως επικυρωμένη. Οι ιστορίες της πηγαίνουν τότε για σχολιασμό και δεν αλλάζουν πια εδώ.", "validatedBtn": "✓ Επικυρώθηκε από την κοινότητα", "validateQ": "Επικύρωσε η κοινότητα τη μαρτυρία {c} ({s}); Οι ιστορίες της πηγαίνουν τότε για σχολιασμό και δεν αλλάζουν πια εδώ.", "validatedDone": "Η μαρτυρία {c} επικυρώθηκε από την κοινότητα: οι ιστορίες της πηγαίνουν για σχολιασμό ✓", "notEditable": "Αυτή η ιστορία δεν αλλάζει πια εδώ.", "whenPh": "π.χ. 14/7/1965, καλοκαίρι 1965, ~1922, μετά τον πόλεμο", "fCode": "Κωδικός συναίνεσης (τυπωμένος στο έντυπο)", "codePh": "π.χ. LES-0042", "needCode": "Γράψε τον κωδικό που είναι τυπωμένος στο έντυπο συναίνεσης (2 έως 40 χαρακτήρες).", "codeExists": "Ο κωδικός {c} είναι ήδη καταχωρισμένος.", "navTestimonies": "Μαρτυρίες", "testimoniesTitle": "Μαρτυρίες", "newTestimony": "+ Νέα μαρτυρία", "testimoniesLead": "Μία μαρτυρία για κάθε συνέντευξη: ένας αφηγητής, ένα τυπωμένο έντυπο συναίνεσης. Η μαρτυρία έχει τις ιστορίες της και κάθε ιστορία τα κομμάτια της. Όταν όλες οι ιστορίες είναι έτοιμες, η μαρτυρία πηγαίνει στην κοινότητα για επικύρωση.", "searchTestimony": "Αναζήτηση κωδικού, αφηγητή ή τόπου", "colNarrator": "Αφηγητής", "colInterview": "Συνέντευξη", "nTestimonies": "{n} μαρτυρίες", "backToTestimonies": "← Όλες οι μαρτυρίες", "newTestimonyH": "Νέα μαρτυρία", "newTestimonyLead": "Γράψε τον κωδικό που είναι τυπωμένος στο έντυπο συναίνεσης, τσέκαρε μαζί με τον αφηγητή σε τι συμφωνεί και διαλέξτε μαζί την άδεια και την ανωνυμία. Αυτά δεν αλλάζουν αργότερα.", "fAnonymity": "Ανωνυμία", "anonYes": "Ναι: κρατάμε μόνο τα αρχικά του αφηγητή", "anonNo": "Όχι: μπορεί να χρησιμοποιηθεί το όνομα του αφηγητή", "anonShort": "ανώνυμα", "fNarrator": "Αφηγητής", "narratorHintAnon": "Μόνο αρχικά, π.χ. Ε.Κ. Οι επισκέπτες δεν τα βλέπουν ποτέ.", "narratorHintName": "Το όνομα, όπως το επιτρέπει η συναίνεση. Οι επισκέπτες το βλέπουν στις δημοσιευμένες ιστορίες (αναφορά).", "narratorHintChoose": "Αρχικά, ή το όνομα αν συμφωνεί ο αφηγητής (δες την Ανωνυμία).", "fInterviewDate": "Ημερομηνία της συνέντευξης", "fInterviewPlace": "Τόπος της συνέντευξης", "interviewPlacePh": "π.χ. η πλατεία του χωριού, Αγία Παρασκευή", "fInterview": "Συνέντευξη", "saveTestimony": "Αποθήκευση μαρτυρίας", "createTestimony": "Δημιουργία μαρτυρίας", "tmCreated": "Η μαρτυρία {c} δημιουργήθηκε. Πρόσθεσε τώρα τις ιστορίες της.", "tmWithCommunity": "Στην κοινότητα — οι ιστορίες της διορθώνονται ακόμα μέχρι να επικυρώσει η κοινότητα τη μαρτυρία.", "tmLocked": "Η κοινότητα επικύρωσε αυτή τη μαρτυρία: οι ιστορίες της είναι στους σχολιαστές και δεν αλλάζουν πια εδώ.", "tmWithdrawnNote": "Ανακλήθηκε: κρυμμένη παντού.", "storiesH": "Ιστορίες ({n})", "noStoriesYet": "Καμία ιστορία ακόμα.", "noFragments": "κανένα κομμάτι ακόμα", "miss_theme": "λείπει το θέμα", "miss_audio": "κανένα κομμάτι ήχου", "chkStories": "Τουλάχιστον μία ιστορία", "chkThemes": "Κάθε ιστορία έχει το θέμα της", "withdrawTestimonyLead": "Η ανάκληση κρύβει τη μαρτυρία και όλες τις ιστορίες της παντού και δεν αναιρείται. Η ενέργεια καταγράφεται. Μια νέα μαρτυρία χωρίς ιστορίες (π.χ. λάθος κωδικός) μπορεί απλώς να διαγραφεί.", "withdrawTestimony": "Ανάκληση αυτής της μαρτυρίας…", "withdrawTestimonyQ": "Ανάκληση της μαρτυρίας {c}; Οι ιστορίες της ({n}) θα ανακληθούν και θα κρυφτούν παντού. Δεν αναιρείται.", "deleteTestimony": "Διαγραφή (χωρίς ιστορίες ακόμα)", "deleteTestimonyQ": "Διαγραφή της μαρτυρίας {c}; Δεν έχει ακόμα ιστορίες.", "deleted": "Διαγράφηκε.", "notReady": "Δεν είναι ακόμα έτοιμη: κάθε ιστορία χρειάζεται το θέμα της και ένα κομμάτι ήχου.", "needInitials": "Με ανωνυμία γράψε μόνο τα αρχικά (π.χ. Ε.Κ.).", "needAnon": "Διάλεξε αν ο αφηγητής είναι ανώνυμος.", "needNarrator": "Γράψε τον αφηγητή (αρχικά ή όνομα).", "needInterviewDate": "Διάλεξε την ημερομηνία της συνέντευξης.", "needInterviewPlace": "Γράψε τον τόπο της συνέντευξης.", "t_draft": "Πρόχειρη", "t_community_validation": "Στην κοινότητα", "t_validated": "Επικυρώθηκε από την κοινότητα", "t_withdrawn": "Ανακλήθηκε", "backToTestimony": "← Πίσω στη μαρτυρία", "ofTestimony": "Μαρτυρία: {t}", "noTestimony": "Η μαρτυρία δεν βρέθηκε.", "storyWithdrawnNote": "Ανακλήθηκε: κρυμμένη παντού.", "fPoint": "Σημείο στον χάρτη", "pointHint": "Πάτα στον χάρτη ή σύρε την πινέζα· αναζήτησε για να πας σε έναν τόπο.", "needPoint": "Διάλεξε το σημείο στον χάρτη.", "openFrag": "Άνοιγμα", "fCaption": "Λεζάντα", "captionPh": "Τι δείχνει η φωτογραφία ή το βίντεο", "noCaption": "χωρίς λεζάντα", "storyReadyTitle": "Έτοιμη για την κοινότητα;", "chkTheme": "Το θέμα είναι γραμμένο", "chkAudioStory": "Τουλάχιστον ένα κομμάτι ήχου", "storyReadyHint": "Όταν όλες οι ιστορίες της μαρτυρίας είναι έτοιμες, στείλε όλη τη μαρτυρία για επικύρωση από την κοινότητα από τη σελίδα της.", "storiesN": "{n} ιστορίες", "storiesN1": "1 ιστορία", "nWaiting1": "1 μαρτυρία για επικύρωση", "nTestimonies1": "1 μαρτυρία", "correctTestimony": "✎ Αφηγητής, ημερομηνία, τόπος, γλώσσα", "editCaption": "✎ Λεζάντα"};
+  I18N.fr = {"appTitle": "Walking Memory · Facilitateur", "logout": "Déconnexion", "login": "Connexion", "email": "E-mail", "password": "Mot de passe", "loginHint": "Connectez-vous avec le compte personnel qu’un administrateur a créé pour vous.", "loginFail": "Échec de connexion : {e}", "noSiteTitle": "Votre compte n’est pas encore rattaché à un site pilote", "noSiteText": "Demandez à un administrateur de rattacher votre compte à votre site pilote comme facilitateur. D’ici là, vous ne pouvez ni voir ni créer de témoignages ou d’histoires.", "toAdmin": "Ouvrir la page d’administration →", "colStories": "Histoires", "colStatus": "Statut", "noneYet": "Rien pour l’instant.", "loading": "Chargement…", "loadErr": "Chargement impossible : {e}", "needSql": "Cette page nécessite une mise à jour de la base : l’administrateur doit exécuter supabase/roles.sql.", "newStory": "+ Nouvelle histoire", "storiesLead": "Chaque histoire répond à une question de l’entretien (son thème), dit qui, où et quand, et contient ses fragments.", "f_all": "Toutes", "s_draft": "Brouillon", "s_ready_for_annotation": "En annotation", "s_submitted": "Soumise pour validation", "s_returned": "Renvoyée aux annotateurs", "s_published": "Publiée", "s_withdrawn": "Retirée", "src_workshop_field": "Site web", "src_ar": "Application AR", "newStoryH": "Nouvelle histoire", "fTitle": "Titre", "fLanguage": "Langue / dialecte", "choose": "— choisir —", "modePoint": "Point", "modeArea": "Zone", "searchPh": "Rechercher un lieu ou une adresse…", "searchBtn": "Rechercher", "placeNone": "Aucun résultat.", "placeErr": "La recherche a échoué : {e}", "noPoint": "Rien de choisi sur la carte", "pointAt": "Point : {p}", "areaN": "Zone à {n} coins", "areaNeed": "Une zone a besoin d’au moins 3 coins ({n} pour l’instant)", "undoCorner": "Annuler le dernier coin", "clearMap": "Effacer", "removePoint": "Retirer", "createStory": "Créer l’histoire", "saveStory": "Enregistrer l’histoire", "saved": "Enregistré.", "created": "Histoire créée. Ajoutez maintenant ses fragments.", "needTitle": "Écrivez un titre.", "needLanguage": "Choisissez la langue ou le dialecte.", "saveErr": "Non enregistré : {e}", "fragH": "Fragments ({n})", "fragLead": "Ajoutez les fichiers anonymisés et déjà découpés (audio WAV/MP3/M4A, photos JPG/PNG/TIFF, vidéo MP4) ; le type est reconnu d’après le fichier. Leur ordre est celui du récit : faites glisser pour réordonner. Une photo ou une vidéo peut avoir une légende.", "dropText": "Déposez des fichiers ici", "chooseFiles": "Choisir des fichiers", "dropTypes": "Audio WAV, MP3, M4A · images JPG, PNG, TIFF · vidéo MP4 · jusqu’à {mb} Mo chacun.", "upChecking": "{f} : vérification…", "upUploading": "{f} : envoi…", "upDone": "{f} : ajouté ✓", "upBadType": "{f} : ce type de fichier n’est pas accepté.", "upTooBig": "{f} : plus de {mb} Mo.", "upErr": "{f} : non ajouté ({e})", "kind_audio": "Audio", "kind_image": "Photo", "kind_video": "Vidéo", "close": "Fermer", "moveUp": "Monter", "moveDown": "Descendre", "dragHint": "Faire glisser pour réordonner", "fWho": "Qui", "whoPh": "p. ex. grand-mère Maria et sa sœur, les pêcheurs du port", "fWhere": "Où", "wherePh": "Nom du lieu", "fWhen": "Quand", "saveFrag": "Enregistrer le fragment", "fragSaved": "Fragment enregistré.", "deleteFrag": "Supprimer", "deleteFragQ": "Supprimer ce fragment ? Le fichier envoyé reste dans le stockage.", "unsaved": "modifications non enregistrées", "fileInfo": "{name} · {size} · enregistré le {date}", "checksumOk": "somme de contrôle conservée ✓", "checksumServer": "empreinte du serveur ✓", "readyTitle": "Envoyer à la validation par la communauté", "chkAudio": "Chaque histoire a au moins un fragment audio", "readyBtn": "Envoyer à la validation par la communauté", "backToDraft": "Revenir au brouillon", "readyDone": "Le témoignage est maintenant avec la communauté. Vous pouvez encore le corriger jusqu’à ce qu’elle le valide.", "lockStatus": "La communauté a validé le témoignage de cette histoire ({s}) ; elle ne peut plus être modifiée ici.", "readyNote": "Avec la communauté — vous pouvez encore la corriger jusqu’à ce que le témoignage soit validé.", "withdrawTitle": "Retrait", "withdrawStoryLead": "Le retrait masque l’histoire partout et ne peut pas être annulé. L’action est journalisée.", "withdrawStory": "Retirer cette histoire…", "withdrawStoryQ": "Retirer « {t} » ? Elle sera masquée partout. C’est irréversible.", "withdrawn": "Retiré.", "fullscreen": "Plein écran", "exitPresent": "Retour à la liste", "play": "▶ Lire", "pause": "❚❚ Pause", "addNote": "Commentaire…", "noteTitle": "Ce que la communauté a dit", "noteLabel": "Ce qui a été dit", "saveNote": "Enregistrer le commentaire", "noteSaved": "Commentaire enregistré.", "noteLead": "Gardé avec le fragment pour les annotateurs et les validateurs ; jamais public.", "noAnswer": "vide", "fLicence": "Licence", "cancel": "Annuler", "save": "Enregistrer", "needLicence": "Choisissez la licence.", "leaveQ": "Vous avez des modifications non enregistrées. Quitter quand même la page ?", "lic_CC-BY-4.0": "Chacun peut la partager et la réutiliser, y compris commercialement, en citant le narrateur.", "lic_CC-BY-SA-4.0": "Comme CC BY, et tout ce qui en est tiré doit être partagé sous la même licence.", "lic_CC-BY-NC-4.0": "Chacun peut la partager et la réutiliser en citant le narrateur, mais pas à des fins commerciales.", "lic_CC-BY-NC-SA-4.0": "Réutilisation non commerciale en citant le narrateur, et tout ce qui en est tiré doit utiliser la même licence.", "lic_CC-BY-NC-ND-4.0": "Peut être partagée telle quelle, en citant et sans usage commercial ; pas d’adaptations.", "lic_PROJECT-ONLY": "Aucune réutilisation publique : seul le projet Walking Memory la montre.", "projectOnly": "Usage du projet uniquement", "navCommunity": "Validation par la communauté", "colCode": "Code", "colCreated": "Créé le", "s_community_validation": "Avec la communauté", "fTheme": "Thème (la question de l’entretien)", "themePh": "p. ex. Que vous rappelez-vous des fêtes du village ?", "themeHint": "La question à laquelle répond cette histoire : c’est son « pourquoi ».", "needTheme": "Écrivez le thème (la question de l’entretien).", "agreeLegend": "Le narrateur accepte", "agree_provide": "de donner son histoire (enregistrements, photos, vidéos) au projet ;", "agree_cut": "que l’histoire soit découpée en morceaux (fragments) ;", "agree_comment": "que d’autres (la communauté et l’équipe du projet) la commentent et y ajoutent des détails ;", "agree_share": "qu’elle soit montrée et partagée sous la licence choisie ci-dessous ;", "agree_voluntary": "et participe librement, sachant qu’il peut retirer l’histoire à tout moment.", "agreeShort_provide": "donne l’histoire", "agreeShort_cut": "découpage en morceaux", "agreeShort_comment": "commentaires d’autres", "agreeShort_share": "partage sous la licence", "agreeShort_voluntary": "volontaire", "needAgree": "Le narrateur doit accepter chaque point.", "openWithCommunity": "Ouvrir avec la communauté", "communityTitle": "Validation par la communauté", "communityLead": "Les témoignages de votre site que la communauté n’a pas encore validés. Ouvrez-en un sur grand écran, parcourez ses histoires et ses fragments avec la communauté, corrigez ce qu’elle dit, notez ses commentaires, et marquez-le comme validé : ses histoires partent alors en annotation.", "nWaiting": "{n} témoignages à valider", "noneWaiting": "Aucun témoignage n’attend la communauté.", "correctStory": "Corriger « {t} »", "correct": "✎ Corriger", "validateHint": "Quand la communauté est d’accord avec toutes ses histoires, marquez le témoignage comme validé. Ses histoires partent alors en annotation et ne peuvent plus être modifiées ici.", "validatedBtn": "✓ Validée par la communauté", "validateQ": "La communauté a-t-elle validé le témoignage {c} ({s}) ? Ses histoires partent alors en annotation et ne peuvent plus être modifiées ici.", "validatedDone": "Témoignage {c} validé par la communauté : ses histoires partent en annotation ✓", "notEditable": "Cette histoire ne peut plus être modifiée ici.", "whenPh": "p. ex. 14/7/1965, été 1965, ~1922, après la guerre", "fCode": "Code de consentement (imprimé sur le formulaire)", "codePh": "p. ex. LES-0042", "needCode": "Saisissez le code imprimé sur le formulaire de consentement (2 à 40 caractères).", "codeExists": "Le code {c} est déjà enregistré.", "navTestimonies": "Témoignages", "testimoniesTitle": "Témoignages", "newTestimony": "+ Nouveau témoignage", "testimoniesLead": "Un témoignage par entretien : un narrateur, un formulaire de consentement imprimé. Un témoignage contient ses histoires, et une histoire ses fragments. Quand toutes ses histoires sont prêtes, le témoignage va à la communauté pour validation.", "searchTestimony": "Chercher un code, un narrateur ou un lieu", "colNarrator": "Narrateur", "colInterview": "Entretien", "nTestimonies": "{n} témoignages", "backToTestimonies": "← Tous les témoignages", "newTestimonyH": "Nouveau témoignage", "newTestimonyLead": "Saisissez le code imprimé sur le formulaire de consentement, cochez avec le narrateur ce qu’il accepte, et choisissez ensemble la licence et l’anonymat. Ils ne pourront plus être modifiés.", "fAnonymity": "Anonymat", "anonYes": "Oui : ne garder que les initiales du narrateur", "anonNo": "Non : le nom du narrateur peut être utilisé", "anonShort": "anonyme", "fNarrator": "Narrateur", "narratorHintAnon": "Initiales seulement, p. ex. E.K. Les visiteurs ne les voient jamais.", "narratorHintName": "Le nom, comme le consentement le permet. Les visiteurs le voient avec les histoires publiées (crédit).", "narratorHintChoose": "Les initiales, ou le nom si le narrateur l’accepte (voir Anonymat).", "fInterviewDate": "Date de l’entretien", "fInterviewPlace": "Lieu de l’entretien", "interviewPlacePh": "p. ex. la place du village, Agia Paraskevi", "fInterview": "Entretien", "saveTestimony": "Enregistrer le témoignage", "createTestimony": "Créer le témoignage", "tmCreated": "Témoignage {c} créé. Ajoutez maintenant ses histoires.", "tmWithCommunity": "Avec la communauté — ses histoires peuvent encore être corrigées jusqu’à ce que la communauté valide le témoignage.", "tmLocked": "La communauté a validé ce témoignage : ses histoires sont chez les annotateurs et ne peuvent plus être modifiées ici.", "tmWithdrawnNote": "Retiré : caché partout.", "storiesH": "Histoires ({n})", "noStoriesYet": "Aucune histoire pour l’instant.", "noFragments": "aucun fragment pour l’instant", "miss_theme": "thème manquant", "miss_audio": "aucun fragment audio", "chkStories": "Au moins une histoire", "chkThemes": "Chaque histoire a son thème", "withdrawTestimonyLead": "Le retrait cache le témoignage et toutes ses histoires partout et ne peut pas être annulé. L’action est enregistrée. Un nouveau témoignage sans histoires (p. ex. un code erroné) peut simplement être supprimé.", "withdrawTestimony": "Retirer ce témoignage…", "withdrawTestimonyQ": "Retirer le témoignage {c} ? Ses histoires ({n}) seront retirées et cachées partout. C’est irréversible.", "deleteTestimony": "Supprimer (pas encore d’histoires)", "deleteTestimonyQ": "Supprimer le témoignage {c} ? Il n’a pas encore d’histoires.", "deleted": "Supprimé.", "notReady": "Pas encore prêt : chaque histoire a besoin de son thème et d’un fragment audio.", "needInitials": "Avec l’anonymat, écrivez seulement les initiales (p. ex. E.K.).", "needAnon": "Indiquez si le narrateur est anonyme.", "needNarrator": "Indiquez le narrateur (initiales ou nom).", "needInterviewDate": "Choisissez la date de l’entretien.", "needInterviewPlace": "Indiquez le lieu de l’entretien.", "t_draft": "Brouillon", "t_community_validation": "Avec la communauté", "t_validated": "Validé par la communauté", "t_withdrawn": "Retiré", "backToTestimony": "← Retour au témoignage", "ofTestimony": "Témoignage : {t}", "noTestimony": "Ce témoignage est introuvable.", "storyWithdrawnNote": "Retirée : cachée partout.", "fPoint": "Point sur la carte", "pointHint": "Cliquez sur la carte ou faites glisser l’épingle ; cherchez pour aller à un lieu.", "needPoint": "Choisissez le point sur la carte.", "openFrag": "Ouvrir", "fCaption": "Légende", "captionPh": "Ce que montre la photo ou la vidéo", "noCaption": "sans légende", "storyReadyTitle": "Prête pour la communauté ?", "chkTheme": "Le thème est écrit", "chkAudioStory": "Au moins un fragment audio", "storyReadyHint": "Quand toutes les histoires du témoignage sont prêtes, envoyez tout le témoignage en validation par la communauté depuis sa page.", "storiesN": "{n} histoires", "storiesN1": "1 histoire", "nWaiting1": "1 témoignage à valider", "nTestimonies1": "1 témoignage", "correctTestimony": "✎ Narrateur, date, lieu, langue", "editCaption": "✎ Légende"};
+  I18N.it = {"appTitle": "Walking Memory · Facilitatore", "logout": "Esci", "login": "Accedi", "email": "E-mail", "password": "Password", "loginHint": "Accedi con l’account personale che un amministratore ha creato per te.", "loginFail": "Accesso non riuscito: {e}", "noSiteTitle": "Il tuo account non è ancora collegato a un sito pilota", "noSiteText": "Chiedi a un amministratore di collegare il tuo account al tuo sito pilota come facilitatore. Fino ad allora non puoi vedere né creare testimonianze o storie.", "toAdmin": "Apri la pagina di amministrazione →", "colStories": "Storie", "colStatus": "Stato", "noneYet": "Ancora niente.", "loading": "Caricamento…", "loadErr": "Impossibile caricare: {e}", "needSql": "Questa pagina richiede un aggiornamento del database: l’amministratore deve eseguire supabase/roles.sql.", "newStory": "+ Nuova storia", "storiesLead": "Ogni storia risponde a una domanda dell’intervista (il suo tema), dice chi, dove e quando, e contiene i suoi frammenti.", "f_all": "Tutte", "s_draft": "Bozza", "s_ready_for_annotation": "In annotazione", "s_submitted": "Inviata per la validazione", "s_returned": "Restituita agli annotatori", "s_published": "Pubblicata", "s_withdrawn": "Ritirata", "src_workshop_field": "Sito web", "src_ar": "App AR", "newStoryH": "Nuova storia", "fTitle": "Titolo", "fLanguage": "Lingua / dialetto", "choose": "— scegli —", "modePoint": "Punto", "modeArea": "Area", "searchPh": "Cerca un luogo o un indirizzo…", "searchBtn": "Cerca", "placeNone": "Nessun risultato.", "placeErr": "Ricerca non riuscita: {e}", "noPoint": "Niente scelto sulla mappa", "pointAt": "Punto: {p}", "areaN": "Area con {n} angoli", "areaNeed": "Un’area richiede almeno 3 angoli (finora {n})", "undoCorner": "Annulla l’ultimo angolo", "clearMap": "Cancella", "removePoint": "Rimuovi", "createStory": "Crea la storia", "saveStory": "Salva la storia", "saved": "Salvato.", "created": "Storia creata. Ora aggiungi i suoi frammenti.", "needTitle": "Scrivi un titolo.", "needLanguage": "Scegli la lingua o il dialetto.", "saveErr": "Non salvato: {e}", "fragH": "Frammenti ({n})", "fragLead": "Aggiungi i file già anonimizzati e tagliati (audio WAV/MP3/M4A, foto JPG/PNG/TIFF, video MP4); il tipo è riconosciuto dal file. Il loro ordine è l’ordine del racconto: trascina per riordinare. Una foto o un video può avere una didascalia.", "dropText": "Trascina qui i file", "chooseFiles": "Scegli i file", "dropTypes": "Audio WAV, MP3, M4A · immagini JPG, PNG, TIFF · video MP4 · fino a {mb} MB ciascuno.", "upChecking": "{f}: verifica…", "upUploading": "{f}: caricamento…", "upDone": "{f}: aggiunto ✓", "upBadType": "{f}: questo tipo di file non è accettato.", "upTooBig": "{f}: più di {mb} MB.", "upErr": "{f}: non aggiunto ({e})", "kind_audio": "Audio", "kind_image": "Foto", "kind_video": "Video", "close": "Chiudi", "moveUp": "Sposta su", "moveDown": "Sposta giù", "dragHint": "Trascina per riordinare", "fWho": "Chi", "whoPh": "es. nonna Maria e sua sorella, i pescatori del porto", "fWhere": "Dove", "wherePh": "Nome del luogo", "fWhen": "Quando", "saveFrag": "Salva il frammento", "fragSaved": "Frammento salvato.", "deleteFrag": "Elimina", "deleteFragQ": "Eliminare questo frammento? Il file caricato resta nell’archivio.", "unsaved": "modifiche non salvate", "fileInfo": "{name} · {size} · registrato il {date}", "checksumOk": "checksum conservato ✓", "checksumServer": "impronta del server ✓", "readyTitle": "Invia alla validazione della comunità", "chkAudio": "Ogni storia ha almeno un frammento audio", "readyBtn": "Invia alla validazione della comunità", "backToDraft": "Torna a bozza", "readyDone": "La testimonianza ora è con la comunità. Puoi ancora correggerla finché la comunità non la convalida.", "lockStatus": "La comunità ha convalidato la testimonianza di questa storia ({s}); non si può più cambiare qui.", "readyNote": "Con la comunità — puoi ancora correggerla finché la testimonianza non è convalidata.", "withdrawTitle": "Ritiro", "withdrawStoryLead": "Il ritiro nasconde la storia ovunque e non si può annullare. L’azione viene registrata.", "withdrawStory": "Ritira questa storia…", "withdrawStoryQ": "Ritirare «{t}»? Sarà nascosta ovunque. Non si può annullare.", "withdrawn": "Ritirato.", "fullscreen": "Schermo intero", "exitPresent": "Torna all’elenco", "play": "▶ Riproduci", "pause": "❚❚ Pausa", "addNote": "Commento…", "noteTitle": "Cosa ha detto la comunità", "noteLabel": "Cosa è stato detto", "saveNote": "Salva il commento", "noteSaved": "Commento salvato.", "noteLead": "Resta con il frammento per gli annotatori e i validatori; mai pubblico.", "noAnswer": "vuoto", "fLicence": "Licenza", "cancel": "Annulla", "save": "Salva", "needLicence": "Scegli la licenza.", "leaveQ": "Hai modifiche non salvate. Lasciare comunque la pagina?", "lic_CC-BY-4.0": "Chiunque può condividerla e riutilizzarla, anche commercialmente, citando chi racconta.", "lic_CC-BY-SA-4.0": "Come CC BY, e ciò che ne deriva va condiviso con la stessa licenza.", "lic_CC-BY-NC-4.0": "Chiunque può condividerla e riutilizzarla citando chi racconta, ma non a fini commerciali.", "lic_CC-BY-NC-SA-4.0": "Riutilizzo non commerciale citando chi racconta, e ciò che ne deriva usa la stessa licenza.", "lic_CC-BY-NC-ND-4.0": "Può essere condivisa così com’è, citando e non commercialmente; senza modifiche.", "lic_PROJECT-ONLY": "Nessun riutilizzo pubblico: la mostra solo il progetto Walking Memory.", "projectOnly": "Solo per il progetto", "navCommunity": "Validazione della comunità", "colCode": "Codice", "colCreated": "Creato il", "s_community_validation": "Con la comunità", "fTheme": "Tema (la domanda dell’intervista)", "themePh": "es. Cosa ricorda delle feste del paese?", "themeHint": "La domanda a cui risponde questa storia: è il suo «perché».", "needTheme": "Scrivi il tema (la domanda dell’intervista).", "agreeLegend": "Il narratore accetta", "agree_provide": "di dare la sua storia (registrazioni, foto, video) al progetto;", "agree_cut": "che la storia sia tagliata in pezzi (frammenti);", "agree_comment": "che altri (la comunità e il gruppo del progetto) la commentino e aggiungano dettagli;", "agree_share": "che sia mostrata e condivisa con la licenza scelta qui sotto;", "agree_voluntary": "e partecipa liberamente, sapendo di poter ritirare la storia in qualsiasi momento.", "agreeShort_provide": "dà la storia", "agreeShort_cut": "taglio in pezzi", "agreeShort_comment": "commenti di altri", "agreeShort_share": "condivisa con la licenza", "agreeShort_voluntary": "volontario", "needAgree": "Il narratore deve accettare ogni punto.", "openWithCommunity": "Apri con la comunità", "communityTitle": "Validazione della comunità", "communityLead": "Le testimonianze del tuo sito che la comunità non ha ancora convalidato. Aprine una su un grande schermo, ripercorri con la comunità le sue storie e i frammenti, correggi ciò che dice, annota i commenti e segnala come convalidata: le sue storie passano allora all’annotazione.", "nWaiting": "{n} testimonianze da convalidare", "noneWaiting": "Nessuna testimonianza attende la comunità.", "correctStory": "Correggi «{t}»", "correct": "✎ Correggi", "validateHint": "Quando la comunità è d’accordo con tutte le storie, segna la testimonianza come convalidata. Le sue storie passano allora all’annotazione e non si possono più cambiare qui.", "validatedBtn": "✓ Validata dalla comunità", "validateQ": "La comunità ha convalidato la testimonianza {c} ({s})? Le sue storie passano allora all’annotazione e non si possono più cambiare qui.", "validatedDone": "Testimonianza {c} convalidata dalla comunità: le sue storie passano all’annotazione ✓", "notEditable": "Questa storia qui non si può più modificare.", "whenPh": "es. 14/7/1965, estate 1965, ~1922, dopo la guerra", "fCode": "Codice di consenso (stampato sul modulo)", "codePh": "es. LES-0042", "needCode": "Scrivi il codice stampato sul modulo di consenso (da 2 a 40 caratteri).", "codeExists": "Il codice {c} è già registrato.", "navTestimonies": "Testimonianze", "testimoniesTitle": "Testimonianze", "newTestimony": "+ Nuova testimonianza", "testimoniesLead": "Una testimonianza per ogni intervista: un narratore, un modulo di consenso stampato. Una testimonianza contiene le sue storie e ogni storia i suoi frammenti. Quando tutte le storie sono pronte, la testimonianza va alla comunità per la validazione.", "searchTestimony": "Cerca codice, narratore o luogo", "colNarrator": "Narratore", "colInterview": "Intervista", "nTestimonies": "{n} testimonianze", "backToTestimonies": "← Tutte le testimonianze", "newTestimonyH": "Nuova testimonianza", "newTestimonyLead": "Scrivi il codice stampato sul modulo di consenso, spunta con il narratore ciò che accetta e scegliete insieme la licenza e l’anonimato. Non si potranno cambiare in seguito.", "fAnonymity": "Anonimato", "anonYes": "Sì: teniamo solo le iniziali del narratore", "anonNo": "No: si può usare il nome del narratore", "anonShort": "anonimo", "fNarrator": "Narratore", "narratorHintAnon": "Solo iniziali, es. E.K. I visitatori non le vedono mai.", "narratorHintName": "Il nome, come consente il consenso. I visitatori lo vedono con le storie pubblicate (attribuzione).", "narratorHintChoose": "Le iniziali, o il nome se il narratore è d’accordo (vedi Anonimato).", "fInterviewDate": "Data dell’intervista", "fInterviewPlace": "Luogo dell’intervista", "interviewPlacePh": "es. la piazza del paese, Agia Paraskevi", "fInterview": "Intervista", "saveTestimony": "Salva la testimonianza", "createTestimony": "Crea la testimonianza", "tmCreated": "Testimonianza {c} creata. Ora aggiungi le sue storie.", "tmWithCommunity": "Con la comunità — le sue storie si possono ancora correggere finché la comunità non convalida la testimonianza.", "tmLocked": "La comunità ha convalidato questa testimonianza: le sue storie sono presso gli annotatori e non si possono più cambiare qui.", "tmWithdrawnNote": "Ritirata: nascosta ovunque.", "storiesH": "Storie ({n})", "noStoriesYet": "Ancora nessuna storia.", "noFragments": "ancora nessun frammento", "miss_theme": "manca il tema", "miss_audio": "nessun frammento audio", "chkStories": "Almeno una storia", "chkThemes": "Ogni storia ha il suo tema", "withdrawTestimonyLead": "Il ritiro nasconde la testimonianza e tutte le sue storie ovunque e non si può annullare. L’azione viene registrata. Una nuova testimonianza senza storie (es. un codice sbagliato) si può semplicemente eliminare.", "withdrawTestimony": "Ritira questa testimonianza…", "withdrawTestimonyQ": "Ritirare la testimonianza {c}? Le sue storie ({n}) saranno ritirate e nascoste ovunque. Non si può annullare.", "deleteTestimony": "Elimina (ancora senza storie)", "deleteTestimonyQ": "Eliminare la testimonianza {c}? Non ha ancora storie.", "deleted": "Eliminata.", "notReady": "Non è ancora pronta: ogni storia ha bisogno del suo tema e di un frammento audio.", "needInitials": "Con l’anonimato scrivi solo le iniziali (es. E.K.).", "needAnon": "Scegli se il narratore è anonimo.", "needNarrator": "Scrivi il narratore (iniziali o nome).", "needInterviewDate": "Scegli la data dell’intervista.", "needInterviewPlace": "Scrivi il luogo dell’intervista.", "t_draft": "Bozza", "t_community_validation": "Con la comunità", "t_validated": "Convalidata dalla comunità", "t_withdrawn": "Ritirata", "backToTestimony": "← Torna alla testimonianza", "ofTestimony": "Testimonianza: {t}", "noTestimony": "Testimonianza non trovata.", "storyWithdrawnNote": "Ritirata: nascosta ovunque.", "fPoint": "Punto sulla mappa", "pointHint": "Fai clic sulla mappa o trascina lo spillo; cerca per andare a un luogo.", "needPoint": "Scegli il punto sulla mappa.", "openFrag": "Apri", "fCaption": "Didascalia", "captionPh": "Cosa mostra la foto o il video", "noCaption": "senza didascalia", "storyReadyTitle": "Pronta per la comunità?", "chkTheme": "Il tema è scritto", "chkAudioStory": "Almeno un frammento audio", "storyReadyHint": "Quando tutte le storie della testimonianza sono pronte, invia l’intera testimonianza alla validazione della comunità dalla sua pagina.", "storiesN": "{n} storie", "storiesN1": "1 storia", "nWaiting1": "1 testimonianza da convalidare", "nTestimonies1": "1 testimonianza", "correctTestimony": "✎ Narratore, data, luogo, lingua", "editCaption": "✎ Didascalia"};
   var LANG = (function () {
     try { var v = localStorage.getItem('dm_lang'); if (I18N[v]) return v; } catch (e) {}
     var p = navigator.languages || [navigator.language || 'el'];
@@ -621,6 +629,7 @@
     return 'el';
   })();
   function t(k, v) { var s = (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k; if (v) Object.keys(v).forEach(function (x) { s = s.split('{' + x + '}').join(v[x]); }); return s; }
+  function tn(k, n) { return t(n === 1 ? k + '1' : k, { n: n }); }      // "1 story" / "{n} stories"
   function applyLang() {
     document.documentElement.lang = LANG; $('lang').value = LANG; document.title = t('appTitle');
     document.querySelectorAll('[data-i]').forEach(function (e) { e.textContent = t(e.getAttribute('data-i')); });
@@ -632,24 +641,34 @@
   var MAX_MB = +CFG.MAX_UPLOAD_MB || 50;
   try { if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { sb = null; }
   var LICENSES = ['CC-BY-4.0', 'CC-BY-SA-4.0', 'CC-BY-NC-4.0', 'CC-BY-NC-SA-4.0', 'CC-BY-NC-ND-4.0', 'PROJECT-ONLY'];
+  var AGREE = ['provide', 'cut', 'comment', 'share', 'voluntary'];
   var KIND_ICON = { image: '🖼', audio: '🎙', video: '🎬' };
   var TYPES = { wav: ['audio', 'audio/wav'], mp3: ['audio', 'audio/mpeg'], m4a: ['audio', 'audio/mp4'], jpg: ['image', 'image/jpeg'], jpeg: ['image', 'image/jpeg'],
                 png: ['image', 'image/png'], tif: ['image', 'image/tiff'], tiff: ['image', 'image/tiff'], mp4: ['video', 'video/mp4'] };
+  // a testimony's columns; with anonymity the narrator is initials only (e.g. "EK", "E.K.")
+  var TCOLS = 'id,code,narrator,anonymous,interview_date,interview_place,language,license,accepted,status,created_at';
+  var INITIALS = /^\p{L}(\.? ?\p{L}){0,3}\.?$/u;
   function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
   function opt(v, label) { var o = document.createElement('option'); o.value = v; o.textContent = label; return o; }
   function errText(e) { return (e && (e.message || e.details)) || String(e); }
   function isSqlMissing(e) { return /schema cache|does not exist|could not find|PGRST20[0-9]/i.test(errText(e) + ' ' + ((e && e.code) || '')); }
-  function niceErr(e) { return isSqlMissing(e) ? t('needSql') : errText(e); }
-  function licName(id) { return id === 'PROJECT-ONLY' ? t('projectOnly') : String(id || '').replace(/^CC-/, 'CC ').replace(/-4\.0$/, ' 4.0').replace(/-/g, '-'); }
+  function niceErr(e) {
+    if (isSqlMissing(e)) return t('needSql');
+    var m = errText(e);
+    if (/Not ready yet/i.test(m)) return t('notReady');
+    if (/testimonies_fields_check/.test(m)) return t('needInitials');
+    return m;
+  }
+  function licName(id) { return id === 'PROJECT-ONLY' ? t('projectOnly') : String(id || '').replace(/^CC-/, 'CC ').replace(/-4\.0$/, ' 4.0'); }
   function fmtDate(d) { if (!d) return ''; var x = new Date(String(d).length <= 10 ? d + 'T12:00:00' : d); return isNaN(x) ? String(d) : x.toLocaleDateString(LANG, { year: 'numeric', month: 'short', day: 'numeric' }); }
   function today() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
-  function addDays(iso, n) { var d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
   function fmtSize(b) { if (b == null) return '—'; return b < 1048576 ? Math.round(b / 1024) + ' KB' : (b / 1048576).toFixed(1) + ' MB'; }
   function mediaUrl(path) { return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl; }
-  function consentLabel(c) { return c ? c.code + (c.license ? ' · ' + licName(c.license) : '') : ''; }
+  function langName(code) { var l = CTX.languages.filter(function (x) { return x.code === code; })[0]; return l ? l.label : (code || ''); }
+  function tmLabel(tm) { return tm ? tm.code + (tm.narrator ? ' · ' + tm.narrator : '') : ''; }
+  function interviewText(tm) { return [fmtDate(tm.interview_date), tm.interview_place].filter(Boolean).join(' · '); }
   var statusTimer = null;
   function say(msg, bad) { var s = $('status'); s.textContent = msg; s.className = bad ? 'bad' : ''; s.hidden = false; clearTimeout(statusTimer); statusTimer = setTimeout(function () { s.hidden = true; }, 5000); }
-  function setBusy(b, on) { if (b) b.disabled = !!on; }
 
   // ---------- sign in and context (profile, site, languages) ----------
   var user = null, loadedFor = null;
@@ -662,7 +681,7 @@
   $('logout').onclick = function () { if (sb) sb.auth.signOut(); };
   function myName() { return user ? String((user.user_metadata && user.user_metadata.display_name) || (user.email || '').split('@')[0]).slice(0, 60) : ''; }
   function showOnly(id) {
-    ['vLogin', 'vNoSite', 'vConsents', 'vStories', 'vStory', 'vCommunity'].forEach(function (v) { $(v).hidden = v !== id; });
+    ['vLogin', 'vNoSite', 'vTestimonies', 'vTestimony', 'vStory', 'vCommunity'].forEach(function (v) { $(v).hidden = v !== id; });
   }
   async function onSession(session) {
     if (session && loadedFor === session.user.id) { user = session.user; return; }
@@ -686,26 +705,28 @@
     route();
   }
 
-  // ---------- routes ----------
+  // ---------- routes: #testimonies, #testimony/<id|new>, #story/<id>, #story/new/<testimony>, #community[/<testimony>] ----------
   function route() {
     if (!user || !CTX.site) return;
-    var h = location.hash.replace(/^#/, ''), parts = h.split('/');
-    var v = parts[0] || 'consents';
+    var parts = location.hash.replace(/^#/, '').split('/'), v = parts[0];
     if (!(v === 'community' && parts[1])) leavePresent();
-    document.querySelectorAll('#nav a').forEach(function (a) { if (a.dataset.v === (v === 'story' ? 'stories' : v)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-    if (v === 'stories') { showOnly('vStories'); loadStories(); }
-    else if (v === 'story') { showOnly('vStory'); openStory(parts[1] || 'new'); }
-    else if (v === 'community' && parts[1]) { enterPresent(parts[1]); }
+    var nav = v === 'community' ? 'community' : 'testimonies';
+    document.querySelectorAll('#nav a').forEach(function (a) { if (a.dataset.v === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    if (v === 'testimony' && parts[1]) { showOnly('vTestimony'); openTestimony(parts[1]); }
+    else if (v === 'story' && parts[1]) { showOnly('vStory'); openStory(parts[1], parts[2]); }
+    else if (v === 'community' && parts[1]) enterPresent(parts[1]);
     else if (v === 'community') { showOnly('vCommunity'); loadCommunity(); }
-    else { showOnly('vConsents'); loadConsents(); }
+    else { showOnly('vTestimonies'); loadTestimonies(); }
     window.scrollTo(0, 0);
   }
+  var lastHash = location.hash;
   window.addEventListener('hashchange', function () {
-    if (storyDirty() && !window.confirm(t('leaveQ'))) { history.replaceState(null, '', '#story/' + (S.story ? S.story.id : 'new')); return; }
-    route();
+    if ((tmDirty() || storyDirty()) && !window.confirm(t('leaveQ'))) { history.replaceState(null, '', lastHash); return; }
+    lastHash = location.hash; route();
   });
+  window.addEventListener('beforeunload', function (ev) { if (tmDirty() || storyDirty()) { ev.preventDefault(); ev.returnValue = ''; } });
 
-  // ---------- map picker: a point, or an area (polygon) ----------
+  // ---------- map picker: a point (or an area) ----------
   function makePicker(box, opts) {
     opts = opts || {};
     var P = { lat: null, lon: null, verts: [], mode: 'point', map: null, layer: null, onPick: null };
@@ -731,8 +752,8 @@
         if (P.layer) P.map.removeLayer(P.layer);
         P.layer = L.layerGroup().addTo(P.map);
         if (P.mode === 'point' && P.lat != null) {
-          var mk = L.marker([P.lat, P.lon], { draggable: true }).addTo(P.layer);
-          mk.on('dragend', function () { var c = mk.getLatLng(); P.lat = c.lat; P.lon = c.lng; label(); });
+          var mk = L.marker([P.lat, P.lon], { draggable: !opts.readOnly }).addTo(P.layer);
+          mk.on('dragend', function () { var c = mk.getLatLng(); P.lat = c.lat; P.lon = c.lng; label(); if (P.onChange) P.onChange(); });
           if (center) P.map.setView([P.lat, P.lon], Math.max(P.map.getZoom(), 16));
         }
         if (P.mode === 'area' && P.verts.length) {
@@ -744,11 +765,11 @@
       }
       label();
     }
-    function setMode(m) { P.mode = m; draw(true); }
-    bPoint.onclick = function () { setMode('point'); };
-    bArea.onclick = function () { setMode('area'); };
-    undo.onclick = function () { P.verts.pop(); draw(); };
-    clr.onclick = function () { if (P.mode === 'area') P.verts = []; else { P.lat = P.lon = null; } draw(); };
+    function changed() { draw(); if (P.onChange) P.onChange(); }
+    bPoint.onclick = function () { P.mode = 'point'; draw(true); };
+    bArea.onclick = function () { P.mode = 'area'; draw(true); };
+    undo.onclick = function () { P.verts.pop(); changed(); };
+    clr.onclick = function () { if (P.mode === 'area') P.verts = []; else { P.lat = P.lon = null; } changed(); };
     async function search() {
       var text = q.value.trim(); ul.innerHTML = ''; if (!text) return;
       try {
@@ -760,7 +781,7 @@
           var li = el('li'), b = el('button', null, x.display_name); b.type = 'button';
           b.onclick = function () {
             ul.innerHTML = '';
-            if (P.mode === 'point') { P.lat = +x.lat; P.lon = +x.lon; draw(true); }
+            if (P.mode === 'point') { P.lat = +x.lat; P.lon = +x.lon; draw(true); if (P.onChange) P.onChange(); }
             else if (P.map) P.map.setView([+x.lat, +x.lon], 16);
             if (P.onPick) P.onPick(x);
           };
@@ -773,7 +794,7 @@
     // open({lat, lon, area}, search text, centre when nothing is set)
     P.open = function (v, text, around) {
       v = v || {}; q.value = text || ''; ul.innerHTML = '';
-      P.verts = v.area && v.area.coordinates ? v.area.coordinates[0].slice(0, -1).map(function (p) { return [p[0], p[1]]; }) : [];
+      P.verts = opts.area && v.area && v.area.coordinates ? v.area.coordinates[0].slice(0, -1).map(function (p) { return [p[0], p[1]]; }) : [];
       P.mode = P.verts.length >= 3 ? 'area' : 'point';
       P.lat = P.mode === 'point' && v.lat != null ? +v.lat : null; P.lon = P.mode === 'point' && v.lon != null ? +v.lon : null;
       if (window.L && !P.map) {
@@ -782,7 +803,7 @@
         P.map.on('click', function (ev) {
           if (opts.readOnly) return;
           if (P.mode === 'point') { P.lat = ev.latlng.lat; P.lon = ev.latlng.lng; } else P.verts.push([ev.latlng.lng, ev.latlng.lat]);
-          draw();
+          changed();
         });
       }
       mapDiv.hidden = !P.map;
@@ -807,292 +828,319 @@
   }
 
   // =====================================================================================================================
-  // CONSENTS: the code written on the printed form, the licence, what the narrator agreed to
-  var AGREE = ['provide', 'cut', 'comment', 'share', 'voluntary'];
-  var CONS = { list: [], counts: {} };
-  async function loadConsents() {
-    $('cInfo').textContent = t('loading');
+  // TESTIMONIES: the site's interviews (one narrator, one printed consent form each)
+  var TL = { list: [], counts: {} };
+  async function loadTestimonies() {
+    var f = $('tFilter'), cur = f.value || 'all'; f.innerHTML = '';
+    [['all', 'f_all'], ['draft', 't_draft'], ['community_validation', 't_community_validation'], ['validated', 't_validated'], ['withdrawn', 't_withdrawn']].forEach(function (o) { f.appendChild(opt(o[0], t(o[1]))); });
+    f.value = cur;
+    $('tInfo').textContent = t('loading');
     var r = await Promise.all([
-      sb.from('consents').select('id,code,license,accepted,status,created_at').eq('site_id', CTX.site.id).order('created_at', { ascending: false }),
-      sb.from('stories').select('id,consent_id').eq('site_id', CTX.site.id)
+      sb.from('testimonies').select(TCOLS).eq('site_id', CTX.site.id).order('created_at', { ascending: false }),
+      sb.from('stories').select('id,testimony_id,status').eq('site_id', CTX.site.id)
     ]);
-    if (r[0].error) { $('cInfo').textContent = t('loadErr', { e: niceErr(r[0].error) }); return; }
-    CONS.list = r[0].data || []; CONS.counts = {};
-    (r[1].data || []).forEach(function (s) { CONS.counts[s.consent_id] = (CONS.counts[s.consent_id] || 0) + 1; });
-    renderConsents();
+    if (r[0].error) { $('tInfo').textContent = t('loadErr', { e: niceErr(r[0].error) }); return; }
+    TL.list = r[0].data || []; TL.counts = {};
+    (r[1].data || []).forEach(function (s) { if (s.status !== 'withdrawn') TL.counts[s.testimony_id] = (TL.counts[s.testimony_id] || 0) + 1; });
+    renderTestimonies();
   }
-  function renderConsents() {
-    var q = $('cSearch').value.trim().toUpperCase().replace(/\s+/g, '');
-    var list = CONS.list.filter(function (c) { return !q || c.code.replace(/-/g, '').indexOf(q.replace(/-/g, '')) >= 0; });
-    $('cInfo').textContent = list.length ? t('nConsents', { n: list.length }) : t('noneYet');
-    var tb = $('cTable').tBodies[0]; tb.innerHTML = '';
-    list.forEach(function (c) {
+  function renderTestimonies() {
+    var q = $('tSearch').value.trim().toLowerCase(), f = $('tFilter').value;
+    var list = TL.list.filter(function (x) {
+      var hay = [x.code, x.narrator, x.interview_place].join(' ').toLowerCase();
+      return (f === 'all' || x.status === f) && (!q || hay.indexOf(q) >= 0);
+    });
+    $('tInfo').textContent = list.length ? tn('nTestimonies', list.length) : t('noneYet');
+    var tb = $('tTable').tBodies[0]; tb.innerHTML = '';
+    list.forEach(function (x) {
       var tr = el('tr', 'click'); tr.tabIndex = 0;
-      tr.appendChild(el('td', 'code', c.code));
-      [licName(c.license), fmtDate(c.created_at), String(CONS.counts[c.id] || 0)].forEach(function (v) { tr.appendChild(el('td', null, v)); });
-      var td = el('td'); td.appendChild(el('span', 'chip st-' + c.status, t('st_' + c.status))); tr.appendChild(td);
-      tr.onclick = function () { openConsentView(c); };
-      tr.onkeydown = function (ev) { if (ev.key === 'Enter') openConsentView(c); };
+      var td0 = el('td', 'code'), a = el('a', null, x.code); a.href = '#testimony/' + x.id; td0.appendChild(a); tr.appendChild(td0);
+      [(x.narrator || '—') + (x.anonymous ? ' (' + t('anonShort') + ')' : ''), interviewText(x) || '—', langName(x.language) || '—', licName(x.license), String(TL.counts[x.id] || 0)]
+        .forEach(function (v) { tr.appendChild(el('td', null, v)); });
+      var td = el('td'); td.appendChild(el('span', 'chip st-' + x.status, t('t_' + x.status))); tr.appendChild(td);
+      tr.onclick = function (ev) { if (ev.target.tagName !== 'A') location.hash = '#testimony/' + x.id; };
+      tr.onkeydown = function (ev) { if (ev.key === 'Enter') location.hash = '#testimony/' + x.id; };
       tb.appendChild(tr);
     });
   }
-  $('cSearch').addEventListener('input', renderConsents);
-  async function copyText(text, btn) {
-    var ok = false;
-    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
-    if (!ok) { var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); }
-    if (btn) { btn.textContent = ok ? t('copied') : t('copyCode'); setTimeout(function () { btn.textContent = t('copyCode'); }, 1800); }
-  }
+  $('tSearch').addEventListener('input', renderTestimonies);
+  $('tFilter').addEventListener('change', renderTestimonies);
 
-  // new consent (dialog): the code printed on the form, every agreement, a licence; onDone(consent) for the story form
-  var DC = { onDone: null };
-  function renderConsentForm() {
-    var ag = $('dcAgree'), keep = {}; ag.querySelectorAll('input').forEach(function (x) { keep[x.value] = x.checked; }); ag.innerHTML = '';
+  // ---------- one testimony ----------
+  var T = { tm: null, stories: [], editable: false, formStart: '' };
+  function tmAnon() { if (T.tm) return T.tm.anonymous; var r = document.querySelector('input[name="tmAnon"]:checked'); return r ? r.value === 'yes' : null; }
+  function tmFormState() {
+    var acc = []; $('tmAgree').querySelectorAll('input').forEach(function (x) { acc.push(x.checked); });
+    return JSON.stringify([$('tmCode').value, acc, ($('tmLic').querySelector('input:checked') || {}).value || '', tmAnon(),
+      $('tmNarrator').value.trim(), $('tmDate').value, $('tmPlace').value.trim(), $('tmLanguage').value]);
+  }
+  function tmDirty() { return !$('vTestimony').hidden && T.editable && !!T.formStart && tmFormState() !== T.formStart; }
+  async function openTestimony(id) {
+    T.tm = null; T.stories = []; T.formStart = '';
+    $('tmErr').textContent = ''; $('tmSaved').textContent = ''; $('tmReadyErr').textContent = '';
+    if (id !== 'new') {
+      var r = await Promise.all([
+        sb.from('testimonies').select(TCOLS).eq('id', id).maybeSingle(),
+        sb.from('stories').select('id,title,theme,status,source,who,place_name,period,created_at,story_media(id,kind)').eq('testimony_id', id).order('created_at')
+      ]);
+      if (r[0].error || !r[0].data) { T.editable = false; renderTestimony(); $('tmErr').textContent = r[0].error ? t('loadErr', { e: niceErr(r[0].error) }) : t('noneYet'); return; }
+      T.tm = r[0].data; T.stories = r[1].data || [];
+      T.editable = T.tm.status === 'draft' || T.tm.status === 'community_validation';
+    } else T.editable = true;
+    renderTestimony();
+  }
+  function renderAgreeAndLicence() {
+    var ag = $('tmAgree'), keep = {}; ag.querySelectorAll('input').forEach(function (x) { keep[x.value] = x.checked; }); ag.innerHTML = '';
     AGREE.forEach(function (k) {
       var lb = el('label'), cb = el('input'); cb.type = 'checkbox'; cb.value = k; cb.checked = !!keep[k];
       lb.appendChild(cb); lb.appendChild(el('span', null, t('agree_' + k))); ag.appendChild(lb);
     });
-    var li = $('dcLic'), cur = (li.querySelector('input:checked') || {}).value; li.innerHTML = '';
+    var li = $('tmLic'), cur = (li.querySelector('input:checked') || {}).value; li.innerHTML = '';
     LICENSES.forEach(function (l) {
-      var lb = el('label'), r = el('input'), sp = el('span'); r.type = 'radio'; r.name = 'dcLicense'; r.value = l; r.checked = cur === l;
+      var lb = el('label'), r = el('input'), sp = el('span'); r.type = 'radio'; r.name = 'tmLicense'; r.value = l; r.checked = cur === l;
       sp.appendChild(el('b', null, licName(l))); sp.appendChild(el('small', null, t('lic_' + l)));
       lb.appendChild(r); lb.appendChild(sp); li.appendChild(lb);
     });
   }
-  function openNewConsent(onDone) {
-    DC.onDone = onDone || null;
-    $('dcCodeIn').value = ''; $('dcAgree').innerHTML = ''; $('dcLic').innerHTML = ''; renderConsentForm();
-    $('dcErr').textContent = ''; $('dcSave').disabled = false;
-    $('dlgConsent').showModal(); $('dcCodeIn').focus();
+  function narratorHint() {
+    var a = tmAnon();
+    $('tmNarratorHint').textContent = a === true ? t('narratorHintAnon') : a === false ? t('narratorHintName') : t('narratorHintChoose');
   }
-  $('newConsentBtn').onclick = function () { openNewConsent(function () { loadConsents(); }); };
-  $('dcCancel').onclick = function () { $('dlgConsent').close(); };
-  ['change', 'input'].forEach(function (ev) { $('dlgConsent').addEventListener(ev, function () { $('dcErr').textContent = ''; }); });
-  $('dcSave').onclick = async function () {
-    var err = $('dcErr'); err.textContent = '';
-    var code = $('dcCodeIn').value.replace(/\s+/g, ' ').trim().toUpperCase();
-    var acc = {}; $('dcAgree').querySelectorAll('input').forEach(function (x) { acc[x.value] = x.checked; });
-    var lic = ($('dcLic').querySelector('input:checked') || {}).value;
-    if (code.length < 2) { err.textContent = t('needCode'); $('dcCodeIn').focus(); return; }
-    if (!AGREE.every(function (k) { return acc[k]; })) { err.textContent = t('needAgree'); return; }
-    if (!lic) { err.textContent = t('needLicence'); return; }
-    var b = this; b.disabled = true;
-    var r = await sb.from('consents').insert({ user_id: user.id, code: code, license: lic, accepted: acc, statement_version: 'v3', lang: LANG })
-      .select('id,code,license,accepted,status,created_at').single();
-    b.disabled = false;
+  document.querySelectorAll('input[name="tmAnon"]').forEach(function (r) { r.addEventListener('change', narratorHint); });
+  function renderTestimony() {
+    var tm = T.tm, ed = T.editable;
+    $('tmH').textContent = tm ? tmLabel(tm) : t('newTestimonyH');
+    $('tmStatus').hidden = !tm;
+    if (tm) { $('tmStatus').className = 'chip st-' + tm.status; $('tmStatus').textContent = t('t_' + tm.status); }
+    var lock = $('tmLock');
+    lock.hidden = !tm || tm.status === 'draft';
+    if (tm) lock.textContent = tm.status === 'community_validation' ? t('tmWithCommunity') : tm.status === 'withdrawn' ? t('tmWithdrawnNote') : t('tmLocked');
+    // fixed once saved: the code, the agreements, the licence, the anonymity
+    var dl = $('tmFixed'); dl.innerHTML = ''; dl.hidden = !tm;
+    if (tm) {
+      [['fCode', tm.code], ['fLicence', tm.license ? licName(tm.license) + ' — ' + t('lic_' + tm.license) : '—'], ['fAnonymity', tm.anonymous == null ? '—' : tm.anonymous ? t('anonYes') : t('anonNo')],
+       ['agreeLegend', tm.accepted ? AGREE.filter(function (k) { return tm.accepted[k]; }).map(function (k) { return '✓ ' + t('agreeShort_' + k); }).join(' · ') : '—'], ['colCreated', fmtDate(tm.created_at)]]
+        .forEach(function (x) { dl.appendChild(el('dt', null, t(x[0]))); dl.appendChild(el('dd', null, x[1])); });
+    }
+    $('tmNewOnly').hidden = !!tm;
+    if (!tm) {
+      $('tmCode').value = ''; $('tmAgree').innerHTML = ''; $('tmLic').innerHTML = '';
+      document.querySelectorAll('input[name="tmAnon"]').forEach(function (r) { r.checked = false; });
+    }
+    renderAgreeAndLicence();
+    var ls = $('tmLanguage'); ls.innerHTML = ''; ls.appendChild(opt('', t('choose'))); CTX.languages.forEach(function (l) { ls.appendChild(opt(l.code, l.label)); });
+    ls.value = tm ? (tm.language || '') : '';
+    $('tmNarrator').value = tm ? (tm.narrator || '') : '';
+    $('tmDate').value = tm ? (tm.interview_date || '') : '';
+    $('tmPlace').value = tm ? (tm.interview_place || '') : '';
+    narratorHint();
+    $('tmSave').textContent = tm ? t('saveTestimony') : t('createTestimony');
+    $('tmForm').querySelectorAll('input, select, button').forEach(function (x) { x.disabled = !ed; });
+    $('tmSave').hidden = !ed;
+    T.formStart = tmFormState();
+    // its stories and community validation
+    $('tmStoriesCard').hidden = !tm;
+    $('tmEndCard').hidden = !tm || tm.status === 'withdrawn';
+    if (tm) renderTmStories();
+  }
+  function storyProblems(s) {
+    var p = [];
+    if (!s.theme || !s.theme.trim()) p.push('theme');
+    if (!(s.story_media || []).some(function (m) { return m.kind === 'audio'; })) p.push('audio');
+    return p;
+  }
+  function renderTmStories() {
+    var tm = T.tm, ed = T.editable, live = T.stories.filter(function (s) { return s.status !== 'withdrawn'; });
+    $('tmStoriesH').textContent = t('storiesH', { n: live.length });
+    $('tmNewStory').hidden = !ed; $('tmNewStory').href = '#story/new/' + tm.id;
+    var ol = $('tmStories'); ol.innerHTML = '';
+    if (!T.stories.length) ol.appendChild(el('li', 'empty', t('noStoriesYet')));
+    T.stories.forEach(function (s) {
+      var li = el('li', 'stcard' + (s.status === 'withdrawn' ? ' gone' : '')), a = el('a', null, s.title); a.href = '#story/' + s.id;
+      var head = el('div', 'row between'); head.appendChild(a); head.appendChild(el('span', 'chip st-' + s.status, t('s_' + s.status))); li.appendChild(head);
+      li.appendChild(el('span', null, t('fTheme') + ': ' + (s.theme || '—')));
+      var n = {}; (s.story_media || []).forEach(function (m) { n[m.kind] = (n[m.kind] || 0) + 1; });
+      var bits = Object.keys(n).map(function (k) { return KIND_ICON[k] + ' ' + n[k]; });
+      li.appendChild(el('span', null, (bits.length ? bits.join('  ') : t('noFragments')) + ' · ' + t('src_' + s.source)));
+      var probs = s.status === 'withdrawn' ? [] : storyProblems(s);
+      if (probs.length && ed) li.appendChild(el('span', 'err', probs.map(function (p) { return t('miss_' + p); }).join(' · ')));
+      ol.appendChild(li);
+    });
+    // ready for community validation: at least one story; every story with its theme and an audio fragment
+    var r = { stories: live.length > 0, themes: live.length > 0 && live.every(function (s) { return storyProblems(s).indexOf('theme') < 0; }),
+              audio: live.length > 0 && live.every(function (s) { return storyProblems(s).indexOf('audio') < 0; }) };
+    var ul = $('tmChecklist'); ul.innerHTML = '';
+    [['stories', 'chkStories'], ['themes', 'chkThemes'], ['audio', 'chkAudio']].forEach(function (k) { ul.appendChild(el('li', r[k[0]] ? 'done' : null, t(k[1]))); });
+    var st = tm.status;
+    $('tmReadyH').hidden = ul.hidden = st !== 'draft';
+    $('tmReadyBtn').hidden = st !== 'draft';
+    $('tmReadyBtn').disabled = !(r.stories && r.themes && r.audio);
+    $('tmOpenCommunity').hidden = $('tmBackDraft').hidden = st !== 'community_validation';
+    $('tmOpenCommunity').href = '#community/' + tm.id;
+    $('tmDelete').hidden = !(st === 'draft' && !T.stories.length);
+  }
+  $('tmForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var err = $('tmErr'); err.textContent = ''; $('tmSaved').textContent = '';
+    var tm = T.tm, anon = tmAnon(), narrator = $('tmNarrator').value.replace(/\s+/g, ' ').trim().slice(0, 200);
+    var row = { narrator: narrator, interview_date: $('tmDate').value || null, interview_place: $('tmPlace').value.trim().slice(0, 200), language: $('tmLanguage').value };
+    var miss = null;
+    if (!tm) {
+      var code = $('tmCode').value.replace(/\s+/g, ' ').trim().toUpperCase(), acc = {}, lic = ($('tmLic').querySelector('input:checked') || {}).value;
+      $('tmAgree').querySelectorAll('input').forEach(function (x) { acc[x.value] = x.checked; });
+      miss = code.length < 2 ? ['needCode', 'tmCode'] : !AGREE.every(function (k) { return acc[k]; }) ? ['needAgree', null] : !lic ? ['needLicence', null] : anon == null ? ['needAnon', null] : null;
+      Object.assign(row, { code: code, accepted: acc, license: lic, anonymous: anon, statement_version: 'v4', lang: LANG, user_id: user.id });
+    }
+    if (!miss) miss = !narrator ? ['needNarrator', 'tmNarrator'] : anon && !INITIALS.test(narrator) ? ['needInitials', 'tmNarrator']
+      : !row.interview_date ? ['needInterviewDate', 'tmDate'] : !row.interview_place ? ['needInterviewPlace', 'tmPlace'] : !row.language ? ['needLanguage', 'tmLanguage'] : null;
+    if (miss) { err.textContent = t(miss[0]); if (miss[1]) $(miss[1]).focus(); return; }
+    var btn = $('tmSave'); btn.disabled = true;
+    var r = tm ? await sb.from('testimonies').update(row).eq('id', tm.id).select(TCOLS).single()
+               : await sb.from('testimonies').insert(row).select(TCOLS).single();
+    btn.disabled = false;
     if (r.error) {
-      err.textContent = r.error.code === '23505' || /consents_code_key/.test(r.error.message || '') ? t('codeExists', { c: code })
-        : /consents_code_check/.test(r.error.message || '') ? t('needCode') : t('saveErr', { e: niceErr(r.error) });
+      err.textContent = !tm && (r.error.code === '23505' || /code_key/.test(r.error.message || '')) ? t('codeExists', { c: row.code })
+        : /code_check/.test(r.error.message || '') ? t('needCode') : t('saveErr', { e: niceErr(r.error) });
       return;
     }
-    $('dlgConsent').close(); say(t('consentSaved', { c: r.data.code }));
-    if (DC.onDone) DC.onDone(r.data);
-  };
-
-  // one consent: details, its stories, withdraw
-  var CV = null;
-  async function openConsentView(c) {
-    CV = c;
-    $('cvTitle').textContent = t('cvTitle', { c: c.code }); $('cvErr').textContent = '';
-    var dl = $('cvList'); dl.innerHTML = '';
-    function row(k, v) { dl.appendChild(el('dt', null, k)).style.fontWeight = '700'; dl.appendChild(el('dd', null, v)).style.margin = '0'; }
-    row(t('colLicence'), c.license ? licName(c.license) + ' — ' + t('lic_' + c.license) : '—');
-    row(t('colCreated'), fmtDate(c.created_at));
-    row(t('agreeLegend'), c.accepted ? AGREE.filter(function (k) { return c.accepted[k]; }).map(function (k) { return '✓ ' + t('agreeShort_' + k); }).join(' · ') : '—');
-    row(t('colStatus'), t('st_' + c.status));
-    var ul = $('cvStories'); ul.innerHTML = '';
-    $('cvWithdraw').hidden = c.status !== 'active';
-    $('dlgConsentView').showModal();
-    var r = await sb.from('stories').select('id,title,status').eq('consent_id', c.id).order('created_at');
-    (r.data || []).forEach(function (s) {
-      var li = el('li'), a = el('a', null, s.title); a.href = '#story/' + s.id; a.onclick = function () { $('dlgConsentView').close(); };
-      li.appendChild(a); li.appendChild(document.createTextNode(' · ' + t('s_' + s.status))); ul.appendChild(li);
-    });
-    if (!ul.children.length) ul.appendChild(el('li', 'empty', t('noneYet')));
-    CV.nStories = (r.data || []).length;
+    T.formStart = tmFormState();
+    if (!tm) { say(t('tmCreated', { c: r.data.code })); location.hash = '#testimony/' + r.data.id; return; }
+    T.tm = r.data; $('tmH').textContent = tmLabel(T.tm); T.formStart = tmFormState(); $('tmSaved').textContent = t('saved');
+  });
+  async function tmSetStatus(next, btn) {
+    btn.disabled = true; $('tmReadyErr').textContent = '';
+    var r = await sb.from('testimonies').update({ status: next }).eq('id', T.tm.id).select('id,status').single();
+    btn.disabled = false;
+    if (r.error) { $('tmReadyErr').textContent = t('saveErr', { e: niceErr(r.error) }); return false; }
+    await openTestimony(T.tm.id); return true;
   }
-  $('cvClose').onclick = function () { $('dlgConsentView').close(); };
-  $('cvCopy').onclick = function () { if (CV) copyText(CV.code, this); };
-  $('cvWithdraw').onclick = async function () {
-    if (!CV || !window.confirm(t('withdrawConsentQ', { n: CV.nStories || 0, c: CV.code }))) return;
+  $('tmReadyBtn').onclick = async function () { if (tmDirty()) { $('tmReadyErr').textContent = t('unsaved'); return; } if (await tmSetStatus('community_validation', this)) say(t('readyDone')); };
+  $('tmBackDraft').onclick = function () { tmSetStatus('draft', this); };
+  $('tmWithdraw').onclick = async function () {
+    var tm = T.tm, n = T.stories.filter(function (s) { return s.status !== 'withdrawn'; }).length;
+    if (!tm || !window.confirm(t('withdrawTestimonyQ', { c: tm.code, n: n }))) return;
     var b = this; b.disabled = true;
-    var r = await sb.from('consents').update({ status: 'withdrawn' }).eq('id', CV.id).select('id');
+    var r = await sb.from('testimonies').update({ status: 'withdrawn' }).eq('id', tm.id).select('id');
     b.disabled = false;
-    if (r.error || !r.data || !r.data.length) { $('cvErr').textContent = t('saveErr', { e: r.error ? niceErr(r.error) : '—' }); return; }
-    $('dlgConsentView').close(); say(t('withdrawn')); loadConsents();
+    if (r.error || !r.data || !r.data.length) { say(t('saveErr', { e: r.error ? niceErr(r.error) : '—' }), true); return; }
+    T.formStart = ''; say(t('withdrawn')); location.hash = '#testimonies';
   };
-
-  // shared map dialog
-  var DM = { pk: null, onUse: null };
-  function openMapDialog(title, v, text, allowArea, onUse, onPick) {
-    $('dmTitle').textContent = title; DM.onUse = onUse;
-    DM.pk = makePicker($('dmPk'), { area: allowArea });
-    DM.pk.onPick = onPick || null;
-    $('dlgMap').showModal();
-    DM.pk.open(v, text, S.story ? [S.story.lat, S.story.lon] : null);
-  }
-  $('dmCancel').onclick = function () { $('dlgMap').close(); };
-  $('dmUse').onclick = function () {
-    if (DM.pk.incomplete()) { say(t('areaNeed', { n: DM.pk.verts.length }), true); return; }
-    var v = DM.pk.get(); $('dlgMap').close(); if (DM.onUse) DM.onUse(v);
+  $('tmDelete').onclick = async function () {
+    var tm = T.tm; if (!tm || !window.confirm(t('deleteTestimonyQ', { c: tm.code }))) return;
+    var b = this; b.disabled = true;
+    var r = await sb.from('testimonies').delete().eq('id', tm.id).select('id');
+    b.disabled = false;
+    if (r.error || !r.data || !r.data.length) { say(t('saveErr', { e: r.error ? niceErr(r.error) : '—' }), true); return; }
+    T.formStart = ''; say(t('deleted')); location.hash = '#testimonies';
   };
 
   // =====================================================================================================================
-  // STORIES
-  var STO = { list: [] };
-  async function loadStories() {
-    var f = $('sFilter'), cur = f.value || 'all'; f.innerHTML = '';
-    [['all', 'f_all'], ['draft', 's_draft'], ['community_validation', 's_community_validation'], ['annot', 'f_annot'], ['published', 's_published']].forEach(function (o) { f.appendChild(opt(o[0], t(o[1]))); });
-    f.value = cur;
-    $('sInfo').textContent = t('loading');
-    var r = await sb.from('stories').select('id,title,status,source,theme,consent_id,updated_at,created_at,consents(code,license),story_media(id)')
-      .eq('site_id', CTX.site.id).order('updated_at', { ascending: false });
-    if (r.error) { $('sInfo').textContent = t('loadErr', { e: niceErr(r.error) }); return; }
-    STO.list = r.data || [];
-    renderStories();
-  }
-  function renderStories() {
-    var q = $('sSearch').value.trim().toLowerCase(), f = $('sFilter').value;
-    var list = STO.list.filter(function (s) {
-      var okF = f === 'all' || s.status === f || (f === 'annot' && ['ready_for_annotation', 'submitted', 'returned'].indexOf(s.status) >= 0);
-      return okF && (!q || s.title.toLowerCase().indexOf(q) >= 0);
-    });
-    $('sInfo').textContent = list.length ? t('nStories', { n: list.length }) : t('noneYet');
-    var tb = $('sTable').tBodies[0]; tb.innerHTML = '';
-    list.forEach(function (s) {
-      var tr = el('tr', 'click'); tr.tabIndex = 0;
-      var td0 = el('td'), a = el('a', null, s.title); a.href = '#story/' + s.id; td0.appendChild(a); tr.appendChild(td0);
-      [s.theme || '—', consentLabel(s.consents), String((s.story_media || []).length), t('src_' + s.source)].forEach(function (v) { tr.appendChild(el('td', null, v)); });
-      var td = el('td'); td.appendChild(el('span', 'chip st-' + s.status, t('s_' + s.status))); tr.appendChild(td);
-      tr.onclick = function (ev) { if (ev.target.tagName !== 'A') location.hash = '#story/' + s.id; };
-      tr.onkeydown = function (ev) { if (ev.key === 'Enter') location.hash = '#story/' + s.id; };
-      tb.appendChild(tr);
-    });
-  }
-  $('sSearch').addEventListener('input', renderStories);
-  $('sFilter').addEventListener('change', renderStories);
-
-  // ---------- one story ----------
-  var S = { story: null, consents: [], frags: [], notes: {}, editable: false, pk: null, cards: [], formStart: '' };
+  // ONE STORY of a testimony: title, theme (the interview question), who, where (a point on the map), when; its fragments
+  var S = { story: null, tm: null, frags: [], editable: false, pk: null, cards: [], formStart: '' };
   function storyFormState() {
-    var sens = document.querySelector('input[name="stSens"]:checked');
-    return JSON.stringify([$('stConsent').value, $('stTitle').value.trim(), $('stTheme').value.trim(), $('stLanguage').value, sens ? sens.value : '', S.pk ? JSON.stringify(S.pk.get()) : '']);
+    return JSON.stringify([$('stTitle').value.trim(), $('stTheme').value.trim(), $('stWho').value.trim(), $('stPlace').value.trim(), $('stWhen').value.trim(), S.pk ? JSON.stringify(S.pk.get()) : '']);
   }
   function storyDirty() {
     if ($('vStory').hidden || !S.editable) return false;
-    return storyFormState() !== S.formStart || S.cards.some(function (c) { return c.dirty(); });
+    return (!!S.formStart && storyFormState() !== S.formStart) || S.cards.some(function (c) { return c.dirty(); });
   }
-  window.addEventListener('beforeunload', function (ev) { if (storyDirty()) { ev.preventDefault(); ev.returnValue = ''; } });
-  async function openStory(id) {
-    S.story = null; S.frags = []; S.notes = {}; S.cards = [];
-    $('stErr').textContent = ''; $('stSaved').textContent = ''; $('readyErr').textContent = '';
-    $('fragCard').hidden = true; $('withdrawCard').hidden = true; $('stLock').hidden = true; $('stSame').hidden = true;
-    var rc = await sb.from('consents').select('id,code,status,license,created_at').eq('site_id', CTX.site.id).order('created_at', { ascending: false });
-    S.consents = rc.data || [];
-    if (id !== 'new') {
-      var r = await sb.from('stories').select('id,title,status,source,theme,consent_id,language,sensitive,lat,lon,area,created_at,updated_at').eq('id', id).maybeSingle();
-      if (r.error || !r.data) { $('stErr').textContent = r.error ? t('loadErr', { e: niceErr(r.error) }) : t('noneYet'); S.editable = false; renderStoryForm(); return; }
-      S.story = r.data;
-      var rr = await sb.rpc('can_edit_story', { sid: id });
-      S.editable = !rr.error && rr.data === true;
-    } else S.editable = true;
+  async function openStory(id, tid) {
+    S.story = null; S.tm = null; S.frags = []; S.cards = []; S.formStart = '';
+    $('stErr').textContent = ''; $('stSaved').textContent = '';
+    $('fragCard').hidden = true; $('withdrawCard').hidden = true; $('stLock').hidden = true;
+    if (id === 'new') {
+      var rt = await sb.from('testimonies').select('id,code,narrator,status').eq('id', tid || '').maybeSingle();
+      S.tm = rt.data || null;
+      S.editable = !!S.tm && (S.tm.status === 'draft' || S.tm.status === 'community_validation');
+      renderStoryForm();
+      if (!S.tm) $('stErr').textContent = t('noTestimony');
+      else if (!S.editable) $('stErr').textContent = t('tmLocked');
+      return;
+    }
+    var r = await sb.from('stories').select('id,title,status,source,theme,who,place_name,period,lat,lon,area,testimony_id,created_at,updated_at,testimonies(id,code,narrator,status)').eq('id', id).maybeSingle();
+    if (r.error || !r.data) { S.editable = false; renderStoryForm(); $('stErr').textContent = r.error ? t('loadErr', { e: niceErr(r.error) }) : t('noneYet'); return; }
+    S.story = r.data; S.tm = r.data.testimonies || null;
+    var rr = await sb.rpc('can_edit_story', { sid: id });
+    S.editable = !rr.error && rr.data === true;
     renderStoryForm();
-    if (S.story) await loadFrags();
+    await loadFrags();
   }
   function renderStoryForm() {
     var s = S.story, ed = S.editable;
     $('stTitleH').textContent = s ? s.title : t('newStoryH');
     $('stStatus').hidden = !s; $('stSource').hidden = !s;
     if (s) { $('stStatus').className = 'chip st-' + s.status; $('stStatus').textContent = t('s_' + s.status); $('stSource').textContent = t('src_' + s.source); }
+    $('stOf').textContent = S.tm ? t('ofTestimony', { t: tmLabel(S.tm) }) : '';
+    $('stBack').href = S.tm ? '#testimony/' + S.tm.id : '#testimonies';
     var lock = $('stLock');
     lock.hidden = !s || (ed && s.status === 'draft');
-    if (s) lock.textContent = ed ? t('readyNote') : t('lockStatus', { s: t('s_' + s.status) });
-    // consent picker: active consents (and the story's own, even if no longer active)
-    var cs = $('stConsent'); cs.innerHTML = ''; cs.appendChild(opt('', t('chooseConsent')));
-    S.consents.filter(function (c) { return c.status === 'active' || (s && c.id === s.consent_id); }).forEach(function (c) { cs.appendChild(opt(c.id, consentLabel(c))); });
-    cs.value = s ? (s.consent_id || '') : '';
-    $('stTheme').value = s ? (s.theme || '') : '';
-    var ls = $('stLanguage'); ls.innerHTML = ''; ls.appendChild(opt('', t('choose'))); CTX.languages.forEach(function (l) { ls.appendChild(opt(l.code, l.label)); });
-    ls.value = s ? (s.language || '') : '';
+    if (s) lock.textContent = ed ? t('readyNote') : s.status === 'withdrawn' ? t('storyWithdrawnNote') : t('lockStatus', { s: t('s_' + s.status) });
     $('stTitle').value = s ? s.title : '';
-    document.querySelectorAll('input[name="stSens"]').forEach(function (r) { r.checked = s ? (s.sensitive === true ? r.value === 'yes' : s.sensitive === false ? r.value === 'no' : false) : false; });
-    if (!S.pk) S.pk = makePicker($('stPk'), { area: true });
-    S.pk.open(s ? { lat: s.lat, lon: s.lon, area: s.area } : null, '', null);
+    $('stTheme').value = s ? (s.theme || '') : '';
+    $('stWho').value = s ? (s.who || '') : '';
+    $('stPlace').value = s ? (s.place_name || '') : '';
+    $('stWhen').value = s ? (s.period || '') : '';
+    if (!S.pk) {
+      S.pk = makePicker($('stPk'), { area: false });
+      S.pk.onPick = function (x) { if (!$('stPlace').value.trim()) $('stPlace').value = String(x.name || x.display_name || '').split(',')[0].slice(0, 200); };
+    }
+    S.pk.open(s ? { lat: s.lat, lon: s.lon } : null, '', null);
     $('stSave').textContent = s ? t('saveStory') : t('createStory');
     $('stForm').querySelectorAll('input, select, button').forEach(function (x) { x.disabled = !ed; });
     $('stPk').style.pointerEvents = ed ? '' : 'none';
-    $('stNewConsent').hidden = !ed; $('stSave').hidden = !ed;
-    showConsentInfo();
+    $('stSave').hidden = !ed;
     S.formStart = storyFormState();
-    $('withdrawCard').hidden = !s;
-  }
-  function showConsentInfo() {
-    var c = S.consents.filter(function (x) { return x.id === $('stConsent').value; })[0];
-    $('stConsentInfo').textContent = c ? t('colLicence') + ': ' + licName(c.license) + (c.status !== 'active' ? ' · ' + t('st_' + c.status) : '') : '';
-    var same = $('stSame'); same.hidden = true; same.innerHTML = '';
-    if (!c || !S.story) return;
-    sb.from('stories').select('id,title').eq('consent_id', c.id).neq('id', S.story.id).then(function (r) {
-      if (!r.data || !r.data.length) return;
-      same.appendChild(el('b', null, t('sameNarr')));
-      r.data.forEach(function (x, i) { if (i) same.appendChild(document.createTextNode(', ')); var a = el('a', null, x.title); a.href = '#story/' + x.id; same.appendChild(a); });
-      same.hidden = false;
-    });
-  }
-  $('stConsent').onchange = showConsentInfo;
-  $('stNewConsent').onclick = function () {
-    openNewConsent(function (c) { S.consents.unshift(c); renderConsentOptions(c.id); });
-  };
-  function renderConsentOptions(selectId) {
-    var cs = $('stConsent'), s = S.story; cs.innerHTML = ''; cs.appendChild(opt('', t('chooseConsent')));
-    S.consents.filter(function (c) { return c.status === 'active' || (s && c.id === s.consent_id); }).forEach(function (c) { cs.appendChild(opt(c.id, consentLabel(c))); });
-    cs.value = selectId; showConsentInfo();
+    $('withdrawCard').hidden = !s || s.status === 'withdrawn';
   }
   $('stForm').addEventListener('submit', async function (ev) {
     ev.preventDefault();
     var err = $('stErr'); err.textContent = ''; $('stSaved').textContent = '';
-    var sens = document.querySelector('input[name="stSens"]:checked'), loc = S.pk.get();
-    var title = $('stTitle').value.trim().slice(0, 120);
-    var theme = $('stTheme').value.trim().slice(0, 500);
-    var miss = !$('stConsent').value ? ['needConsent', 'stConsent'] : !title ? ['needTitle', 'stTitle'] : !theme ? ['needTheme', 'stTheme']
-             : !$('stLanguage').value ? ['needLanguage', 'stLanguage'] : !sens ? ['needSens', null] : !loc ? ['needLoc', null] : null;
+    var loc = S.pk.get(), title = $('stTitle').value.trim().slice(0, 120), theme = $('stTheme').value.trim().slice(0, 500);
+    var miss = !title ? ['needTitle', 'stTitle'] : !theme ? ['needTheme', 'stTheme'] : !loc ? ['needPoint', null] : null;
     if (miss) { err.textContent = t(miss[0]); if (miss[1]) $(miss[1]).focus(); return; }
-    var row = { consent_id: $('stConsent').value, title: title, theme: theme, language: $('stLanguage').value, sensitive: sens.value === 'yes',
-                lat: loc.lat, lon: loc.lon, area: loc.area };
+    var row = { title: title, theme: theme, who: $('stWho').value.trim().slice(0, 600) || null, place_name: $('stPlace').value.trim().slice(0, 200) || null,
+                period: $('stWhen').value.trim().slice(0, 200) || null, lat: loc.lat, lon: loc.lon, area: null };
     var btn = $('stSave'); btn.disabled = true;
     var r;
     if (!S.story) {
-      row.author_name = myName(); row.source = 'workshop_field'; row.user_id = user.id;
+      Object.assign(row, { testimony_id: S.tm.id, author_name: myName(), source: 'workshop_field', user_id: user.id });
       r = await sb.from('stories').insert(row).select('id').single();
     } else r = await sb.from('stories').update(row).eq('id', S.story.id).select('id').single();
     btn.disabled = false;
     if (r.error) { err.textContent = t('saveErr', { e: niceErr(r.error) }); return; }
     S.formStart = storyFormState();
     if (!S.story) { say(t('created')); location.hash = '#story/' + r.data.id; return; }
-    Object.assign(S.story, row); $('stTitleH').textContent = title; $('stSaved').textContent = t('saved'); showConsentInfo(); renderReady();
+    Object.assign(S.story, row); $('stTitleH').textContent = title; $('stSaved').textContent = t('saved'); renderStoryReady();
   });
+  $('withdrawBtn').onclick = async function () {
+    if (!S.story || !window.confirm(t('withdrawStoryQ', { t: S.story.title }))) return;
+    var b = this; b.disabled = true;
+    var r = await sb.from('stories').update({ status: 'withdrawn' }).eq('id', S.story.id).select('id');
+    b.disabled = false;
+    if (r.error || !r.data || !r.data.length) { say(t('saveErr', { e: r.error ? niceErr(r.error) : '—' }), true); return; }
+    S.formStart = ''; S.cards = [];
+    say(t('withdrawn')); location.hash = S.tm ? '#testimony/' + S.tm.id : '#testimonies';
+  };
 
-  // ---------- fragments ----------
-  var MCOLS = 'id,kind,path,position,title,who,place_name,lat,lon,area,period,recorded_at,provenance,sha256,etag,size_bytes,mime,original_name,thumb_path,waveform,duration_s';
+  // ---------- fragments: the file (its kind detected), its order, a caption for a photo or a video ----------
+  var MCOLS = 'id,kind,path,position,caption,recorded_at,sha256,etag,size_bytes,mime,original_name,thumb_path,waveform,duration_s';
   async function loadFrags() {
-    var s = S.story;
-    var r = await sb.from('story_media').select(MCOLS).eq('story_id', s.id).order('position');
+    var r = await sb.from('story_media').select(MCOLS).eq('story_id', S.story.id).order('position');
     if (r.error) { $('stErr').textContent = t('loadErr', { e: niceErr(r.error) }); return; }
     S.frags = r.data || [];
-    var ids = S.frags.map(function (m) { return m.id; });
-    S.notes = {};
-    if (ids.length) {
-      var n = await sb.from('fragment_notes').select('media_id,body').in('media_id', ids);
-      (n.data || []).forEach(function (x) { S.notes[x.media_id] = x.body; });
-    }
     $('fragCard').hidden = false;
     $('drop').hidden = !S.editable;
     $('dropTypes').textContent = t('dropTypes', { mb: MAX_MB });
-    renderFrags(); renderReady();
+    renderFrags(); renderStoryReady();
   }
-  function whenText(m) { return m.period || ''; }
-  function whereText(m) {
-    return [m.place_name, m.area ? '▱' : (m.lat != null ? '📍' : '')].filter(Boolean).join(' ');
+  function renderStoryReady() {
+    if (!S.story) return;
+    var ul = $('stChecklist'); ul.innerHTML = '';
+    ul.appendChild(el('li', S.story.theme ? 'done' : null, t('chkTheme')));
+    ul.appendChild(el('li', S.frags.some(function (m) { return m.kind === 'audio'; }) ? 'done' : null, t('chkAudioStory')));
   }
+  function hasCaption(m) { return m.kind === 'image' || m.kind === 'video'; }
+  function fragName(m, i) { return (i + 1) + '. ' + KIND_ICON[m.kind] + ' ' + t('kind_' + m.kind) + (m.original_name ? ' · ' + m.original_name : ''); }
   function waveSvg(peaks) {
     var ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg'), n = peaks.length;
     svg.setAttribute('viewBox', '0 0 ' + n + ' 100'); svg.setAttribute('preserveAspectRatio', 'none'); svg.setAttribute('aria-hidden', 'true');
@@ -1113,30 +1161,21 @@
     $('fragH').textContent = t('fragH', { n: S.frags.length });
     S.frags.forEach(function (m, i) { var c = fragCard(m, i); S.cards.push(c); ol.appendChild(c.li); });
   }
-  // One fragment: summary row (drag, thumbnail, title, who/where/when) and its description form
+  // One fragment: order (drag or ↑ ↓), thumbnail, kind, caption (photo or video), the file itself, delete
   function fragCard(m, i) {
     var ed = S.editable, C = { m: m };
     var li = el('li', 'frag'); li.dataset.id = m.id; C.li = li;
     var top = el('div', 'frag-top');
     var hd = el('button', 'handle', '⠿'); hd.type = 'button'; hd.title = t('dragHint'); hd.setAttribute('aria-label', (i + 1) + '. ' + t('dragHint'));
-    hd.hidden = !ed;
     top.appendChild(ed ? hd : el('span', 'handle', String(i + 1)));
     top.appendChild(thumbFor(m));
     var sum = el('div', 'frag-sum');
-    var tb = el('b', m.title ? null : 'missing', (i + 1) + '. ' + (m.title || t('titleMissing')));
-    sum.appendChild(tb);
-    function bits() {
-      var b = [KIND_ICON[m.kind] + ' ' + t('kind_' + m.kind)];
-      if (m.who) b.push(t('fWho') + ': ' + m.who);
-      if (whereText(m)) b.push(t('fWhere') + ': ' + whereText(m));
-      if (whenText(m)) b.push(t('fWhen') + ': ' + whenText(m));
-      return b.join(' · ');
-    }
-    var bitsEl = el('span', null, bits()); sum.appendChild(bitsEl);
+    sum.appendChild(el('b', null, fragName(m, i)));
+    var capEl = el('span', null, hasCaption(m) ? (m.caption ? t('fCaption') + ': ' + m.caption : t('noCaption')) : ''); sum.appendChild(capEl);
     var dirtyNote = el('span', null, ''); dirtyNote.style.color = 'var(--amber-text)'; dirtyNote.style.fontWeight = '700'; sum.appendChild(dirtyNote);
     top.appendChild(sum);
     var acts = el('div', 'frag-acts');
-    var up = el('button', 'btn-sec btn-sm', '↑'), down = el('button', 'btn-sec btn-sm', '↓'), open = el('button', 'btn btn-sm', t('describe'));
+    var up = el('button', 'btn-sec btn-sm', '↑'), down = el('button', 'btn-sec btn-sm', '↓'), open = el('button', 'btn btn-sm', t('openFrag'));
     up.type = down.type = open.type = 'button'; up.setAttribute('aria-label', t('moveUp')); down.setAttribute('aria-label', t('moveDown'));
     up.disabled = i === 0; down.disabled = i === S.frags.length - 1;
     up.onclick = function () { moveFrag(i, i - 1); }; down.onclick = function () { moveFrag(i, i + 1); };
@@ -1146,8 +1185,7 @@
     li.appendChild(top);
     var body = el('div', 'frag-body'); body.hidden = true; li.appendChild(body);
     open.setAttribute('aria-expanded', 'false');
-    open.onclick = function () { var show = body.hidden; body.hidden = !show; open.setAttribute('aria-expanded', String(show)); open.textContent = show ? t('close') : t('describe'); if (show && !body.firstChild) build(); if (!show) stopIn(body); };
-    // drag and drop reordering
+    open.onclick = function () { var show = body.hidden; body.hidden = !show; open.setAttribute('aria-expanded', String(show)); open.textContent = show ? t('close') : t('openFrag'); if (show && !body.firstChild) build(); if (!show) stopIn(body); };
     if (ed) {
       li.draggable = false;
       hd.addEventListener('mousedown', function () { li.draggable = true; });
@@ -1163,69 +1201,40 @@
         if (from >= 0 && to >= 0 && from !== to) moveFrag(from, from < to ? to - 1 : to, true);
       });
     }
-    // the description form (built when opened)
     var F = {};
     function build() {
       var url = mediaUrl(m.path), med;
       if (m.kind === 'audio') { med = el('audio'); med.controls = true; med.preload = 'metadata'; }
       else if (m.kind === 'video') { med = el('video'); med.controls = true; med.preload = 'metadata'; med.playsInline = true; }
-      else { med = el('img', 'full'); med.alt = m.title || ''; }
+      else { med = el('img', 'full'); med.alt = m.caption || ''; }
       if (m.kind === 'image' && /tiff?$/i.test(m.path)) { med = el('p', 'fixed', '🖼 TIFF · ' + (m.original_name || '')); var a0 = el('a', null, ' ↗'); a0.href = url; a0.target = '_blank'; a0.rel = 'noopener'; med.appendChild(a0); }
       else med.src = url;
       body.appendChild(med);
       body.appendChild(el('p', 'meta-line', t('fileInfo', { name: m.original_name || m.path.split('/').pop(), size: fmtSize(m.size_bytes), date: m.recorded_at ? fmtDate(m.recorded_at) : '—' })
         + (m.sha256 ? ' · ' + t('checksumOk') + ' sha256 ' + m.sha256.slice(0, 12) + '…' : '') + (m.etag ? ' · ' + t('checksumServer') : '')));
       var form = el('form'); form.noValidate = true; body.appendChild(form);
-      function fld(labelKey, input, id, req, extra) {
-        var f = el('div', 'field'); var lb = el('label', req ? 'req' : null, t(labelKey)); lb.htmlFor = id; input.id = id;
-        var head = el('div', 'row between'); head.appendChild(lb); if (extra) head.appendChild(extra);
-        f.appendChild(head); f.appendChild(input); form.appendChild(f); return f;
+      if (hasCaption(m)) {
+        var f = el('div', 'field'), lb = el('label', null, t('fCaption')); lb.htmlFor = 'cap' + m.id.slice(0, 8);
+        F.caption = el('textarea'); F.caption.id = lb.htmlFor; F.caption.rows = 2; F.caption.maxLength = 500; F.caption.value = m.caption || ''; F.caption.placeholder = t('captionPh');
+        f.appendChild(lb); f.appendChild(F.caption); form.appendChild(f);
       }
-      var base = 'fr' + m.id.slice(0, 8);
-      F.title = el('input'); F.title.type = 'text'; F.title.maxLength = 200; F.title.value = m.title || ''; F.title.autocomplete = 'off';
-      fld('fFragTitle', F.title, base + 't', true);
-      F.who = el('input'); F.who.type = 'text'; F.who.maxLength = 600; F.who.value = m.who || ''; F.who.placeholder = t('whoPh'); F.who.autocomplete = 'off';
-      fld('fWho', F.who, base + 'w', false);
-      F.place = el('input'); F.place.type = 'text'; F.place.maxLength = 200; F.place.value = m.place_name || ''; F.place.placeholder = t('wherePh'); F.place.autocomplete = 'off';
-      var wf = fld('fWhere', F.place, base + 'p', false);
-      F.geo = { lat: m.lat, lon: m.lon, area: m.area };
-      var geoRow = el('div', 'row'), geoInfo = el('span', 'note'), geoBtn = el('button', 'btn-link', t('mapSet')); geoBtn.type = 'button'; geoInfo.style.margin = '0';
-      function geoLabel() { geoInfo.textContent = F.geo && F.geo.area ? t('areaN', { n: F.geo.area.coordinates[0].length - 1 }) : F.geo && F.geo.lat != null ? t('pointAt', { p: (+F.geo.lat).toFixed(5) + ', ' + (+F.geo.lon).toFixed(5) }) : t('mapNone'); }
-      geoLabel(); geoRow.appendChild(geoInfo); if (ed) geoRow.appendChild(geoBtn); wf.appendChild(geoRow);
-      geoBtn.onclick = function () {
-        openMapDialog(t('mapPointArea'), F.geo, F.place.value, true, function (v) { F.geo = v || { lat: null, lon: null, area: null }; geoLabel(); mark(); },
-          function (x) { if (!F.place.value.trim()) { F.place.value = String(x.name || x.display_name || '').split(',')[0].slice(0, 200); mark(); } });
-      };
-      F.when = el('input'); F.when.type = 'text'; F.when.maxLength = 200; F.when.value = m.period || ''; F.when.placeholder = t('whenPh'); F.when.autocomplete = 'off';
-      fld('fWhen', F.when, base + 'd', false);
-      if (m.kind === 'image' || m.kind === 'video') {
-        var pv = el('div', 'field'); pv.appendChild(el('span', 'lbl', t('fProvenance'))); pv.appendChild(el('span', 'fixed', t('provenance'))); form.appendChild(pv);
-      }
-      F.note = el('textarea'); F.note.rows = 3; F.note.maxLength = 8000; F.note.value = S.notes[m.id] || '';
-      var nf = fld('fComment', F.note, base + 'c'); nf.appendChild(el('span', 'note', t('commentHint'))).style.margin = '0';
       var row = el('div', 'row'), save = el('button', 'btn', t('saveFrag')), del = el('button', 'btn-danger btn-sm', t('deleteFrag')), msg = el('span', 'okmsg'); msg.setAttribute('role', 'status');
       save.type = 'submit'; del.type = 'button';
-      row.appendChild(save); row.appendChild(del); row.appendChild(msg); form.appendChild(row);
+      if (F.caption) row.appendChild(save);
+      row.appendChild(del); row.appendChild(msg); form.appendChild(row);
       F.err = el('p', 'err'); F.err.setAttribute('role', 'alert'); form.appendChild(F.err);
-      form.querySelectorAll('input, textarea, select').forEach(function (x) { x.addEventListener('input', mark); x.addEventListener('change', mark); if (!ed) x.disabled = true; });
+      form.querySelectorAll('textarea').forEach(function (x) { x.addEventListener('input', mark); if (!ed) x.disabled = true; });
       save.hidden = del.hidden = !ed;
       F.start = JSON.stringify(values());
       form.addEventListener('submit', async function (ev) {
         ev.preventDefault(); F.err.textContent = ''; msg.textContent = '';
-        var v = values();
-        save.disabled = true;
-        var patch = Object.assign({}, v); delete patch.note;
-        var r = await sb.from('story_media').update(patch).eq('id', m.id).select('id');
+        var v = values(); save.disabled = true;
+        var r = await sb.from('story_media').update(v).eq('id', m.id).select('id');
         if (!r.error && (!r.data || !r.data.length)) r.error = { message: t('notEditable') };
-        if (!r.error && v.note !== (S.notes[m.id] || '')) {
-          var rn = v.note ? await sb.from('fragment_notes').upsert({ media_id: m.id, body: v.note }) : await sb.from('fragment_notes').delete().eq('media_id', m.id);
-          if (rn.error) r.error = rn.error; else S.notes[m.id] = v.note;
-        }
         save.disabled = false;
         if (r.error) { F.err.textContent = t('saveErr', { e: niceErr(r.error) }); return; }
-        Object.assign(m, patch); F.start = JSON.stringify(values()); mark(); msg.textContent = t('fragSaved');
-        tb.textContent = (S.frags.indexOf(m) + 1) + '. ' + (m.title || t('titleMissing')); tb.className = m.title ? '' : 'missing'; bitsEl.textContent = bits();
-        renderReady();
+        Object.assign(m, v); F.start = JSON.stringify(values()); mark(); msg.textContent = t('fragSaved');
+        capEl.textContent = m.caption ? t('fCaption') + ': ' + m.caption : t('noCaption');
       });
       del.onclick = async function () {
         if (!window.confirm(t('deleteFragQ'))) return;
@@ -1234,14 +1243,10 @@
         del.disabled = false;
         if (r.error || !r.data || !r.data.length) { F.err.textContent = t('saveErr', { e: r.error ? niceErr(r.error) : '—' }); return; }
         S.frags = S.frags.filter(function (x) { return x.id !== m.id; });
-        await savePositions(); renderFrags(); renderReady();
+        await savePositions(); renderFrags(); renderStoryReady();
       };
     }
-    function values() {
-      return { title: F.title.value.trim() || null, who: F.who.value.trim() || null,
-               place_name: F.place.value.trim() || null, lat: F.geo && F.geo.lat != null ? F.geo.lat : null, lon: F.geo && F.geo.lon != null ? F.geo.lon : null, area: F.geo && F.geo.area || null,
-               period: F.when.value.trim() || null, note: F.note.value.trim() };
-    }
+    function values() { return F.caption ? { caption: F.caption.value.trim().slice(0, 500) || null } : {}; }
     function mark() { dirtyNote.textContent = C.dirty() ? ' · ' + t('unsaved') : ''; }
     C.dirty = function () { return !!F.start && JSON.stringify(values()) !== F.start; };
     return C;
@@ -1335,72 +1340,35 @@
         var r = await sb.from('story_media').insert(row).select(MCOLS).single();
         if (r.error) { sb.storage.from(BUCKET).remove([path].concat(thumbPath ? [thumbPath] : [])); throw r.error; }
         S.frags.push(r.data); li.textContent = t('upDone', { f: f.name }); li.className = 'okmsg';
-        renderFrags(); renderReady();
+        renderFrags(); renderStoryReady();
       } catch (e) { li.textContent = t('upErr', { f: f.name, e: niceErr(e) }); li.className = 'err'; }
     }
   }
 
-  // ready for community validation: a consent, at least one audio fragment, every fragment titled
-  function readiness() {
-    var c = S.consents.filter(function (x) { return S.story && x.id === S.story.consent_id; })[0];
-    return { consent: !!(c && c.status === 'active'), audio: S.frags.some(function (m) { return m.kind === 'audio'; }),
-             titles: S.frags.length > 0 && S.frags.every(function (m) { return m.title && m.title.trim(); }) };
-  }
-  function renderReady() {
-    if (!S.story) return;
-    var r = readiness(), ul = $('checklist'); ul.innerHTML = '';
-    [['consent', 'chkConsent'], ['audio', 'chkAudio'], ['titles', 'chkTitles']].forEach(function (k) { ul.appendChild(el('li', r[k[0]] ? 'done' : null, t(k[1]))); });
-    var st = S.story.status;
-    $('readyBtn').hidden = st !== 'draft' || !S.editable;
-    $('readyBtn').disabled = !(r.consent && r.audio && r.titles);
-    $('backDraftBtn').hidden = st !== 'community_validation' || !S.editable;
-    $('openCommunity').hidden = st !== 'community_validation' || !S.editable;
-    $('openCommunity').href = '#community/' + S.story.id;
-    $('readyErr').textContent = '';
-    ul.hidden = st !== 'draft';
-    $('checklist').previousElementSibling.hidden = st !== 'draft' && st !== 'community_validation';
-  }
-  async function setStatus(next, btn) {
-    btn.disabled = true;
-    var r = await sb.from('stories').update({ status: next }).eq('id', S.story.id).select('id,status').single();
-    btn.disabled = false;
-    if (r.error) { $('readyErr').textContent = t('saveErr', { e: niceErr(r.error) }); return false; }
-    S.story.status = r.data.status; renderStoryForm(); renderFrags(); renderReady(); return true;
-  }
-  $('readyBtn').onclick = async function () { if (storyDirty()) { $('readyErr').textContent = t('unsaved'); return; } if (await setStatus('community_validation', this)) say(t('readyDone')); };
-  $('backDraftBtn').onclick = function () { setStatus('draft', this); };
-  $('withdrawBtn').onclick = async function () {
-    if (!S.story || !window.confirm(t('withdrawStoryQ', { t: S.story.title }))) return;
-    var b = this; b.disabled = true;
-    var r = await sb.from('stories').update({ status: 'withdrawn' }).eq('id', S.story.id).select('id');
-    b.disabled = false;
-    if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; }
-    S.formStart = storyFormState(); S.cards = [];
-    say(t('withdrawn')); location.hash = '#stories';
-  };
-
   // =====================================================================================================================
-  // COMMUNITY VALIDATION: the site's stories the community has not validated yet. The facilitator opens one on a big screen,
-  // goes through its fragments with the community, corrects them (story and fragments stay editable until validated),
-  // writes down what was said, and marks the story as validated by the community: it then goes to annotation.
+  // COMMUNITY VALIDATION: the site's testimonies the community has not validated yet. The facilitator opens one on a big
+  // screen, goes through its stories and fragments with the community, corrects them (everything stays editable until
+  // validated), writes down what was said, and marks the testimony as validated: its stories then go to annotation.
   async function loadCommunity() {
     $('ccInfo').textContent = t('loading');
-    var r = await sb.from('stories').select('id,title,theme,source,updated_at,consents(code),story_media(id,kind)').eq('site_id', CTX.site.id)
-      .eq('status', 'community_validation').order('updated_at');
+    var r = await Promise.all([
+      sb.from('testimonies').select(TCOLS).eq('site_id', CTX.site.id).eq('status', 'community_validation').order('updated_at'),
+      sb.from('stories').select('id,testimony_id,status').eq('site_id', CTX.site.id).eq('status', 'community_validation')
+    ]);
     var box = $('ccList'); box.innerHTML = '';
-    if (r.error) { $('ccInfo').textContent = t('loadErr', { e: niceErr(r.error) }); return; }
-    $('ccInfo').textContent = (r.data || []).length ? t('nWaiting', { n: r.data.length }) : t('noneWaiting');
-    (r.data || []).forEach(function (s) {
-      var a = el('a', 'cccard'); a.href = '#community/' + s.id; a.style.textDecoration = 'none';
-      a.appendChild(el('b', null, s.title));
-      a.appendChild(el('span', null, t('fTheme') + ': ' + (s.theme || '—')));
-      var n = {}; (s.story_media || []).forEach(function (m) { n[m.kind] = (n[m.kind] || 0) + 1; });
-      a.appendChild(el('span', null, Object.keys(n).map(function (k) { return KIND_ICON[k] + ' ' + n[k]; }).join('  ') + ' · ' + t('src_' + s.source) + (s.consents ? ' · ' + s.consents.code : '')));
+    if (r[0].error) { $('ccInfo').textContent = t('loadErr', { e: niceErr(r[0].error) }); return; }
+    var n = {}; (r[1].data || []).forEach(function (s) { n[s.testimony_id] = (n[s.testimony_id] || 0) + 1; });
+    $('ccInfo').textContent = (r[0].data || []).length ? tn('nWaiting', r[0].data.length) : t('noneWaiting');
+    (r[0].data || []).forEach(function (tm) {
+      var a = el('a', 'cccard'); a.href = '#community/' + tm.id; a.style.textDecoration = 'none';
+      a.appendChild(el('b', null, tmLabel(tm)));
+      a.appendChild(el('span', null, interviewText(tm) + (tm.language ? ' · ' + langName(tm.language) : '')));
+      a.appendChild(el('span', null, tn('storiesN', n[tm.id] || 0)));
       box.appendChild(a);
     });
   }
 
-  var Q = { s: null, notes: {}, playing: null };
+  var Q = { tm: null, stories: [], notes: {}, playing: null };
   function leavePresent() {
     if (!document.body.classList.contains('present')) return;
     document.body.classList.remove('present'); $('vQuilt').hidden = true; stopPlaying();
@@ -1408,32 +1376,51 @@
   }
   async function enterPresent(id) {
     showOnly(null); document.body.classList.add('present'); $('vQuilt').hidden = false;
-    $('quilt').innerHTML = ''; $('qErr').textContent = ''; $('qStoryTitle').textContent = t('loading'); $('qQuestion').textContent = ''; $('qMeta').textContent = '';
-    var r = await sb.from('stories').select('id,title,theme,status,language,sensitive,consent_id,consents(code,license),story_media(' + MCOLS + ')').eq('id', id).maybeSingle();
-    if (r.error || !r.data) { $('qStoryTitle').textContent = r.error ? t('loadErr', { e: niceErr(r.error) }) : '—'; return; }
-    Q.s = r.data; Q.s.story_media = (Q.s.story_media || []).slice().sort(function (a, b) { return a.position - b.position; });
-    var ids = Q.s.story_media.map(function (m) { return m.id; }); Q.notes = {};
+    $('qStories').innerHTML = ''; $('qErr').textContent = ''; $('qTitleH').textContent = t('loading'); $('qMeta').textContent = '';
+    var r = await Promise.all([
+      sb.from('testimonies').select(TCOLS).eq('id', id).maybeSingle(),
+      sb.from('stories').select('id,title,theme,who,place_name,period,lat,lon,status,created_at,story_media(' + MCOLS + ')').eq('testimony_id', id).neq('status', 'withdrawn').order('created_at')
+    ]);
+    if (r[0].error || !r[0].data) { $('qTitleH').textContent = r[0].error ? t('loadErr', { e: niceErr(r[0].error) }) : '—'; return; }
+    Q.tm = r[0].data; Q.stories = r[1].data || [];
+    Q.stories.forEach(function (s) { s.story_media = (s.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }); });
+    var ids = [].concat.apply([], Q.stories.map(function (s) { return s.story_media.map(function (m) { return m.id; }); })); Q.notes = {};
     if (ids.length) { var n = await sb.from('fragment_notes').select('media_id,body').in('media_id', ids); (n.data || []).forEach(function (x) { Q.notes[x.media_id] = x.body; }); }
     renderQuilt();
   }
   function renderQuilt() {
     stopPlaying();
-    var s = Q.s, qb = $('quilt'); qb.innerHTML = ''; if (!s) return;
-    var open = s.status === 'community_validation';
-    $('qStoryTitle').textContent = s.title;
-    $('qQuestion').textContent = t('fTheme') + ': ' + (s.theme || '—');
-    var lang = CTX.languages.filter(function (l) { return l.code === s.language; })[0];
-    $('qMeta').textContent = [s.consents ? t('fConsent') + ' ' + s.consents.code + ' · ' + licName(s.consents.license) : '', lang ? lang.label : '', s.sensitive ? '⚠ ' + t('fSensitive') : ''].filter(Boolean).join(' · ');
-    $('qEditStory').hidden = !open; $('qValidate').hidden = !open; $('qFootNote').textContent = open ? t('validateHint') : t('lockStatus', { s: t('s_' + s.status) });
-    s.story_media.forEach(function (m, i) { qb.appendChild(patchEl(s, m, i, open)); });
+    var tm = Q.tm, box = $('qStories'); box.innerHTML = ''; if (!tm) return;
+    var open = tm.status === 'community_validation';
+    $('qTitleH').textContent = t('fNarrator') + ': ' + (tm.narrator || '—');
+    $('qMeta').textContent = [t('fInterview') + ': ' + interviewText(tm), langName(tm.language), licName(tm.license), t('colCode') + ' ' + tm.code].filter(Boolean).join(' · ');
+    $('qEditT').hidden = !open; $('qValidate').hidden = !open;
+    $('qFootNote').textContent = open ? t('validateHint') : t('tmLocked');
+    Q.stories.forEach(function (s, si) {
+      var sec = el('section', 'qstory'); sec.setAttribute('aria-label', s.title);
+      var head = el('div', 'row between'); head.appendChild(el('h2', null, (si + 1) + '. ' + s.title));
+      if (open) { var eb = el('button', 'btn', t('correct')); eb.type = 'button'; eb.onclick = function () { openStoryEdit(s); }; head.appendChild(eb); }
+      sec.appendChild(head);
+      sec.appendChild(el('p', 'q', t('fTheme') + ': ' + (s.theme || '—')));
+      var dl = el('dl', 'qfacts');
+      [['fWho', s.who], ['fWhere', [s.place_name, s.lat != null ? '📍' : ''].filter(Boolean).join(' ')], ['fWhen', s.period]].forEach(function (x) {
+        dl.appendChild(el('dt', null, t(x[0]))); dl.appendChild(el('dd', x[1] ? null : 'none', x[1] || t('noAnswer')));
+      });
+      sec.appendChild(dl);
+      var grid = el('div', 'quilt');
+      s.story_media.forEach(function (m, i) { grid.appendChild(patchEl(m, i, open)); });
+      if (!s.story_media.length) grid.appendChild(el('p', 'q', t('noFragments')));
+      sec.appendChild(grid);
+      box.appendChild(sec);
+    });
   }
-  function patchEl(s, m, i, open) {
-    var p = el('article', 'patch'); p.setAttribute('aria-label', (i + 1) + '. ' + (m.title || ''));
+  function patchEl(m, i, open) {
+    var p = el('article', 'patch'); p.setAttribute('aria-label', (i + 1) + '. ' + t('kind_' + m.kind));
     p.appendChild(el('span', 'pno', String(i + 1)));
     var med = el('div', 'pmedia');
     if (m.kind === 'image' && !/tiff?$/i.test(m.path)) {
-      var im = el('img'); im.src = mediaUrl(m.thumb_path || m.path); im.alt = m.title || '';
-      im.onclick = function () { $('diImg').src = mediaUrl(m.path); $('diImg').alt = m.title || ''; $('dlgImage').showModal(); };
+      var im = el('img'); im.src = mediaUrl(m.thumb_path || m.path); im.alt = m.caption || '';
+      im.onclick = function () { $('diImg').src = mediaUrl(m.path); $('diImg').alt = m.caption || ''; $('dlgImage').showModal(); };
       med.appendChild(im);
     } else if (m.thumb_path) { var it = el('img'); it.src = mediaUrl(m.thumb_path); it.alt = ''; med.appendChild(it); }
     else if (m.kind === 'audio' && m.waveform && m.waveform.length) med.appendChild(waveSvg(m.waveform));
@@ -1444,19 +1431,13 @@
       med.appendChild(pl);
     }
     p.appendChild(med);
-    p.appendChild(el('h3', null, m.title || '—'));
-    var dl = el('dl');
-    function row(key, val) { dl.appendChild(el('dt', null, t(key))); dl.appendChild(el('dd', val ? null : 'none', val || t('noAnswer'))); }
-    row('fWho', m.who || '');
-    row('fWhere', whereText(m));
-    row('fWhen', whenText(m));
-    p.appendChild(dl);
+    if (hasCaption(m)) p.appendChild(el('p', m.caption ? 'pcap' : 'pcap none', m.caption || t('noCaption')));
+    else p.appendChild(el('p', 'pcap none', KIND_ICON[m.kind] + ' ' + t('kind_' + m.kind) + (m.duration_s ? ' · ' + Math.round(m.duration_s) + ' s' : '')));
     if (open) {
-      var foot = el('div', 'pfoot'), eb = el('button', 'btn', t('correct')), nb = el('button', 'btn-sec', t('addNote'));
-      eb.type = nb.type = 'button';
-      eb.onclick = function () { openFieldEdit(m); };
-      nb.onclick = function () { openNote(m); };
-      foot.appendChild(eb); foot.appendChild(nb); p.appendChild(foot);
+      var foot = el('div', 'pfoot'), nb = el('button', 'btn-sec', t('addNote'));
+      nb.type = 'button'; nb.onclick = function () { openNote(m); };
+      if (hasCaption(m)) { var cb = el('button', 'btn', t('editCaption')); cb.type = 'button'; cb.onclick = function () { openCaptionEdit(m); }; foot.appendChild(cb); }
+      foot.appendChild(nb); p.appendChild(foot);
     }
     return p;
   }
@@ -1475,58 +1456,80 @@
   $('qFull').onclick = function () { var d = document.documentElement; if (document.fullscreenElement) document.exitFullscreen(); else if (d.requestFullscreen) d.requestFullscreen().catch(function () {}); };
   $('diClose').onclick = function () { $('dlgImage').close(); };
   $('qValidate').onclick = async function () {
-    var s = Q.s; if (!s || !window.confirm(t('validateQ', { t: s.title }))) return;
+    var tm = Q.tm; if (!tm || !window.confirm(t('validateQ', { c: tmLabel(tm), s: tn('storiesN', Q.stories.length) }))) return;
     var b = this; b.disabled = true; $('qErr').textContent = '';
-    var r = await sb.from('stories').update({ status: 'ready_for_annotation' }).eq('id', s.id).select('id,status').single();
+    var r = await sb.from('testimonies').update({ status: 'validated' }).eq('id', tm.id).select('id,status').single();
     b.disabled = false;
     if (r.error) { $('qErr').textContent = t('saveErr', { e: niceErr(r.error) }); return; }
-    say(t('validatedDone', { t: s.title })); location.hash = '#community';
+    say(t('validatedDone', { c: tm.code })); location.hash = '#community';
   };
 
-  // correct a fragment (title, who, where, when) or the story (title, why)
+  // corrections with the community: a story (title, theme, who, where, when), a caption, the testimony's details
   var DF = null;
-  function openFieldEdit(m) {
-    DF = { m: m }; $('dfTitle').textContent = t('correctFrag', { n: Q.s.story_media.indexOf(m) + 1 });
-    var b = $('dfBody'); b.innerHTML = ''; $('dfErr').textContent = '';
-    function field(key, input, id) { var f = el('div', 'field'), lb = el('label', null, t(key)); lb.htmlFor = id; input.id = id; f.appendChild(lb); f.appendChild(input); b.appendChild(f); return f; }
-    DF.title = el('input', 'inp'); DF.title.type = 'text'; DF.title.maxLength = 200; DF.title.value = m.title || ''; field('fFragTitle', DF.title, 'dfT');
-    DF.who = el('input', 'inp'); DF.who.type = 'text'; DF.who.maxLength = 600; DF.who.value = m.who || ''; DF.who.placeholder = t('whoPh'); field('fWho', DF.who, 'dfW');
-    DF.place = el('input', 'inp'); DF.place.type = 'text'; DF.place.maxLength = 200; DF.place.value = m.place_name || ''; field('fWhere', DF.place, 'dfP');
-    var pkBox = el('div', 'pk'); b.appendChild(pkBox); DF.pk = makePicker(pkBox, { area: true });
+  function dfField(key, input, id, req) {
+    var f = el('div', 'field'), lb = el('label', req ? 'req' : null, t(key)); lb.htmlFor = id; input.id = id;
+    if (input.tagName !== 'SELECT' && input.tagName !== 'TEXTAREA') input.className = 'inp';
+    f.appendChild(lb); f.appendChild(input); $('dfBody').appendChild(f); return input;
+  }
+  function textIn(value, max, ph) { var x = el('input'); x.type = 'text'; x.maxLength = max; x.value = value || ''; x.autocomplete = 'off'; if (ph) x.placeholder = t(ph); return x; }
+  function openStoryEdit(s) {
+    DF = { kind: 'story', s: s }; $('dfTitle').textContent = t('correctStory', { t: s.title });
+    $('dfBody').innerHTML = ''; $('dfErr').textContent = '';
+    DF.title = dfField('fTitle', textIn(s.title, 120), 'dfT', true);
+    DF.theme = dfField('fTheme', textIn(s.theme, 500, 'themePh'), 'dfTh', true);
+    DF.who = dfField('fWho', textIn(s.who, 600, 'whoPh'), 'dfW');
+    DF.place = dfField('fWhere', textIn(s.place_name, 200, 'wherePh'), 'dfP');
+    var pkBox = el('div', 'pk'); $('dfBody').appendChild(pkBox); DF.pk = makePicker(pkBox, { area: false });
     DF.pk.onPick = function (x) { if (!DF.place.value.trim()) DF.place.value = String(x.name || x.display_name || '').split(',')[0].slice(0, 200); };
-    DF.when = el('input', 'inp'); DF.when.type = 'text'; DF.when.maxLength = 200; DF.when.value = m.period || ''; DF.when.placeholder = t('whenPh'); field('fWhen', DF.when, 'dfD');
+    DF.when = dfField('fWhen', textIn(s.period, 200, 'whenPh'), 'dfD');
     $('dlgField').showModal();
-    setTimeout(function () { DF.pk.open({ lat: m.lat, lon: m.lon, area: m.area }, m.place_name || '', null); DF.title.focus(); }, 30);
+    setTimeout(function () { DF.pk.open({ lat: s.lat, lon: s.lon }, s.place_name || '', null); DF.title.focus(); }, 30);
   }
-  function openStoryEdit() {
-    var s = Q.s; DF = { story: true }; $('dfTitle').textContent = t('correctStory');
-    var b = $('dfBody'); b.innerHTML = ''; $('dfErr').textContent = '';
-    [['fTitle', 'title', 120, 'dfST'], ['fTheme', 'theme', 500, 'dfSW']].forEach(function (x) {
-      var f = el('div', 'field'), lb = el('label', 'req', t(x[0])), inp = el('input', 'inp'); inp.type = 'text'; inp.maxLength = x[2]; inp.id = x[3]; inp.value = s[x[1]] || ''; lb.htmlFor = x[3];
-      f.appendChild(lb); f.appendChild(inp); b.appendChild(f); DF[x[1]] = inp;
-    });
-    $('dlgField').showModal(); DF.title.focus();
+  function openCaptionEdit(m) {
+    DF = { kind: 'caption', m: m }; $('dfTitle').textContent = t('fCaption');
+    $('dfBody').innerHTML = ''; $('dfErr').textContent = '';
+    var ta = el('textarea'); ta.rows = 3; ta.maxLength = 500; ta.value = m.caption || ''; ta.placeholder = t('captionPh');
+    DF.caption = dfField('fCaption', ta, 'dfC');
+    $('dlgField').showModal(); ta.focus();
   }
-  $('qEditStory').onclick = openStoryEdit;
+  function openTestimonyEdit() {
+    var tm = Q.tm; DF = { kind: 'testimony' }; $('dfTitle').textContent = t('correctTestimony');
+    $('dfBody').innerHTML = ''; $('dfErr').textContent = '';
+    DF.narrator = dfField('fNarrator', textIn(tm.narrator, 200), 'dfN', true);
+    $('dfBody').appendChild(el('p', 'note', tm.anonymous ? t('narratorHintAnon') : t('narratorHintName')));
+    var d = el('input'); d.type = 'date'; d.value = tm.interview_date || ''; DF.date = dfField('fInterviewDate', d, 'dfDt', true);
+    DF.place = dfField('fInterviewPlace', textIn(tm.interview_place, 200, 'interviewPlacePh'), 'dfIP', true);
+    var ls = el('select', 'inp'); CTX.languages.forEach(function (l) { ls.appendChild(opt(l.code, l.label)); }); ls.value = tm.language || ''; DF.language = dfField('fLanguage', ls, 'dfL', true);
+    $('dlgField').showModal(); DF.narrator.focus();
+  }
+  $('qEditT').onclick = openTestimonyEdit;
   $('dfCancel').onclick = function () { $('dlgField').close(); };
   $('dfSave').onclick = async function () {
-    var b = this, r, patch;
-    if (DF.story) {
-      patch = { title: DF.title.value.trim().slice(0, 120), theme: DF.theme.value.trim().slice(0, 500) };
-      if (!patch.title || !patch.theme) { $('dfErr').textContent = t(!patch.title ? 'needTitle' : 'needTheme'); return; }
-      b.disabled = true; r = await sb.from('stories').update(patch).eq('id', Q.s.id).select('id'); b.disabled = false;
-      if (r.error || !r.data || !r.data.length) { $('dfErr').textContent = t('saveErr', { e: r.error ? niceErr(r.error) : '—' }); return; }
-      Object.assign(Q.s, patch); $('dlgField').close(); renderQuilt(); say(t('saved')); return;
+    var b = this, r, patch, err = $('dfErr'); err.textContent = '';
+    if (DF.kind === 'story') {
+      var g = DF.pk.get();
+      patch = { title: DF.title.value.trim().slice(0, 120), theme: DF.theme.value.trim().slice(0, 500), who: DF.who.value.trim() || null,
+                place_name: DF.place.value.trim() || null, period: DF.when.value.trim() || null };
+      if (!patch.title || !patch.theme || !g) { err.textContent = t(!patch.title ? 'needTitle' : !patch.theme ? 'needTheme' : 'needPoint'); return; }
+      patch.lat = g.lat; patch.lon = g.lon;
+      b.disabled = true; r = await sb.from('stories').update(patch).eq('id', DF.s.id).select('id'); b.disabled = false;
+      if (r.error || !r.data || !r.data.length) { err.textContent = t('saveErr', { e: r.error ? niceErr(r.error) : '—' }); return; }
+      Object.assign(DF.s, patch);
+    } else if (DF.kind === 'caption') {
+      patch = { caption: DF.caption.value.trim().slice(0, 500) || null };
+      b.disabled = true; r = await sb.from('story_media').update(patch).eq('id', DF.m.id).select('id'); b.disabled = false;
+      if (r.error || !r.data || !r.data.length) { err.textContent = t('saveErr', { e: r.error ? niceErr(r.error) : '—' }); return; }
+      Object.assign(DF.m, patch);
+    } else {
+      var tm = Q.tm;
+      patch = { narrator: DF.narrator.value.replace(/\s+/g, ' ').trim().slice(0, 200), interview_date: DF.date.value || null, interview_place: DF.place.value.trim().slice(0, 200), language: DF.language.value };
+      if (!patch.narrator || (tm.anonymous && !INITIALS.test(patch.narrator))) { err.textContent = t(patch.narrator ? 'needInitials' : 'needNarrator'); return; }
+      if (!patch.interview_date || !patch.interview_place || !patch.language) { err.textContent = t(!patch.interview_date ? 'needInterviewDate' : !patch.interview_place ? 'needInterviewPlace' : 'needLanguage'); return; }
+      b.disabled = true; r = await sb.from('testimonies').update(patch).eq('id', tm.id).select('id'); b.disabled = false;
+      if (r.error || !r.data || !r.data.length) { err.textContent = t('saveErr', { e: r.error ? niceErr(r.error) : '—' }); return; }
+      Object.assign(tm, patch);
     }
-    var m = DF.m;
-    if (!DF.title.value.trim()) { $('dfErr').textContent = t('titleMissing'); DF.title.focus(); return; }
-    if (DF.pk.incomplete()) { $('dfErr').textContent = t('areaNeed', { n: DF.pk.verts.length }); return; }
-    var g = DF.pk.get() || { lat: null, lon: null, area: null };
-    patch = { title: DF.title.value.trim(), who: DF.who.value.trim() || null, place_name: DF.place.value.trim() || null, lat: g.lat, lon: g.lon, area: g.area,
-              period: DF.when.value.trim() || null };
-    b.disabled = true; r = await sb.from('story_media').update(patch).eq('id', m.id).select('id'); b.disabled = false;
-    if (r.error || !r.data || !r.data.length) { $('dfErr').textContent = t('saveErr', { e: r.error ? niceErr(r.error) : '—' }); return; }
-    Object.assign(m, patch); $('dlgField').close(); renderQuilt(); say(t('saved'));
+    $('dlgField').close(); renderQuilt(); say(t('saved'));
   };
   // a comment on a fragment (what the community said): added to the fragment's comment, kept for the annotators
   var DN = null;
@@ -1550,7 +1553,8 @@
   $('lang').onchange = function () {
     LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang();
     if (!user || !CTX.site) return;
-    if (!$('vStory').hidden) { if (!storyDirty()) { renderStoryForm(); if (S.story) { renderFrags(); renderReady(); } } }
+    if (!$('vStory').hidden) { if (!storyDirty()) { renderStoryForm(); if (S.story) { renderFrags(); renderStoryReady(); } } }
+    else if (!$('vTestimony').hidden) { if (!tmDirty()) renderTestimony(); }
     else if (document.body.classList.contains('present')) renderQuilt();
     else route();
   };

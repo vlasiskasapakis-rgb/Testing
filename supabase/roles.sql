@@ -1,11 +1,12 @@
 -- Roles, sites, the facilitator workflow, publishing and image-to-time links. Run in the Supabase SQL editor AFTER
 -- schema.sql and annotations.sql. Safe to run again.
 --
---   facilitator (default for every new account): belongs to one pilot site; creates consent codes, stories and
---                fragments for that site, and goes through the stories with the community (community validation).
+--   facilitator (default for every new account): belongs to one pilot site; creates testimonies, their stories and
+--                the stories' fragments for that site, and goes through each testimony with the community (community
+--                validation).
 --                An account without a site can do nothing yet.
 --   annotator:   transcribes, annotates, links images to moments of audio/video and submits stories for validation
---                (stories the community has validated). Annotators without a site see every site.
+--                (the stories of testimonies the community has validated). Annotators without a site see every site.
 --   validator:   an annotator who also publishes or returns stories.
 --   admin:       manages sites, languages and accounts (admin page); sees everything.
 --   everyone else (not logged in): sees only published stories.
@@ -55,8 +56,8 @@ $$;
 grant execute on function public.is_admin() to anon, authenticated;
 
 -- ---------- pilot sites ----------
--- Every account belongs to one pilot site (set on the admin page). A facilitator sees and acts only on the consents and
--- stories of that site. Annotators and admins without a site see every site.
+-- Every account belongs to one pilot site (set on the admin page). A facilitator sees and acts only on the testimonies
+-- and stories of that site. Annotators and admins without a site see every site.
 create table if not exists public.sites (
   id         uuid primary key default gen_random_uuid(),
   name       text not null unique check (char_length(name) between 1 and 120),
@@ -105,48 +106,72 @@ create policy "admins write languages" on public.story_languages for all    to a
 revoke all on public.sites, public.story_languages from anon;
 grant select, insert, update, delete on public.sites, public.story_languages to authenticated;
 
--- ---------- consent ----------
--- The narrator signs (or gives orally) the printed consent form, which stays at the pilot site with the date and the
--- narrator's details. The system keeps only the code printed in advance on that form (typed by the facilitator),
--- the licence chosen with the narrator, and what the narrator agreed to (all of it is needed for a new code):
---   provide (give the story to the project), cut (the story may be cut into fragments), comment (others may comment on it
---   and add details), share (shown and shared under the chosen licence), voluntary (taking part freely, can withdraw).
-create table if not exists public.consents (
+-- ---------- testimonies ----------
+-- A testimony is one interview with one narrator, under one printed consent form, and holds stories (a story holds
+-- fragments). The signed form stays at the pilot site; the system keeps:
+--   the code printed in advance on the form (typed by the facilitator; capitals, 2 to 40 characters, unique);
+--   what the narrator agreed to (all of it is needed): provide (give the story to the project), cut (the story may be cut
+--   into fragments), comment (others may comment on it and add details), share (shown and shared under the chosen
+--   licence), voluntary (taking part freely, can withdraw);
+--   the licence; anonymity (yes: only the narrator's initials are kept; no: the name, which visitors see as credit);
+--   the narrator; the date and place of the interview; its language or dialect.
+-- An earlier version called this table "consents" (and stories.consent_id): renamed once, keeping everything in it.
+do $$
+begin
+  if to_regclass('public.consents') is not null and to_regclass('public.testimonies') is null then
+    alter table public.consents rename to testimonies;
+  end if;
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'stories' and column_name = 'consent_id')
+     and not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'stories' and column_name = 'testimony_id') then
+    alter table public.stories rename column consent_id to testimony_id;
+  end if;
+end $$;
+create table if not exists public.testimonies (
   id                uuid primary key default gen_random_uuid(),
   code              text not null unique,
   user_id           uuid default auth.uid() references auth.users(id) on delete set null,
-  statement_version text not null,
+  statement_version text,
   lang              text,
-  accepted          jsonb not null,
+  accepted          jsonb,
   created_at        timestamptz not null default now()
 );
-alter table public.consents enable row level security;
-drop policy if exists "read own or all consents" on public.consents;
-drop policy if exists "add own consent"          on public.consents;
--- Licence chosen with the narrator when the consent is given. The oldest consents have none (null).
-alter table public.consents add column if not exists license text;
-alter table public.consents drop constraint if exists consents_license_check;
-alter table public.consents add constraint consents_license_check check (license is null or license in
+alter table public.testimonies enable row level security;
+alter table public.stories add column if not exists testimony_id uuid references public.testimonies(id) on delete restrict;
+alter table public.testimonies add column if not exists license         text;
+alter table public.testimonies add column if not exists site_id         uuid references public.sites(id) on delete restrict;
+alter table public.testimonies alter column site_id set default public.my_site();
+alter table public.testimonies add column if not exists status          text not null default 'draft';
+alter table public.testimonies alter column status set default 'draft';
+alter table public.testimonies add column if not exists withdrawn_at    timestamptz;
+alter table public.testimonies add column if not exists narrator        text;
+alter table public.testimonies add column if not exists anonymous       boolean;
+alter table public.testimonies add column if not exists interview_date  date;
+alter table public.testimonies add column if not exists interview_place text;
+alter table public.testimonies add column if not exists language        text references public.story_languages(code) on update cascade;
+alter table public.testimonies add column if not exists updated_at      timestamptz not null default now();
+alter table public.testimonies alter column statement_version drop not null;
+alter table public.testimonies alter column accepted drop not null;
+alter table public.testimonies drop constraint if exists consents_license_check;
+alter table public.testimonies drop constraint if exists testimonies_license_check;
+alter table public.testimonies add constraint testimonies_license_check check (license is null or license in
   ('CC-BY-4.0', 'CC-BY-SA-4.0', 'CC-BY-NC-4.0', 'CC-BY-NC-SA-4.0', 'CC-BY-NC-ND-4.0', 'PROJECT-ONLY'));
-alter table public.consents alter column statement_version drop not null;
-alter table public.consents alter column accepted drop not null;
-alter table public.consents add column if not exists site_id      uuid references public.sites(id) on delete restrict;
-alter table public.consents alter column site_id set default public.my_site();
-alter table public.consents add column if not exists status       text not null default 'active';
-alter table public.consents add column if not exists withdrawn_at timestamptz;
--- An earlier version kept the session date, place, initials, anonymity and the narrator's name here: they belong on the
--- printed form only, so they are removed.
-alter table public.consents drop constraint if exists consents_record_check;
-drop index if exists public.consents_site_idx;
+-- (columns of earlier versions)
+alter table public.testimonies drop constraint if exists consents_record_check;
 drop table if exists public.consent_narrators;
-alter table public.consents drop column if exists session_date, drop column if exists place, drop column if exists place_lat,
+alter table public.testimonies drop column if exists session_date, drop column if exists place, drop column if exists place_lat,
   drop column if exists place_lon, drop column if exists initials, drop column if exists anonymity,
   drop column if exists narrator_review, drop column if exists oral_consent;
-alter table public.consents drop constraint if exists consents_status_check;
-alter table public.consents add constraint consents_status_check check (status in ('active', 'withdrawn'));
-create index if not exists consents_site_idx on public.consents(site_id, created_at);
--- The code is printed in advance on the consent forms: the facilitator types it when saving the consent. It is kept in
--- capitals without extra spaces, 2 to 40 characters, and is unique. (Older consents without a code get one made here.)
+-- With anonymity only initials (e.g. "EK", "E.K.", "Ε.Κ."; Latin, Greek or Cyrillic letters, whatever the database locale),
+-- otherwise a name.
+alter table public.testimonies drop constraint if exists testimonies_fields_check;
+alter table public.testimonies add constraint testimonies_fields_check check (
+  (narrator is null or char_length(narrator) between 1 and 200)
+  and (interview_place is null or char_length(interview_place) between 1 and 200)
+  and (narrator is null or anonymous is not true
+       or narrator ~ '^[A-Za-zÀ-ÖØ-öø-ɏͰ-ϿЀ-ӿἀ-῾](\.? ?[A-Za-zÀ-ÖØ-öø-ɏͰ-ϿЀ-ӿἀ-῾]){0,3}\.?$'));
+drop index if exists public.consents_site_idx;
+create index if not exists testimonies_site_idx on public.testimonies(site_id, created_at);
+-- The code: kept in capitals without extra spaces. (Rows of the earliest version without a code get one made here.)
 create or replace function public.new_consent_code() returns text
 language plpgsql volatile set search_path = public as $$
 declare a text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; c text;
@@ -157,7 +182,7 @@ begin
       c := c || substr(a, 1 + floor(random() * length(a))::int, 1);
       if i = 4 then c := c || '-'; end if;
     end loop;
-    exit when not exists (select 1 from public.consents where code = c);
+    exit when not exists (select 1 from public.testimonies where code = c);
   end loop;
   return c;
 end $$;
@@ -167,58 +192,72 @@ begin
   new.code := upper(btrim(regexp_replace(new.code, '\s+', ' ', 'g')));
   return new;
 end $$;
-drop trigger if exists consents_code on public.consents;
-create trigger consents_code before insert on public.consents for each row execute function public.consent_code();
-update public.consents set code = public.new_consent_code() where code is null;   -- records of the earliest version
-alter table public.consents drop constraint if exists consents_code_check;
-alter table public.consents add constraint consents_code_check check (char_length(code) between 2 and 40 and code = btrim(code) and code !~ '[[:cntrl:]]');
-alter table public.consents alter column code set not null;
+drop trigger if exists consents_code on public.testimonies;
+drop trigger if exists testimonies_code on public.testimonies;
+create trigger testimonies_code before insert on public.testimonies for each row execute function public.consent_code();
+update public.testimonies set code = public.new_consent_code() where code is null;
+alter table public.testimonies drop constraint if exists consents_code_check;
+alter table public.testimonies drop constraint if exists testimonies_code_check;
+alter table public.testimonies add constraint testimonies_code_check check (char_length(code) between 2 and 40 and code = btrim(code) and code !~ '[[:cntrl:]]');
+alter table public.testimonies alter column code set not null;
 
-drop policy if exists "read site consents"             on public.consents;
-drop policy if exists "facilitators add consents"      on public.consents;
-drop policy if exists "facilitators withdraw consents" on public.consents;
-create policy "read site consents" on public.consents for select to authenticated
+drop policy if exists "read own or all consents"         on public.testimonies;
+drop policy if exists "add own consent"                  on public.testimonies;
+drop policy if exists "read site consents"               on public.testimonies;
+drop policy if exists "facilitators add consents"        on public.testimonies;
+drop policy if exists "facilitators withdraw consents"   on public.testimonies;
+drop policy if exists "read site testimonies"            on public.testimonies;
+drop policy if exists "facilitators add testimonies"     on public.testimonies;
+drop policy if exists "facilitators edit testimonies"    on public.testimonies;
+drop policy if exists "facilitators delete testimonies"  on public.testimonies;
+create policy "read site testimonies" on public.testimonies for select to authenticated
   using (user_id = auth.uid() or public.is_admin() or (site_id is null and public.is_annotator())
          or (site_id is not null and public.sees_site(site_id)));
--- Only a facilitator creates a consent, for their own site, with a licence and every agreement ticked; a consent is
--- permanent (only withdrawal, below).
-create policy "facilitators add consents" on public.consents for insert to authenticated
-  with check (public.is_facilitator() and user_id = auth.uid() and site_id = public.my_site() and status = 'active'
-              and license is not null
+-- Only a facilitator creates a testimony, for their own site, with every field and every agreement; the code, the
+-- agreements, the licence and the anonymity never change (a mistake: delete the empty testimony, or withdraw it).
+create policy "facilitators add testimonies" on public.testimonies for insert to authenticated
+  with check (public.is_facilitator() and user_id = auth.uid() and site_id = public.my_site() and status = 'draft'
+              and license is not null and anonymous is not null and narrator is not null and interview_date is not null
+              and interview_place is not null and language is not null
               and accepted @> '{"provide": true, "cut": true, "comment": true, "share": true, "voluntary": true}'::jsonb);
-create policy "facilitators withdraw consents" on public.consents for update to authenticated
+create policy "facilitators edit testimonies" on public.testimonies for update to authenticated
   using (public.is_facilitator() and site_id = public.my_site())
-  with check (public.is_facilitator() and site_id = public.my_site() and status = 'withdrawn');
-revoke update on public.consents from anon, authenticated;
-grant update (status) on public.consents to authenticated;
+  with check (public.is_facilitator() and site_id = public.my_site());
+create policy "facilitators delete testimonies" on public.testimonies for delete to authenticated
+  using (public.is_facilitator() and site_id = public.my_site() and status = 'draft');
+revoke update on public.testimonies from anon, authenticated;
+grant update (status, narrator, interview_date, interview_place, language) on public.testimonies to authenticated;
+grant select, insert, delete on public.testimonies to authenticated;
 
-alter table public.stories add column if not exists consent_id uuid references public.consents(id) on delete restrict;
-
--- Every story carries the licence of its consent, copied by the database (not chosen again at upload).
-alter table public.stories add column if not exists license text;
+-- Every story carries the licence and the language of its testimony, and the narrator's name when the narrator is not
+-- anonymous (visitors see it as credit), copied by the database.
+alter table public.stories add column if not exists license  text;
+alter table public.stories add column if not exists narrator text;
 alter table public.stories alter column license drop not null;   -- (an earlier test version made it required)
 alter table public.stories alter column license drop default;
 alter table public.stories drop constraint if exists stories_license_check;
 alter table public.stories add constraint stories_license_check check (license is null or license in
   ('CC-BY-4.0', 'CC-BY-SA-4.0', 'CC-BY-NC-4.0', 'CC-BY-NC-SA-4.0', 'CC-BY-NC-ND-4.0', 'PROJECT-ONLY'));
-create or replace function public.story_license_from_consent() returns trigger
+create or replace function public.story_from_testimony() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  if new.consent_id is not null then
-    select c.license into new.license from public.consents c where c.id = new.consent_id;
+  if new.testimony_id is not null then
+    select t.license, coalesce(t.language, new.language), case when t.anonymous is false then t.narrator end
+      into new.license, new.language, new.narrator
+      from public.testimonies t where t.id = new.testimony_id;
   end if;
   return new;
 end $$;
 drop trigger if exists stories_license_from_consent on public.stories;
-create trigger stories_license_from_consent before insert or update of consent_id on public.stories
-  for each row execute function public.story_license_from_consent();
-update public.stories s set license = c.license from public.consents c
-  where c.id = s.consent_id and s.license is distinct from c.license;
+drop function if exists public.story_license_from_consent();
+drop trigger if exists stories_from_testimony on public.stories;
+create trigger stories_from_testimony before insert or update of testimony_id on public.stories
+  for each row execute function public.story_from_testimony();
 
--- To find the story behind a paper form (run as the project owner):
---   select c.code, s.title, s.status, s.created_at
---   from public.consents c left join public.stories s on s.consent_id = c.id
---   where c.code = 'LES-0042';
+-- To find the testimony and stories behind a paper form (run as the project owner):
+--   select t.code, t.narrator, t.status, s.title, s.status
+--   from public.testimonies t left join public.stories s on s.testimony_id = t.id
+--   where t.code = 'LES-0042';
 
 -- ---------- publishing ----------
 do $$
@@ -593,10 +632,12 @@ create or replace function public.is_validator() returns boolean language sql st
 grant execute on function public.is_validator() to anon, authenticated;
 
 -- ======================================================================================================================
--- ---------- facilitator workflow: stories, fragments, community validation ----------
--- Story status: draft (facilitator) -> community_validation (the facilitator goes through it with the community, who
---   correct and complete it) -> ready_for_annotation -> submitted (annotator) -> published or returned (validator) -> ...
--- withdrawn: at any status a facilitator of the site can withdraw a story, or its whole consent; the story is then hidden
+-- ---------- facilitator workflow: testimonies, stories, fragments, community validation ----------
+-- Testimony status: draft (the facilitator adds its stories and their fragments) -> community_validation (the facilitator
+--   goes through it with the community, who correct and complete it) -> validated. Its stories follow it: draft ->
+--   community_validation -> ready_for_annotation, and then each story on its own: submitted (annotator) -> published or
+--   returned (validator) -> ...
+-- withdrawn: at any status a facilitator of the site can withdraw a story, or its whole testimony; it is then hidden
 -- everywhere (admins still see it) and nothing about it can change any more. Every write is in audit_log.
 
 -- One-time renaming of earlier statuses, recorded in wm_migrations so that running this file again never repeats it:
@@ -622,6 +663,15 @@ alter table public.stories drop constraint if exists stories_status_check;
 alter table public.stories add constraint stories_status_check check (status in
   ('draft', 'community_validation', 'ready_for_annotation', 'submitted', 'returned', 'published', 'withdrawn'));
 alter table public.stories alter column status set default 'draft';
+-- Testimonies of an earlier version were "active": their status now follows their stories.
+alter table public.testimonies drop constraint if exists consents_status_check;
+alter table public.testimonies drop constraint if exists testimonies_status_check;
+update public.testimonies t set status = case
+    when exists (select 1 from public.stories s where s.testimony_id = t.id and s.status in ('ready_for_annotation', 'submitted', 'returned', 'published')) then 'validated'
+    when exists (select 1 from public.stories s where s.testimony_id = t.id and s.status = 'community_validation') then 'community_validation'
+    else 'draft' end
+  where t.status = 'active';
+alter table public.testimonies add constraint testimonies_status_check check (status in ('draft', 'community_validation', 'validated', 'withdrawn'));
 
 -- A GeoJSON polygon (one ring, [lon, lat] positions) for "an area" instead of a point.
 create or replace function public.is_polygon(g jsonb) returns boolean
@@ -638,14 +688,17 @@ language sql immutable as $$
     else false end;
 $$;
 
--- Story fields: the site, why (the theme, written by the facilitator), language or dialect, sensitive material, where it
--- came from (workshop_field: the facilitator website; ar: the AR app), the central location (lat/lon; for an area also the
--- polygon, lat/lon then being its centre).
+-- Story fields: the site, its testimony, title, theme (the interview question), who, where (a place name and a point on the
+-- map: lat/lon), when (free text in "period"), where it came from (workshop_field: the facilitator website; ar: the AR
+-- app). Language, licence and narrator come from the testimony.
 alter table public.stories add column if not exists site_id      uuid references public.sites(id) on delete restrict;
 alter table public.stories alter column site_id set default public.my_site();
 alter table public.stories add column if not exists theme        text;
 alter table public.stories add column if not exists language     text references public.story_languages(code) on update cascade;
-alter table public.stories add column if not exists sensitive    boolean;
+alter table public.stories add column if not exists sensitive    boolean;   -- (an earlier version)
+alter table public.stories add column if not exists who          text;
+alter table public.stories add column if not exists place_name   text;
+alter table public.stories add column if not exists period       text;
 alter table public.stories add column if not exists source       text not null default 'workshop_field';
 alter table public.stories add column if not exists area         jsonb;
 alter table public.stories add column if not exists withdrawn_at timestamptz;
@@ -663,18 +716,29 @@ drop table if exists public.site_questions;
 alter table public.stories add constraint stories_workflow_check check (
   source in ('workshop_field', 'ar')
   and (theme is null or char_length(theme) <= 500)
+  and (who is null or char_length(who) <= 600)
+  and (place_name is null or char_length(place_name) <= 200)
+  and (period is null or char_length(period) <= 200)
+  and (narrator is null or char_length(narrator) <= 200)
   and (area is null or public.is_polygon(area))
-  and (site_id is null or (theme is not null and language is not null and sensitive is not null and consent_id is not null)));
+  and (site_id is null or (theme is not null and language is not null and testimony_id is not null)));
 create index if not exists stories_site_idx on public.stories(site_id, status);
-create index if not exists stories_consent_idx on public.stories(consent_id);
+drop index if exists public.stories_consent_idx;
+create index if not exists stories_testimony_idx on public.stories(testimony_id);
+update public.stories s set license = t.license, language = coalesce(t.language, s.language),
+    narrator = case when t.anonymous is false then t.narrator end
+  from public.testimonies t
+  where t.id = s.testimony_id and (s.license, s.language, s.narrator) is distinct from
+        (t.license, coalesce(t.language, s.language), case when t.anonymous is false then t.narrator end);
 
--- Fragment fields: title (= what), required before community validation; who (free text); where (a place name and/or
--- a point or an area); when (free text in "period", e.g. "14/7/1965", "~1922", "summer 1965", or blank).
+-- Fragment fields: the file (its kind detected automatically), its order (position), and a caption for a photo or a
+-- video. (Title, who, where and when of a fragment belong to an earlier version: they are now the story's.)
 -- The original upload is stored as it is: sha256 computed by the browser, etag (MD5) and size taken from the storage
 -- server when the fragment is saved. A thumbnail (photo/video) and a waveform (audio) are made for display.
 alter table public.story_media add column if not exists who           text[];   -- made free text below
 alter table public.story_media add column if not exists area          jsonb;
 alter table public.story_media add column if not exists provenance    text;
+alter table public.story_media add column if not exists caption       text;
 alter table public.story_media add column if not exists sha256        text;
 alter table public.story_media add column if not exists etag          text;
 alter table public.story_media add column if not exists size_bytes    bigint;
@@ -718,7 +782,22 @@ alter table public.story_media add constraint story_media_fragment_check check (
   and (period is null or char_length(period) <= 200)
   and (sha256 is null or sha256 ~ '^[0-9a-f]{64}$')
   and (original_name is null or char_length(original_name) <= 255)
-  and (waveform is null or jsonb_typeof(waveform) = 'array')) not valid;
+  and (waveform is null or jsonb_typeof(waveform) = 'array')
+  and (caption is null or (char_length(caption) <= 500 and kind in ('image', 'video')))) not valid;
+-- Once: a photo's or video's title becomes its caption, and the first who / where / when of a story's fragments become the
+-- story's.
+do $$
+begin
+  if not exists (select 1 from public.wm_migrations where name = 'testimony_v4') then
+    update public.story_media set caption = btrim(title)
+      where caption is null and kind in ('image', 'video') and coalesce(btrim(title), '') <> '' and char_length(btrim(title)) <= 500;
+    update public.stories s set
+      who        = coalesce(s.who,        (select m.who        from public.story_media m where m.story_id = s.id and coalesce(btrim(m.who), '') <> ''        order by m.position limit 1)),
+      place_name = coalesce(s.place_name, (select m.place_name from public.story_media m where m.story_id = s.id and coalesce(btrim(m.place_name), '') <> '' order by m.position limit 1)),
+      period     = coalesce(s.period,     (select m.period     from public.story_media m where m.story_id = s.id and coalesce(btrim(m.period), '') <> ''     order by m.position limit 1));
+    insert into public.wm_migrations (name) values ('testimony_v4');
+  end if;
+end $$;
 drop function if exists public.texts_ok(text[], integer);   -- (used by the list of names of an earlier version)
 
 -- Internal comment on a fragment (e.g. what the community said): seen by the site's facilitators and by annotators and
@@ -738,19 +817,23 @@ language sql stable security definer set search_path = public as $$
   select public.is_facilitator()
      and exists (select 1 from public.stories s where s.id = sid and s.site_id = public.my_site() and s.status in ('draft', 'community_validation'));
 $$;
--- What still stops a story from moving on: 'consent' (no active consent), 'audio' (no audio fragment),
--- 'titles' (a fragment without a title).
+-- What still stops a testimony from moving on: 'stories' (it has none), and for any of its stories 'theme' (no theme) or
+-- 'audio' (no audio fragment).
 create or replace function public.story_problems(sid uuid) returns text[]
 language sql stable security definer set search_path = public as $$
   select array_remove(array[
-    case when not exists (select 1 from public.stories s join public.consents c on c.id = s.consent_id
-                          where s.id = sid and c.status = 'active') then 'consent' end,
-    case when not exists (select 1 from public.story_media m where m.story_id = sid and m.kind = 'audio') then 'audio' end,
-    case when exists (select 1 from public.story_media m where m.story_id = sid and coalesce(btrim(m.title), '') = '') then 'titles' end
+    case when not exists (select 1 from public.stories s where s.id = sid and coalesce(btrim(s.theme), '') <> '') then 'theme' end,
+    case when not exists (select 1 from public.story_media m where m.story_id = sid and m.kind = 'audio') then 'audio' end
   ], null);
 $$;
-revoke execute on function public.can_edit_story(uuid), public.story_problems(uuid) from public, anon;
-grant execute on function public.can_edit_story(uuid), public.story_problems(uuid) to authenticated;
+create or replace function public.testimony_problems(tid uuid) returns text[]
+language sql stable security definer set search_path = public as $$
+  select case when not exists (select 1 from public.stories s where s.testimony_id = tid and s.status <> 'withdrawn') then array['stories']
+    else (select coalesce(array_agg(distinct p order by p), '{}') from public.stories s, unnest(public.story_problems(s.id)) p
+          where s.testimony_id = tid and s.status <> 'withdrawn') end;
+$$;
+revoke execute on function public.can_edit_story(uuid), public.story_problems(uuid), public.testimony_problems(uuid) from public, anon;
+grant execute on function public.can_edit_story(uuid), public.story_problems(uuid), public.testimony_problems(uuid) to authenticated;
 
 -- (an earlier version had workshop sessions; community validation replaces them)
 drop function if exists public.workshop_set_field(uuid, uuid, text, jsonb);
@@ -769,18 +852,20 @@ drop policy if exists "facilitators edit stories"     on public.stories;
 drop policy if exists "annotators publish"            on public.stories;
 drop policy if exists "owners finish review"          on public.stories;
 drop policy if exists "delete stories"                on public.stories;
--- Published: everyone. Withdrawn: admins only. Otherwise: the site's facilitators (every status); annotators once the
--- community has validated it; stories from before sites existed: their uploader, and annotators once in annotation.
+-- Published: everyone. The site's facilitators: every status (withdrawn too, so that they can withdraw). Withdrawn:
+-- otherwise admins only. Annotators: once the community has validated it. Stories from before sites existed: their
+-- uploader, and annotators once in annotation.
 create policy "read visible stories" on public.stories for select
   using (status = 'published' or public.is_admin()
+    or (site_id is not null and public.is_facilitator() and site_id = public.my_site())
     or (status <> 'withdrawn' and (
          (site_id is null and (user_id = auth.uid() or (public.is_annotator() and status in ('ready_for_annotation', 'submitted', 'returned'))))
-      or (site_id is not null and public.is_facilitator() and site_id = public.my_site())
       or (site_id is not null and public.is_annotator() and status in ('ready_for_annotation', 'submitted', 'returned') and public.sees_site(site_id)))));
--- No story without an active consent of the same site; a new story is a draft.
+-- No story outside a testimony of the same site that is still being worked on; the story takes its testimony's status.
 create policy "facilitators add stories" on public.stories for insert to authenticated
-  with check (public.is_facilitator() and user_id = auth.uid() and site_id = public.my_site() and status = 'draft'
-    and exists (select 1 from public.consents c where c.id = stories.consent_id and c.site_id = stories.site_id and c.status = 'active'));
+  with check (public.is_facilitator() and user_id = auth.uid() and site_id = public.my_site() and status in ('draft', 'community_validation')
+    and exists (select 1 from public.testimonies t where t.id = stories.testimony_id and t.site_id = stories.site_id
+                and t.status in ('draft', 'community_validation')));
 create policy "facilitators edit stories" on public.stories for update to authenticated
   using (public.is_facilitator() and site_id = public.my_site())
   with check (public.is_facilitator() and site_id = public.my_site());
@@ -793,7 +878,7 @@ create policy "delete stories" on public.stories for delete to authenticated
     or (public.is_annotator() and status in ('ready_for_annotation', 'submitted', 'returned', 'published')
         and (site_id is null or public.sees_site(site_id))));
 revoke update on public.stories from anon, authenticated;
-grant update (status, title, lat, lon, area, radius, theme, language, sensitive, consent_id) on public.stories to authenticated;
+grant update (status, title, lat, lon, area, radius, theme, who, place_name, period) on public.stories to authenticated;
 
 -- The rules the policies cannot express: which status changes are allowed and who may make them, and that a story's
 -- content changes only while the facilitators work on it. The SQL editor (no signed-in user) is not limited.
@@ -805,20 +890,22 @@ declare
 begin
   new.updated_at := now();
   if tg_op = 'INSERT' then
-    if auth.uid() is not null then new.withdrawn_at := null; end if;
+    if auth.uid() is not null then
+      new.withdrawn_at := null;
+      -- a new story joins its testimony where it is: still a draft, or with the community
+      select case t.status when 'community_validation' then 'community_validation' else 'draft' end into new.status
+        from public.testimonies t where t.id = new.testimony_id;
+      new.status := coalesce(new.status, 'draft');
+    end if;
     return new;
   end if;
   if auth.uid() is null then return new; end if;
   if old.status = 'withdrawn' then raise exception 'A withdrawn story cannot be changed' using errcode = '42501'; end if;
   fac := public.is_facilitator() and old.site_id is not distinct from public.my_site();
-  if (new.title, new.lat, new.lon, new.area, new.radius, new.theme, new.language, new.sensitive, new.consent_id)
-     is distinct from (old.title, old.lat, old.lon, old.area, old.radius, old.theme, old.language, old.sensitive, old.consent_id) then
+  if (new.title, new.lat, new.lon, new.area, new.radius, new.theme, new.who, new.place_name, new.period, new.testimony_id)
+     is distinct from (old.title, old.lat, old.lon, old.area, old.radius, old.theme, old.who, old.place_name, old.period, old.testimony_id) then
     if not fac or old.status not in ('draft', 'community_validation') then
       raise exception 'Only the site''s facilitators can change a story, until the community has validated it' using errcode = '42501';
-    end if;
-    if new.consent_id is distinct from old.consent_id
-       and not exists (select 1 from public.consents c where c.id = new.consent_id and c.site_id = old.site_id and c.status = 'active') then
-      raise exception 'Choose an active consent of this site' using errcode = '23514';
     end if;
   end if;
   if new.status is distinct from old.status then
@@ -826,14 +913,11 @@ begin
       if not (fac or public.is_admin()) then raise exception 'Only the site''s facilitators can withdraw a story' using errcode = '42501'; end if;
       new.withdrawn_at := now();
     elsif (old.status = 'draft' and new.status = 'community_validation')
-       or (old.status = 'community_validation' and new.status = 'ready_for_annotation') then
-      if not fac then raise exception 'Only the site''s facilitators can move a story on' using errcode = '42501'; end if;
-      probs := public.story_problems(old.id);
-      if cardinality(probs) > 0 then
-        raise exception 'Not ready yet: %', array_to_string(probs, ', ') using errcode = '23514';
+       or (old.status = 'community_validation' and new.status in ('ready_for_annotation', 'draft')) then
+      -- only together with its testimony (the testimony's own rule calls this)
+      if pg_trigger_depth() < 2 then
+        raise exception 'A story moves on together with its testimony' using errcode = '42501';
       end if;
-    elsif old.status = 'community_validation' and new.status = 'draft' then
-      if not fac then raise exception 'Only the site''s facilitators can take a story back' using errcode = '42501'; end if;
     elsif new.status = 'submitted' and old.status in ('ready_for_annotation', 'returned') then
       if not public.is_annotator() then raise exception 'Only an annotator can submit a story' using errcode = '42501'; end if;
     elsif new.status = 'ready_for_annotation' and old.status in ('submitted', 'published') then
@@ -852,22 +936,61 @@ drop trigger if exists stories_guard        on public.stories;
 create trigger stories_guard before insert or update on public.stories for each row execute function public.guard_story();
 drop function if exists public.check_story_status();
 
--- Withdrawing a consent withdraws all its stories; a withdrawn consent stays withdrawn.
-create or replace function public.guard_consent() returns trigger
+-- A testimony and its stories move on together. Its details (narrator, date and place, language) change only while the
+-- facilitators work on it; withdrawing it withdraws all its stories; a withdrawn testimony stays withdrawn.
+create or replace function public.guard_testimony() returns trigger
 language plpgsql security definer set search_path = public as $$
+declare
+  fac boolean;
+  probs text[];
 begin
-  if auth.uid() is null then return new; end if;
-  if old.status = 'withdrawn' and new.status is distinct from old.status then
-    raise exception 'A withdrawn consent stays withdrawn' using errcode = '42501';
+  new.updated_at := now();
+  if tg_op = 'INSERT' then
+    if auth.uid() is not null then new.status := 'draft'; new.withdrawn_at := null; end if;
+    return new;
   end if;
-  if new.status = 'withdrawn' and old.status <> 'withdrawn' then
-    new.withdrawn_at := now();
-    update public.stories set status = 'withdrawn' where consent_id = new.id and status <> 'withdrawn';
+  if auth.uid() is null then return new; end if;
+  if old.status = 'withdrawn' then raise exception 'A withdrawn testimony cannot be changed' using errcode = '42501'; end if;
+  fac := public.is_facilitator() and old.site_id is not distinct from public.my_site();
+  if (new.narrator, new.interview_date, new.interview_place, new.language)
+     is distinct from (old.narrator, old.interview_date, old.interview_place, old.language) then
+    if not fac or old.status not in ('draft', 'community_validation') then
+      raise exception 'Only the site''s facilitators can change a testimony, until the community has validated it' using errcode = '42501';
+    end if;
+    if new.narrator is null or new.interview_date is null or new.interview_place is null or new.language is null then
+      raise exception 'The narrator, the date and place of the interview and the language are needed' using errcode = '23514';
+    end if;
+  end if;
+  if new.status is distinct from old.status then
+    if new.status = 'withdrawn' then
+      if not (fac or public.is_admin()) then raise exception 'Only the site''s facilitators can withdraw a testimony' using errcode = '42501'; end if;
+      new.withdrawn_at := now();
+      update public.stories set status = 'withdrawn' where testimony_id = new.id and status <> 'withdrawn';
+    elsif (old.status = 'draft' and new.status = 'community_validation') or (old.status = 'community_validation' and new.status = 'validated') then
+      if not fac then raise exception 'Only the site''s facilitators can move a testimony on' using errcode = '42501'; end if;
+      probs := public.testimony_problems(old.id);
+      if cardinality(probs) > 0 then
+        raise exception 'Not ready yet: %', array_to_string(probs, ', ') using errcode = '23514';
+      end if;
+      update public.stories set status = case new.status when 'validated' then 'ready_for_annotation' else 'community_validation' end
+        where testimony_id = new.id and status = case new.status when 'validated' then 'community_validation' else 'draft' end;
+    elsif old.status = 'community_validation' and new.status = 'draft' then
+      if not fac then raise exception 'Only the site''s facilitators can take a testimony back' using errcode = '42501'; end if;
+      update public.stories set status = 'draft' where testimony_id = new.id and status = 'community_validation';
+    else
+      raise exception 'This status change is not allowed (% -> %)', old.status, new.status using errcode = '42501';
+    end if;
+  end if;
+  if new.status <> 'withdrawn' and (new.language, new.narrator) is distinct from (old.language, old.narrator) then
+    update public.stories set language = new.language, narrator = case when new.anonymous is false then new.narrator end
+      where testimony_id = new.id and status <> 'withdrawn';
   end if;
   return new;
 end $$;
-drop trigger if exists consents_guard on public.consents;
-create trigger consents_guard before update on public.consents for each row execute function public.guard_consent();
+drop trigger if exists consents_guard on public.testimonies;
+drop trigger if exists testimonies_guard on public.testimonies;
+create trigger testimonies_guard before insert or update on public.testimonies for each row execute function public.guard_testimony();
+drop function if exists public.guard_consent();
 
 -- ---------- fragments: who may add, change, delete ----------
 drop policy if exists "facilitators add fragments"    on public.story_media;
@@ -883,8 +1006,7 @@ create policy "annotators reorder fragments" on public.story_media for update to
 create policy "facilitators delete fragments" on public.story_media for delete to authenticated
   using (public.can_edit_story(story_id));
 revoke update on public.story_media from anon, authenticated;
-grant update (position, title, who, place_name, lat, lon, area, period, recorded_at)
-  on public.story_media to authenticated;
+grant update (position, caption) on public.story_media to authenticated;
 
 create or replace function public.guard_fragment() returns trigger
 language plpgsql security definer set search_path = public as $$
@@ -909,8 +1031,8 @@ begin
     return new;
   end if;
   if auth.uid() is null then return new; end if;
-  if (new.title, new.who, new.place_name, new.lat, new.lon, new.area, new.period, new.recorded_at, new.about, new.what)
-     is not distinct from (old.title, old.who, old.place_name, old.lat, old.lon, old.area, old.period, old.recorded_at, old.about, old.what) then
+  if (new.caption, new.title, new.who, new.place_name, new.lat, new.lon, new.area, new.period, new.recorded_at, new.about, new.what)
+     is not distinct from (old.caption, old.title, old.who, old.place_name, old.lat, old.lon, old.area, old.period, old.recorded_at, old.about, old.what) then
     -- only the position: the site's facilitators while editable, annotators once the story is in annotation
     if public.can_edit_story(old.story_id) or (public.is_annotator() and exists (select 1 from public.stories s where s.id = old.story_id
          and s.status in ('ready_for_annotation', 'submitted', 'returned', 'published'))) then
@@ -985,7 +1107,8 @@ end $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['sites', 'story_languages', 'profiles', 'consents', 'stories', 'story_media', 'fragment_notes'] loop
+  drop trigger if exists consents_audit on public.testimonies;
+  foreach t in array array['sites', 'story_languages', 'profiles', 'testimonies', 'stories', 'story_media', 'fragment_notes'] loop
     execute format('drop trigger if exists %I on public.%I', t || '_audit', t);
     execute format('create trigger %I after insert or update or delete on public.%I for each row execute function public.audit_row()', t || '_audit', t);
   end loop;

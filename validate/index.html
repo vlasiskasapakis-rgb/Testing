@@ -250,9 +250,9 @@
   async function load() {
     $('loadInfo').textContent = t('loading');
     try {
-      var cols = 'id,title,author_name,lat,lon,status,created_at,story_media(id,kind,path,position,title,about,period,recorded_at),consents(code)';
+      var cols = 'id,title,author_name,lat,lon,status,created_at,story_media(id,kind,path,position,title,about,period,recorded_at),testimonies(code)';
       var colsW = cols.replace('recorded_at)', 'recorded_at,what,place_name)') + ',license';   // ποιος/τι/πού/πότε, άδεια
-      var colsV = colsW.replace('what,place_name)', 'what,place_name,who)');
+      var colsV = colsW.replace('what,place_name)', 'what,place_name,who,caption)') + ',theme,who,place_name,period';
       var r = await Promise.all([
         sb.from('stories').select(colsV).eq('status', 'submitted').order('created_at'),
         sb.from('stories').select('id,title,status'),
@@ -262,8 +262,11 @@
       ]);
       if (r[0].error) r[0] = await sb.from('stories').select(colsW).eq('status', 'submitted').order('created_at');
       if (r[0].error) r[0] = await sb.from('stories').select(cols).eq('status', 'submitted').order('created_at');   // βάση χωρίς τις νέες στήλες
-      (r[0].data || []).forEach(function (s) {   // several names, exact or approximate "when"
-        (s.story_media || []).forEach(function (m) { if (m.who) m.about = Array.isArray(m.who) ? m.who.join(', ') : m.who; });
+      (r[0].data || []).forEach(function (s) {   // a fragment: its caption; who / where / when are the story's (older fragments had their own)
+        (s.story_media || []).forEach(function (m) {
+          if (m.who) m.about = Array.isArray(m.who) ? m.who.join(', ') : m.who;
+          m.about = m.about || s.who || ''; m.what = m.caption || m.what || ''; m.place_name = m.place_name || s.place_name || ''; m.period = m.period || s.period || '';
+        });
       });
       var e = r.find(function (x) { return x.error; });
       if (e) throw e.error;
@@ -354,7 +357,7 @@
       facts.appendChild(el('span', null, t('terms', { n: c.approved || 0 })));
       if (c.open) facts.appendChild(el('span', 'warn', t('openTerms', { n: c.open })));
       if (c.comments) facts.appendChild(el('span', null, t('comments', { n: c.comments })));
-      if (s.consents && s.consents.code) facts.appendChild(el('span', null, t('consent', { c: s.consents.code })));
+      if (s.testimonies && s.testimonies.code) facts.appendChild(el('span', null, t('consent', { c: s.testimonies.code })));
       if (s.license) facts.appendChild(el('span', null, t('licF', { l: s.license === 'PROJECT-ONLY' ? t('projectOnly') : s.license.replace(/^CC-/, 'CC ').replace(/-4\.0$/, ' 4.0') })));
       if (s.lat != null) { var a = el('a', null, '📍 ' + t('location')); a.href = 'https://www.openstreetmap.org/?mlat=' + s.lat + '&mlon=' + s.lon + '#map=17/' + s.lat + '/' + s.lon; a.target = '_blank'; a.rel = 'noopener'; var sp = el('span'); sp.appendChild(a); facts.appendChild(sp); }
       it.appendChild(facts);

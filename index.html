@@ -419,6 +419,8 @@
   .lic-set { border: 2px solid var(--line-strong); border-radius: 12px; padding: 4px 14px 2px; margin: 4px 0 12px; }
   .lic-set legend { font-weight: 700; color: var(--petrol); padding: 0 6px; }
   .lic-set .check { margin: 0 0 10px; } .lic-set .check b { color: var(--petrol); display: block; } .lic-set .check small { color: var(--muted); font-size: 14px; }
+  .story-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 0 0 10px; font-size: 15px; }
+  .story-facts dt { font-weight: 700; color: var(--petrol); } .story-facts dd { margin: 0; overflow-wrap: anywhere; } .story-facts a { color: var(--petrol); font-weight: 600; }
   .story-license { font-size: 14px; color: var(--muted); margin: 0 0 8px; } .story-license a { color: var(--petrol); font-weight: 600; }
   .subtitle-bar { box-sizing: border-box; height: calc(3 * 1.35em + 16px); margin: 4px 0 8px; padding: 8px 12px; border-radius: 10px; background: rgba(14,63,80,.94); color: #fff; font-size: 17px; line-height: 1.35; text-align: center; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .subtitle-bar[hidden] { display: none; }
@@ -673,6 +675,7 @@
     <h2 id="sheetTitle"></h2>
     <p id="sheetSub" class="sheet-sub"></p>
     <p id="sheetAuthor" class="story-author"></p>
+    <dl id="sheetFacts" class="story-facts" hidden></dl>
     <p id="sheetLicense" class="story-license" hidden></p>
     <p id="sheetStatus" class="story-status"></p>
     <p id="sheetConsent" class="story-status" hidden></p>
@@ -691,7 +694,7 @@
 <!-- 1. Νέα ιστορία -->
 <div id="consentSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
   <div class="sheet-inner">
-    <h2 id="consentTitle" data-i18n="consentTitle"></h2>
+    <h2 id="consentTitle" data-i18n="arTestimonyTitle"></h2>
     <div class="input-group">
       <label for="langConsent" data-i18n="language"></label>
       <select id="langConsent" class="lang-select">
@@ -719,6 +722,14 @@
           <label class="check"><input type="checkbox" name="cnAgree" value="voluntary"><span data-i18n="arAgree_voluntary"></span></label>
         </fieldset>
         <div class="input-group"><label for="cnLicense" data-i18n="arLicence"></label><select id="cnLicense" class="lang-select"></select><p id="cnLicHelp" class="sheet-sub" style="margin:4px 0 0"></p></div>
+        <fieldset class="lic-set"><legend data-i18n="arAnonymity"></legend>
+          <label class="check"><input type="radio" name="cnAnon" value="yes"><span data-i18n="arAnonYes"></span></label>
+          <label class="check"><input type="radio" name="cnAnon" value="no"><span data-i18n="arAnonNo"></span></label>
+        </fieldset>
+        <div class="input-group"><label for="cnNarrator" data-i18n="arNarrator"></label><input type="text" id="cnNarrator" maxlength="200" autocomplete="off" aria-describedby="cnNarratorHint"><p id="cnNarratorHint" class="sheet-sub" style="margin:4px 0 0"></p></div>
+        <div class="input-group"><label for="cnDate" data-i18n="arInterviewDate"></label><input type="date" id="cnDate"></div>
+        <div class="input-group"><label for="cnPlace" data-i18n="arInterviewPlace"></label><input type="text" id="cnPlace" maxlength="200" autocomplete="off"></div>
+        <div class="input-group"><label for="cnLanguage" data-i18n="arLanguage"></label><select id="cnLanguage" class="lang-select"></select></div>
       </div>
       <p id="consentError" class="field-error" role="alert"></p>
     </div>
@@ -755,10 +766,9 @@
     </div>
     <div class="input-group"><label for="storyTheme" data-i18n="arTheme"></label><input type="text" id="storyTheme" maxlength="500" autocomplete="off" data-i18n-ph="arThemePh" aria-describedby="themeHint">
       <p class="sheet-sub" id="themeHint" data-i18n="arThemeHint" style="margin:4px 0 0"></p></div>
-    <div class="input-group"><label for="storyLanguage" data-i18n="arLanguage"></label><select id="storyLanguage" class="lang-select"></select></div>
-    <fieldset class="lic-set" id="storySensSet"><legend data-i18n="arSensitive"></legend>
-      <label class="check"><input type="radio" name="storySens" value="no"><span data-i18n="arNo"></span></label>
-      <label class="check"><input type="radio" name="storySens" value="yes"><span data-i18n="arYes"></span></label></fieldset>
+    <div class="input-group"><label for="storyWho" data-i18n="arWho"></label><input type="text" id="storyWho" maxlength="600" autocomplete="off" data-i18n-ph="miAboutPh"></div>
+    <div class="input-group"><label for="storyPlace" data-i18n="arWherePlace"></label><input type="text" id="storyPlace" maxlength="200" autocomplete="off" data-i18n-ph="miWherePh"></div>
+    <div class="input-group"><label for="storyWhen" data-i18n="arWhen"></label><input type="text" id="storyWhen" maxlength="200" autocomplete="off" data-i18n-ph="miPeriodPh"></div>
     <p id="storyFieldsError" class="field-error" role="alert"></p>
 
     <div class="input-group">
@@ -948,25 +958,11 @@
   </div>
 </div>
 
-<!-- Στοιχεία αρχείου: τίτλος και ποιος, τι, πού, πότε (όλα προαιρετικά) -->
+<!-- Λεζάντα φωτογραφίας ή βίντεο -->
 <div id="mediaInfoSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-labelledby="miHeading">
   <div class="sheet-inner">
     <h2 id="miHeading"></h2>
-    <p class="sheet-sub" data-i18n="miIntro"></p>
-    <div class="input-group"><label for="miTitleIn" data-i18n="arFragTitle"></label><input type="text" id="miTitleIn" maxlength="200" autocomplete="off" data-i18n-ph="miWhatPh"></div>
-    <div class="input-group"><label for="miAboutIn" data-i18n="miAbout"></label><input type="text" id="miAboutIn" maxlength="600" autocomplete="off" data-i18n-ph="miAboutPh"></div>
-    <div class="input-group">
-      <label for="miPlaceIn" data-i18n="miWhere"></label><input type="text" id="miPlaceIn" maxlength="200" autocomplete="off" data-i18n-ph="miWherePh">
-      <span class="group-label" id="miLocLabel" data-i18n="miLoc" style="margin-top:10px"></span>
-      <div id="miLocText" class="loc-box" aria-labelledby="miLocLabel"></div>
-      <div class="loc-actions">
-        <button type="button" class="btn-secondary" id="miLocGps" data-i18n="miLocGps"></button>
-        <button type="button" class="btn-secondary" id="miLocMap" data-i18n="miLocMap"></button>
-        <button type="button" class="link-btn" id="miLocClear" data-i18n="miLocClear"></button>
-      </div>
-    </div>
-    <div class="input-group"><label for="miPeriodIn" data-i18n="miPeriod"></label><input type="text" id="miPeriodIn" maxlength="200" autocomplete="off" data-i18n-ph="miPeriodPh"></div>
-    <div class="input-group"><label for="miDateIn" data-i18n="miDate"></label><input type="date" id="miDateIn"></div>
+    <div class="input-group"><label for="miCaptionIn" data-i18n="arCaption"></label><textarea id="miCaptionIn" rows="3" maxlength="500" data-i18n-ph="arCaptionPh"></textarea></div>
     <div class="btn-row">
       <button type="button" class="btn-secondary" id="miCancel" data-i18n="cancel"></button>
       <button type="button" class="btn-primary" id="miSave" data-i18n="miSave"></button>
@@ -1006,22 +1002,42 @@
   var LANGS = ['el', 'en', 'fr', 'it'];
   var I18N = {
     el: {
-      arConsentIntro: "Διάλεξε τον κωδικό συναίνεσης του αφηγητή ή πρόσθεσε τον κωδικό που είναι τυπωμένος σε νέο έντυπο. Το υπογεγραμμένο έντυπο, με τα στοιχεία του αφηγητή, μένει στο χαρτί.",
-      arConsentPick: "Κωδικός συναίνεσης",
-      arConsentNew: "+ Νέα συναίνεση",
-      arConsentChoose: "— διάλεξε κωδικό —",
+      arConsentIntro: "Διάλεξε τη μαρτυρία στην οποία ανήκει η καταγραφή (μία συνέντευξη, ένας αφηγητής, ένα τυπωμένο έντυπο συναίνεσης) ή φτιάξε νέα. Το υπογεγραμμένο έντυπο μένει στο χαρτί.",
+      arConsentPick: "Μαρτυρία",
+      arConsentNew: "+ Νέα μαρτυρία",
+      arConsentChoose: "— διάλεξε μαρτυρία —",
       arLicence: "Άδεια",
-      arYes: "Ναι",
-      arNo: "Όχι",
-      arConsentMissing: "Γράψε τον κωδικό του εντύπου (2 έως 40 χαρακτήρες), τσέκαρε όλες τις συμφωνίες και διάλεξε άδεια.",
-      arConsentSaved: "Η συναίνεση {c} αποθηκεύτηκε.",
+      arConsentMissing: "Γράψε τον κωδικό του εντύπου (2 έως 40 χαρακτήρες), τσέκαρε όλες τις συμφωνίες, διάλεξε άδεια και ανωνυμία και συμπλήρωσε αφηγητή, ημερομηνία και τόπο της συνέντευξης και γλώσσα.",
+      arConsentSaved: "Η μαρτυρία {c} αποθηκεύτηκε.",
+      factNarrator: "Αφηγητής",
+      factWhen: "Πότε",
+      factWhere: "Πού",
+      factWho: "Ποιος",
+      factTheme: "Θέμα",
+      arCaptionAdd: "Λεζάντα",
+      arCaptionPh: "Τι δείχνει η φωτογραφία ή το βίντεο",
+      arCaption: "Λεζάντα",
+      arWhen: "Πότε",
+      arWherePlace: "Πού (όνομα του τόπου)",
+      arWho: "Ποιος",
+      arInterviewPlace: "Τόπος της συνέντευξης",
+      arInterviewDate: "Ημερομηνία της συνέντευξης",
+      arNeedInitials: "Με ανωνυμία γράψε μόνο τα αρχικά (π.χ. Ε.Κ.).",
+      arNarratorHintName: "Το όνομα, όπως το επιτρέπει η συναίνεση. Οι επισκέπτες το βλέπουν στις δημοσιευμένες ιστορίες.",
+      arNarratorHintAnon: "Μόνο αρχικά, π.χ. Ε.Κ. Οι επισκέπτες δεν τα βλέπουν ποτέ.",
+      arNarratorHint: "Αρχικά, ή το όνομα αν συμφωνεί ο αφηγητής (δες την Ανωνυμία).",
+      arNarrator: "Αφηγητής",
+      arAnonNo: "Όχι: μπορεί να χρησιμοποιηθεί το όνομα του αφηγητή",
+      arAnonYes: "Ναι: κρατάμε μόνο τα αρχικά του αφηγητή",
+      arAnonymity: "Ανωνυμία",
+      arTestimonyTitle: "Μαρτυρία",
       arCodeIn: "Κωδικός συναίνεσης (τυπωμένος στο έντυπο)",
       arCodePh: "π.χ. LES-0042",
       arCodeExists: "Ο κωδικός {c} είναι ήδη καταχωρισμένος.",
-      arConsentCreate: "Αποθήκευση συναίνεσης",
-      arTheme: "Γιατί (το θέμα)",
-      arThemePh: "π.χ. τα πανηγύρια του χωριού, η φυγή από το σπίτι, η δουλειά στο λιμάνι",
-      arThemeHint: "Με δικά σου λόγια: για τι μιλάει η ιστορία. Είναι το «γιατί» όλων των κομματιών της.",
+      arConsentCreate: "Αποθήκευση μαρτυρίας",
+      arTheme: "Θέμα (η ερώτηση της συνέντευξης)",
+      arThemePh: "π.χ. Τι θυμάστε από τα πανηγύρια του χωριού;",
+      arThemeHint: "Η ερώτηση στην οποία απαντά αυτή η ιστορία: είναι το «γιατί» της.",
       statusCommunity: "Περιμένει επικύρωση από την κοινότητα",
       arAgreeLegend: "Ο αφηγητής συμφωνεί",
       arAgree_provide: "να δώσει την ιστορία του (ηχογραφήσεις, φωτογραφίες, βίντεο) στο έργο·",
@@ -1031,11 +1047,8 @@
       arAgree_voluntary: "και συμμετέχει ελεύθερα, ξέροντας ότι μπορεί να ανακαλέσει την ιστορία όποτε θέλει.",
       arChoose: "— διάλεξε —",
       arLanguage: "Γλώσσα / διάλεκτος",
-      arSensitive: "Ευαίσθητο υλικό",
-      arStoryFieldsNeeded: "Γράψε το γιατί (θέμα), διάλεξε τη γλώσσα και αν υπάρχει ευαίσθητο υλικό.",
+      arStoryFieldsNeeded: "Γράψε το θέμα (την ερώτηση της συνέντευξης).",
       arNeedAudio: "Χρειάζεται τουλάχιστον ένα κομμάτι ήχου.",
-      arNeedTitles: "Κάθε αρχείο χρειάζεται τίτλο.",
-      arFragTitle: "Τίτλος (= τι) *",
       statusFacDraft: "Πρόχειρη",
       pageTitle: "Walking Memory — Μυτιλήνη", language: "Γλώσσα",
       gateTitle: "Διαδρομή μνήμης, κέντρο Μυτιλήνης",
@@ -1223,28 +1236,16 @@
       moveUp: "Μετακίνηση πάνω: {name}",
       moveDown: "Μετακίνηση κάτω: {name}",
       movedTo: "{name}: θέση {i} από {n}",
-      miDetails: "Στοιχεία",
       miTitle: "Τίτλος",
-      miAbout: "Ποιος; Ποιοι είναι μέσα ή για ποιον μιλάει",
       miAboutPh: "π.χ. η γιαγιά Μαρία, οι ψαράδες του λιμανιού",
-      miIntro: "Απάντησε ό,τι ξέρεις· όλες οι ερωτήσεις είναι προαιρετικές και αρκεί κάτι κατά προσέγγιση.",
-      miWhat: "Τι; Τι είναι (αντικείμενο, γεγονός, έθιμο, μαγαζί…)",
-      miWhatPh: "π.χ. το καφενείο του Νίκου, το πανηγύρι του 1965, ένα τραγούδι του γάμου",
-      miWhere: "Πού έγινε; (όνομα του τόπου)",
       miWherePh: "π.χ. το παλιό λιμάνι, η πλατεία της Επάνω Σκάλας, Σμύρνη",
-      miLocClear: "Χωρίς σημείο",
-      miW4Add: "Πρόσθεσε ποιος, τι, πού, πότε",
-      miW4Btn: "Ποιος, τι, πού, πότε: {n} από 4",
       miLater: "Αργότερα",
       capWho: "Ποιος: {v}",
       capWhat: "Τι: {v}",
       capWhen: "Πότε: {v}",
       capWhere: "Πού:",
       w4NotSaved: "Η ιστορία ανέβηκε, αλλά τα «τι» και «πού» (όνομα τόπου) ΔΕΝ αποθηκεύτηκαν, επειδή η βάση δεν έχει ακόμα τις νέες στήλες. Ζητήστε από τον διαχειριστή να τρέξει το supabase/roles.sql.",
-      miDate: "Ημερομηνία καταγραφής",
-      miPeriod: "Πότε;",
       miPeriodPh: "π.χ. 14/7/1965, καλοκαίρι 1965, μετά τον πόλεμο",
-      miLoc: "Σημείο στον χάρτη (προαιρετικό, αν μπορείς να το δείξεις)",
       miLocGps: "Η τοποθεσία μου (GPS)",
       miLocMap: "Επιλογή από χάρτη",
       locHint: "Εκεί θα εμφανίζεται η ιστορία στην εφαρμογή. Από προεπιλογή είναι το στίγμα σου· αν η ιστορία αφορά άλλο μέρος, διάλεξέ το στον χάρτη.",
@@ -1321,7 +1322,7 @@
       lnkNoAV: "Πρόσθεσε ήχο ή βίντεο στην ιστορία για να συνδέσεις εικόνες.",
       uploadDone: "Η ιστορία ανέβηκε και περιμένει τον έλεγχό σου. Να ανοίξει τώρα η ιστοσελίδα ελέγχου, για να δεις τα αρχεία, να προσθέσεις σχόλια και να τη στείλεις για σχολιασμό;",
       openReview: "Άνοιγμα της ιστοσελίδας ελέγχου →",
-      uploadDoneAr: "Η ιστορία ανέβηκε. Περιμένει τώρα την επικύρωση από την κοινότητα, στην ιστοσελίδα διευκολυντών (…/facilitator/).",
+      uploadDoneAr: "Η ιστορία ανέβηκε στη μαρτυρία {c}. Όταν όλες οι ιστορίες της είναι έτοιμες, στείλε τη μαρτυρία για επικύρωση από την κοινότητα στην ιστοσελίδα διευκολυντών (…/facilitator/).",
       listPendingNote: "Ιστορίες που περιμένουν τον έλεγχό σου: {n}.",
       tlImages: "Εικόνες",
       tlTerms: "Όροι",
@@ -1427,22 +1428,42 @@
       listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
     },
     en: {
-      arConsentIntro: "Choose the narrator’s consent code, or add the code printed on a new form. The signed form, with the narrator’s details, stays on paper.",
-      arConsentPick: "Consent code",
-      arConsentNew: "+ New consent",
-      arConsentChoose: "— choose a code —",
+      arConsentIntro: "Choose the testimony this recording belongs to (one interview, one narrator, one printed consent form), or create a new one. The signed form stays on paper.",
+      arConsentPick: "Testimony",
+      arConsentNew: "+ New testimony",
+      arConsentChoose: "— choose a testimony —",
       arLicence: "Licence",
-      arYes: "Yes",
-      arNo: "No",
-      arConsentMissing: "Type the form’s code (2 to 40 characters), tick every agreement and choose a licence.",
-      arConsentSaved: "Consent {c} saved.",
+      arConsentMissing: "Type the form’s code (2 to 40 characters), tick every agreement, choose the licence and the anonymity, and fill in the narrator, the date and place of the interview and the language.",
+      arConsentSaved: "Testimony {c} saved.",
+      factNarrator: "Narrator",
+      factWhen: "When",
+      factWhere: "Where",
+      factWho: "Who",
+      factTheme: "Theme",
+      arCaptionAdd: "Caption",
+      arCaptionPh: "What the photo or video shows",
+      arCaption: "Caption",
+      arWhen: "When",
+      arWherePlace: "Where (name of the place)",
+      arWho: "Who",
+      arInterviewPlace: "Place of the interview",
+      arInterviewDate: "Date of the interview",
+      arNeedInitials: "With anonymity, write only the initials (e.g. E.K.).",
+      arNarratorHintName: "The name, as the consent allows. Visitors see it with the published stories.",
+      arNarratorHintAnon: "Initials only, e.g. E.K. Visitors never see them.",
+      arNarratorHint: "Initials, or the name if the narrator agrees (see Anonymity).",
+      arNarrator: "Narrator",
+      arAnonNo: "No: the narrator’s name may be used",
+      arAnonYes: "Yes: keep only the narrator’s initials",
+      arAnonymity: "Anonymity",
+      arTestimonyTitle: "Testimony",
       arCodeIn: "Consent code (printed on the form)",
       arCodePh: "e.g. LES-0042",
       arCodeExists: "The code {c} is already registered.",
-      arConsentCreate: "Save consent",
-      arTheme: "Why (the theme)",
-      arThemePh: "e.g. the village feasts, leaving home, the harbour at work",
-      arThemeHint: "In your own words: what the story is about. It is the “why” of all its fragments.",
+      arConsentCreate: "Save testimony",
+      arTheme: "Theme (the interview question)",
+      arThemePh: "e.g. What do you remember about the village feasts?",
+      arThemeHint: "The question this story answers: it is the “why” of the story.",
       statusCommunity: "Waiting for community validation",
       arAgreeLegend: "The narrator agrees",
       arAgree_provide: "to give their story (recordings, photos, videos) to the project;",
@@ -1452,11 +1473,8 @@
       arAgree_voluntary: "and takes part freely, knowing they can withdraw the story at any time.",
       arChoose: "— choose —",
       arLanguage: "Language / dialect",
-      arSensitive: "Sensitive material",
-      arStoryFieldsNeeded: "Write the why (theme), and choose the language and whether there is sensitive material.",
+      arStoryFieldsNeeded: "Write the theme (the interview question).",
       arNeedAudio: "At least one audio fragment is needed.",
-      arNeedTitles: "Every file needs a title.",
-      arFragTitle: "Title (= what) *",
       statusFacDraft: "Draft",
       pageTitle: "Walking Memory — Mytilene", language: "Language",
       gateTitle: "Memory trail, Mytilene centre",
@@ -1644,28 +1662,16 @@
       moveUp: "Move up: {name}",
       moveDown: "Move down: {name}",
       movedTo: "{name}: position {i} of {n}",
-      miDetails: "Details",
       miTitle: "Title",
-      miAbout: "Who? Who is in it or who is it about",
       miAboutPh: "e.g. Grandma Maria, the harbour fishermen",
-      miIntro: "Answer what you know; every question is optional and an approximate answer is fine.",
-      miWhat: "What? What is it (an object, an event, a custom, a shop…)",
-      miWhatPh: "e.g. Nikos's café, the 1965 village feast, a wedding song",
-      miWhere: "Where did it happen? (name of the place)",
       miWherePh: "e.g. the old harbour, the square of Epano Skala, Smyrna",
-      miLocClear: "No point",
-      miW4Add: "Add who, what, where, when",
-      miW4Btn: "Who, what, where, when: {n} of 4",
       miLater: "Later",
       capWho: "Who: {v}",
       capWhat: "What: {v}",
       capWhen: "When: {v}",
       capWhere: "Where:",
       w4NotSaved: "The story was uploaded, but “what” and “where” (place name) were NOT saved because the database does not have the new columns yet. Ask the administrator to run supabase/roles.sql.",
-      miDate: "Date recorded",
-      miPeriod: "When?",
       miPeriodPh: "e.g. 14/7/1965, summer 1965, after the war",
-      miLoc: "Point on the map (optional, if you can show it)",
       miLocGps: "My location (GPS)",
       miLocMap: "Pick on the map",
       locHint: "This is where the story appears in the app. By default it is your position; if the story is about another place, choose it on the map.",
@@ -1742,7 +1748,7 @@
       lnkNoAV: "Add an audio or video to this story to link images to it.",
       uploadDone: "Story uploaded. It is now waiting for your review. Open the review website now to look through the files, add comments and send it to annotation?",
       openReview: "Open the review website →",
-      uploadDoneAr: "Story uploaded. It now waits for community validation on the facilitator website (…/facilitator/).",
+      uploadDoneAr: "Story uploaded to testimony {c}. When all its stories are ready, send the testimony to community validation on the facilitator website (…/facilitator/).",
       listPendingNote: "Stories waiting for your review: {n}.",
       tlImages: "Images",
       tlTerms: "Terms",
@@ -1848,22 +1854,42 @@
       listSearch: "Search by title, name or consent code"
     },
     fr: {
-      arConsentIntro: "Choisissez le code de consentement du narrateur, ou ajoutez le code imprimé sur un nouveau formulaire. Le formulaire signé, avec les coordonnées du narrateur, reste sur papier.",
-      arConsentPick: "Code de consentement",
-      arConsentNew: "+ Nouveau consentement",
-      arConsentChoose: "— choisir un code —",
+      arConsentIntro: "Choisissez le témoignage auquel appartient cet enregistrement (un entretien, un narrateur, un formulaire de consentement imprimé), ou créez-en un. Le formulaire signé reste sur papier.",
+      arConsentPick: "Témoignage",
+      arConsentNew: "+ Nouveau témoignage",
+      arConsentChoose: "— choisir un témoignage —",
       arLicence: "Licence",
-      arYes: "Oui",
-      arNo: "Non",
-      arConsentMissing: "Saisissez le code du formulaire (2 à 40 caractères), cochez tous les accords et choisissez une licence.",
-      arConsentSaved: "Consentement {c} enregistré.",
+      arConsentMissing: "Saisissez le code du formulaire (2 à 40 caractères), cochez tous les accords, choisissez la licence et l’anonymat, et indiquez le narrateur, la date et le lieu de l’entretien et la langue.",
+      arConsentSaved: "Témoignage {c} enregistré.",
+      factNarrator: "Narrateur",
+      factWhen: "Quand",
+      factWhere: "Où",
+      factWho: "Qui",
+      factTheme: "Thème",
+      arCaptionAdd: "Légende",
+      arCaptionPh: "Ce que montre la photo ou la vidéo",
+      arCaption: "Légende",
+      arWhen: "Quand",
+      arWherePlace: "Où (nom du lieu)",
+      arWho: "Qui",
+      arInterviewPlace: "Lieu de l’entretien",
+      arInterviewDate: "Date de l’entretien",
+      arNeedInitials: "Avec l’anonymat, écrivez seulement les initiales (p. ex. E.K.).",
+      arNarratorHintName: "Le nom, comme le consentement le permet. Les visiteurs le voient avec les histoires publiées.",
+      arNarratorHintAnon: "Initiales seulement, p. ex. E.K. Les visiteurs ne les voient jamais.",
+      arNarratorHint: "Les initiales, ou le nom si le narrateur l’accepte (voir Anonymat).",
+      arNarrator: "Narrateur",
+      arAnonNo: "Non : le nom du narrateur peut être utilisé",
+      arAnonYes: "Oui : ne garder que les initiales du narrateur",
+      arAnonymity: "Anonymat",
+      arTestimonyTitle: "Témoignage",
       arCodeIn: "Code de consentement (imprimé sur le formulaire)",
       arCodePh: "p. ex. LES-0042",
       arCodeExists: "Le code {c} est déjà enregistré.",
-      arConsentCreate: "Enregistrer le consentement",
-      arTheme: "Pourquoi (le thème)",
-      arThemePh: "p. ex. les fêtes du village, le départ, le port au travail",
-      arThemeHint: "Avec vos mots : de quoi parle l’histoire. C’est le « pourquoi » de tous ses fragments.",
+      arConsentCreate: "Enregistrer le témoignage",
+      arTheme: "Thème (la question de l’entretien)",
+      arThemePh: "p. ex. Que vous rappelez-vous des fêtes du village ?",
+      arThemeHint: "La question à laquelle répond cette histoire : c’est son « pourquoi ».",
       statusCommunity: "En attente de validation par la communauté",
       arAgreeLegend: "Le narrateur accepte",
       arAgree_provide: "de donner son histoire (enregistrements, photos, vidéos) au projet ;",
@@ -1873,11 +1899,8 @@
       arAgree_voluntary: "et participe librement, sachant qu’il peut retirer l’histoire à tout moment.",
       arChoose: "— choisir —",
       arLanguage: "Langue / dialecte",
-      arSensitive: "Contenu sensible",
-      arStoryFieldsNeeded: "Écrivez le pourquoi (thème), et choisissez la langue et s’il y a du contenu sensible.",
+      arStoryFieldsNeeded: "Écrivez le thème (la question de l’entretien).",
       arNeedAudio: "Il faut au moins un fragment audio.",
-      arNeedTitles: "Chaque fichier a besoin d’un titre.",
-      arFragTitle: "Titre (= quoi) *",
       statusFacDraft: "Brouillon",
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
       gateTitle: "Parcours de mémoire, centre de Mytilène",
@@ -2065,28 +2088,16 @@
       moveUp: "Monter : {name}",
       moveDown: "Descendre : {name}",
       movedTo: "{name} : position {i} sur {n}",
-      miDetails: "Détails",
       miTitle: "Titre",
-      miAbout: "Qui ? Qui y figure ou de qui parle-t-on",
       miAboutPh: "p. ex. Grand-mère Maria, les pêcheurs du port",
-      miIntro: "Répondez à ce que vous savez ; chaque question est facultative et une réponse approximative suffit.",
-      miWhat: "Quoi ? De quoi s'agit-il (objet, événement, coutume, boutique…)",
-      miWhatPh: "p. ex. le café de Nikos, la fête du village en 1965, une chanson de mariage",
-      miWhere: "Où cela s'est-il passé ? (nom du lieu)",
       miWherePh: "p. ex. le vieux port, la place d'Epano Skala, Smyrne",
-      miLocClear: "Sans point",
-      miW4Add: "Ajouter qui, quoi, où, quand",
-      miW4Btn: "Qui, quoi, où, quand : {n} sur 4",
       miLater: "Plus tard",
       capWho: "Qui : {v}",
       capWhat: "Quoi : {v}",
       capWhen: "Quand : {v}",
       capWhere: "Où :",
       w4NotSaved: "L'histoire a été envoyée, mais « quoi » et « où » (nom du lieu) n'ont PAS été enregistrés car la base n'a pas encore les nouvelles colonnes. Demandez à l'administrateur d'exécuter supabase/roles.sql.",
-      miDate: "Date d'enregistrement",
-      miPeriod: "Quand ?",
       miPeriodPh: "p. ex. 14/7/1965, été 1965, après la guerre",
-      miLoc: "Point sur la carte (facultatif, si vous pouvez le montrer)",
       miLocGps: "Ma position (GPS)",
       miLocMap: "Choisir sur la carte",
       locHint: "C’est là que l’histoire apparaît dans l’application. Par défaut, c’est votre position ; si l’histoire parle d’un autre lieu, choisissez-le sur la carte.",
@@ -2163,7 +2174,7 @@
       lnkNoAV: "Ajoutez un audio ou une vidéo à cette histoire pour y lier des images.",
       uploadDone: "Histoire envoyée. Elle attend maintenant votre relecture. Ouvrir le site de relecture maintenant pour parcourir les fichiers, ajouter des commentaires et l'envoyer à l'annotation ?",
       openReview: "Ouvrir le site de relecture →",
-      uploadDoneAr: "Histoire envoyée. Elle attend maintenant la validation par la communauté sur le site des facilitateurs (…/facilitator/).",
+      uploadDoneAr: "Histoire envoyée dans le témoignage {c}. Quand toutes ses histoires sont prêtes, envoyez le témoignage en validation par la communauté sur le site des facilitateurs (…/facilitator/).",
       listPendingNote: "Histoires en attente de votre relecture : {n}.",
       tlImages: "Images",
       tlTerms: "Termes",
@@ -2269,22 +2280,42 @@
       listSearch: "Rechercher par titre, nom ou code de consentement"
     },
     it: {
-      arConsentIntro: "Scegli il codice di consenso del narratore, o aggiungi il codice stampato su un nuovo modulo. Il modulo firmato, con i dati del narratore, resta su carta.",
-      arConsentPick: "Codice di consenso",
-      arConsentNew: "+ Nuovo consenso",
-      arConsentChoose: "— scegli un codice —",
+      arConsentIntro: "Scegli la testimonianza a cui appartiene questa registrazione (un’intervista, un narratore, un modulo di consenso stampato), o creane una nuova. Il modulo firmato resta su carta.",
+      arConsentPick: "Testimonianza",
+      arConsentNew: "+ Nuova testimonianza",
+      arConsentChoose: "— scegli una testimonianza —",
       arLicence: "Licenza",
-      arYes: "Sì",
-      arNo: "No",
-      arConsentMissing: "Scrivi il codice del modulo (da 2 a 40 caratteri), spunta tutti gli accordi e scegli una licenza.",
-      arConsentSaved: "Consenso {c} salvato.",
+      arConsentMissing: "Scrivi il codice del modulo (da 2 a 40 caratteri), spunta tutti gli accordi, scegli licenza e anonimato e compila narratore, data e luogo dell’intervista e lingua.",
+      arConsentSaved: "Testimonianza {c} salvata.",
+      factNarrator: "Narratore",
+      factWhen: "Quando",
+      factWhere: "Dove",
+      factWho: "Chi",
+      factTheme: "Tema",
+      arCaptionAdd: "Didascalia",
+      arCaptionPh: "Cosa mostra la foto o il video",
+      arCaption: "Didascalia",
+      arWhen: "Quando",
+      arWherePlace: "Dove (nome del luogo)",
+      arWho: "Chi",
+      arInterviewPlace: "Luogo dell’intervista",
+      arInterviewDate: "Data dell’intervista",
+      arNeedInitials: "Con l’anonimato scrivi solo le iniziali (es. E.K.).",
+      arNarratorHintName: "Il nome, come consente il consenso. I visitatori lo vedono con le storie pubblicate.",
+      arNarratorHintAnon: "Solo iniziali, es. E.K. I visitatori non le vedono mai.",
+      arNarratorHint: "Le iniziali, o il nome se il narratore è d’accordo (vedi Anonimato).",
+      arNarrator: "Narratore",
+      arAnonNo: "No: si può usare il nome del narratore",
+      arAnonYes: "Sì: teniamo solo le iniziali del narratore",
+      arAnonymity: "Anonimato",
+      arTestimonyTitle: "Testimonianza",
       arCodeIn: "Codice di consenso (stampato sul modulo)",
       arCodePh: "es. LES-0042",
       arCodeExists: "Il codice {c} è già registrato.",
-      arConsentCreate: "Salva il consenso",
-      arTheme: "Perché (il tema)",
-      arThemePh: "es. le feste del paese, la partenza da casa, il porto al lavoro",
-      arThemeHint: "Con parole tue: di cosa parla la storia. È il «perché» di tutti i suoi frammenti.",
+      arConsentCreate: "Salva la testimonianza",
+      arTheme: "Tema (la domanda dell’intervista)",
+      arThemePh: "es. Cosa ricorda delle feste del paese?",
+      arThemeHint: "La domanda a cui risponde questa storia: è il suo «perché».",
       statusCommunity: "In attesa di validazione da parte della comunità",
       arAgreeLegend: "Il narratore accetta",
       arAgree_provide: "di dare la sua storia (registrazioni, foto, video) al progetto;",
@@ -2294,11 +2325,8 @@
       arAgree_voluntary: "e partecipa liberamente, sapendo di poter ritirare la storia in qualsiasi momento.",
       arChoose: "— scegli —",
       arLanguage: "Lingua / dialetto",
-      arSensitive: "Materiale sensibile",
-      arStoryFieldsNeeded: "Scrivi il perché (tema), e scegli la lingua e se c’è materiale sensibile.",
+      arStoryFieldsNeeded: "Scrivi il tema (la domanda dell’intervista).",
       arNeedAudio: "Serve almeno un frammento audio.",
-      arNeedTitles: "Ogni file ha bisogno di un titolo.",
-      arFragTitle: "Titolo (= cosa) *",
       statusFacDraft: "Bozza",
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
       gateTitle: "Percorso della memoria, centro di Mitilene",
@@ -2486,28 +2514,16 @@
       moveUp: "Sposta su: {name}",
       moveDown: "Sposta giù: {name}",
       movedTo: "{name}: posizione {i} di {n}",
-      miDetails: "Dettagli",
       miTitle: "Titolo",
-      miAbout: "Chi? Chi c'è o di chi si parla",
       miAboutPh: "es. Nonna Maria, i pescatori del porto",
-      miIntro: "Rispondi a ciò che sai; ogni domanda è facoltativa e basta una risposta approssimativa.",
-      miWhat: "Cosa? Che cos'è (un oggetto, un evento, un'usanza, un negozio…)",
-      miWhatPh: "es. il caffè di Nikos, la festa del paese del 1965, una canzone nuziale",
-      miWhere: "Dove è successo? (nome del luogo)",
       miWherePh: "es. il vecchio porto, la piazza di Epano Skala, Smirne",
-      miLocClear: "Nessun punto",
-      miW4Add: "Aggiungi chi, cosa, dove, quando",
-      miW4Btn: "Chi, cosa, dove, quando: {n} su 4",
       miLater: "Più tardi",
       capWho: "Chi: {v}",
       capWhat: "Cosa: {v}",
       capWhen: "Quando: {v}",
       capWhere: "Dove:",
       w4NotSaved: "La storia è stata caricata, ma «cosa» e «dove» (nome del luogo) NON sono stati salvati perché il database non ha ancora le nuove colonne. Chiedi all'amministratore di eseguire supabase/roles.sql.",
-      miDate: "Data di registrazione",
-      miPeriod: "Quando?",
       miPeriodPh: "es. 14/7/1965, estate 1965, dopo la guerra",
-      miLoc: "Punto sulla mappa (facoltativo, se puoi indicarlo)",
       miLocGps: "La mia posizione (GPS)",
       miLocMap: "Scegli sulla mappa",
       locHint: "È qui che la storia appare nell’app. Di base è la tua posizione; se la storia parla di un altro luogo, sceglilo sulla mappa.",
@@ -2584,7 +2600,7 @@
       lnkNoAV: "Aggiungi un audio o un video alla storia per collegarvi le immagini.",
       uploadDone: "Storia caricata. Ora attende la tua revisione. Aprire subito il sito di revisione per esaminare i file, aggiungere commenti e inviarla all'annotazione?",
       openReview: "Apri il sito di revisione →",
-      uploadDoneAr: "Storia caricata. Ora attende la validazione della comunità sul sito dei facilitatori (…/facilitator/).",
+      uploadDoneAr: "Storia caricata nella testimonianza {c}. Quando tutte le sue storie sono pronte, invia la testimonianza alla validazione della comunità sul sito dei facilitatori (…/facilitator/).",
       listPendingNote: "Storie in attesa della tua revisione: {n}.",
       tlImages: "Immagini",
       tlTerms: "Termini",
@@ -2901,12 +2917,25 @@
     $('sheetSub').textContent = tr.sub;
     $('sheetBody').textContent = tr.text;
     $('sheetAuthor').textContent = s.author ? t('byAuthor', { n: s.author }) : '';
-    var sl = $('sheetLicense'); sl.innerHTML = ''; sl.hidden = !s.license;      // η άδεια από τη συναίνεση της ιστορίας
+    renderStoryFacts(s);
+    var sl = $('sheetLicense'); sl.innerHTML = ''; sl.hidden = !s.license;      // η άδεια από τη μαρτυρία της ιστορίας
     if (s.license) { sl.appendChild(document.createTextNode(t('licShown') + ' ')); sl.appendChild(licLinkEl(s.license)); }
     renderSheetMedia(s);
     renderKnowledge(s);
     renderConnections(s, via);
     openDialog('infoSheet');
+  }
+  // the story's theme (the interview question), who, where (linked to the map), when, and the narrator when not anonymous
+  function renderStoryFacts(s) {
+    var box = $('sheetFacts'); box.innerHTML = '';
+    function row(label, val) { if (!val) return; var dt = document.createElement('dt'); dt.textContent = t(label); var dd = document.createElement('dd'); if (typeof val === 'string') dd.textContent = val; else dd.appendChild(val); box.appendChild(dt); box.appendChild(dd); }
+    row('factTheme', s.theme); row('factWho', s.who);
+    if (s.place) {
+      var a = document.createElement('a'); a.href = osmLink(s.lat, s.lon); a.target = '_blank'; a.rel = 'noopener'; a.textContent = s.place; a.setAttribute('aria-label', t('miOpenMap') + ': ' + s.place);
+      row('factWhere', a);
+    }
+    row('factWhen', s.period); row('factNarrator', s.narrator);
+    box.hidden = !box.children.length;
   }
   // Ιστορίες συνδεδεμένες με αυτή σε δημοσιευμένες διαδρομές (σελίδα «Συνδέσεις ιστοριών»): προηγούμενες και επόμενες
   function connectionsOf(s) {
@@ -3590,12 +3619,13 @@
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
       id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', license: r.license || null,
-      consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null,
+      consentId: r.testimony_id || null, consentCode: (r.testimonies && r.testimonies.code) || null,
+      theme: r.theme || '', who: r.who || '', place: r.place_name || '', period: r.period || '', narrator: r.narrator || '',
       lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
-          title: m.title || '', about: (Array.isArray(m.who) ? m.who.join(', ') : m.who) || m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '',
+          title: m.title || '', caption: m.caption || '', about: (Array.isArray(m.who) ? m.who.join(', ') : m.who) || m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '',
           period: m.period || '',
           lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
@@ -3614,13 +3644,12 @@
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
-      var colsV = colsW.replace('what,place_name)', 'what,place_name,who)');            // who: free text
-      var r = await sb.from('stories').select(colsV + ',status,consent_id,consents(code),license').order('created_at');
-      if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code),license').order('created_at');
-      if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');   // βάση χωρίς άδεια ιστορίας
-      if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
-      if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
-      if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');   // βάση χωρίς πίνακα συναινέσεων
+      var colsV = colsW.replace('what,place_name)', 'what,place_name,who,caption)');    // the fragment's caption (and older who/where/when)
+      // a story: its testimony, theme, who, where, when, licence and (when not anonymous) the narrator
+      var r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code),license,theme,who,place_name,period,narrator').order('created_at');
+      if (r.error) r = await sb.from('stories').select(colsW + ',status,license').order('created_at');   // βάση χωρίς μαρτυρίες (roles.sql)
+      if (r.error) r = await sb.from('stories').select(colsX + ',status').order('created_at');
+      if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols).order('created_at');              // βάση χωρίς στήλη status
       if (r.error) throw r.error;
       r.data.forEach(function (row) { addStoryRuntime(storyFromRow(row)); });
@@ -3637,8 +3666,8 @@
     catch (e) { return null; }
   }
   window.WM = {
-    // story: { title, theme, language, sensitive }; consent: { id, label }. The story starts as a draft (the database checks
-    // the consent and the site), gets its fragments, and then waits for the community to validate it.
+    // story: { title, theme, who, place, period }; testimony: { id, label, status }. The story joins its testimony (the
+    // database checks the testimony and the site) and gets its fragments; it moves on together with the testimony.
     publish: async function (story, pos, files, onProgress, consent) {
       if (!sb || !currentUser) throw new Error(t('loginToAdd'));
       if (!consent || !consent.id) throw new Error(t('consentNeedAll'));
@@ -3654,29 +3683,27 @@
           if (up.error) throw up.error;
           uploaded.push(path);
           var inf = f.info || {};
-          rows.push({ story_id: sid, kind: f.kind, path: path, position: i, title: inf.title || null, who: String(inf.about || '').trim().slice(0, 600) || null,
-            place_name: inf.place || null, lat: inf.lat == null ? null : inf.lat, lon: inf.lon == null ? null : inf.lon,
-            period: String(inf.period || '').trim().slice(0, 200) || null,
+          rows.push({ story_id: sid, kind: f.kind, path: path, position: i,
+            caption: f.kind === 'audio' ? null : String(inf.caption || '').trim().slice(0, 500) || null,
             recorded_at: inf.recorded || null, mime: type, original_name: String(f.name || '').slice(0, 255) || null, sha256: sum });
         }
-        var ins = await sb.from('stories').insert({ id: sid, title: story.title, lat: pos.lat, lon: pos.lon, author_name: userName(currentUser), consent_id: consent.id,
-          theme: story.theme, language: story.language, sensitive: story.sensitive, source: 'ar' });
+        var ins = await sb.from('stories').insert({ id: sid, title: story.title, lat: pos.lat, lon: pos.lon, author_name: userName(currentUser), testimony_id: consent.id,
+          theme: story.theme, who: story.who || null, place_name: story.place || null, period: story.period || null, source: 'ar' });
         if (ins.error) throw ins.error;
         stored = true;
         var mi = await sb.from('story_media').insert(rows).select('id,position');
         if (mi.error) throw mi.error;
         mi.data.forEach(function (d) { rows[d.position].id = d.id; });
-        var rd = await sb.from('stories').update({ status: 'community_validation' }).eq('id', sid).select('id');
-        if (rd.error) throw rd.error;
       } catch (e) {
         if (stored) { try { await sb.from('stories').delete().eq('id', sid); } catch (_) {} }
         if (uploaded.length) { try { await sb.storage.from(BUCKET).remove(uploaded); } catch (_) {} }
         var m = (e && e.message) || String(e);
-        if (/schema cache|does not exist|could not find|violates check constraint "stories_status_check"/i.test(m)) throw new Error(t('licNeedSql'));
+        if (/schema cache|does not exist|could not find/i.test(m)) throw new Error(t('licNeedSql'));
         throw e;
       }
-      return storyFromRow({ id: sid, user_id: uid, status: 'community_validation', consent_id: consent.id, title: story.title, lat: pos.lat, lon: pos.lon, radius: 40,
-        author_name: userName(currentUser), story_media: rows });
+      return storyFromRow({ id: sid, user_id: uid, status: consent.status === 'community_validation' ? 'community_validation' : 'draft', testimony_id: consent.id,
+        testimonies: { code: consent.code }, title: story.title, theme: story.theme, who: story.who, place_name: story.place, period: story.period, lat: pos.lat, lon: pos.lon,
+        radius: 40, author_name: userName(currentUser), story_media: rows });
     }
   };
   loadRemoteStories();
@@ -3992,6 +4019,7 @@
   function mediaCaption(m, titleOnly, skipTitle) {   // skipTitle: ο τίτλος φαίνεται ήδη στην επικεφαλίδα
     var box = document.createElement('div'); box.className = 'media-cap';
     if (m.title && !skipTitle) { var b = document.createElement('strong'); b.textContent = m.title; box.appendChild(b); }
+    if (m.caption) { var cp = document.createElement('div'); cp.className = 'media-caption'; cp.textContent = m.caption; box.appendChild(cp); }
     if (!titleOnly) {
       // ποιος · τι · πότε, και πού (το όνομα του τόπου γίνεται σύνδεσμος στον χάρτη όταν υπάρχει σημείο)
       var bits = [], when = m.period;
@@ -4921,9 +4949,10 @@
     $('storyTitle').removeAttribute('aria-invalid');
   }
 
-  // ---- Consent record before each recording: the narrator signed (or gave orally) the printed form, which stays at the site.
-  // The facilitator picks the site's consent code or makes a new one (the agreements and the licence); the story takes its licence.
-  var activeConsent = null;                       // { id, label (the code), license } of the consent for the upload being prepared
+  // ---- The testimony before each recording: one interview, one narrator, one printed consent form (which stays at the site).
+  // The facilitator picks one of the site's testimonies still being worked on, or creates one (the form's code, the agreements,
+  // the licence, the anonymity, the narrator, the date and place of the interview, the language); the story takes its licence.
+  var activeConsent = null;                       // { id, code, label, license, status } of the testimony for the upload being prepared
   var LICENSES = { 'CC-BY-4.0': 'https://creativecommons.org/licenses/by/4.0/', 'CC-BY-SA-4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
     'CC-BY-NC-4.0': 'https://creativecommons.org/licenses/by-nc/4.0/', 'CC-BY-NC-SA-4.0': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
     'CC-BY-NC-ND-4.0': 'https://creativecommons.org/licenses/by-nc-nd/4.0/', 'PROJECT-ONLY': null };
@@ -4936,8 +4965,9 @@
   function showConsentLicense(lic) {
     var p = $('uploadLicense'); p.innerHTML = ''; p.appendChild(document.createTextNode(t('licShown') + ' ')); p.appendChild(licLinkEl(lic));
   }
-  function consentLabelOf(c) { return c.code; }
+  function consentLabelOf(c) { return [c.code, c.narrator, c.interview_date].filter(Boolean).join(' · '); }
   var AGREE = ['provide', 'cut', 'comment', 'share', 'voluntary'];
+  var INITIALS = /^\p{L}(\.? ?\p{L}){0,3}\.?$/u;      // with anonymity, only the narrator's initials (e.g. "EK", "E.K.")
   var SITE_CONSENTS = [];
 
   function fillSelect(sel, items, cur) {
@@ -4951,19 +4981,24 @@
   }
   function consentPicked() {
     var c = SITE_CONSENTS.filter(function (x) { return x.id === $('consentPick').value; })[0];
-    activeConsent = c ? { id: c.id, label: consentLabelOf(c), license: c.license } : null;
-    $('consentInfo').textContent = c ? t('licShown') + ' ' + licName(c.license) : '';
+    activeConsent = c ? { id: c.id, code: c.code, label: consentLabelOf(c), license: c.license, status: c.status } : null;
+    $('consentInfo').textContent = c ? t('licShown') + ' ' + licName(c.license) + ' · ' + t(c.status === 'community_validation' ? 'statusCommunity' : 'statusFacDraft') : '';
     $('consentContinue').disabled = !activeConsent;
   }
   function renderConsentNewForm() {
     fillSelect($('cnLicense'), [['', t('arChoose')]].concat(Object.keys(LICENSES).map(function (l) { return [l, licName(l)]; })), $('cnLicense').value || '');
     $('cnLicHelp').textContent = $('cnLicense').value ? t('lic_' + $('cnLicense').value) : '';
+    fillSelect($('cnLanguage'), [['', t('arChoose')]].concat(SITE.languages.map(function (l) { return [l.code, l.label]; })), $('cnLanguage').value || '');
+    var an = document.querySelector('input[name="cnAnon"]:checked');
+    $('cnNarratorHint').textContent = t(!an ? 'arNarratorHint' : an.value === 'yes' ? 'arNarratorHintAnon' : 'arNarratorHintName');
   }
   function consentResetForm() {
     activeConsent = null;
     $('consentNewForm').hidden = true; $('consentNewBtn').hidden = false; $('consentCreate').hidden = true;
     document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { x.checked = false; });
     $('cnCodeIn').value = ''; $('cnLicense').value = ''; $('consentError').textContent = '';
+    document.querySelectorAll('input[name="cnAnon"]').forEach(function (x) { x.checked = false; });
+    ['cnNarrator', 'cnDate', 'cnPlace', 'cnLanguage'].forEach(function (id) { $(id).value = ''; });
     renderConsentNewForm();
   }
   onLangChange(function () { if ($('consentSheet').classList.contains('on')) { renderConsentPick($('consentPick').value); renderConsentNewForm(); } if (activeConsent) showConsentLicense(activeConsent.license); });
@@ -4975,7 +5010,8 @@
     SITE_CONSENTS = [];
     renderConsentPick('');
     try {
-      var r = await sb.from('consents').select('id,code,license,status,created_at').eq('site_id', currentSite).eq('status', 'active').order('created_at', { ascending: false }).limit(300);
+      var r = await sb.from('testimonies').select('id,code,narrator,interview_date,license,status,created_at').eq('site_id', currentSite)
+        .in('status', ['draft', 'community_validation']).order('created_at', { ascending: false }).limit(300);
       if (r.error) throw r.error;
       SITE_CONSENTS = r.data || [];
       renderConsentPick('');
@@ -4986,20 +5022,25 @@
     $('consentNewForm').hidden = false; this.hidden = true; $('consentCreate').hidden = false; $('consentPick').value = ''; consentPicked(); $('cnCodeIn').focus();
   };
   $('cnLicense').onchange = function () { $('cnLicHelp').textContent = this.value ? t('lic_' + this.value) : ''; $('consentError').textContent = ''; };
-  document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { x.addEventListener('change', function () { $('consentError').textContent = ''; }); });
+  document.querySelectorAll('input[name="cnAgree"], input[name="cnAnon"]').forEach(function (x) { x.addEventListener('change', function () { $('consentError').textContent = ''; renderConsentNewForm(); }); });
   $('consentCreate').onclick = async function () {
     var err = $('consentError'); err.textContent = '';
     var code = $('cnCodeIn').value.replace(/\s+/g, ' ').trim().toUpperCase();
     var acc = {}; document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { acc[x.value] = x.checked; });
-    var lic = $('cnLicense').value;
-    if (code.length < 2 || !AGREE.every(function (k) { return acc[k]; }) || !lic) {
+    var lic = $('cnLicense').value, an = document.querySelector('input[name="cnAnon"]:checked'), anon = an ? an.value === 'yes' : null;
+    var narrator = $('cnNarrator').value.replace(/\s+/g, ' ').trim().slice(0, 200), date = $('cnDate').value, place = $('cnPlace').value.trim().slice(0, 200), lang = $('cnLanguage').value;
+    if (code.length < 2 || !AGREE.every(function (k) { return acc[k]; }) || !lic || anon == null || !narrator || !date || !place || !lang) {
       err.textContent = t('arConsentMissing');
-      (code.length < 2 ? $('cnCodeIn') : !lic ? $('cnLicense') : document.querySelector('input[name="cnAgree"]:not(:checked)')).focus(); return;
+      (code.length < 2 ? $('cnCodeIn') : !AGREE.every(function (k) { return acc[k]; }) ? document.querySelector('input[name="cnAgree"]:not(:checked)') : !lic ? $('cnLicense')
+        : anon == null ? document.querySelector('input[name="cnAnon"]') : !narrator ? $('cnNarrator') : !date ? $('cnDate') : !place ? $('cnPlace') : $('cnLanguage')).focus(); return;
     }
+    if (anon && !INITIALS.test(narrator)) { err.textContent = t('arNeedInitials'); $('cnNarrator').focus(); return; }
     var b = this; b.disabled = true;
     try {
       // the code printed in advance on the consent form
-      var r = await sb.from('consents').insert({ user_id: currentUser.id, code: code, license: lic, accepted: acc, statement_version: 'v3', lang: LANG }).select('id,code,license,status,created_at').single();
+      var r = await sb.from('testimonies').insert({ user_id: currentUser.id, code: code, license: lic, accepted: acc, anonymous: anon, narrator: narrator,
+        interview_date: date, interview_place: place, language: lang, statement_version: 'v4', lang: LANG })
+        .select('id,code,narrator,interview_date,license,status,created_at').single();
       if (r.error) throw r.error;
       SITE_CONSENTS.unshift(r.data);
       consentResetForm(); renderConsentPick(r.data.id);
@@ -5007,25 +5048,20 @@
       $('consentContinue').focus();
     } catch (e) {
       var m = (e && e.message) || String(e);
-      err.textContent = (e && e.code === '23505') || /consents_code_key/.test(m) ? t('arCodeExists', { c: code })
-        : /consents_code_check/.test(m) ? t('arConsentMissing')
+      err.textContent = (e && e.code === '23505') || /code_key/.test(m) ? t('arCodeExists', { c: code })
+        : /code_check/.test(m) ? t('arConsentMissing') : /fields_check/.test(m) ? t('arNeedInitials')
         : /schema cache|row-level security|does not exist/i.test(m) ? t('licNeedSql') : t('consentError', { e: m });
     } finally { b.disabled = false; }
   };
   $('cnCodeIn').addEventListener('input', function () { $('consentError').textContent = ''; });
   $('consentCancel').onclick = function () { activeConsent = null; closeDialog('consentSheet'); setAR(true); };
   escHandlers.consentSheet = function () { $('consentCancel').click(); };
-  // the story's own fields: why (the theme, typed by the facilitator), the language or dialect, sensitive material
-  function renderStoryFields() {
-    fillSelect($('storyLanguage'), [['', t('arChoose')]].concat(SITE.languages.map(function (l) { return [l.code, l.label]; })), $('storyLanguage').value || '');
-  }
-  onLangChange(function () { if ($('uploadSheet').classList.contains('on')) renderStoryFields(); });
+
   $('consentContinue').onclick = function () {
     if (!activeConsent) return;
     closeDialog('consentSheet', true);
     $('uploadConsentCode').textContent = activeConsent.label;
     showConsentLicense(activeConsent.license);
-    renderStoryFields();
     renderLoc();
     openDialog('uploadSheet');
   };
@@ -5332,7 +5368,7 @@
     processedFiles.push(item);
     updateMediaListUI();
     announce(t('webAdded', { name: nameOf(item) }));
-    openMediaInfo(processedFiles.length - 1, true);
+    if (kind !== 'audio') openMediaInfo(processedFiles.length - 1, true);
   }
 
   $('saveFileBtn').onclick = function () {
@@ -5357,32 +5393,18 @@
     updateMediaListUI();
     announce(t('kept', { name: nameOf(item) }));
     leaveEditor(document.querySelector('#mediaList [data-act="edit"][data-i="' + idx + '"]'));
-    if (isNew) openMediaInfo(idx, true);      // νέο αρχείο: οι ερωτήσεις ανοίγουν αμέσως («Αργότερα» για να συμπληρωθούν μετά, πριν από την αποστολή)
+    if (isNew && kind !== 'audio') openMediaInfo(idx, true);      // νέα φωτογραφία ή βίντεο: η λεζάντα ανοίγει αμέσως («Αργότερα» για μετά)
   };
 
-  // Στοιχεία αρχείου: τίτλος, ποιος, τι, πού (όνομα τόπου και, αν γίνεται, σημείο στον χάρτη), πότε (ελεύθερο κείμενο), ημερομηνία καταγραφής
+  // A fragment: its file, its order and, for a photo or a video, a caption (the recording date is read from the file)
   function isoDate(ms) { var d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function defaultInfo(file) {
     var lm = file && file.lastModified ? file.lastModified : Date.now();
-    return { title: '', about: '', what: '', place: '', recorded: isoDate(lm), period: '', lat: null, lon: null };   // πού: όπου έγινε, όχι όπου γίνεται η καταγραφή
+    return { caption: '', recorded: isoDate(lm) };
   }
   function infoOf(f) { if (!f.info) f.info = defaultInfo(f.originalFile); return f.info; }
-  function infoSummary(f) {
-    var i = infoOf(f), bits = [];
-    if (i.title) bits.push(i.title);
-    if (i.place || i.lat != null) bits.push('📍 ' + (i.place || (+i.lat).toFixed(4) + ', ' + (+i.lon).toFixed(4)));
-    if (whenOf(i)) bits.push(whenOf(i));
-    return bits.join(' · ');
-  }
-  function whenOf(i) { return String(i.period || '').trim(); }
-  // Πόσες από τις τέσσερις ερωτήσεις έχουν απάντηση: τι (= ο τίτλος), ποιος, πού, πότε
-  function answered(f) {
-    var i = infoOf(f), n = 0;
-    if (i.title) n++; if (String(i.about || '').trim()) n++; if (i.place || i.lat != null) n++; if (whenOf(i)) n++;
-    return n;
-  }
-  function w4Label(f) { var n = answered(f); return n ? '✎ ' + t('miW4Btn', { n: n }) : '+ ' + t('miW4Add');
-  }
+  function infoSummary(f) { return f.kind === 'audio' ? '' : infoOf(f).caption; }
+  function capLabel(f) { return infoOf(f).caption ? '✎ ' + t('arCaption') : '+ ' + t('arCaptionAdd'); }
 
   function describeChanges(f) {
     if (f.kind === 'image') {
@@ -5422,29 +5444,23 @@
                   (WEB ? '' : '<button type="button" class="icon-btn edit" data-act="edit" data-i="' + i + '" aria-label="' + escHTML(t('editItem', { name: nm })) + '"><span aria-hidden="true">✏️</span></button>') +
                   '<button type="button" class="icon-btn del" data-act="del" data-i="' + i + '" aria-label="' + escHTML(t('deleteItem', { name: nm })) + '"><span aria-hidden="true">✕</span></button>' +
                 '</div>' +
-                '<button type="button" class="mi-w4' + (answered(f) ? '' : ' todo') + '" data-act="info" data-i="' + i + '" aria-label="' + escHTML(w4Label(f) + ': ' + nm) + '">' + escHTML(w4Label(f)) + '</button>' +
+                (f.kind === 'audio' ? '' : '<button type="button" class="mi-w4' + (infoOf(f).caption ? '' : ' todo') + '" data-act="info" data-i="' + i + '" aria-label="' + escHTML(capLabel(f) + ': ' + nm) + '">' + escHTML(capLabel(f)) + '</button>') +
               '</li>';
     });
     list.innerHTML = html;
   }
   onLangChange(updateMediaListUI);
 
-  // ---- Φόρμα στοιχείων αρχείου ----
-  var miIndex = -1, miLoc = { lat: null, lon: null };
-  function miShowLoc() { $('miLocText').textContent = miLoc.lat != null ? (+miLoc.lat).toFixed(5) + ', ' + (+miLoc.lon).toFixed(5) : t('miLocNone'); $('miLocClear').hidden = miLoc.lat == null; }
+  // ---- A photo's or video's caption ----
+  var miIndex = -1;
   function openMediaInfo(i, afterAdd) {
-    var f = processedFiles[i]; if (!f) return;
-    miIndex = i; var info = infoOf(f);
+    var f = processedFiles[i]; if (!f || f.kind === 'audio') return;
+    miIndex = i;
     $('miCancel').textContent = t(afterAdd ? 'miLater' : 'cancel');
-    $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f);
-    $('miTitleIn').value = info.title; $('miAboutIn').value = info.about; $('miPlaceIn').value = info.place || '';
-    $('miDateIn').value = info.recorded; $('miPeriodIn').value = info.period || '';
-    miLoc = { lat: info.lat, lon: info.lon }; miShowLoc();
-    $('miLocGps').disabled = !me;
-    openDialog('mediaInfoSheet', $('miTitleIn'));
+    $('miHeading').textContent = t('arCaption') + ': ' + nameOf(f);
+    $('miCaptionIn').value = infoOf(f).caption;
+    openDialog('mediaInfoSheet', $('miCaptionIn'));
   }
-  $('miLocGps').onclick = function () { if (!me) return; miLoc = { lat: me.lat, lon: me.lon }; miShowLoc(); };
-  $('miLocClear').onclick = function () { miLoc = { lat: null, lon: null }; miShowLoc(); };
   function closeMediaInfo() {      // η λίστα ξαναζωγραφίζεται: η εστίαση πάει στο κουμπί του ίδιου αρχείου
     closeDialog('mediaInfoSheet', true);
     var b = document.querySelector('#mediaList [data-act="info"][data-i="' + miIndex + '"]'); if (b) b.focus();
@@ -5453,13 +5469,11 @@
   escHandlers.mediaInfoSheet = closeMediaInfo;
   $('miSave').onclick = function () {
     var f = processedFiles[miIndex]; if (!f) { closeDialog('mediaInfoSheet'); return; }
-    f.info = { title: $('miTitleIn').value.trim(), about: $('miAboutIn').value.trim(), what: '', place: $('miPlaceIn').value.trim(),
-      recorded: $('miDateIn').value, period: $('miPeriodIn').value.trim(),
-      lat: miLoc.lat, lon: miLoc.lon };
+    infoOf(f).caption = $('miCaptionIn').value.trim().slice(0, 500);
     updateMediaListUI();
     closeMediaInfo();
   };
-  onLangChange(function () { if ($('mediaInfoSheet').classList.contains('on')) { miShowLoc(); var f = processedFiles[miIndex]; if (f) $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f); } });
+  onLangChange(function () { var f = processedFiles[miIndex]; if ($('mediaInfoSheet').classList.contains('on') && f) $('miHeading').textContent = t('arCaption') + ': ' + nameOf(f); });
 
   // Επιλογή τοποθεσίας από χάρτη (Leaflet)
   var pickMap = null, pickMarker = null, pickPoint = null;
@@ -5469,13 +5483,12 @@
     if (pickMarker) pickMarker.setLatLng([lat, lon]); else pickMarker = L.marker([lat, lon]).addTo(pickMap);
     pickShow();
   }
-  var pickFor = 'file';          // 'file': στοιχεία αρχείου · 'story': τοποθεσία ιστορίας
-  $('miLocMap').onclick = function () {
-    openPicker('file', miLoc.lat != null ? { lat: miLoc.lat, lon: miLoc.lon } : null);
-    var nm = $('miPlaceIn').value.trim();     // το όνομα του τόπου γίνεται αναζήτηση στον χάρτη
-    if (nm && miLoc.lat == null) { $('placeSearchIn').value = nm; $('placeSearchForm').requestSubmit ? $('placeSearchForm').requestSubmit() : $('placeSearchForm').dispatchEvent(new Event('submit', { cancelable: true })); }
+  var pickFor = 'story';         // the story's point on the map
+  $('storyLocMap').onclick = function () {
+    openPicker('story', storyLoc ? { lat: storyLoc.lat, lon: storyLoc.lon } : null);
+    var nm = $('storyPlace').value.trim();     // το όνομα του τόπου γίνεται αναζήτηση στον χάρτη
+    if (nm && !storyLoc) { $('placeSearchIn').value = nm; $('placeSearchForm').requestSubmit ? $('placeSearchForm').requestSubmit() : $('placeSearchForm').dispatchEvent(new Event('submit', { cancelable: true })); }
   };
-  $('storyLocMap').onclick = function () { openPicker('story', storyLoc ? { lat: storyLoc.lat, lon: storyLoc.lon } : null); };
   $('storyLocGps').onclick = function () { storyLoc = null; $('locError').textContent = ''; renderLoc(); announce($('locDisplay').textContent); };
   function openPicker(target, start) {
     pickFor = target; pickPoint = start; $('placeResults').innerHTML = ''; $('placeSearchIn').value = '';
@@ -5506,7 +5519,7 @@
         var li = document.createElement('li'), b = document.createElement('button'); b.type = 'button'; b.textContent = x.display_name;
         b.onclick = function () {
           var la = +x.lat, lo = +x.lon; pickSet(la, lo); if (pickMap) pickMap.setView([la, lo], 17); ul.innerHTML = ''; $('pickUse').focus();
-          if (pickFor === 'file' && !$('miPlaceIn').value.trim()) $('miPlaceIn').value = String(x.name || x.display_name || '').split(',')[0].slice(0, 200);   // χωρίς όνομα: παίρνει το όνομα του αποτελέσματος
+          if (!$('storyPlace').value.trim()) $('storyPlace').value = String(x.name || x.display_name || '').split(',')[0].slice(0, 200);   // χωρίς όνομα: παίρνει το όνομα του αποτελέσματος
         };
         li.appendChild(b); ul.appendChild(li);
       });
@@ -5516,8 +5529,7 @@
   escHandlers.mapPickSheet = function () { closeDialog('mapPickSheet'); };
   $('pickUse').onclick = function () {
     if (pickPoint) {
-      if (pickFor === 'story') { storyLoc = { lat: pickPoint.lat, lon: pickPoint.lon }; $('locError').textContent = ''; renderLoc(); }
-      else { miLoc = { lat: pickPoint.lat, lon: pickPoint.lon }; miShowLoc(); }
+      storyLoc = { lat: pickPoint.lat, lon: pickPoint.lon }; $('locError').textContent = ''; renderLoc();
     }
     closeDialog('mapPickSheet');
   };
@@ -5567,10 +5579,9 @@
       $('storyTitle').focus();
       return;
     }
-    var sens = document.querySelector('input[name="storySens"]:checked');
-    if (!$('storyTheme').value.trim() || !$('storyLanguage').value || !sens) {
+    if (!$('storyTheme').value.trim()) {
       $('storyFieldsError').textContent = t('arStoryFieldsNeeded');
-      (!$('storyTheme').value.trim() ? $('storyTheme') : !$('storyLanguage').value ? $('storyLanguage') : document.querySelector('input[name="storySens"]')).focus();
+      $('storyTheme').focus();
       return;
     }
     if (!processedFiles.length) {
@@ -5579,8 +5590,6 @@
       return;
     }
     if (!processedFiles.some(function (f) { return f.kind === 'audio'; })) { $('mediaError').textContent = t('arNeedAudio'); $('recordAudioBtn').focus(); return; }
-    var untitled = processedFiles.findIndex(function (f) { return !infoOf(f).title; });
-    if (untitled >= 0) { $('mediaError').textContent = t('arNeedTitles'); openMediaInfo(untitled); return; }
     if (!storyLoc && !me) { $('locError').textContent = t(WEB ? 'locNeededWeb' : 'locNeeded'); $('storyLocMap').focus(); return; }
     if (WEB) { closeDialog('uploadSheet', true); applyAllEdits(); return; }   // χωρίς αλλαγές προς εφαρμογή: κατευθείαν στον έλεγχο
     renderConfirmSummary();
@@ -5749,8 +5758,8 @@
   escHandlers.previewSheet = function () { $('backToUploadBtn').click(); };
 
   function resetStoryFields() {
-    $('storyTheme').value = ''; $('storyLanguage').value = ''; $('storyFieldsError').textContent = '';
-    document.querySelectorAll('input[name="storySens"]').forEach(function (r) { r.checked = false; });
+    ['storyTheme', 'storyWho', 'storyPlace', 'storyWhen'].forEach(function (id) { $(id).value = ''; });
+    $('storyFieldsError').textContent = '';
   }
   function finishStoryFlow() {
     activeConsent = null; resetStoryFields();
@@ -5774,12 +5783,12 @@
     btn.disabled = true;
     try {
       if (!activeConsent) { $('publishError').textContent = t('consentNeedAll'); return; }
-      var sens = document.querySelector('input[name="storySens"]:checked');
-      var story = await WM.publish({ title: $('storyTitle').value.trim(), theme: $('storyTheme').value.trim(), language: $('storyLanguage').value, sensitive: !!sens && sens.value === 'yes' },
+      var story = await WM.publish({ title: $('storyTitle').value.trim(), theme: $('storyTheme').value.trim().slice(0, 500), who: $('storyWho').value.trim().slice(0, 600),
+          place: $('storyPlace').value.trim().slice(0, 200), period: $('storyWhen').value.trim().slice(0, 200) },
         { lat: pos.lat, lon: pos.lon }, processedFiles, function (i, n) { btn.textContent = t('publishing', { i: i, n: n }); }, activeConsent);
       addStoryRuntime(story);
       announce(t('published'));
-      alert(t('uploadDoneAr'));
+      alert(t('uploadDoneAr', { c: activeConsent.code }));
       finishStoryFlow();
     } catch (e) {
       $('publishError').textContent = t('publishError', { e: (e && e.message) ? e.message : e });
@@ -5990,7 +5999,7 @@
     document.body.classList.add('web');
     $('gate').style.display = 'none';
     $('webHome').hidden = false;
-    $('storyLocGps').hidden = true; $('miLocGps').hidden = true;      // χωρίς GPS
+    $('storyLocGps').hidden = true;      // χωρίς GPS
     document.querySelector('[data-i18n="locHint"]').setAttribute('data-i18n', 'locHintWeb');
     document.querySelector('[data-i18n="procNote"]').setAttribute('data-i18n', 'webProcNote');     // χωρίς επεξεργασία: όχι «αλλαγές»
     document.querySelector('[data-i18n="finalNote"]').setAttribute('data-i18n', 'webFinalNote');

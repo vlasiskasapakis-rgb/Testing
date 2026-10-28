@@ -421,18 +421,20 @@
   // ---- data ----
   function storyFromRow(r) {
     return { id: r.id, title: r.title || t('untitled'), author: r.author_name || '', status: r.status || 'published', lat: r.lat, lon: r.lon,
-      consent: (r.consents && r.consents.code) || '',
+      consent: (r.testimonies && r.testimonies.code) || '',
       media: (r.story_media || []).slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0); }).map(function (m) {
-        if (m.who) m.about = Array.isArray(m.who) ? m.who.join(', ') : m.who;   // who: free text
+        if (m.who) m.about = Array.isArray(m.who) ? m.who.join(', ') : m.who;
+        // who / where / when are the story's (older fragments had their own); a photo's or video's caption says what it shows
+        m.about = m.about || r.who || ''; m.what = m.caption || m.what || ''; m.place_name = m.place_name || r.place_name || ''; m.period = m.period || r.period || '';
         return m;
       }) };
   }
   async function loadAll() {
     $('saveStatus').className = ''; $('saveStatus').textContent = t('loading');
     var cols = 'id,title,lat,lon,author_name,status,story_media(id,kind,path,position)';
-    var r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon,who)') + ',consents(code)').order('created_at');
-    if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');
-    if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');   // βάση χωρίς τι/πού
+    var r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon,who,caption)') + ',testimonies(code),who,place_name,period').order('created_at');
+    if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon)')).order('created_at');   // βάση χωρίς μαρτυρίες
+    if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)')).order('created_at');   // βάση χωρίς τι/πού   // βάση χωρίς τι/πού
     if (r.error) r = await sb.from('stories').select(cols).order('created_at');
     if (r.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('loadErr', { e: errText(r.error) }); return; }
     STORIES = r.data.filter(function (x) { return ['pending', 'draft', 'community_validation', 'withdrawn'].indexOf(x.status) < 0; }).map(storyFromRow); byId = {}; STORIES.forEach(function (s) { byId[s.id] = s; });   // όχι όσες περιμένουν τον έλεγχο του διευκολυντή

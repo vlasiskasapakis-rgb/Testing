@@ -253,7 +253,6 @@
   .sr-only-th { width: 40px; }
   .det-box h4 { margin: 0 0 4px; font-size: 14px; color: var(--petrol); }
   .ann-media > .media-cap { margin: 0 0 8px; }
-  #sheetSub { display: none; }
   .story-head { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; margin: 2px 0 4px; }
   .story-head > * { margin: 0 !important; font-size: 14px; }
   .tabbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 4px 0 8px; border-bottom: 2px solid var(--line); margin-bottom: 10px; }
@@ -712,6 +711,7 @@
   var LANGS = ['el', 'en', 'fr', 'it'];
   var I18N = {
     el: {
+      storyTheme: "Θέμα (ερώτηση της συνέντευξης): {t}",
       pageTitle: "Walking Memory — Μυτιλήνη", language: "Γλώσσα",
       gateTitle: "Διαδρομή μνήμης, κέντρο Μυτιλήνης",
       gateText: "Χρειάζεται κάμερα, τοποθεσία και αισθητήρες κίνησης. Δούλεψε σε ανοιχτό χώρο.",
@@ -1132,6 +1132,7 @@
       listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
     },
     en: {
+      storyTheme: "Theme (interview question): {t}",
       pageTitle: "Walking Memory — Mytilene", language: "Language",
       gateTitle: "Memory trail, Mytilene centre",
       gateText: "Needs camera, location and motion sensors. Use it outdoors.",
@@ -1552,6 +1553,7 @@
       listSearch: "Search by title, name or consent code"
     },
     fr: {
+      storyTheme: "Thème (question de l’entretien) : {t}",
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
       gateTitle: "Parcours de mémoire, centre de Mytilène",
       gateText: "Nécessite la caméra, la localisation et les capteurs de mouvement. À utiliser en extérieur.",
@@ -1972,6 +1974,7 @@
       listSearch: "Rechercher par titre, nom ou code de consentement"
     },
     it: {
+      storyTheme: "Tema (domanda dell’intervista): {t}",
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
       gateTitle: "Percorso della memoria, centro di Mitilene",
       gateText: "Servono fotocamera, posizione e sensori di movimento. Usala all'aperto.",
@@ -2541,13 +2544,14 @@
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
       id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', license: r.license || null,
-      consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null,
+      consentId: r.testimony_id || null, consentCode: (r.testimonies && r.testimonies.code) || null, theme: r.theme || '',
       lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, position: m.position, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
-          title: m.title || '', about: (Array.isArray(m.who) ? m.who.join(', ') : m.who) || m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '',
-          period: m.period || '',
+          // who, where and when are the story's (older fragments had their own); a photo's or video's caption says what it shows
+          title: m.title || '', about: (Array.isArray(m.who) ? m.who.join(', ') : m.who) || m.about || r.who || '', what: m.caption || m.what || '',
+          place: m.place_name || r.place_name || '', recorded: m.recorded_at || '', period: m.period || r.period || '',
           lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
@@ -4679,7 +4683,7 @@
     var tr = st(s);
     $('storyView').hidden = false; $('workEmpty').hidden = true;
     $('sheetTitle').textContent = tr.title;
-    $('sheetSub').textContent = '';
+    $('sheetSub').textContent = s.theme ? t('storyTheme', { t: s.theme }) : ''; $('sheetSub').hidden = !s.theme;
     $('sheetAuthor').textContent = s.author ? t('byAuthor', { n: s.author }) : '';
     renderSheetMedia(s);
     renderKnowledge(s);
@@ -4822,12 +4826,10 @@
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
-      var colsV = colsW.replace('what,place_name)', 'what,place_name,who)');            // who: free text
-      var r = await sb.from('stories').select(colsV + ',status,consent_id,consents(code),license').order('created_at');
-      if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code),license').order('created_at');
-      if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');   // βάση χωρίς άδεια ιστορίας
-      if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
-      if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
+      var colsV = colsW.replace('what,place_name)', 'what,place_name,who,caption)');    // the fragment's caption (and older who/where/when)
+      var r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code),license,theme,who,place_name,period').order('created_at');
+      if (r.error) r = await sb.from('stories').select(colsW + ',status,license').order('created_at');   // βάση χωρίς μαρτυρίες (roles.sql)
+      if (r.error) r = await sb.from('stories').select(colsX + ',status').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
       if (r.error) throw r.error;
       // ιστορίες που περιμένουν ακόμα τον έλεγχο του διευκολυντή δεν φτάνουν στον σχολιασμό
