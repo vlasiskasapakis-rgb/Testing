@@ -197,14 +197,6 @@ The button under the language (🧭 Free roam / 🚶 walk name · 2/5) switches 
 can **restart the walk**. Without any published walk the app works exactly as before. Openings from the walk card are counted in
 the analytics as "Walk (next stop)". Needs `supabase/roles.sql` re-run (columns `is_walk`, `description`; visitors may read walks).
 
-## Heritage objects in ECHOES (links to other ECHOES tools, e.g. OCRA)
-If a story is about an object or monument that is documented in ECHOES (for example modelled and annotated in OCRA), annotators can
-link it: in the story on the annotation site, open **🏛 Heritage objects (ECHOES)**, paste the object's ECHOES address (e.g.
-`http://echoes-eccch.eu/HDT/…`) and an optional name, **Add**. Visitors see the links in the story view (app and stories website),
-and the RDF export declares the object as `hdto:HC1_Heritage_Entity` and says the story's narrative refers to it
-(`crm:P67_refers_to`), so ECCCH can find the oral stories about that object. No 3D model is needed on our side. Table
-`story_heritage` — re-run `supabase/roles.sql` once.
-
 ## Validation before publishing (validate/ page)
 Annotators no longer publish directly: a **validator** approves every story and every walk first.
 - **Stories**: on the annotation site the button is **Submit for validation** (with an optional message). The story becomes
@@ -273,8 +265,7 @@ with your name; **Edit** / **Delete** change it later. Visitors see comments whe
   height of the longest comment so nothing moves); the
   timeline has a purple **Comments** lane (tap a mark to jump there);
 - in the transcript, under its line; and in an **Expert notes** list with the time (▶ 00:05 jumps there).
-Comments of draft stories are visible only to annotators until the story is published. The RDF export includes them as W3C Web
-Annotations with motivation `oa:commenting` (text body, author, the line's time span). Table `transcript_comments` — re-run
+Comments of draft stories are visible only to annotators until the story is published. Table `transcript_comments` — re-run
 `supabase/roles.sql` once.
 
 ### Locations of transcript lines
@@ -285,8 +276,7 @@ Every term on a transcript line has a **📍 Location** button (next to Approve 
   **Remove location** clears it.
 Terms you add by hand, and suggested terms, get the Wikidata place automatically when there is one; you can always change it.
 The button then shows the coordinates. Locations are saved in `annotations.lat` / `annotations.lon` (re-run `supabase/roles.sql`
-once; until then the button does not appear). Changes are counted as term edits in the analytics, and the RDF export adds them to the
-annotation as `dcterms:spatial` → `crm:E53_Place` with a `geo:wktLiteral` point.
+once; until then the button does not appear). Changes are counted as term edits in the analytics.
 
 ### One story at a time, in transcript order
 Choose a story in **Story** (or press **Show only this story on the map** in a marker's popup) to see only that story's files at
@@ -323,23 +313,12 @@ It shows, for the chosen period (7 / 30 / 90 days / all):
 Everything is shown as charts on the page (most opened stories, where stories were opened from, opening → playing → listening to the end, what each annotator did, words corrected per annotator, approved vs rejected suggestions, corrections per story); the detailed tables sit underneath in collapsed "Table …" sections and can be sorted and downloaded as CSV. Requires the analytics part of `supabase/roles.sql` (re-run it once); counting
 starts from then on.
 
-## RDF export for ECHOES / ECCCH (annotation website)
-- **Export RDF (Turtle)** next to **Export JSON-LD** on each story downloads `story-<id>.ttl`; **Export all published stories as RDF**
-  (under the story list) downloads one `.ttl` file with every published story, ready to load into a triple store.
-- Same graph as the JSON-LD (checked: both parse to the identical set of triples): HDT ontology (HC1 Heritage Entity, HC2 Digital Twin,
-  HC5/HC6/HC7, HP1/HP2/HP4/HP8/HP9/HP10/HP11/HP22), CIDOC-CRM, Narrative ontology, W3C Web Annotation (time and
-  `xywh=percent` fragment selectors), SKOS terms from Wikidata/Getty, GeoSPARQL `wktLiteral` points, Dublin Core terms.
-- Each file also carries its details: title (`rdfs:label`), identity (`crm:P3_has_note`), date recorded (`dcterms:created`),
-  period (`dcterms:temporal`) and location (`dcterms:spatial` → `crm:E53_Place` with a WKT point).
-- `hdto:` is the ECHOES HDTO namespace `http://isl.ics.forth.gr/ontology/echoes/`, the one used by the ECHOES knowledge base and
-  OCRA; it comes from `HDT_NS` in `config.js`, so it can be changed there if ECHOES ever moves it.
-
 ## Two places to work
 - **The app** (`index.html`): visitors listen to published stories; facilitators of a site record, redact and upload (then community validation). No annotation tools.
 - **The facilitator website** (`…/facilitator/`): consent codes, stories and fragments, and community validation.
 - **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account
   (the same Supabase accounts and the same `config.js`), see all stories, and on a wide screen work with the player, timeline and
-  public preview on the left and the transcription / terms / image notes on the right. Publishing and the JSON-LD export are there too.
+  public preview on the left and the transcription / terms / image notes on the right. Publishing is there too.
   Accounts without the annotator role see a message instead. The right side has two tabs, **Transcript & terms** and **Images**; click a line's time to play from there, and the current line is highlighted (and followed while playing, unless you untick **Follow playback**). Everything below about annotating happens on this website.
 
 ## Setup (once, in this order)
@@ -395,7 +374,7 @@ A term points at the seconds where its word is spoken, not at its whole transcri
 See "Facilitator workflow" above: consent codes are created on the facilitator website (or in the AR app's consent step) with
 the licence chosen with the narrator; the database copies the licence to every story of that code (`stories.license`, not
 editable). The licence is shown on the story (app and stories website, linked to the licence text in the viewer's language), on the
-annotation and validation pages, and exported as `dcterms:license` (Creative Commons URI) or, for project use only, `dcterms:rights`.
+annotation and validation pages.
 
 ## Annotating (simplified)
 For each audio/video the sheet has two steps: **1 · Transcript** (get or edit the text; options such as language and speed are tucked
@@ -410,12 +389,12 @@ Image notes are three steps; you never type times:
 Press **Add note**. The **Notes on this image** table (Term · Area · Time · Transcript line) groups the notes of the same term. **View** shows the area on the image, the time button plays that moment, **✕** deletes one note and **Delete all** removes every note of a term (after a confirmation).
 Behind the scenes a timed note uses `annotations.av_media_id` + `start_s`/`end_s` (re-run `roles.sql` once). Viewers see only the notes
 that apply to the current second next to the image; the timeline has a dark "Image notes" lane (tap to jump and pause); outside playback
-all notes are listed with their times. The JSON-LD export gives each timed image note an `oa:hasScope` with the audio/video and time fragment.
+all notes are listed with their times.
 
 ## Term names follow the selected language
 Viewers see each term's name in the language they picked (Greek, English, French, Italian), taken from the vocabulary the term came
 from: Wikidata labels directly, and Getty AAT/TGN/ULAN terms through the matching Wikidata item. If the vocabulary has no name in that
-language, the name stored by the annotator is shown. Annotator screens and the JSON-LD export keep the stored names. Names are looked up
+language, the name stored by the annotator is shown. Annotator screens keep the stored names. Names are looked up
 once per language per visit and apply to the term list, the timeline bars and the "terms at this moment" box.
 
 ## Subtitles
@@ -436,7 +415,7 @@ subtitles (they still appear in the transcript list).
 # Transcription and vocabulary annotation
 
 Owners transcribe the audio/video of their own stories and attach vocabulary terms.
-Approved terms are public and exportable as JSON-LD. Everything runs in the page and in
+Approved terms are public. Everything runs in the page and in
 your Supabase database: no server function and no paid API key.
 
 ## Setup (once)
@@ -477,32 +456,16 @@ Log in → open one of your stories → **Transcribe and annotate** → per audi
    AAT/TGN/ULAN (Getty may be blocked by the browser; Wikidata still works). Pick the type
    and add it.
 4. **Approve / Reject** automatic suggestions; fix the type if it was guessed wrong.
-   Visitors see the transcript and approved terms; anyone can **Export JSON-LD**.
+   Visitors see the transcript and approved terms.
 
 ## Images
 In **Transcribe and annotate**, each image of your story appears with the terms you have already
 approved from the audio/video. Tick the ones the image shows. Optionally **Mark area** and drag a
 box on the image (stored as fractions of its width/height, so it survives resizing).
 Visitors see approved terms
-and boxes under the image; the JSON-LD export adds `HP9` / `P67 refers to` on the image and a
-`xywh=percent:` fragment for boxes.
+and boxes under the image.
 
 The automatic step is a simple name heuristic, not AI: it misses things and suggests wrong
 matches, so review it. Re-saving replaces earlier *unreviewed* automatic suggestions;
 approved/rejected and hand-added ones are kept. Lines without timestamps are stored without
-a time range, and the export then links the whole media file instead of a time fragment.
-
-## Mapping to the Heritage Digital Twin Ontology (ECHOES HDTO v0.1)
-| App | HDTO / CRM |
-|---|---|
-| Story point | `HC1 Heritage Entity` → `HP1` → `HC2 Heritage Digital Twin` |
-| Photo / video | `HC7 Digital Visual Object`, `HP22 represents` the entity |
-| Audio | `HC5 Digital Representation`, `HP22 represents` |
-| Spoken story | `nont:Narration` `HP4 narrates` a `nont:Narrative` (`HP2 has story`) |
-| Transcript | `HC6 Digital Document` + `crm:E31`, `HP8` / `HP11` |
-| Mentioned event | `HP10 tells about` → `crm:E5 Event` (HP10's range is events only) |
-| Mentioned person / place / thing / type | `crm:P67 refers to` → `E21` / `E53` / `E70` / `E55` |
-| Time-anchored tag | `oa:Annotation` with a media-fragment selector (`t=start,end`) |
-
-`hdto:` is the ECHOES HDTO namespace `http://isl.ics.forth.gr/ontology/echoes/` (as used by the ECHOES knowledge base and OCRA); the export uses `HDT_NS` from `config.js`
-(`urn:echoes:hdto:`). Replace it when ECHOES publishes one, and verify the `nont:` namespace.
+a time range (the term then applies to the whole file).
