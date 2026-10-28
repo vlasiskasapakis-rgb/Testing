@@ -340,11 +340,7 @@
   .ann-time-panel { flex-basis: 100%; }
   .ann-player { width: 100%; max-height: 220px; margin: 6px 0; }
   #consentSheet { z-index: 66; }
-  .code-box { background: #EEF6F3; border: 2px solid #2E7D6B; border-radius: 12px; padding: 12px; margin-top: 10px; display: grid; gap: 8px; justify-items: start; }
-  .code-box[hidden] { display: none; }
-  .code-big { font: 700 26px/1.2 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 2px; overflow-wrap: anywhere; }
-  .code-box button { padding: 10px 18px; min-height: 44px; font-size: 16px; font-weight: 700; }
-  #miWhenDate, #miPeriodIn { margin-top: 6px; width: 100%; }
+  #cnCodeIn { font-size: 20px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
   #mediaInfoSheet { z-index: 90; }
   #mapPickSheet { z-index: 95; }
   .place-search { display: flex; gap: 8px; margin: 8px 0 4px; }
@@ -427,7 +423,6 @@
   .lic-set legend { font-weight: 700; color: var(--petrol); padding: 0 6px; }
   .lic-set .check { margin: 0 0 10px; } .lic-set .check b { color: var(--petrol); display: block; } .lic-set .check small { color: var(--muted); font-size: 14px; }
   .story-license { font-size: 14px; color: var(--muted); margin: 0 0 8px; } .story-license a { color: var(--petrol); font-weight: 600; }
-  .code-big { display: block; margin: 6px 0 10px; padding: 12px; text-align: center; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 30px; font-weight: 700; letter-spacing: .08em; color: var(--petrol); background: var(--mist); border: 2px dashed var(--line-strong); border-radius: 12px; user-select: all; -webkit-user-select: all; }
   .subtitle-bar { box-sizing: border-box; height: calc(3 * 1.35em + 16px); margin: 4px 0 8px; padding: 8px 12px; border-radius: 10px; background: rgba(14,63,80,.94); color: #fff; font-size: 17px; line-height: 1.35; text-align: center; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .subtitle-bar[hidden] { display: none; }
   .sub-toggle { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--petrol); min-height: 40px; }
@@ -718,6 +713,7 @@
       </div>
       <button type="button" class="btn-secondary btn-wide" id="consentNewBtn" data-i18n="arConsentNew"></button>
       <div id="consentNewForm" hidden>
+        <div class="input-group"><label for="cnCodeIn" data-i18n="arCodeIn"></label><input type="text" id="cnCodeIn" maxlength="40" autocomplete="off" spellcheck="false" data-i18n-ph="arCodePh"></div>
         <fieldset class="lic-set"><legend data-i18n="arAgreeLegend"></legend>
           <label class="check"><input type="checkbox" name="cnAgree" value="provide"><span data-i18n="arAgree_provide"></span></label>
           <label class="check"><input type="checkbox" name="cnAgree" value="cut"><span data-i18n="arAgree_cut"></span></label>
@@ -726,11 +722,6 @@
           <label class="check"><input type="checkbox" name="cnAgree" value="voluntary"><span data-i18n="arAgree_voluntary"></span></label>
         </fieldset>
         <div class="input-group"><label for="cnLicense" data-i18n="arLicence"></label><select id="cnLicense" class="lang-select"></select><p id="cnLicHelp" class="sheet-sub" style="margin:4px 0 0"></p></div>
-      </div>
-      <div id="consentCodeBox" class="code-box" hidden>
-        <p data-i18n="arCodeIntro" style="margin:0"></p>
-        <output id="cnCode" class="code-big" aria-live="polite"></output>
-        <button type="button" class="btn-secondary" id="cnCopy" data-i18n="consentCopy"></button>
       </div>
       <p id="consentError" class="field-error" role="alert"></p>
     </div>
@@ -966,8 +957,7 @@
     <h2 id="miHeading"></h2>
     <p class="sheet-sub" data-i18n="miIntro"></p>
     <div class="input-group"><label for="miTitleIn" data-i18n="arFragTitle"></label><input type="text" id="miTitleIn" maxlength="200" autocomplete="off" data-i18n-ph="miWhatPh"></div>
-    <div class="input-group"><label for="miAboutIn" data-i18n="miAbout"></label><input type="text" id="miAboutIn" maxlength="600" autocomplete="off" data-i18n-ph="miAboutPh" aria-describedby="miWhoHint">
-      <p class="sheet-sub" id="miWhoHint" data-i18n="arWhoHint" style="margin:4px 0 0"></p></div>
+    <div class="input-group"><label for="miAboutIn" data-i18n="miAbout"></label><input type="text" id="miAboutIn" maxlength="600" autocomplete="off" data-i18n-ph="miAboutPh"></div>
     <div class="input-group">
       <label for="miPlaceIn" data-i18n="miWhere"></label><input type="text" id="miPlaceIn" maxlength="200" autocomplete="off" data-i18n-ph="miWherePh">
       <span class="group-label" id="miLocLabel" data-i18n="miLoc" style="margin-top:10px"></span>
@@ -978,14 +968,7 @@
         <button type="button" class="link-btn" id="miLocClear" data-i18n="miLocClear"></button>
       </div>
     </div>
-    <fieldset class="input-group lic-set" id="miWhenSet">
-      <legend data-i18n="miPeriod"></legend>
-      <label class="check"><input type="radio" name="miWhenKind" value="exact"><span data-i18n="arWhenExact"></span></label>
-      <label class="check"><input type="radio" name="miWhenKind" value="approx"><span data-i18n="arWhenApprox"></span></label>
-      <label class="check"><input type="radio" name="miWhenKind" value=""><span data-i18n="arWhenBlank"></span></label>
-      <input type="date" id="miWhenDate" data-i18n-aria="arWhenExact">
-      <input type="text" id="miPeriodIn" maxlength="120" autocomplete="off" data-i18n-ph="miPeriodPh" data-i18n-aria="arWhenApprox">
-    </fieldset>
+    <div class="input-group"><label for="miPeriodIn" data-i18n="miPeriod"></label><input type="text" id="miPeriodIn" maxlength="200" autocomplete="off" data-i18n-ph="miPeriodPh"></div>
     <div class="input-group"><label for="miDateIn" data-i18n="miDate"></label><input type="date" id="miDateIn"></div>
     <div class="btn-row">
       <button type="button" class="btn-secondary" id="miCancel" data-i18n="cancel"></button>
@@ -1026,17 +1009,19 @@
   var LANGS = ['el', 'en', 'fr', 'it'];
   var I18N = {
     el: {
-      arConsentIntro: "Διάλεξε τον κωδικό συναίνεσης του αφηγητή ή φτιάξε νέο. Το υπογεγραμμένο έντυπο, με τα στοιχεία του, μένει στο χαρτί.",
+      arConsentIntro: "Διάλεξε τον κωδικό συναίνεσης του αφηγητή ή πρόσθεσε τον κωδικό που είναι τυπωμένος σε νέο έντυπο. Το υπογεγραμμένο έντυπο, με τα στοιχεία του αφηγητή, μένει στο χαρτί.",
       arConsentPick: "Κωδικός συναίνεσης",
       arConsentNew: "+ Νέα συναίνεση",
       arConsentChoose: "— διάλεξε κωδικό —",
       arLicence: "Άδεια",
       arYes: "Ναι",
       arNo: "Όχι",
-      arConsentMissing: "Τσέκαρε όλες τις συμφωνίες και διάλεξε άδεια.",
-      arConsentSaved: "Ο κωδικός δημιουργήθηκε: γράψ’ τον στο έντυπο.",
-      arConsentCreate: "Δημιουργία κωδικού",
-      arCodeIntro: "Γράψε αυτόν τον κωδικό στο έντυπο συναίνεσης:",
+      arConsentMissing: "Γράψε τον κωδικό του εντύπου (2 έως 40 χαρακτήρες), τσέκαρε όλες τις συμφωνίες και διάλεξε άδεια.",
+      arConsentSaved: "Η συναίνεση {c} αποθηκεύτηκε.",
+      arCodeIn: "Κωδικός συναίνεσης (τυπωμένος στο έντυπο)",
+      arCodePh: "π.χ. LES-0042",
+      arCodeExists: "Ο κωδικός {c} είναι ήδη καταχωρισμένος.",
+      arConsentCreate: "Αποθήκευση συναίνεσης",
       arTheme: "Γιατί (το θέμα)",
       arThemePh: "π.χ. τα πανηγύρια του χωριού, η φυγή από το σπίτι, η δουλειά στο λιμάνι",
       arThemeHint: "Με δικά σου λόγια: για τι μιλάει η ιστορία. Είναι το «γιατί» όλων των κομματιών της.",
@@ -1054,10 +1039,6 @@
       arNeedAudio: "Χρειάζεται τουλάχιστον ένα κομμάτι ήχου.",
       arNeedTitles: "Κάθε αρχείο χρειάζεται τίτλο.",
       arFragTitle: "Τίτλος (= τι) *",
-      arWhoHint: "Περισσότερα ονόματα: χώρισέ τα με κόμμα.",
-      arWhenExact: "Ακριβής ημερομηνία",
-      arWhenApprox: "Κατά προσέγγιση",
-      arWhenBlank: "Κενό",
       statusFacDraft: "Πρόχειρη",
       pageTitle: "Walking Memory — Μυτιλήνη", language: "Γλώσσα",
       gateTitle: "Διαδρομή μνήμης, κέντρο Μυτιλήνης",
@@ -1265,8 +1246,8 @@
       capWhere: "Πού:",
       w4NotSaved: "Η ιστορία ανέβηκε, αλλά τα «τι» και «πού» (όνομα τόπου) ΔΕΝ αποθηκεύτηκαν, επειδή η βάση δεν έχει ακόμα τις νέες στήλες. Ζητήστε από τον διαχειριστή να τρέξει το supabase/roles.sql.",
       miDate: "Ημερομηνία καταγραφής",
-      miPeriod: "Πότε έγινε;",
-      miPeriodPh: "π.χ. καλοκαίρι 1965, μετά τον πόλεμο",
+      miPeriod: "Πότε;",
+      miPeriodPh: "π.χ. 14/7/1965, καλοκαίρι 1965, μετά τον πόλεμο",
       miLoc: "Σημείο στον χάρτη (προαιρετικό, αν μπορείς να το δείξεις)",
       miLocGps: "Η τοποθεσία μου (GPS)",
       miLocMap: "Επιλογή από χάρτη",
@@ -1394,8 +1375,6 @@
       consentContinue: "Συνέχεια στο ανέβασμα",
       consentCodeLabel: "Κωδικός συναίνεσης",
       consentCodeHint: "Γράψε αυτόν τον κωδικό στο έντυπο που υπογράφει το άτομο που συμμετέχει. Συνδέει το έντυπο με αυτή την ιστορία.",
-      consentCopy: "Αντιγραφή κωδικού",
-      consentCopied: "Αντιγράφηκε",
       consentError: "Δεν δημιουργήθηκε η καταγραφή συναίνεσης: {e}",
       consentNeedAll: "Τσέκαρε όλα τα πλαίσια για να συνεχίσεις.",
       consentLabel: "Κωδικός συναίνεσης: {c}",
@@ -1453,17 +1432,19 @@
       listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
     },
     en: {
-      arConsentIntro: "Choose the narrator’s consent code, or make a new one. The signed printed form, with the narrator’s details, stays on paper.",
+      arConsentIntro: "Choose the narrator’s consent code, or add the code printed on a new form. The signed form, with the narrator’s details, stays on paper.",
       arConsentPick: "Consent code",
       arConsentNew: "+ New consent",
       arConsentChoose: "— choose a code —",
       arLicence: "Licence",
       arYes: "Yes",
       arNo: "No",
-      arConsentMissing: "Tick every agreement and choose a licence.",
-      arConsentSaved: "Code created: write it on the printed form.",
-      arConsentCreate: "Create the code",
-      arCodeIntro: "Write this code on the printed consent form:",
+      arConsentMissing: "Type the form’s code (2 to 40 characters), tick every agreement and choose a licence.",
+      arConsentSaved: "Consent {c} saved.",
+      arCodeIn: "Consent code (printed on the form)",
+      arCodePh: "e.g. LES-0042",
+      arCodeExists: "The code {c} is already registered.",
+      arConsentCreate: "Save consent",
       arTheme: "Why (the theme)",
       arThemePh: "e.g. the village feasts, leaving home, the harbour at work",
       arThemeHint: "In your own words: what the story is about. It is the “why” of all its fragments.",
@@ -1481,10 +1462,6 @@
       arNeedAudio: "At least one audio fragment is needed.",
       arNeedTitles: "Every file needs a title.",
       arFragTitle: "Title (= what) *",
-      arWhoHint: "Several names: separate them with commas.",
-      arWhenExact: "Exact date",
-      arWhenApprox: "Approximate",
-      arWhenBlank: "Blank",
       statusFacDraft: "Draft",
       pageTitle: "Walking Memory — Mytilene", language: "Language",
       gateTitle: "Memory trail, Mytilene centre",
@@ -1692,8 +1669,8 @@
       capWhere: "Where:",
       w4NotSaved: "The story was uploaded, but “what” and “where” (place name) were NOT saved because the database does not have the new columns yet. Ask the administrator to run supabase/roles.sql.",
       miDate: "Date recorded",
-      miPeriod: "When did it happen?",
-      miPeriodPh: "e.g. summer 1965, after the war",
+      miPeriod: "When?",
+      miPeriodPh: "e.g. 14/7/1965, summer 1965, after the war",
       miLoc: "Point on the map (optional, if you can show it)",
       miLocGps: "My location (GPS)",
       miLocMap: "Pick on the map",
@@ -1821,8 +1798,6 @@
       consentContinue: "Continue to upload",
       consentCodeLabel: "Consent code",
       consentCodeHint: "Write this code on the paper form the participant signs. It links the form to this story.",
-      consentCopy: "Copy code",
-      consentCopied: "Copied",
       consentError: "Could not create the consent record: {e}",
       consentNeedAll: "Tick every box to continue.",
       consentLabel: "Consent code: {c}",
@@ -1880,17 +1855,19 @@
       listSearch: "Search by title, name or consent code"
     },
     fr: {
-      arConsentIntro: "Choisissez le code de consentement du narrateur, ou créez-en un. Le formulaire signé, avec les coordonnées du narrateur, reste sur papier.",
+      arConsentIntro: "Choisissez le code de consentement du narrateur, ou ajoutez le code imprimé sur un nouveau formulaire. Le formulaire signé, avec les coordonnées du narrateur, reste sur papier.",
       arConsentPick: "Code de consentement",
       arConsentNew: "+ Nouveau consentement",
       arConsentChoose: "— choisir un code —",
       arLicence: "Licence",
       arYes: "Oui",
       arNo: "Non",
-      arConsentMissing: "Cochez tous les accords et choisissez une licence.",
-      arConsentSaved: "Code créé : écrivez-le sur le formulaire imprimé.",
-      arConsentCreate: "Créer le code",
-      arCodeIntro: "Écrivez ce code sur le formulaire de consentement imprimé :",
+      arConsentMissing: "Saisissez le code du formulaire (2 à 40 caractères), cochez tous les accords et choisissez une licence.",
+      arConsentSaved: "Consentement {c} enregistré.",
+      arCodeIn: "Code de consentement (imprimé sur le formulaire)",
+      arCodePh: "p. ex. LES-0042",
+      arCodeExists: "Le code {c} est déjà enregistré.",
+      arConsentCreate: "Enregistrer le consentement",
       arTheme: "Pourquoi (le thème)",
       arThemePh: "p. ex. les fêtes du village, le départ, le port au travail",
       arThemeHint: "Avec vos mots : de quoi parle l’histoire. C’est le « pourquoi » de tous ses fragments.",
@@ -1908,10 +1885,6 @@
       arNeedAudio: "Il faut au moins un fragment audio.",
       arNeedTitles: "Chaque fichier a besoin d’un titre.",
       arFragTitle: "Titre (= quoi) *",
-      arWhoHint: "Plusieurs noms : séparez-les par des virgules.",
-      arWhenExact: "Date exacte",
-      arWhenApprox: "Approximatif",
-      arWhenBlank: "Vide",
       statusFacDraft: "Brouillon",
       pageTitle: "Walking Memory — Mytilène", language: "Langue",
       gateTitle: "Parcours de mémoire, centre de Mytilène",
@@ -2119,8 +2092,8 @@
       capWhere: "Où :",
       w4NotSaved: "L'histoire a été envoyée, mais « quoi » et « où » (nom du lieu) n'ont PAS été enregistrés car la base n'a pas encore les nouvelles colonnes. Demandez à l'administrateur d'exécuter supabase/roles.sql.",
       miDate: "Date d'enregistrement",
-      miPeriod: "Quand cela s'est-il passé ?",
-      miPeriodPh: "p. ex. été 1965, après la guerre",
+      miPeriod: "Quand ?",
+      miPeriodPh: "p. ex. 14/7/1965, été 1965, après la guerre",
       miLoc: "Point sur la carte (facultatif, si vous pouvez le montrer)",
       miLocGps: "Ma position (GPS)",
       miLocMap: "Choisir sur la carte",
@@ -2248,8 +2221,6 @@
       consentContinue: "Continuer vers l'envoi",
       consentCodeLabel: "Code de consentement",
       consentCodeHint: "Écrivez ce code sur le formulaire papier que signe la personne. Il relie le formulaire à cette histoire.",
-      consentCopy: "Copier le code",
-      consentCopied: "Copié",
       consentError: "Impossible de créer l'enregistrement du consentement : {e}",
       consentNeedAll: "Cochez toutes les cases pour continuer.",
       consentLabel: "Code de consentement : {c}",
@@ -2307,17 +2278,19 @@
       listSearch: "Rechercher par titre, nom ou code de consentement"
     },
     it: {
-      arConsentIntro: "Scegli il codice di consenso del narratore, o creane uno nuovo. Il modulo firmato, con i dati del narratore, resta su carta.",
+      arConsentIntro: "Scegli il codice di consenso del narratore, o aggiungi il codice stampato su un nuovo modulo. Il modulo firmato, con i dati del narratore, resta su carta.",
       arConsentPick: "Codice di consenso",
       arConsentNew: "+ Nuovo consenso",
       arConsentChoose: "— scegli un codice —",
       arLicence: "Licenza",
       arYes: "Sì",
       arNo: "No",
-      arConsentMissing: "Spunta tutti gli accordi e scegli una licenza.",
-      arConsentSaved: "Codice creato: scrivilo sul modulo stampato.",
-      arConsentCreate: "Crea il codice",
-      arCodeIntro: "Scrivi questo codice sul modulo di consenso stampato:",
+      arConsentMissing: "Scrivi il codice del modulo (da 2 a 40 caratteri), spunta tutti gli accordi e scegli una licenza.",
+      arConsentSaved: "Consenso {c} salvato.",
+      arCodeIn: "Codice di consenso (stampato sul modulo)",
+      arCodePh: "es. LES-0042",
+      arCodeExists: "Il codice {c} è già registrato.",
+      arConsentCreate: "Salva il consenso",
       arTheme: "Perché (il tema)",
       arThemePh: "es. le feste del paese, la partenza da casa, il porto al lavoro",
       arThemeHint: "Con parole tue: di cosa parla la storia. È il «perché» di tutti i suoi frammenti.",
@@ -2335,10 +2308,6 @@
       arNeedAudio: "Serve almeno un frammento audio.",
       arNeedTitles: "Ogni file ha bisogno di un titolo.",
       arFragTitle: "Titolo (= cosa) *",
-      arWhoHint: "Più nomi: separali con una virgola.",
-      arWhenExact: "Data esatta",
-      arWhenApprox: "Approssimativo",
-      arWhenBlank: "Vuoto",
       statusFacDraft: "Bozza",
       pageTitle: "Walking Memory — Mitilene", language: "Lingua",
       gateTitle: "Percorso della memoria, centro di Mitilene",
@@ -2546,8 +2515,8 @@
       capWhere: "Dove:",
       w4NotSaved: "La storia è stata caricata, ma «cosa» e «dove» (nome del luogo) NON sono stati salvati perché il database non ha ancora le nuove colonne. Chiedi all'amministratore di eseguire supabase/roles.sql.",
       miDate: "Data di registrazione",
-      miPeriod: "Quando è successo?",
-      miPeriodPh: "es. estate 1965, dopo la guerra",
+      miPeriod: "Quando?",
+      miPeriodPh: "es. 14/7/1965, estate 1965, dopo la guerra",
       miLoc: "Punto sulla mappa (facoltativo, se puoi indicarlo)",
       miLocGps: "La mia posizione (GPS)",
       miLocMap: "Scegli sulla mappa",
@@ -2675,8 +2644,6 @@
       consentContinue: "Continua con il caricamento",
       consentCodeLabel: "Codice di consenso",
       consentCodeHint: "Scrivi questo codice sul modulo cartaceo firmato dalla persona. Collega il modulo a questa storia.",
-      consentCopy: "Copia il codice",
-      consentCopied: "Copiato",
       consentError: "Impossibile creare il record di consenso: {e}",
       consentNeedAll: "Spunta tutte le caselle per continuare.",
       consentLabel: "Codice di consenso: {c}",
@@ -3639,8 +3606,8 @@
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
-          title: m.title || '', about: (m.who && m.who.length ? m.who.join(', ') : m.about) || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '',
-          period: (m.when_kind === 'exact' ? m.when_date : m.period) || '',
+          title: m.title || '', about: (Array.isArray(m.who) ? m.who.join(', ') : m.who) || m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '',
+          period: m.period || '',
           lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
@@ -3658,7 +3625,7 @@
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
-      var colsV = colsW.replace('what,place_name)', 'what,place_name,who,when_kind,when_date)');            // several names, exact/approximate when
+      var colsV = colsW.replace('what,place_name)', 'what,place_name,who)');            // who: free text
       var r = await sb.from('stories').select(colsV + ',status,consent_id,consents(code),license').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code),license').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');   // βάση χωρίς άδεια ιστορίας
@@ -3697,10 +3664,10 @@
           var up = await sb.storage.from(BUCKET).upload(path, f.blob, { contentType: type, upsert: false });
           if (up.error) throw up.error;
           uploaded.push(path);
-          var inf = f.info || {}, who = whoList(inf), wk = inf.whenKind || '';
-          rows.push({ story_id: sid, kind: f.kind, path: path, position: i, title: inf.title || null, who: who.length ? who : null,
+          var inf = f.info || {};
+          rows.push({ story_id: sid, kind: f.kind, path: path, position: i, title: inf.title || null, who: String(inf.about || '').trim().slice(0, 600) || null,
             place_name: inf.place || null, lat: inf.lat == null ? null : inf.lat, lon: inf.lon == null ? null : inf.lon,
-            when_kind: wk || null, when_date: wk === 'exact' ? inf.whenDate : null, period: wk === 'approx' ? inf.period : null,
+            period: String(inf.period || '').trim().slice(0, 200) || null,
             recorded_at: inf.recorded || null, mime: type, original_name: String(f.name || '').slice(0, 255) || null, sha256: sum });
         }
         var ins = await sb.from('stories').insert({ id: sid, title: story.title, lat: pos.lat, lon: pos.lon, author_name: userName(currentUser), consent_id: consent.id,
@@ -4996,22 +4963,6 @@
   var AGREE = ['provide', 'cut', 'comment', 'share', 'voluntary'];
   var SITE_CONSENTS = [];
 
-  async function copyText(text, btn) {
-    var ok = false;
-    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
-    if (!ok) {
-      var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select();
-      try { ok = document.execCommand('copy'); } catch (e) {}
-      ta.remove();
-    }
-    if (btn) {
-      var old = btn.textContent; btn.textContent = ok ? t('consentCopied') : old;
-      setTimeout(function () { btn.textContent = t('consentCopy'); }, 1800);
-    }
-    return ok;
-  }
-
   function fillSelect(sel, items, cur) {
     sel.innerHTML = '';
     items.forEach(function (it) { var o = document.createElement('option'); o.value = it[0]; o.textContent = it[1]; sel.appendChild(o); });
@@ -5035,7 +4986,7 @@
     activeConsent = null;
     $('consentNewForm').hidden = true; $('consentNewBtn').hidden = false; $('consentCreate').hidden = true;
     document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { x.checked = false; });
-    $('cnLicense').value = ''; $('consentError').textContent = ''; $('consentCodeBox').hidden = true;
+    $('cnCodeIn').value = ''; $('cnLicense').value = ''; $('consentError').textContent = '';
     renderConsentNewForm();
   }
   onLangChange(function () { if ($('consentSheet').classList.contains('on')) { renderConsentPick($('consentPick').value); renderConsentNewForm(); } if (activeConsent) showConsentLicense(activeConsent.license); });
@@ -5055,30 +5006,36 @@
   }
   $('consentPick').onchange = consentPicked;
   $('consentNewBtn').onclick = function () {
-    $('consentNewForm').hidden = false; this.hidden = true; $('consentCreate').hidden = false; $('consentPick').value = ''; consentPicked(); document.querySelector('input[name="cnAgree"]').focus();
+    $('consentNewForm').hidden = false; this.hidden = true; $('consentCreate').hidden = false; $('consentPick').value = ''; consentPicked(); $('cnCodeIn').focus();
   };
   $('cnLicense').onchange = function () { $('cnLicHelp').textContent = this.value ? t('lic_' + this.value) : ''; $('consentError').textContent = ''; };
   document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { x.addEventListener('change', function () { $('consentError').textContent = ''; }); });
   $('consentCreate').onclick = async function () {
     var err = $('consentError'); err.textContent = '';
+    var code = $('cnCodeIn').value.replace(/\s+/g, ' ').trim().toUpperCase();
     var acc = {}; document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { acc[x.value] = x.checked; });
     var lic = $('cnLicense').value;
-    if (!AGREE.every(function (k) { return acc[k]; }) || !lic) { err.textContent = t('arConsentMissing'); (lic ? document.querySelector('input[name="cnAgree"]:not(:checked)') : $('cnLicense')).focus(); return; }
+    if (code.length < 2 || !AGREE.every(function (k) { return acc[k]; }) || !lic) {
+      err.textContent = t('arConsentMissing');
+      (code.length < 2 ? $('cnCodeIn') : !lic ? $('cnLicense') : document.querySelector('input[name="cnAgree"]:not(:checked)')).focus(); return;
+    }
     var b = this; b.disabled = true;
     try {
-      // the database makes the code (WM-XXXX-XXXX) that is written on the printed form
-      var r = await sb.from('consents').insert({ user_id: currentUser.id, license: lic, accepted: acc, statement_version: 'v3', lang: LANG }).select('id,code,license,status,created_at').single();
+      // the code printed in advance on the consent form
+      var r = await sb.from('consents').insert({ user_id: currentUser.id, code: code, license: lic, accepted: acc, statement_version: 'v3', lang: LANG }).select('id,code,license,status,created_at').single();
       if (r.error) throw r.error;
       SITE_CONSENTS.unshift(r.data);
       consentResetForm(); renderConsentPick(r.data.id);
-      $('cnCode').textContent = r.data.code; $('consentCodeBox').hidden = false;
-      announce(t('arConsentSaved')); $('cnCopy').focus();
+      announce(t('arConsentSaved', { c: r.data.code })); $('consentInfo').textContent = t('arConsentSaved', { c: r.data.code }) + ' ' + $('consentInfo').textContent;
+      $('consentContinue').focus();
     } catch (e) {
       var m = (e && e.message) || String(e);
-      err.textContent = /schema cache|row-level security|does not exist/i.test(m) ? t('licNeedSql') : t('consentError', { e: m });
+      err.textContent = (e && e.code === '23505') || /consents_code_key/.test(m) ? t('arCodeExists', { c: code })
+        : /consents_code_check/.test(m) ? t('arConsentMissing')
+        : /schema cache|row-level security|does not exist/i.test(m) ? t('licNeedSql') : t('consentError', { e: m });
     } finally { b.disabled = false; }
   };
-  $('cnCopy').onclick = function () { copyText($('cnCode').textContent, this); };
+  $('cnCodeIn').addEventListener('input', function () { $('consentError').textContent = ''; });
   $('consentCancel').onclick = function () { activeConsent = null; closeDialog('consentSheet'); setAR(true); };
   escHandlers.consentSheet = function () { $('consentCancel').click(); };
   // the story's own fields: why (the theme, typed by the facilitator), the language or dialect, sensitive material
@@ -5430,7 +5387,7 @@
   function isoDate(ms) { var d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function defaultInfo(file) {
     var lm = file && file.lastModified ? file.lastModified : Date.now();
-    return { title: '', about: '', what: '', place: '', recorded: isoDate(lm), period: '', whenKind: '', whenDate: '', lat: null, lon: null };   // πού: όπου έγινε, όχι όπου γίνεται η καταγραφή
+    return { title: '', about: '', what: '', place: '', recorded: isoDate(lm), period: '', lat: null, lon: null };   // πού: όπου έγινε, όχι όπου γίνεται η καταγραφή
   }
   function infoOf(f) { if (!f.info) f.info = defaultInfo(f.originalFile); return f.info; }
   function infoSummary(f) {
@@ -5440,12 +5397,11 @@
     if (whenOf(i)) bits.push(whenOf(i));
     return bits.join(' · ');
   }
-  function whenOf(i) { return i.whenKind === 'exact' ? i.whenDate : i.whenKind === 'approx' ? i.period : ''; }
-  function whoList(i) { return String(i.about || '').split(/[,;]/).map(function (x) { return x.trim().slice(0, 200); }).filter(Boolean).slice(0, 20); }
+  function whenOf(i) { return String(i.period || '').trim(); }
   // Πόσες από τις τέσσερις ερωτήσεις έχουν απάντηση: τι (= ο τίτλος), ποιος, πού, πότε
   function answered(f) {
     var i = infoOf(f), n = 0;
-    if (i.title) n++; if (whoList(i).length) n++; if (i.place || i.lat != null) n++; if (whenOf(i)) n++;
+    if (i.title) n++; if (String(i.about || '').trim()) n++; if (i.place || i.lat != null) n++; if (whenOf(i)) n++;
     return n;
   }
   function w4Label(f) { var n = answered(f); return n ? '✎ ' + t('miW4Btn', { n: n }) : '+ ' + t('miW4Add');
@@ -5505,16 +5461,11 @@
     $('miCancel').textContent = t(afterAdd ? 'miLater' : 'cancel');
     $('miHeading').textContent = t('miDetails') + ': ' + nameOf(f);
     $('miTitleIn').value = info.title; $('miAboutIn').value = info.about; $('miPlaceIn').value = info.place || '';
-    $('miDateIn').value = info.recorded; $('miPeriodIn').value = info.whenKind === 'approx' ? info.period : ''; $('miWhenDate').value = info.whenDate || '';
-    document.querySelectorAll('input[name="miWhenKind"]').forEach(function (r) { r.checked = r.value === (info.whenKind || ''); });
-    miWhenVis();
+    $('miDateIn').value = info.recorded; $('miPeriodIn').value = info.period || '';
     miLoc = { lat: info.lat, lon: info.lon }; miShowLoc();
     $('miLocGps').disabled = !me;
     openDialog('mediaInfoSheet', $('miTitleIn'));
   }
-  function miWhenKind() { var r = document.querySelector('input[name="miWhenKind"]:checked'); return r ? r.value : ''; }
-  function miWhenVis() { var k = miWhenKind(); $('miWhenDate').hidden = k !== 'exact'; $('miPeriodIn').hidden = k !== 'approx'; }
-  document.querySelectorAll('input[name="miWhenKind"]').forEach(function (r) { r.addEventListener('change', miWhenVis); });
   $('miLocGps').onclick = function () { if (!me) return; miLoc = { lat: me.lat, lon: me.lon }; miShowLoc(); };
   $('miLocClear').onclick = function () { miLoc = { lat: null, lon: null }; miShowLoc(); };
   function closeMediaInfo() {      // η λίστα ξαναζωγραφίζεται: η εστίαση πάει στο κουμπί του ίδιου αρχείου
@@ -5525,11 +5476,8 @@
   escHandlers.mediaInfoSheet = closeMediaInfo;
   $('miSave').onclick = function () {
     var f = processedFiles[miIndex]; if (!f) { closeDialog('mediaInfoSheet'); return; }
-    var wk = miWhenKind();
-    if (wk === 'exact' && !$('miWhenDate').value) wk = '';
-    if (wk === 'approx' && !$('miPeriodIn').value.trim()) wk = '';
     f.info = { title: $('miTitleIn').value.trim(), about: $('miAboutIn').value.trim(), what: '', place: $('miPlaceIn').value.trim(),
-      recorded: $('miDateIn').value, whenKind: wk, whenDate: wk === 'exact' ? $('miWhenDate').value : '', period: wk === 'approx' ? $('miPeriodIn').value.trim() : '',
+      recorded: $('miDateIn').value, period: $('miPeriodIn').value.trim(),
       lat: miLoc.lat, lon: miLoc.lon };
     updateMediaListUI();
     closeMediaInfo();

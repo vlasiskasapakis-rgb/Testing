@@ -42,8 +42,9 @@ facilitator with a site sees a message instead.
 stories). A withdrawn story is hidden everywhere (only admins still see it), cannot change any more, and the action is logged.
 
 ### Consents: a code, a licence and what the narrator agreed to
-The system keeps only a **code** (`WM-XXXX-XXXX`, made by the database), the **licence** and what the narrator agreed to.
-**+ New consent**: tick with the narrator each agreement (all are needed):
+The consent forms are printed in advance, each with its own **code**. The system keeps only that code, the **licence** and what
+the narrator agreed to. **+ New consent**: type the **code printed on the form** (2 to 40 characters; it is kept in capitals and
+must not already be registered), then tick with the narrator each agreement (all are needed):
 - to give their story (recordings, photos, videos) to the project;
 - that the story may be cut into pieces (fragments);
 - that others (the community and the project team) may comment on it and add details;
@@ -51,8 +52,8 @@ The system keeps only a **code** (`WM-XXXX-XXXX`, made by the database), the **l
 - that they take part freely and can withdraw the story at any time.
 
 Then choose the **licence** together — the same six options as before: CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0,
-CC BY-NC-ND 4.0, Project use only, each explained in plain words. **Create the code** shows the code to write on the printed
-form (with a copy button). The table lists the site's codes with their licence, date created, number of stories and status, with
+CC BY-NC-ND 4.0, Project use only, each explained in plain words. **Save consent** stores it as active, and from then on it can
+be chosen for a story. The table lists the site's codes with their licence, date saved, number of stories and status, with
 search by code. Opening a code shows its agreements, its stories and **Withdraw consent…**. A code cannot be edited (only
 withdrawn).
 
@@ -69,8 +70,8 @@ comes from the consent.
   becomes a fragment, its type detected, in the order given. The original file is stored as it is; the browser computes its
   SHA-256 and the database stores the storage server's own fingerprint (eTag) and size when the fragment is saved; a thumbnail
   (photo, video) or a waveform (audio) is made for display. The recording date is read from the file name (`YYYYMMDD…`) or the file.
-- **Describe** each fragment: **What** (its title), required; **Who** (several names); **Where** (place name and an optional point
-  or area); **When** (exact date / approximate text such as "~1922" / blank). **Provenance** for photos and videos is set
+- **Describe** each fragment: **What** (its title), required; **Who** (free text, e.g. "Grandma Maria and her sister");
+  **Where** (place name and an optional point or area); **When** (free text, e.g. "14/7/1965", "summer 1965", "~1922", or blank). **Provenance** for photos and videos is set
   automatically ("Own or family item, held by the narrator"). **Comment** — internal, seen only by the site's facilitators,
   annotators and validators, never public.
 - **Order**: drag a fragment by its handle (or ↑ / ↓); the position is saved. Each fragment plays inline (audio, photo, video).
@@ -80,8 +81,8 @@ comes from the consent.
 ### AR pathway (AR app, facilitators only)
 Only a facilitator with a site sees **+** in the AR app; visitors cannot capture anything. Capture records audio, photo or video on
 site, with the location (GPS) and time from the device. The minimal built-in redaction stays (mute part of an audio, blur part of a
-photo) before upload. The consent step works like the website: choose one of the site's codes or **+ New consent** (the same
-agreements and licence; the code is shown to write on the form). The story asks for its title, why (theme), language and
+photo) before upload. The consent step works like the website: choose one of the site's codes or **+ New consent** (type the
+code printed on the form, the same agreements and licence). The story asks for its title, why (theme), language and
 sensitive material; each fragment needs a title (what) and at least one audio fragment is needed. On upload the story is created
 with source **AR app** and goes straight to **community validation**, in the same list as the other stories. It is never published
 directly.
@@ -96,7 +97,7 @@ community, the facilitator can:
   facilitator website.
 
 ### Rules kept by the database (roles.sql)
-No story without an active consent code of the same site; a new code needs every agreement and a licence; consent codes and
+No story without an active consent code of the same site; a new code must be unique and needs every agreement and a licence; consent codes and
 stories are visible only within their site; only the site's facilitators create or change consent codes, stories and fragments,
 and only until the community has validated the story; annotators see a story only after that; nothing is public before
 publication; withdrawn stays withdrawn. Every write is recorded in `audit_log` (user, time, entity, action, previous value,
@@ -114,7 +115,8 @@ up" in Supabase (Authentication → Sign In / Providers) so that only admins cre
 Running `roles.sql` updates older data once (recorded in `wm_migrations`): earlier statuses get their new names, a story that
 was waiting for a workshop now waits for community validation, a fixed question chosen earlier becomes the story's theme, and the
 older consent details (date, place, initials, anonymity, narrator name) and the workshop tables are removed — they belong on the
-printed form. Older consents without a code get one. Stories and consents from before sites have no site: annotators and the
+printed form. Older consents without a code get one. A fragment's list of names becomes one free-text "who" (names joined with
+commas) and an exact date becomes the free-text "when" (written as YYYY-MM-DD). Stories and consents from before sites have no site: annotators and the
 uploader keep seeing them as before, and an older draft can be given a site in the SQL editor:
 ```sql
 update public.stories set site_id = '<site id>', theme = 'the harbour at work', language = 'el', sensitive = false where id = '<story id>';

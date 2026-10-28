@@ -2820,8 +2820,8 @@
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, position: m.position, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
-          title: m.title || '', about: (m.who && m.who.length ? m.who.join(', ') : m.about) || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '',
-          period: (m.when_kind === 'exact' ? m.when_date : m.period) || '',
+          title: m.title || '', about: (Array.isArray(m.who) ? m.who.join(', ') : m.who) || m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '',
+          period: m.period || '',
           lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
@@ -5370,7 +5370,7 @@
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
-      var colsV = colsW.replace('what,place_name)', 'what,place_name,who,when_kind,when_date)');            // several names, exact/approximate when
+      var colsV = colsW.replace('what,place_name)', 'what,place_name,who)');            // who: free text
       var r = await sb.from('stories').select(colsV + ',status,consent_id,consents(code),license').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code),license').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');   // βάση χωρίς άδεια ιστορίας

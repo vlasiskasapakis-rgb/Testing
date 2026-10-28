@@ -107,13 +107,13 @@ grant select, insert, update, delete on public.sites, public.story_languages to 
 
 -- ---------- consent ----------
 -- The narrator signs (or gives orally) the printed consent form, which stays at the pilot site with the date and the
--- narrator's details. The system keeps only a code that is written on that form (WM-XXXX-XXXX, made by the database),
+-- narrator's details. The system keeps only the code printed in advance on that form (typed by the facilitator),
 -- the licence chosen with the narrator, and what the narrator agreed to (all of it is needed for a new code):
 --   provide (give the story to the project), cut (the story may be cut into fragments), comment (others may comment on it
 --   and add details), share (shown and shared under the chosen licence), voluntary (taking part freely, can withdraw).
 create table if not exists public.consents (
   id                uuid primary key default gen_random_uuid(),
-  code              text not null unique check (code ~ '^WM-[A-Z0-9]{4}-[A-Z0-9]{4}$'),
+  code              text not null unique,
   user_id           uuid default auth.uid() references auth.users(id) on delete set null,
   statement_version text not null,
   lang              text,
@@ -145,7 +145,8 @@ alter table public.consents drop column if exists session_date, drop column if e
 alter table public.consents drop constraint if exists consents_status_check;
 alter table public.consents add constraint consents_status_check check (status in ('active', 'withdrawn'));
 create index if not exists consents_site_idx on public.consents(site_id, created_at);
--- The code is made by the database (easy to read and copy: no 0/O and no 1/I/L).
+-- The code is printed in advance on the consent forms: the facilitator types it when saving the consent. It is kept in
+-- capitals without extra spaces, 2 to 40 characters, and is unique. (Older consents without a code get one made here.)
 create or replace function public.new_consent_code() returns text
 language plpgsql volatile set search_path = public as $$
 declare a text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; c text;
@@ -161,15 +162,16 @@ begin
   return c;
 end $$;
 create or replace function public.consent_code() returns trigger
-language plpgsql security definer set search_path = public as $$
+language plpgsql set search_path = public as $$
 begin
-  new.code := public.new_consent_code();
+  new.code := upper(btrim(regexp_replace(new.code, '\s+', ' ', 'g')));
   return new;
 end $$;
 drop trigger if exists consents_code on public.consents;
-create trigger consents_code before insert on public.consents for each row
-  when (new.code is null or auth.uid() is not null) execute function public.consent_code();
-update public.consents set code = public.new_consent_code() where code is null;   -- records of the earlier version
+create trigger consents_code before insert on public.consents for each row execute function public.consent_code();
+update public.consents set code = public.new_consent_code() where code is null;   -- records of the earliest version
+alter table public.consents drop constraint if exists consents_code_check;
+alter table public.consents add constraint consents_code_check check (char_length(code) between 2 and 40 and code = btrim(code) and code !~ '[[:cntrl:]]');
 alter table public.consents alter column code set not null;
 
 drop policy if exists "read site consents"             on public.consents;
@@ -216,7 +218,7 @@ update public.stories s set license = c.license from public.consents c
 -- To find the story behind a paper form (run as the project owner):
 --   select c.code, s.title, s.status, s.created_at
 --   from public.consents c left join public.stories s on s.consent_id = c.id
---   where c.code = 'WM-XXXX-XXXX';
+--   where c.code = 'LES-0042';
 
 -- ---------- publishing ----------
 do $$
@@ -635,10 +637,6 @@ language sql immutable as $$
                       else false end))
     else false end;
 $$;
-create or replace function public.texts_ok(a text[], n integer) returns boolean
-language sql immutable as $$
-  select not exists (select 1 from unnest(a) x where x is null or char_length(x) not between 1 and n);
-$$;
 
 -- Story fields: the site, why (the theme, written by the facilitator), language or dialect, sensitive material, where it
 -- came from (workshop_field: the facilitator website; ar: the AR app), the central location (lat/lon; for an area also the
@@ -670,14 +668,12 @@ alter table public.stories add constraint stories_workflow_check check (
 create index if not exists stories_site_idx on public.stories(site_id, status);
 create index if not exists stories_consent_idx on public.stories(consent_id);
 
--- Fragment fields: title (= what), required before community validation; who (several names); where (a place name and/or
--- a point or an area); when (an exact date, an approximate text such as "~1922" or "summer 1965", or blank).
+-- Fragment fields: title (= what), required before community validation; who (free text); where (a place name and/or
+-- a point or an area); when (free text in "period", e.g. "14/7/1965", "~1922", "summer 1965", or blank).
 -- The original upload is stored as it is: sha256 computed by the browser, etag (MD5) and size taken from the storage
 -- server when the fragment is saved. A thumbnail (photo/video) and a waveform (audio) are made for display.
-alter table public.story_media add column if not exists who           text[];
+alter table public.story_media add column if not exists who           text[];   -- made free text below
 alter table public.story_media add column if not exists area          jsonb;
-alter table public.story_media add column if not exists when_kind     text;
-alter table public.story_media add column if not exists when_date     date;
 alter table public.story_media add column if not exists provenance    text;
 alter table public.story_media add column if not exists sha256        text;
 alter table public.story_media add column if not exists etag          text;
@@ -693,27 +689,37 @@ do $$
 begin
   if not exists (select 1 from public.wm_migrations where name = 'fragment_fields_v2') then
     update public.story_media set who = array[btrim(about)] where who is null and coalesce(btrim(about), '') <> '';
-    update public.story_media set when_kind = 'approx' where when_kind is null and coalesce(btrim(period), '') <> '';
     update public.story_media set title = what where coalesce(btrim(title), '') = '' and coalesce(btrim(what), '') <> '';
     insert into public.wm_migrations (name) values ('fragment_fields_v2');
   end if;
 end $$;
 alter table public.story_media drop constraint if exists story_media_fragment_check;
+-- An earlier version kept who as a list of names and when as an exact date or an approximate text: both become free text
+-- (the names joined with commas; an exact date written as YYYY-MM-DD).
+do $$
+begin
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'story_media' and column_name = 'when_date') then
+    execute $q$update public.story_media set period = to_char(when_date, 'YYYY-MM-DD') where when_kind = 'exact' and when_date is not null$q$;
+  end if;
+  if (select data_type from information_schema.columns where table_schema = 'public' and table_name = 'story_media' and column_name = 'who') = 'ARRAY' then
+    alter table public.story_media alter column who type text using nullif(array_to_string(who, ', '), '');
+  end if;
+end $$;
+alter table public.story_media drop column if exists when_kind, drop column if exists when_date;
 -- (the workshop's patch status and "stated / inferred" marks of an earlier version are removed)
 alter table public.story_media drop column if exists who_src, drop column if exists where_src, drop column if exists when_src,
   drop column if exists patch_status;
 alter table public.story_media add constraint story_media_fragment_check check (
   (title is null or char_length(title) <= 200)
-  and (who is null or (cardinality(who) <= 20 and public.texts_ok(who, 200)))
+  and (who is null or char_length(who) <= 600)
   and (place_name is null or char_length(place_name) <= 200)
   and ((lat is null) = (lon is null)) and (lat is null or (lat between -90 and 90 and lon between -180 and 180))
   and (area is null or public.is_polygon(area))
-  and (when_kind is null or when_kind in ('exact', 'approx'))
-  and (when_kind is distinct from 'exact' or when_date is not null)
-  and (when_kind is distinct from 'approx' or char_length(coalesce(period, '')) between 1 and 120)
+  and (period is null or char_length(period) <= 200)
   and (sha256 is null or sha256 ~ '^[0-9a-f]{64}$')
   and (original_name is null or char_length(original_name) <= 255)
   and (waveform is null or jsonb_typeof(waveform) = 'array')) not valid;
+drop function if exists public.texts_ok(text[], integer);   -- (used by the list of names of an earlier version)
 
 -- Internal comment on a fragment (e.g. what the community said): seen by the site's facilitators and by annotators and
 -- validators, never public.
@@ -877,7 +883,7 @@ create policy "annotators reorder fragments" on public.story_media for update to
 create policy "facilitators delete fragments" on public.story_media for delete to authenticated
   using (public.can_edit_story(story_id));
 revoke update on public.story_media from anon, authenticated;
-grant update (position, title, who, place_name, lat, lon, area, when_kind, when_date, period, recorded_at)
+grant update (position, title, who, place_name, lat, lon, area, period, recorded_at)
   on public.story_media to authenticated;
 
 create or replace function public.guard_fragment() returns trigger
@@ -903,9 +909,8 @@ begin
     return new;
   end if;
   if auth.uid() is null then return new; end if;
-  if (new.title, new.who, new.place_name, new.lat, new.lon, new.area, new.when_kind, new.when_date, new.period, new.recorded_at, new.about, new.what)
-     is not distinct from (old.title, old.who, old.place_name, old.lat, old.lon, old.area, old.when_kind, old.when_date, old.period,
-      old.recorded_at, old.about, old.what) then
+  if (new.title, new.who, new.place_name, new.lat, new.lon, new.area, new.period, new.recorded_at, new.about, new.what)
+     is not distinct from (old.title, old.who, old.place_name, old.lat, old.lon, old.area, old.period, old.recorded_at, old.about, old.what) then
     -- only the position: the site's facilitators while editable, annotators once the story is in annotation
     if public.can_edit_story(old.story_id) or (public.is_annotator() and exists (select 1 from public.stories s where s.id = old.story_id
          and s.status in ('ready_for_annotation', 'submitted', 'returned', 'published'))) then

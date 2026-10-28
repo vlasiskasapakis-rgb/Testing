@@ -423,15 +423,14 @@
     return { id: r.id, title: r.title || t('untitled'), author: r.author_name || '', status: r.status || 'published', lat: r.lat, lon: r.lon,
       consent: (r.consents && r.consents.code) || '',
       media: (r.story_media || []).slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0); }).map(function (m) {
-        if (m.who && m.who.length) m.about = m.who.join(', ');        // several names
-        if (m.when_kind === 'exact') m.period = m.when_date;           // an exact date
+        if (m.who) m.about = Array.isArray(m.who) ? m.who.join(', ') : m.who;   // who: free text
         return m;
       }) };
   }
   async function loadAll() {
     $('saveStatus').className = ''; $('saveStatus').textContent = t('loading');
     var cols = 'id,title,lat,lon,author_name,status,story_media(id,kind,path,position)';
-    var r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon,who,when_kind,when_date)') + ',consents(code)').order('created_at');
+    var r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon,who)') + ',consents(code)').order('created_at');
     if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');
     if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');   // βάση χωρίς τι/πού
     if (r.error) r = await sb.from('stories').select(cols).order('created_at');

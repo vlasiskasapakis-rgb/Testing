@@ -252,7 +252,7 @@
     try {
       var cols = 'id,title,author_name,lat,lon,status,created_at,story_media(id,kind,path,position,title,about,period,recorded_at),consents(code)';
       var colsW = cols.replace('recorded_at)', 'recorded_at,what,place_name)') + ',license';   // ποιος/τι/πού/πότε, άδεια
-      var colsV = colsW.replace('what,place_name)', 'what,place_name,who,when_kind,when_date)');
+      var colsV = colsW.replace('what,place_name)', 'what,place_name,who)');
       var r = await Promise.all([
         sb.from('stories').select(colsV).eq('status', 'submitted').order('created_at'),
         sb.from('stories').select('id,title,status'),
@@ -263,7 +263,7 @@
       if (r[0].error) r[0] = await sb.from('stories').select(colsW).eq('status', 'submitted').order('created_at');
       if (r[0].error) r[0] = await sb.from('stories').select(cols).eq('status', 'submitted').order('created_at');   // βάση χωρίς τις νέες στήλες
       (r[0].data || []).forEach(function (s) {   // several names, exact or approximate "when"
-        (s.story_media || []).forEach(function (m) { if (m.who && m.who.length) m.about = m.who.join(', '); if (m.when_kind === 'exact') m.period = m.when_date; });
+        (s.story_media || []).forEach(function (m) { if (m.who) m.about = Array.isArray(m.who) ? m.who.join(', ') : m.who; });
       });
       var e = r.find(function (x) { return x.error; });
       if (e) throw e.error;
