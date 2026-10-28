@@ -1,16 +1,19 @@
 # Roles, annotation and playback
 
 ## Who can do what
-| | Not logged in | Facilitator (default) | Annotator |
-|---|---|---|---|
-| See published stories | yes | yes | yes |
-| Collect, redact and upload stories | no | yes (saved as **drafts**) | yes |
-| See their own drafts / delete their own stories | no | yes | own only |
-| See every story, drafts included | no | no | yes |
-| Transcribe, annotate, link images to moments, publish (on the **annotation website**) | no | **no** | yes |
+| | Not logged in | Facilitator (with a site) | Annotator | Validator | Admin |
+|---|---|---|---|---|---|
+| See published stories | yes | yes | yes | yes | yes |
+| Consent records, stories, fragments, workshops of **their site** | no | yes | no | no | sees all |
+| Capture stories in the AR app | no | yes | no | no | no |
+| See stories once they leave the workshop (annotation, validation) | no | own site | yes (their site, or all sites without one) | yes | yes |
+| Transcribe, annotate, submit for validation | no | no | yes | yes | no |
+| Publish or return | no | no | no | yes | no |
+| Sites, questions, languages, accounts, audit log (`admin/`) | no | no | no | no | yes |
 
-Every new account is a facilitator. This is enforced by the database rules, not only by hiding
-buttons. A story reaches the public only when an annotator presses **Publish for everyone**.
+Accounts are personal and created by an admin (there is no sign-up in the app). Each account belongs to one **pilot site**; a
+facilitator sees and acts only on that site's consent records, stories and workshops. All of this is enforced by the database
+rules, not only by hiding buttons, and every write is kept in the audit log. Nothing is public before a validator publishes it.
 
 ## File names
 When a file has a **title** (📍 details in the upload form), that title is its name everywhere: the upload list, the story view in the
@@ -23,30 +26,106 @@ The order of a story's files is the order they appear in the story (and in the a
 - **Afterwards**, on the annotation website, the **Order of recordings** dropdown above the player has ↑ / ↓ for each recording;
   a move is saved at once. Re-run `supabase/roles.sql` once: it lets the story's owner and annotators change only the `position` of a story's media.
 
-## Details for each file (facilitators): who, what, where, when
-In the upload form the questions open as soon as a file is added (**Later** closes them). Each file then has a button under it,
-"+ Add who, what, where, when" or "✎ Who, what, where, when: n of 4", to fill in or correct the answers at any time **before the
-story is uploaded**. After upload the facilitator can still correct them on the review page (see "Facilitator review before
-annotation") until the story is sent to annotation; after that they cannot be changed (by facilitators or annotators).
-Every question is optional and an approximate answer is fine:
-- **Title**
-- **Who?** Who is in it or who is it about (e.g. "Grandma Maria", "the harbour fishermen"). The narrator's own name is not asked here.
-- **What?** What it is: an object, an event, a custom, a shop… (e.g. "Nikos's café", "the 1965 village feast").
-- **Where did it happen?** The name of the place (e.g. "the old harbour", "Smyrna"), and, if the contributor can show it, a **point on
-  the map**. The point is not filled in automatically any more (where the memory happened is often not where it is recorded):
-  **My location (GPS)** uses the phone's position, **Pick on the map** opens the map and searches for the place name typed above;
-  choosing a search result fills in the place name when it is empty. **No point** removes the point.
-- **When did it happen?** Free text, as precise as the person remembers (e.g. "1965", "summer 1965", "the 1960s", "after the war").
-- **Date recorded** (starts as the file's date).
+## Facilitator workflow (facilitator/ website and AR app)
+Before the platform: the narrator signs a printed visual consent form, which stays at the pilot site and is never uploaded. The
+facilitator records the interview (5 fixed questions, one answer per story), keeps the files on the site's encrypted collection
+station, redacts them (mutes names, blurs faces) and cuts each answer into fragments of 1–3 minutes. The platform only receives
+redacted, already cut files (e.g. `20261114_EK_s2_f03.wav`); the website has no recording, editing or redaction tools.
 
-Visitors and annotators see the answers under each file ("Who: … · What: … ·
-When: …" and "📍 Where: …", a link to OpenStreetMap when there is a point); the validation and story-links pages show them too. On
-the annotation website the answers also feed the automatic term suggestions (the place name is tried as a place first), and the
-JSON-LD/Turtle export carries them: who → `crm:P3_has_note`, what → `dcterms:subject`, where → `dcterms:spatial` (`crm:E53_Place`
-with the name as `rdfs:label` and the point as a WKT literal), when → `dcterms:temporal` (the text as written).
-Re-run `supabase/roles.sql` once: it adds the columns `what` and `place_name` to `story_media` ("who" uses the existing `about`
-column, "when" the existing `period`). Until then an upload still works and keeps the other details; the app says that "what" and
-"where" were not saved.
+The facilitator website is `…/facilitator/` (the AR app's start screen links to it; the older `…/upload/`, `…/review/` and
+`…/consent/` addresses now open it). Sections: **Consents**, **Stories**, **Workshop preparation**, **Workshops**. An account that
+is not a facilitator with a site sees a message instead.
+
+**Status flow**: `draft` → `ready_for_workshop` → (workshop) → `ready_for_annotation` → `submitted` → `published` (or `returned`).
+**Withdrawn**: at any status a facilitator of the site can withdraw one story, or a whole consent record (which withdraws all
+its stories). A withdrawn story is hidden everywhere (only admins still see it), cannot change any more, and the action is logged.
+
+### Consent records
+A table of the site's records: date · place · narrator initials · licence · anonymity · number of stories · status, with search by
+initials or place and a date range. **+ New consent** asks for:
+- **Session date**, **Place** (with an optional point on the map), **Narrator initials** (2–4 letters);
+- **Licence** — the same six options as before: CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, CC BY-NC-ND 4.0, Project use
+  only, each explained in plain words;
+- **Anonymity**: full name / first name only / anonymous;
+- **Narrator reviews the story before publication** (yes/no) and **Oral consent recorded instead of a signature**;
+- **Narrator name** (not for anonymous): kept apart (`consent_narrators`), readable only by the site's facilitators and admins.
+
+Before saving, records of the same site with the same initials within ±30 days are listed as **"Same narrator?"**; the facilitator
+saves anyway or cancels. The id is created by the system; nobody types or sees an id, and there is no upload of the signed form.
+Opening a record shows its details, its stories and **Withdraw consent…**. A record cannot be edited (only withdrawn). Records from
+the first version (WM-XXXX-XXXX codes) stay as they are.
+
+### New story
+Consent record (the site's active records, date · place · initials, with a **+ New consent** shortcut; saving is blocked without
+one), **Title**, **Question / theme** (one of the site's 5 questions; it is the "why" of all its fragments), **Central location**
+(a point, or an area drawn by clicking its corners; search to jump to a place), **Language / dialect**, **Sensitive material**
+(yes/no). The source is set by the system: website or AR app. A new story is a **draft**. Stories that share a consent record are
+shown as "Same narrator / same session" (an internal link only when the narrator is anonymous). The licence comes from the consent.
+
+### Fragments of a story
+- **Upload**: several files at once, by drag and drop or the file picker: audio WAV, MP3, M4A; images JPG, PNG, TIFF; video MP4
+  (up to 50 MB each by default — the storage bucket's limit; `MAX_UPLOAD_MB` in `config.js` changes the page's limit). Each file
+  becomes a fragment, its type detected, in the order given. The original file is stored as it is; the browser computes its
+  SHA-256 and the database stores the storage server's own fingerprint (eTag) and size when the fragment is saved; a thumbnail
+  (photo, video) or a waveform (audio) is made for display. The recording date is read from the file name (`YYYYMMDD…`) or the file.
+- **Describe** each fragment: **Title (= what)**, required; **Who** (several names); **Where** (place name and an optional point or
+  area); **When** (exact date / approximate text such as "~1922" / blank); **Provenance** for photos and videos is set
+  automatically ("Own or family item, held by the narrator"); **Comment** — internal, seen only by the site's facilitators,
+  annotators and validators, never public. For who, where and when: **Stated by narrator** (default) or **Inferred by facilitator**;
+  this decides what the workshop may change.
+- **Order**: drag a fragment by its handle (or ↑ / ↓); the position is saved. Each fragment plays inline (audio, photo, video).
+- **Ready for workshop** is possible only when a consent record is attached, there is at least one audio fragment and every
+  fragment has a title (a checklist shows what is missing). The story can still be edited until its workshop starts (**Back to
+  draft** is possible too).
+
+### AR pathway (AR app, facilitators only)
+Only a facilitator with a site sees **+** in the AR app; visitors cannot capture anything. Capture records audio, photo or video on
+site, with the location (GPS) and time from the device. The minimal built-in redaction stays (mute part of an audio, blur part of a
+photo) before upload. The consent step works like the website: choose the site's record (date · place · initials) or **+ New
+consent** (same fields, same "Same narrator?" check). The story asks for its title, question, language and sensitive material;
+each fragment needs a title and at least one audio fragment is needed. On upload the story is created with source **AR app** and
+status **ready for the workshop**, in the same list as the other stories. It is never published directly.
+
+### Workshop preparation
+The site's stories that are ready for the workshop, sorted into **To discuss** (blanks, inferred values, sensitive material) or
+**Quick confirm**; the page marks its suggestion and **Apply the suggestions** sorts the unsorted ones. **New workshop session**:
+date, optional title, the chosen stories in the order they will be shown, and whether each narrator is invited.
+
+### Digital Quilt workshop (presentation mode)
+**Workshops** shows the site's quilt ("45 of 100 stories confirmed", one square per story) and the sessions. **Start and present**
+starts a session (from then on its stories change only through the workshop) and opens the presentation mode for a projector or
+large screen (**Full screen**); participants have no accounts and only watch.
+- Each story's fragments are **quilt patches** in narrative order, with play buttons and who/where/when/what visible.
+- One click switches a patch: **pending** (grey) → **discussed** (amber) → **confirmed** (green).
+- Fields **inferred by the facilitator**, added at the workshop, or blank can be changed (**✎ Change**); fields **stated by the
+  narrator** are locked (🔒) — a disagreement is written to the fragment's comment (**Note…**, never shown on screen). Media
+  cannot be changed. Every change is versioned with the session and the time (`workshop_changes`).
+- **Narrator present**, and **Reviewed by narrator** when the consent asks for the narrator's review (recorded on the story).
+- A progress bar per story ("3 of 4 patches confirmed"); no individual scores, no leaderboard.
+- When every fragment of a story is confirmed it moves on to annotation automatically (`ready_for_annotation`). **Close session**
+  ends it; unfinished stories stay ready for the next session.
+
+### Rules kept by the database (roles.sql)
+No story without an active consent record of the same site; consent records, stories and workshops are visible only within their
+site; only facilitators create or change consent records, stories and fragments (and only until the workshop starts); nothing is
+public before publication; "stated by narrator" fields cannot change in the workshop; a story moves to annotation only when all its
+fragments are confirmed; withdrawn stays withdrawn. Every write is recorded in `audit_log` (user, time, entity, action, previous
+value, change, and the workshop session when there is one); admins read it on the admin page.
+
+### Admin page (`admin/`)
+For admins (`profiles.is_admin`): **Sites** (add, rename, delete), each site's **5 questions**, **Languages and dialects**
+(code + label; e.g. `el-lesvos` "Lesvian Greek"), **Accounts** (role facilitator/annotator, site, validator, admin — the accounts
+themselves are created in Supabase: Authentication → Users → Add user) and the **Audit log** (latest 200 writes, with the previous
+value). Turn off "Allow new users to sign up" in Supabase (Authentication → Sign In / Providers) so that only admins create accounts.
+
+### Older data
+Running `roles.sql` renames the earlier statuses once (recorded in `wm_migrations`): the old "waiting for review" becomes `draft`
+and the old annotation `draft` becomes `ready_for_annotation`; fragment details move to the new fields (who from "about", the
+period as an approximate "when", "what" into an empty title). Stories and consents from before sites have no site: annotators and
+the uploader keep seeing them as before, and an older draft can be given a site in the SQL editor:
+```sql
+update public.stories set site_id = '<site id>', question_id = '<question id>', language = 'el', sensitive = false where id = '<story id>';
+```
 
 ## One dropdown per recording in the player area
 In the story view (the app and the annotation website) each audio or video is its own dropdown ("Audio 2 · Second tape") holding its
@@ -131,32 +210,6 @@ and the RDF export declares the object as `hdto:HC1_Heritage_Entity` and says th
 (`crm:P67_refers_to`), so ECCCH can find the oral stories about that object. No 3D model is needed on our side. Table
 `story_heritage` — re-run `supabase/roles.sql` once.
 
-## Facilitator review before annotation (review/ page)
-A story uploaded from the AR app or the upload website first **waits for its facilitator's review** (status `pending`, shown as
-"Waiting for your review before annotation"); annotators do not see it yet (the annotation site says how many are waiting).
-Both use the same upload code, so AR stories follow exactly the same path.
-- The facilitator opens `…/review/` and signs in with the same account. The page lists **only their own** stories that are waiting.
-  The review is done on the website only; the AR app has no review links (after an upload it just says the story waits for review
-  on the review website). Ways in from the upload website: right after an upload a prompt offers to open the review page on that
-  story; the website home ("Review the stories I uploaded"); "My stories" (how many are waiting, with a link); and the story view
-  of a waiting story ("Open the review website →"). A link can point at one story: `review/?story=<id>`.
-- A story shows its **fragments as tiles** (photo thumbnails, 🎙 audio, 🎬 video) with how many of who/what/where/when are answered.
-  Opening a tile shows the file (player or photo) and its details, with **← Previous / Next →**. Tiles get ✓ once opened and
-  💬 when they have comments; the page counts "You have looked at n of m".
-- **Corrections** (e.g. after the community has looked at the story): **✎ Correct the title and location** (story title and
-  where the story is placed: click the map, drag the pin or search for a place) and, inside a fragment, **✎ Correct the details**
-  (title, who, what, where with its optional map point, when, date recorded). Previous/Next wait until you save or cancel, and
-  closing with unsaved changes asks first. Corrections are possible only while the story is waiting; after **Send to annotation**
-  the database refuses them (for everyone, annotators included). Corrections overwrite the old values; there is no history.
-- **Comments**: for the whole story or for one fragment (from the comment form or inside a fragment). The facilitator can delete
-  their own comments while the story is waiting. Annotators see them on the annotation site ("Facilitator's comments"), read-only.
-- **Send to annotation** finishes the review (it warns if some fragments were never opened): the story becomes a draft and goes
-  to the annotators as before. After that the comments and details are frozen and the story cannot go back to review.
-- The database enforces it: new stories must start as `pending`; only the uploader can move a waiting story on, and only to
-  annotation; nobody can put a story back to `pending`; comments can be added only by the uploader while the story is waiting
-  and are readable only by the uploader and the annotation team. Stories that were already uploaded keep their status.
-  Re-run `supabase/roles.sql` once (it adds the status and the `facilitator_comments` table).
-
 ## Validation before publishing (validate/ page)
 Annotators no longer publish directly: a **validator** approves every story and every walk first.
 - **Stories**: on the annotation site the button is **Submit for validation** (with an optional message). The story becomes
@@ -178,12 +231,12 @@ Annotators no longer publish directly: a **validator** approves every story and 
   Existing published stories and walks stay published. Re-run `supabase/roles.sql` once (as written, without enabling RLS).
 
 ## Deleting a story (annotation website)
-Annotators can delete **any** story (the person who uploaded it can still delete their own in the app). Open the story and press
-**Delete story** (top right). A dialog lists what goes with it — its files, transcripts, terms and image notes, and its view
+Withdrawal (facilitator website) is the normal way to take a story away. Deleting is for mistakes: a facilitator can delete a
+**draft** of their site, and annotators can delete a story that is already in annotation, validation or published. Open the story
+and press **Delete story** (top right). A dialog lists what goes with it — its files, transcripts, terms and image notes, and its view
 statistics — and the button only works after ticking **I understand this cannot be undone**. The story disappears for everyone
-(app, map, annotation website); its uploaded files are removed from storage. The analytics history of annotators' corrections is kept.
-This needs `supabase/roles.sql` to be re-run once (it lets annotators delete stories and their files); until then the site says
-the database did not allow the deletion and nothing is removed.
+(app, map, annotation website); its uploaded files are removed from storage. The audit log and the history of annotators'
+corrections are kept.
 
 ## Story location (app)
 In **New story**, the story's location is your GPS position by default, but it can refer to another place: press **Pick on the map**
@@ -202,17 +255,6 @@ analytics like the app's map/list.
 **Connected stories**: a story's view (website and app) lists the stories it is connected to in published walks — "→ Next" /
 "← Before", the walk's name and the line's label — and opens them with a tap. On the website, **Show connections between stories**
 (in "All stories") draws those lines on the map (hover for the walk and label). Only published walks and published stories are shown.
-
-## Uploading stories from a computer (facilitator website)
-`…/upload/` (it opens `index.html?web=1`; the app's start screen also links to it: "On a computer? Upload stories from the
-website") is the same story upload as in the app, for a desktop browser: log in, **+ New story**, the narrator's consent, title,
-files (add them and answer who, what, where, when), **Finish story**, check and submit. The website has **no redaction tools**
-(no blur, crop or mute): files are uploaded as they are, so anything that must be hidden has to be handled before, or the story
-uploaded from the AR app, which keeps those tools. Photos are still re-saved as JPEG before upload, which removes hidden data such
-as the camera's GPS position. **My stories** lists your stories
-(open, play, delete). There is no AR, camera or GPS here, so the **story location is always chosen on the map** — the map has a
-**place search** (OpenStreetMap); finishing without a location asks for one. Files' own locations are also chosen on the map.
-The place search is also available in the app's map picker.
 
 ## Map of all locations (annotation website)
 The **Map** button in the header (next to **Stories**) shows every location that users uploaded, **for each file** (photo, audio, video)
@@ -298,20 +340,21 @@ starts from then on.
   OCRA; it comes from `HDT_NS` in `config.js`, so it can be changed there if ECHOES ever moves it.
 
 ## Two places to work
-- **The app** (`index.html`): visitors listen to published stories; facilitators record, redact and upload (drafts). No annotation tools.
+- **The app** (`index.html`): visitors listen to published stories; facilitators of a site record, redact and upload (ready for the workshop). No annotation tools.
+- **The facilitator website** (`…/facilitator/`): consent records, stories and fragments, workshop preparation and the Digital Quilt workshop.
 - **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account
   (the same Supabase accounts and the same `config.js`), see all stories, and on a wide screen work with the player, timeline and
   public preview on the left and the transcription / terms / image notes on the right. Publishing and the JSON-LD export are there too.
   Accounts without the annotator role see a message instead. The right side has two tabs, **Transcript & terms** and **Images**; click a line's time to play from there, and the current line is highlighted (and followed while playing, unless you untick **Follow playback**). Everything below about annotating happens on this website.
 
 ## Setup (once, in this order)
-1. SQL editor: run `supabase/schema.sql`, then `supabase/annotations.sql`, then `supabase/roles.sql` (re-run `roles.sql` after pulling updates: it also creates the consent tables)
-   (afterwards, only `roles.sql` is meant to be re-run). `roles.sql` creates the roles, makes existing stories published, and
-   makes every existing account a facilitator.
-2. Make someone an annotator (they sign up first, then you run this in the SQL editor):
+1. SQL editor: run `supabase/schema.sql`, then `supabase/annotations.sql`, then `supabase/roles.sql` (re-run `roles.sql` after
+   pulling updates; afterwards, only `roles.sql` is meant to be re-run). `roles.sql` creates the roles, sites, consent records,
+   workshops and the audit log, and makes every existing account a facilitator (without a site, so it can do nothing yet).
+2. Make yourself an admin (SQL editor), then use `…/admin/` for everything else (sites, questions, languages, accounts):
    ```sql
-   update public.profiles set role = 'annotator'
-   where user_id = (select id from auth.users where email = 'person@example.com');
+   update public.profiles set is_admin = true
+   where user_id = (select id from auth.users where email = 'you@example.com');
    ```
 3. Optional fast transcription: see the Groq section below. Re-deploy `transcribe-media` after
    updating it, because it now checks that the caller is an annotator.
@@ -353,36 +396,12 @@ A term points at the seconds where its word is spoken, not at its whole transcri
   you already adjusted is left alone.
 - Editing a line's text in the box drops its word timings (they no longer match); re-run the transcription to get them back.
 
-## Consent and licence at the interview (consent/ page)
-The facilitator gets consent **in person, at the interview**, on `…/consent/` (linked from the upload website, the review page
-and the consent step of the app). Signed in with their account, they read the four statements with the narrator in the
-narrator's language, **choose the licence together** and press **I consent: generate the code**. The page shows the code
-(WM-XXXX-XXXX) with the licence and date, can **copy** it and **print a slip** (code, licence, date, the statements and signature
-lines for narrator and facilitator) to keep with the signed paper form. **My consent codes** lists every code with its licence and
-how many stories use it.
-- Licences offered (none is preselected): **CC BY 4.0**, **CC BY-SA 4.0**, **CC BY-NC 4.0**, **CC BY-NC-SA 4.0**, **CC BY-NC-ND 4.0**
-  and **Project use only** (no public reuse). Each is explained in plain words in the four languages.
-- When uploading, the facilitator picks that code under "Consent code from the interview"; the upload screen shows
-  "Licence: …". A new consent can still be created in the upload step, and it then needs a licence too.
-- The licence belongs to the consent and **cannot be changed later**; the database copies it to every story uploaded with that
-  code (`stories.license`, not editable). Consents created before licences existed have none, and their stories show no licence.
-- The licence is shown on the story (app and stories website, with a link to the licence in the viewer's language), on the
-  review, annotation and validation pages, and exported as `dcterms:license` (Creative Commons URI) or, for project use only,
-  `dcterms:rights`.
-- Re-run `supabase/roles.sql` once (it adds `consents.license`, `stories.license` and the rule that copies it). Until then the
-  consent page says the database needs updating and does not create codes.
-
-## Consent before every upload
-Pressing **+** first opens a consent screen for the participant (the facilitator can switch its language). All four statements must be
-ticked; the app then creates a record and shows a code like `WM-7K3Q-9D2F`, derived from the record's id, with a **Copy code**
-button. Write the same code on the paper form the participant signs. The code stays visible on the upload screen, is stored with
-the story, and is shown (with a copy button) to the story's owner and to annotators; the Stories list can be searched by it.
-- A participant who tells several stories on one form can reuse the code: choose it under "Use a code you already created".
-- The database refuses a new story that has no consent record belonging to the uploader.
-- To find the story behind a form (SQL editor): `select c.code, s.title, s.status from consents c left join stories s on s.consent_id = c.id where c.code = 'WM-XXXX-XXXX';`
-- The consent wording (4 statements, `consentC1`-`consentC4` in `index.html`) is a plain-language draft: have your ethics/legal
-  reviewers approve or replace it, and bump `CONSENT_VERSION` when it changes. No participant name is stored digitally; identity lives
-  on the paper form. Withdrawal today = the facilitator who uploaded the story deletes it.
+## Consent records and licences
+See "Facilitator workflow" above: consent records are created on the facilitator website (or in the AR app's consent step) with
+the licence chosen with the narrator; the database copies the licence to every story of that record (`stories.license`, not
+editable). The licence is shown on the story (app and stories website, linked to the licence text in the viewer's language), on the
+annotation and validation pages, and exported as `dcterms:license` (Creative Commons URI) or, for project use only, `dcterms:rights`.
+The validation page also says when the narrator asked to review the story before publication, and whether that was recorded.
 
 ## Annotating (simplified)
 For each audio/video the sheet has two steps: **1 · Transcript** (get or edit the text; options such as language and speed are tucked

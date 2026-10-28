@@ -932,7 +932,7 @@
       imgDepicts: "Στην εικόνα:",
       role_facilitator: "διευκολυντής",
       role_annotator: "σχολιαστής",
-      statusDraft: "Πρόχειρη: δεν είναι δημόσια ακόμα",
+      statusDraft: "Σε σχολιασμό: δεν είναι δημόσια ακόμα",
       statusPublished: "Δημοσιευμένη",
       pubStory: "Δημοσίευση για όλους",
       unpubStory: "Απόσυρση από τη δημοσίευση",
@@ -942,7 +942,7 @@
       listTitle: "Ιστορίες",
       listFilter: "Εμφάνιση",
       listAllF: "Όλες",
-      listDraftF: "Πρόχειρες",
+      listDraftF: "Σε σχολιασμό",
       listPubF: "Δημοσιευμένες",
       listEmpty: "Δεν υπάρχουν ιστορίες.",
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
@@ -1029,7 +1029,7 @@
       revHistory: "Ιστορικό ελέγχου ({n})",
       licShown: "Άδεια:",
       projectOnly: "Μόνο για το έργο",
-      pendingNote: "{n} ιστορίες περιμένουν ακόμα τον έλεγχο του διευκολυντή τους και θα εμφανιστούν εδώ μετά.",
+      pendingNote: "{n} ιστορίες είναι ακόμα στους διευκολυντές (πρόχειρες ή για το εργαστήριο) και θα εμφανιστούν εδώ όταν τις επιβεβαιώσει το εργαστήριο.",
       facTitle: "Σχόλια του διευκολυντή ({n})",
       facWhole: "όλη η ιστορία",
       rev_submitted: "Υποβολή",
@@ -1401,7 +1401,7 @@
       imgDepicts: "In this image:",
       role_facilitator: "facilitator",
       role_annotator: "annotator",
-      statusDraft: "Draft: not public yet",
+      statusDraft: "In annotation: not public yet",
       statusPublished: "Published",
       pubStory: "Publish for everyone",
       unpubStory: "Unpublish",
@@ -1411,7 +1411,7 @@
       listTitle: "Stories",
       listFilter: "Show",
       listAllF: "All",
-      listDraftF: "Drafts",
+      listDraftF: "In annotation",
       listPubF: "Published",
       listEmpty: "No stories.",
       imgTimeline: "Images tied to the story",
@@ -1498,7 +1498,7 @@
       revHistory: "Validation history ({n})",
       licShown: "Licence:",
       projectOnly: "Project use only",
-      pendingNote: "{n} stories are still waiting for their facilitator's review and will appear here afterwards.",
+      pendingNote: "{n} stories are still with their facilitators (drafts or waiting for the workshop) and will appear here once the workshop has confirmed them.",
       facTitle: "Facilitator's comments ({n})",
       facWhole: "whole story",
       rev_submitted: "Submitted",
@@ -1870,7 +1870,7 @@
       imgDepicts: "Dans cette image :",
       role_facilitator: "facilitateur",
       role_annotator: "annotateur",
-      statusDraft: "Brouillon : pas encore public",
+      statusDraft: "En annotation : pas encore public",
       statusPublished: "Publiée",
       pubStory: "Publier pour tous",
       unpubStory: "Dépublier",
@@ -1880,7 +1880,7 @@
       listTitle: "Histoires",
       listFilter: "Afficher",
       listAllF: "Toutes",
-      listDraftF: "Brouillons",
+      listDraftF: "En annotation",
       listPubF: "Publiées",
       listEmpty: "Aucune histoire.",
       imgTimeline: "Images liées au récit",
@@ -1967,7 +1967,7 @@
       revHistory: "Historique de validation ({n})",
       licShown: "Licence :",
       projectOnly: "Usage du projet uniquement",
-      pendingNote: "{n} histoires attendent encore la relecture de leur facilitateur et apparaîtront ici ensuite.",
+      pendingNote: "{n} histoires sont encore chez leurs facilitateurs (brouillons ou en attente de l’atelier) et apparaîtront ici quand l’atelier les aura confirmées.",
       facTitle: "Commentaires du facilitateur ({n})",
       facWhole: "toute l'histoire",
       rev_submitted: "Soumission",
@@ -2339,7 +2339,7 @@
       imgDepicts: "In questa immagine:",
       role_facilitator: "facilitatore",
       role_annotator: "annotatore",
-      statusDraft: "Bozza: non ancora pubblica",
+      statusDraft: "In annotazione: non ancora pubblica",
       statusPublished: "Pubblicata",
       pubStory: "Pubblica per tutti",
       unpubStory: "Ritira dalla pubblicazione",
@@ -2349,7 +2349,7 @@
       listTitle: "Storie",
       listFilter: "Mostra",
       listAllF: "Tutte",
-      listDraftF: "Bozze",
+      listDraftF: "In annotazione",
       listPubF: "Pubblicate",
       listEmpty: "Nessuna storia.",
       imgTimeline: "Immagini legate al racconto",
@@ -2436,7 +2436,7 @@
       revHistory: "Storico della validazione ({n})",
       licShown: "Licenza:",
       projectOnly: "Solo per il progetto",
-      pendingNote: "{n} storie aspettano ancora la revisione del loro facilitatore e appariranno qui dopo.",
+      pendingNote: "{n} storie sono ancora presso i loro facilitatori (bozze o in attesa del laboratorio) e appariranno qui quando il laboratorio le avrà confermate.",
       facTitle: "Commenti del facilitatore ({n})",
       facWhole: "tutta la storia",
       rev_submitted: "Invio",
@@ -2815,11 +2815,13 @@
     var tr = { title: r.title, sub: r.author_name || '', text: '' };
     return {
       id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', license: r.license || null,
-      consentId: r.consent_id || null, consentCode: (r.consents && r.consents.code) || null, lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
+      consentId: r.consent_id || null, consentCode: (r.consents && (r.consents.code || [r.consents.session_date, r.consents.place, r.consents.initials].filter(Boolean).join(' · '))) || null,
+      lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
         return { id: m.id, kind: m.kind, path: m.path, position: m.position, url: sb.storage.from(BUCKET).getPublicUrl(m.path).data.publicUrl,
-          title: m.title || '', about: m.about || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '', period: m.period || '',
+          title: m.title || '', about: (m.who && m.who.length ? m.who.join(', ') : m.about) || '', what: m.what || '', place: m.place_name || '', recorded: m.recorded_at || '',
+          period: (m.when_kind === 'exact' ? m.when_date : m.period) || '',
           lat: m.lat == null ? null : +m.lat, lon: m.lon == null ? null : +m.lon };
       })
     };
@@ -2940,8 +2942,8 @@
     'CC-BY-NC-ND-4.0': 'https://creativecommons.org/licenses/by-nc-nd/4.0/', 'PROJECT-ONLY': null };
   function licName(id) { return id === 'PROJECT-ONLY' ? t('projectOnly') : String(id).replace(/^CC-/, 'CC ').replace(/-4\.0$/, ' 4.0'); }
 
-  var STATUS_KEY = { draft: 'statusDraft', submitted: 'statusSubmitted', returned: 'statusReturned', published: 'statusPublished' };
-  var STATUS_CHIP = { draft: 'chip-draft', submitted: 'chip-sub', returned: 'chip-ret', published: 'chip-pub' };
+  var STATUS_KEY = { ready_for_annotation: 'statusDraft', submitted: 'statusSubmitted', returned: 'statusReturned', published: 'statusPublished' };
+  var STATUS_CHIP = { ready_for_annotation: 'chip-draft', submitted: 'chip-sub', returned: 'chip-ret', published: 'chip-pub' };
   function statusText(x) { return t(STATUS_KEY[x] || 'statusDraft'); }
   function renderPublishUI(s) {
     var visible = !!(s.dbId && (isOwner(s) || isAnnotator()));
@@ -2949,7 +2951,7 @@
     $('sheetStatus').className = 'story-status ' + (STATUS_CHIP[s.status] || 'chip-draft');
     var pb = $('publishBtn');
     pb.hidden = !(isAnnotator() && s.dbId);
-    pb.textContent = t({ draft: 'submitBtn', returned: 'resubmitBtn', submitted: 'withdrawBtn', published: 'unpubStory' }[s.status] || 'submitBtn');
+    pb.textContent = t({ ready_for_annotation: 'submitBtn', returned: 'resubmitBtn', submitted: 'withdrawBtn', published: 'unpubStory' }[s.status] || 'submitBtn');
     pb.className = s.status === 'submitted' || s.status === 'published' ? 'btn-secondary' : 'btn-primary';
     loadReviews(s);
     loadFacComments(s);
@@ -2958,10 +2960,14 @@
   async function loadFacComments(s) {
     var box = $('facBox'); box.hidden = true; $('facList').innerHTML = '';
     if (!sb || !s.dbId || !isAnnotator()) return;
-    var r = await sb.from('facilitator_comments').select('id,media_id,body,user_name,created_at').eq('story_id', s.dbId).order('created_at');
-    if (r.error || !r.data || !r.data.length || currentSheetStory !== s) return;
-    $('facSum').textContent = t('facTitle', { n: r.data.length });
-    r.data.forEach(function (c) {
+    var ids = s.media.map(function (m) { return m.id; }).filter(Boolean);
+    var rr = await Promise.all([sb.from('facilitator_comments').select('id,media_id,body,user_name,created_at').eq('story_id', s.dbId).order('created_at'),
+      ids.length ? sb.from('fragment_notes').select('media_id,body,updated_at').in('media_id', ids) : Promise.resolve({ data: [] })]);
+    if (currentSheetStory !== s) return;
+    var list = (rr[0].data || []).concat((rr[1].data || []).map(function (n) { return { media_id: n.media_id, body: n.body, created_at: n.updated_at }; }));
+    if (!list.length) return;
+    $('facSum').textContent = t('facTitle', { n: list.length });
+    list.forEach(function (c) {
       var li = document.createElement('li'), meta = document.createElement('span'); meta.className = 'fac-meta';
       var m = c.media_id ? s.media.filter(function (x) { return x.id === c.media_id; })[0] : null;
       meta.textContent = [String(c.created_at).slice(0, 16).replace('T', ' '), c.user_name || '', m ? (KIND_ICON[m.kind] || '') + ' ' + mediaName(s, m) : t('facWhole')].filter(Boolean).join(' · ');
@@ -2999,7 +3005,7 @@
   $('publishBtn').onclick = async function () {
     var s = currentSheetStory;
     if (!sb || !s || !isAnnotator()) return;
-    var next = s.status === 'published' || s.status === 'submitted' ? 'draft' : 'submitted', b = this;
+    var next = s.status === 'published' || s.status === 'submitted' ? 'ready_for_annotation' : 'submitted', b = this;
     var action = next === 'submitted' ? 'submitted' : s.status === 'submitted' ? 'withdrawn' : 'unpublished';
     var msg = next === 'submitted' ? t('submitMsgQ', { t: st(s).title }) : t(action === 'withdrawn' ? 'withdrawQ' : 'unpubConfirm', { t: st(s).title });
     if (next === 'submitted') {           // προειδοποίηση για προτάσεις που δεν έχουν ελεγχθεί
@@ -5331,13 +5337,13 @@
   function renderList() {
     var f = $('listFilter'), cur = f.value || 'all';
     f.innerHTML = '';
-    [['all', 'listAllF'], ['returned', 'listRetF'], ['draft', 'listDraftF'], ['submitted', 'listSubF'], ['published', 'listPubF']].forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = t(o[1]); f.appendChild(op); });
+    [['all', 'listAllF'], ['returned', 'listRetF'], ['ready_for_annotation', 'listDraftF'], ['submitted', 'listSubF'], ['published', 'listPubF']].forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = t(o[1]); f.appendChild(op); });
     f.value = cur;
     var body = $('listBody'); body.innerHTML = '';
     var q = ($('listSearch').value || '').trim().toLowerCase();
     var items = STORIES.filter(function (x) { return f.value === 'all' || x.status === f.value; })
       .filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.consentCode || '')).toLowerCase().indexOf(q) >= 0; }).reverse();
-    var RANK = { returned: 0, draft: 1, submitted: 2, published: 3 };
+    var RANK = { returned: 0, ready_for_annotation: 1, submitted: 2, published: 3 };
     items.sort(function (a, b) { return (RANK[a.status] || 0) - (RANK[b.status] || 0); });   // πρώτα όσα θέλουν δουλειά (επιστραμμένα, πρόχειρα)
     if (PENDING_N) { var pn = document.createElement('p'); pn.className = 'sheet-sub'; pn.textContent = t('pendingNote', { n: PENDING_N }); body.appendChild(pn); }
     if (!items.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('listEmpty'); body.appendChild(p); return; }
@@ -5364,15 +5370,18 @@
       var cols = 'id,user_id,title,lat,lon,radius,author_name,story_media(id,kind,path,position)';
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
-      var r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code),license').order('created_at');
+      var colsV = colsW.replace('what,place_name)', 'what,place_name,who,when_kind,when_date)');            // several names, exact/approximate when
+      var r = await sb.from('stories').select(colsV + ',status,consent_id,consents(code,session_date,place,initials),license').order('created_at');
+      if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code),license').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,consent_id,consents(code)').order('created_at');   // βάση χωρίς άδεια ιστορίας
       if (r.error) r = await sb.from('stories').select(colsX + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status,consent_id,consents(code)').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
       if (r.error) throw r.error;
       // ιστορίες που περιμένουν ακόμα τον έλεγχο του διευκολυντή δεν φτάνουν στον σχολιασμό
-      PENDING_N = r.data.filter(function (x) { return x.status === 'pending'; }).length;
-      STORIES = r.data.filter(function (x) { return x.status !== 'pending'; }).map(storyFromRow);
+      var FAC_PHASE = ['draft', 'ready_for_workshop', 'withdrawn'];   // still with the facilitators (or withdrawn): not for annotation
+      PENDING_N = r.data.filter(function (x) { return x.status === 'draft' || x.status === 'ready_for_workshop'; }).length;
+      STORIES = r.data.filter(function (x) { return FAC_PHASE.indexOf(x.status) < 0; }).map(storyFromRow);
     } catch (e) { $('listBody').innerHTML = ''; var ep = document.createElement('p'); ep.className = 'field-error'; ep.textContent = t('loadStoriesError') + ' ' + errText(e); $('listBody').appendChild(ep); return; }
     var again = keep && STORIES.filter(function (x) { return x.dbId === keep; })[0];
     if (!again && currentSheetStory) closeStory();

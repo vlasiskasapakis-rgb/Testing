@@ -421,17 +421,22 @@
   // ---- data ----
   function storyFromRow(r) {
     return { id: r.id, title: r.title || t('untitled'), author: r.author_name || '', status: r.status || 'published', lat: r.lat, lon: r.lon,
-      consent: (r.consents && r.consents.code) || '',
-      media: (r.story_media || []).slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0); }) };
+      consent: (r.consents && (r.consents.code || [r.consents.session_date, r.consents.place, r.consents.initials].filter(Boolean).join(' · '))) || '',
+      media: (r.story_media || []).slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0); }).map(function (m) {
+        if (m.who && m.who.length) m.about = m.who.join(', ');        // several names
+        if (m.when_kind === 'exact') m.period = m.when_date;           // an exact date
+        return m;
+      }) };
   }
   async function loadAll() {
     $('saveStatus').className = ''; $('saveStatus').textContent = t('loading');
     var cols = 'id,title,lat,lon,author_name,status,story_media(id,kind,path,position)';
-    var r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');
+    var r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon,who,when_kind,when_date)') + ',consents(code,session_date,place,initials)').order('created_at');
+    if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,what,place_name,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');
     if (r.error) r = await sb.from('stories').select(cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)') + ',consents(code)').order('created_at');   // βάση χωρίς τι/πού
     if (r.error) r = await sb.from('stories').select(cols).order('created_at');
     if (r.error) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('loadErr', { e: errText(r.error) }); return; }
-    STORIES = r.data.filter(function (x) { return x.status !== 'pending'; }).map(storyFromRow); byId = {}; STORIES.forEach(function (s) { byId[s.id] = s; });   // όχι όσες περιμένουν τον έλεγχο του διευκολυντή
+    STORIES = r.data.filter(function (x) { return ['pending', 'draft', 'ready_for_workshop', 'withdrawn'].indexOf(x.status) < 0; }).map(storyFromRow); byId = {}; STORIES.forEach(function (s) { byId[s.id] = s; });   // όχι όσες περιμένουν τον έλεγχο του διευκολυντή
     var b = await sb.from('story_boards').select('id,title,created_at,is_walk,description,walk_status').order('created_at');
     if (b.error && /walk_status/i.test(b.error.message || '')) b = await sb.from('story_boards').select('id,title,created_at,is_walk,description').order('created_at');   // βάση χωρίς έλεγχο
     if (b.error && /is_walk|description/i.test(b.error.message || '')) b = await sb.from('story_boards').select('id,title,created_at').order('created_at');   // βάση χωρίς διαδρομές

@@ -807,7 +807,7 @@ drop policy if exists "delete stories"                on public.stories;
 create policy "read visible stories" on public.stories for select
   using (status = 'published' or public.is_admin()
     or (status <> 'withdrawn' and (
-         (site_id is null and (user_id = auth.uid() or public.is_annotator()))
+         (site_id is null and (user_id = auth.uid() or (public.is_annotator() and status in ('ready_for_annotation', 'submitted', 'returned'))))
       or (site_id is not null and public.is_facilitator() and site_id = public.my_site())
       or (site_id is not null and public.is_annotator() and status in ('ready_for_annotation', 'submitted', 'returned') and public.sees_site(site_id)))));
 -- No story without an active consent record of the same site; a new story is a draft.

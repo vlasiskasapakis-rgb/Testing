@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Walking Memory · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,700&display=swap" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<style>
+  :root {
+    --petrol: #186078; --petrol-deep: #0E3F50; --sky: #249CCC; --sky-soft: #E7F4FA; --amber-text: #9A5413;
+    --ink: #12303B; --muted: #4B6470; --line: #D3E3EA; --line-strong: #6F8D99; --mist: #F2F7F9; --danger: #B3261E; --ok: #2E7D32;
+    --font: "Exo 2", "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--mist); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.45; }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; border-radius: 999px; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+  header { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; padding: 10px 24px; background: var(--petrol); color: #fff; }
+  header h1 { margin: 0; font-size: 21px; font-style: italic; flex: 1 1 auto; }
+  header select, header button { min-height: 36px; padding: 5px 14px; border-radius: 999px; border: 0; font-weight: 700; color: var(--petrol); background: #fff; }
+  header nav { display: flex; flex-wrap: wrap; gap: 6px; flex-basis: 100%; order: 5; }
+  header nav a { color: #fff; text-decoration: none; font-weight: 700; padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,.12); }
+  main { max-width: 1180px; margin: 0 auto; padding: 20px 24px 70px; }
+  @media (max-width: 700px) { main { padding: 14px 12px 60px; } header { padding: 10px 12px; } }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; min-width: 0; }
+  .login { max-width: 460px; margin: 40px auto; }
+  h2 { margin: 0 0 6px; color: var(--petrol); font-size: 22px; font-style: italic; }
+  .lead, .note { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  .err { color: var(--danger); font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+  .btn { background: var(--petrol); color: #fff; font-weight: 700; padding: 8px 18px; min-height: 42px; }
+  .btn-sec { background: #fff; color: var(--petrol); border: 2px solid var(--line-strong); font-weight: 700; padding: 6px 14px; min-height: 38px; }
+  .btn-danger { background: #fff; color: var(--danger); border: 2px solid var(--danger); font-weight: 700; padding: 6px 14px; min-height: 38px; }
+  .btn-sm { min-height: 32px; padding: 3px 12px; font-size: 14px; }
+  button:disabled { opacity: .5; cursor: default; }
+  label { font-weight: 600; color: var(--petrol); }
+  input.inp, select.inp { padding: 8px 10px; border: 2px solid var(--line-strong); border-radius: 10px; background: #fff; min-width: 0; max-width: 100%; }
+  .field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; margin-bottom: 10px; }
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th { text-align: left; color: var(--muted); font-size: 13px; border-bottom: 2px solid var(--line); padding: 6px 8px; white-space: nowrap; }
+  td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical-align: middle; }
+  td input.inp, td select.inp { width: 100%; }
+  .qrow { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 8px; align-items: center; margin-bottom: 8px; }
+  .qrow b { color: var(--petrol); text-align: right; }
+  .qrow input { width: 100%; }
+  pre.json { margin: 0; font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 160px; overflow: auto; background: var(--mist); border-radius: 8px; padding: 6px 8px; }
+  details summary { cursor: pointer; color: var(--petrol); font-weight: 600; }
+  .chip { display: inline-block; border-radius: 999px; font-size: 12px; font-weight: 700; padding: 1px 8px; background: var(--sky-soft); color: var(--petrol); }
+  #status { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--petrol-deep); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 60; max-width: calc(100% - 24px); }
+  #status.bad { background: var(--danger); }
+</style>
+</head>
+<body>
+<header>
+  <h1 data-i="title"></h1>
+  <select id="lang" aria-label="Language"><option value="el">EL</option><option value="en">EN</option><option value="fr">FR</option><option value="it">IT</option></select>
+  <span id="userName"></span>
+  <button id="logout" type="button" hidden data-i="logout"></button>
+  <nav id="nav" hidden aria-label="Sections">
+    <a href="#sites" data-i="navSites"></a><a href="#questions" data-i="navQuestions"></a><a href="#languages" data-i="navLanguages"></a>
+    <a href="#accounts" data-i="navAccounts"></a><a href="#audit" data-i="navAudit"></a>
+  </nav>
+</header>
+<main>
+  <section id="vLogin" class="card login" hidden>
+    <h2 data-i="login"></h2>
+    <form id="loginForm" novalidate>
+      <div class="field"><label for="email" data-i="email"></label><input id="email" class="inp" type="email" autocomplete="email" required></div>
+      <div class="field"><label for="pass" data-i="password"></label><input id="pass" class="inp" type="password" autocomplete="current-password" required></div>
+      <p id="loginErr" class="err" role="alert"></p>
+      <button class="btn" type="submit" data-i="login"></button>
+    </form>
+  </section>
+  <section id="vNoAdmin" class="card" hidden><h2 data-i="noAdmin"></h2><p data-i="noAdminText"></p></section>
+
+  <div id="vApp" hidden>
+    <section class="card" id="sites">
+      <h2 data-i="sitesTitle"></h2>
+      <p class="lead" data-i="sitesLead"></p>
+      <div class="tbl-wrap"><table id="siteTable"><thead><tr><th data-i="colName"></th><th data-i="colPeople"></th><th></th></tr></thead><tbody></tbody></table></div>
+      <form id="siteForm" class="row" style="margin-top:12px" novalidate>
+        <label for="newSite" data-i="newSite"></label><input id="newSite" class="inp" type="text" maxlength="120" autocomplete="off" style="flex:1 1 220px">
+        <button type="submit" class="btn" data-i="add"></button>
+      </form>
+    </section>
+
+    <section class="card" id="questions">
+      <h2 data-i="questionsTitle"></h2>
+      <p class="lead" data-i="questionsLead"></p>
+      <div class="field" style="max-width:420px"><label for="qSite" data-i="site"></label><select id="qSite" class="inp"></select></div>
+      <div id="qList"></div>
+      <div class="row"><button type="button" class="btn" id="qSave" data-i="saveQuestions"></button><span id="qErr" class="err" role="alert"></span></div>
+    </section>
+
+    <section class="card" id="languages">
+      <h2 data-i="languagesTitle"></h2>
+      <p class="lead" data-i="languagesLead"></p>
+      <div class="tbl-wrap"><table id="langTable"><thead><tr><th data-i="colCode"></th><th data-i="colLabel"></th><th data-i="colOrder"></th><th></th></tr></thead><tbody></tbody></table></div>
+      <form id="langForm" class="row" style="margin-top:12px" novalidate>
+        <input id="lCode" class="inp" type="text" maxlength="40" autocomplete="off" style="width:150px" aria-label="Code">
+        <input id="lLabel" class="inp" type="text" maxlength="120" autocomplete="off" style="flex:1 1 220px" aria-label="Label">
+        <button type="submit" class="btn" data-i="add"></button>
+      </form>
+      <p id="lErr" class="err" role="alert"></p>
+    </section>
+
+    <section class="card" id="accounts">
+      <h2 data-i="accountsTitle"></h2>
+      <p class="lead" data-i="accountsLead"></p>
+      <div class="tbl-wrap"><table id="accTable"><thead><tr><th data-i="colEmail"></th><th data-i="colRole"></th><th data-i="site"></th><th data-i="colValidator"></th><th data-i="colAdmin"></th><th data-i="colLast"></th><th></th></tr></thead><tbody></tbody></table></div>
+    </section>
+
+    <section class="card" id="audit">
+      <h2 data-i="auditTitle"></h2>
+      <p class="lead" data-i="auditLead"></p>
+      <div class="row" style="margin-bottom:10px">
+        <select id="aEntity" class="inp" aria-label="Entity"></select>
+        <select id="aAction" class="inp" aria-label="Action"></select>
+        <button type="button" class="btn-sec" id="aLoad" data-i="refresh"></button>
+      </div>
+      <div class="tbl-wrap"><table id="auditTable"><thead><tr><th data-i="colWhen"></th><th data-i="colWho"></th><th data-i="colWhat"></th><th data-i="colChanges"></th></tr></thead><tbody></tbody></table></div>
+    </section>
+  </div>
+</main>
+<div id="status" role="status" hidden></div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var I18N = {
+    en: {
+      title: 'Walking Memory · Admin', logout: 'Log out', login: 'Log in', email: 'E-mail', password: 'Password', loginFail: 'Login failed: {e}',
+      noAdmin: 'Admins only', noAdminText: 'This page is for admins. Ask an admin to give your account admin rights.',
+      navSites: 'Sites', navQuestions: 'Questions', navLanguages: 'Languages', navAccounts: 'Accounts', navAudit: 'Audit log',
+      sitesTitle: 'Pilot sites', sitesLead: 'Every account belongs to one site. A facilitator sees and acts only on the consents, stories and workshops of their site.',
+      colName: 'Name', colPeople: 'Accounts', newSite: 'New site', add: 'Add', rename: 'Rename', del: 'Delete', save: 'Save', renameQ: 'New name for the site:', delSiteQ: 'Delete the site “{s}”?',
+      questionsTitle: 'The 5 questions of a site', questionsLead: 'The interview has 5 fixed questions; each story answers one of them. Facilitators choose it when they create a story.', site: 'Site',
+      saveQuestions: 'Save the questions', questionsSaved: 'Questions saved.', noSites: 'Add a site first.',
+      languagesTitle: 'Languages and dialects', languagesLead: 'Offered when a facilitator creates a story. The code is short and lower-case (e.g. el, el-lesvos).', colCode: 'Code', colLabel: 'Label', colOrder: 'Order', badCode: 'The code: 2–40 lower-case letters, digits or “-”.', needLabel: 'Write the label.',
+      accountsTitle: 'Accounts', accountsLead: 'Create an account in Supabase (Authentication → Users → Add user), then give it a role and a site here. A facilitator needs a site; annotators without a site see every site.',
+      colEmail: 'Account', colRole: 'Role', colValidator: 'Validator', colAdmin: 'Admin', colLast: 'Last sign-in', role_facilitator: 'Facilitator', role_annotator: 'Annotator', noSite: '— no site —', saved: 'Saved.', needSiteFac: 'A facilitator needs a site.',
+      auditTitle: 'Audit log', auditLead: 'Every write: who, when, what, the previous value and the change. The latest 200 entries.', refresh: 'Show', allEntities: 'Everything', allActions: 'All actions',
+      a_insert: 'added', a_update: 'changed', a_delete: 'deleted', colWhen: 'When', colWho: 'Who', colWhat: 'What', colChanges: 'Change', previous: 'previous value', inWorkshop: 'in a workshop', system: 'system / SQL editor',
+      loadErr: 'Could not load: {e}', saveErr: 'Not saved: {e}', needSql: 'This page needs a database update: run supabase/roles.sql.'
+    }
+  };
+  I18N.el = {"title": "Walking Memory · Διαχείριση", "logout": "Αποσύνδεση", "login": "Σύνδεση", "email": "E-mail", "password": "Κωδικός", "loginFail": "Η σύνδεση απέτυχε: {e}", "noAdmin": "Μόνο για διαχειριστές", "noAdminText": "Η σελίδα είναι για διαχειριστές. Ζήτησε από έναν διαχειριστή να δώσει στον λογαριασμό σου δικαιώματα διαχειριστή.", "navSites": "Περιοχές", "navQuestions": "Ερωτήσεις", "navLanguages": "Γλώσσες", "navAccounts": "Λογαριασμοί", "navAudit": "Αρχείο ενεργειών", "sitesTitle": "Πιλοτικές περιοχές", "sitesLead": "Κάθε λογαριασμός ανήκει σε μία περιοχή. Ο διευκολυντής βλέπει και χειρίζεται μόνο τις συναινέσεις, τις ιστορίες και τα εργαστήρια της περιοχής του.", "colName": "Όνομα", "colPeople": "Λογαριασμοί", "newSite": "Νέα περιοχή", "add": "Προσθήκη", "rename": "Μετονομασία", "del": "Διαγραφή", "save": "Αποθήκευση", "renameQ": "Νέο όνομα για την περιοχή:", "delSiteQ": "Διαγραφή της περιοχής «{s}»;", "questionsTitle": "Οι 5 ερωτήσεις μιας περιοχής", "questionsLead": "Η συνέντευξη έχει 5 σταθερές ερωτήσεις· κάθε ιστορία απαντά σε μία από αυτές. Οι διευκολυντές τη διαλέγουν όταν δημιουργούν μια ιστορία.", "site": "Περιοχή", "saveQuestions": "Αποθήκευση ερωτήσεων", "questionsSaved": "Οι ερωτήσεις αποθηκεύτηκαν.", "noSites": "Πρόσθεσε πρώτα μια περιοχή.", "languagesTitle": "Γλώσσες και διάλεκτοι", "languagesLead": "Εμφανίζονται όταν ένας διευκολυντής δημιουργεί μια ιστορία. Ο κωδικός είναι σύντομος και με μικρά (π.χ. el, el-lesvos).", "colCode": "Κωδικός", "colLabel": "Όνομα", "colOrder": "Σειρά", "badCode": "Ο κωδικός: 2–40 μικρά λατινικά γράμματα, ψηφία ή «-».", "needLabel": "Γράψε το όνομα.", "accountsTitle": "Λογαριασμοί", "accountsLead": "Δημιούργησε τον λογαριασμό στο Supabase (Authentication → Users → Add user) και μετά δώσ’ του ρόλο και περιοχή εδώ. Ο διευκολυντής χρειάζεται περιοχή· οι σχολιαστές χωρίς περιοχή βλέπουν όλες τις περιοχές.", "colEmail": "Λογαριασμός", "colRole": "Ρόλος", "colValidator": "Ελεγκτής", "colAdmin": "Διαχειριστής", "colLast": "Τελευταία σύνδεση", "role_facilitator": "Διευκολυντής", "role_annotator": "Σχολιαστής", "noSite": "— χωρίς περιοχή —", "saved": "Αποθηκεύτηκε.", "needSiteFac": "Ο διευκολυντής χρειάζεται περιοχή.", "auditTitle": "Αρχείο ενεργειών", "auditLead": "Κάθε εγγραφή: ποιος, πότε, τι, η προηγούμενη τιμή και η αλλαγή. Οι τελευταίες 200.", "refresh": "Εμφάνιση", "allEntities": "Όλα", "allActions": "Όλες οι ενέργειες", "a_insert": "προσθήκη", "a_update": "αλλαγή", "a_delete": "διαγραφή", "colWhen": "Πότε", "colWho": "Ποιος", "colWhat": "Τι", "colChanges": "Αλλαγή", "previous": "προηγούμενη τιμή", "inWorkshop": "σε εργαστήριο", "system": "σύστημα / SQL editor", "loadErr": "Δεν φορτώθηκε: {e}", "saveErr": "Δεν αποθηκεύτηκε: {e}", "needSql": "Η σελίδα χρειάζεται ενημέρωση της βάσης: τρέξε το supabase/roles.sql."};
+  I18N.fr = {"title": "Walking Memory · Administration", "logout": "Déconnexion", "login": "Connexion", "email": "E-mail", "password": "Mot de passe", "loginFail": "Échec de connexion : {e}", "noAdmin": "Réservé aux administrateurs", "noAdminText": "Cette page est réservée aux administrateurs. Demandez à un administrateur de donner les droits d’administration à votre compte.", "navSites": "Sites", "navQuestions": "Questions", "navLanguages": "Langues", "navAccounts": "Comptes", "navAudit": "Journal", "sitesTitle": "Sites pilotes", "sitesLead": "Chaque compte appartient à un site. Un facilitateur ne voit et ne gère que les consentements, histoires et ateliers de son site.", "colName": "Nom", "colPeople": "Comptes", "newSite": "Nouveau site", "add": "Ajouter", "rename": "Renommer", "del": "Supprimer", "save": "Enregistrer", "renameQ": "Nouveau nom du site :", "delSiteQ": "Supprimer le site « {s} » ?", "questionsTitle": "Les 5 questions d’un site", "questionsLead": "L’entretien a 5 questions fixes ; chaque histoire répond à l’une d’elles. Les facilitateurs la choisissent en créant une histoire.", "site": "Site", "saveQuestions": "Enregistrer les questions", "questionsSaved": "Questions enregistrées.", "noSites": "Ajoutez d’abord un site.", "languagesTitle": "Langues et dialectes", "languagesLead": "Proposés quand un facilitateur crée une histoire. Le code est court et en minuscules (p. ex. el, el-lesvos).", "colCode": "Code", "colLabel": "Libellé", "colOrder": "Ordre", "badCode": "Le code : 2 à 40 lettres minuscules, chiffres ou « - ».", "needLabel": "Écrivez le libellé.", "accountsTitle": "Comptes", "accountsLead": "Créez le compte dans Supabase (Authentication → Users → Add user), puis donnez-lui ici un rôle et un site. Un facilitateur a besoin d’un site ; les annotateurs sans site voient tous les sites.", "colEmail": "Compte", "colRole": "Rôle", "colValidator": "Validateur", "colAdmin": "Admin", "colLast": "Dernière connexion", "role_facilitator": "Facilitateur", "role_annotator": "Annotateur", "noSite": "— aucun site —", "saved": "Enregistré.", "needSiteFac": "Un facilitateur a besoin d’un site.", "auditTitle": "Journal", "auditLead": "Chaque écriture : qui, quand, quoi, la valeur précédente et la modification. Les 200 dernières.", "refresh": "Afficher", "allEntities": "Tout", "allActions": "Toutes les actions", "a_insert": "ajouté", "a_update": "modifié", "a_delete": "supprimé", "colWhen": "Quand", "colWho": "Qui", "colWhat": "Quoi", "colChanges": "Modification", "previous": "valeur précédente", "inWorkshop": "dans un atelier", "system": "système / éditeur SQL", "loadErr": "Chargement impossible : {e}", "saveErr": "Non enregistré : {e}", "needSql": "Cette page nécessite une mise à jour de la base : exécutez supabase/roles.sql."};
+  I18N.it = {"title": "Walking Memory · Amministrazione", "logout": "Esci", "login": "Accedi", "email": "E-mail", "password": "Password", "loginFail": "Accesso non riuscito: {e}", "noAdmin": "Solo amministratori", "noAdminText": "Questa pagina è per gli amministratori. Chiedi a un amministratore di dare al tuo account i diritti di amministrazione.", "navSites": "Siti", "navQuestions": "Domande", "navLanguages": "Lingue", "navAccounts": "Account", "navAudit": "Registro", "sitesTitle": "Siti pilota", "sitesLead": "Ogni account appartiene a un sito. Un facilitatore vede e gestisce solo i consensi, le storie e i laboratori del suo sito.", "colName": "Nome", "colPeople": "Account", "newSite": "Nuovo sito", "add": "Aggiungi", "rename": "Rinomina", "del": "Elimina", "save": "Salva", "renameQ": "Nuovo nome del sito:", "delSiteQ": "Eliminare il sito «{s}»?", "questionsTitle": "Le 5 domande di un sito", "questionsLead": "L’intervista ha 5 domande fisse; ogni storia risponde a una di esse. I facilitatori la scelgono quando creano una storia.", "site": "Sito", "saveQuestions": "Salva le domande", "questionsSaved": "Domande salvate.", "noSites": "Aggiungi prima un sito.", "languagesTitle": "Lingue e dialetti", "languagesLead": "Proposti quando un facilitatore crea una storia. Il codice è breve e minuscolo (es. el, el-lesvos).", "colCode": "Codice", "colLabel": "Etichetta", "colOrder": "Ordine", "badCode": "Il codice: da 2 a 40 lettere minuscole, cifre o «-».", "needLabel": "Scrivi l’etichetta.", "accountsTitle": "Account", "accountsLead": "Crea l’account in Supabase (Authentication → Users → Add user), poi assegnagli qui un ruolo e un sito. Un facilitatore ha bisogno di un sito; gli annotatori senza sito vedono tutti i siti.", "colEmail": "Account", "colRole": "Ruolo", "colValidator": "Validatore", "colAdmin": "Admin", "colLast": "Ultimo accesso", "role_facilitator": "Facilitatore", "role_annotator": "Annotatore", "noSite": "— nessun sito —", "saved": "Salvato.", "needSiteFac": "Un facilitatore ha bisogno di un sito.", "auditTitle": "Registro", "auditLead": "Ogni scrittura: chi, quando, cosa, il valore precedente e la modifica. Le ultime 200.", "refresh": "Mostra", "allEntities": "Tutto", "allActions": "Tutte le azioni", "a_insert": "aggiunto", "a_update": "modificato", "a_delete": "eliminato", "colWhen": "Quando", "colWho": "Chi", "colWhat": "Cosa", "colChanges": "Modifica", "previous": "valore precedente", "inWorkshop": "in un laboratorio", "system": "sistema / editor SQL", "loadErr": "Impossibile caricare: {e}", "saveErr": "Non salvato: {e}", "needSql": "Questa pagina richiede un aggiornamento del database: esegui supabase/roles.sql."};
+  var LANG = (function () {
+    try { var v = localStorage.getItem('dm_lang'); if (I18N[v]) return v; } catch (e) {}
+    var p = navigator.languages || [navigator.language || 'el'];
+    for (var i = 0; i < p.length; i++) { var c = String(p[i]).slice(0, 2).toLowerCase(); if (I18N[c]) return c; }
+    return 'el';
+  })();
+  function t(k, v) { var s = (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k; if (v) Object.keys(v).forEach(function (x) { s = s.split('{' + x + '}').join(v[x]); }); return s; }
+  function applyLang() { document.documentElement.lang = LANG; $('lang').value = LANG; document.title = t('title'); document.querySelectorAll('[data-i]').forEach(function (e) { e.textContent = t(e.getAttribute('data-i')); }); }
+  var CFG = window.WM_CONFIG || {}, sb = null;
+  try { if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); } catch (e) { sb = null; }
+  function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
+  function opt(v, label) { var o = document.createElement('option'); o.value = v; o.textContent = label; return o; }
+  function errText(e) { return (e && (e.message || e.details)) || String(e); }
+  function niceErr(e) { return /schema cache|does not exist|could not find/i.test(errText(e)) ? t('needSql') : errText(e); }
+  var timer = null;
+  function say(msg, bad) { var s = $('status'); s.textContent = msg; s.className = bad ? 'bad' : ''; s.hidden = false; clearTimeout(timer); timer = setTimeout(function () { s.hidden = true; }, 4500); }
+  function when(d) { return d ? new Date(d).toLocaleString(LANG) : '—'; }
+
+  var user = null, loadedFor = null, A = { sites: [], users: [], langs: [] };
+  $('loginForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault(); $('loginErr').textContent = '';
+    var r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pass').value });
+    if (r.error) $('loginErr').textContent = t('loginFail', { e: errText(r.error) });
+  });
+  $('logout').onclick = function () { if (sb) sb.auth.signOut(); };
+  async function onSession(session) {
+    if (session && loadedFor === session.user.id) return;
+    user = session ? session.user : null; loadedFor = user ? user.id : null;
+    $('userName').textContent = user ? (user.email || '') : ''; $('logout').hidden = !user;
+    $('vLogin').hidden = !!user; $('vNoAdmin').hidden = true; $('vApp').hidden = true; $('nav').hidden = true;
+    if (!user) return;
+    var p = await sb.from('profiles').select('is_admin').eq('user_id', user.id).maybeSingle();
+    if (!p.data || !p.data.is_admin) { $('vNoAdmin').hidden = false; return; }
+    $('vApp').hidden = false; $('nav').hidden = false;
+    await loadAll();
+  }
+  async function loadAll() {
+    var r = await Promise.all([sb.from('sites').select('id,name').order('name'), sb.rpc('admin_users'), sb.from('story_languages').select('code,label,position').order('position').order('label')]);
+    if (r[0].error) { say(t('loadErr', { e: niceErr(r[0].error) }), true); return; }
+    A.sites = r[0].data || []; A.users = r[1].data || []; A.langs = r[2].data || [];
+    if (r[1].error) say(t('loadErr', { e: niceErr(r[1].error) }), true);
+    renderSites(); renderQuestionSites(); renderLangs(); renderUsers(); renderAuditFilters(); loadAudit();
+  }
+
+  // ---- sites ----
+  function renderSites() {
+    var tb = $('siteTable').tBodies[0]; tb.innerHTML = '';
+    A.sites.forEach(function (s) {
+      var tr = el('tr'); tr.appendChild(el('td', null, s.name));
+      tr.appendChild(el('td', null, String(A.users.filter(function (u) { return u.site_id === s.id; }).length)));
+      var td = el('td'), rn = el('button', 'btn-sec btn-sm', t('rename')), dl = el('button', 'btn-danger btn-sm', t('del')); rn.type = dl.type = 'button';
+      rn.onclick = async function () { var n = window.prompt(t('renameQ'), s.name); if (!n || !n.trim()) return; var r = await sb.from('sites').update({ name: n.trim().slice(0, 120) }).eq('id', s.id).select('id'); if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; } s.name = n.trim(); renderSites(); renderQuestionSites(); renderUsers(); say(t('saved')); };
+      dl.onclick = async function () { if (!window.confirm(t('delSiteQ', { s: s.name }))) return; var r = await sb.from('sites').delete().eq('id', s.id).select('id'); if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; } A.sites = A.sites.filter(function (x) { return x.id !== s.id; }); renderSites(); renderQuestionSites(); renderUsers(); };
+      td.appendChild(rn); td.appendChild(document.createTextNode(' ')); td.appendChild(dl); tr.appendChild(td); tb.appendChild(tr);
+    });
+  }
+  $('siteForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault(); var n = $('newSite').value.trim(); if (!n) { $('newSite').focus(); return; }
+    var r = await sb.from('sites').insert({ name: n.slice(0, 120) }).select('id,name').single();
+    if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; }
+    A.sites.push(r.data); A.sites.sort(function (a, b) { return a.name.localeCompare(b.name); }); $('newSite').value = '';
+    renderSites(); renderQuestionSites(r.data.id); renderUsers(); say(t('saved'));
+  });
+
+  // ---- the 5 questions of a site ----
+  var Q = { rows: [] };
+  function renderQuestionSites(pick) {
+    var s = $('qSite'), cur = pick || s.value; s.innerHTML = '';
+    A.sites.forEach(function (x) { s.appendChild(opt(x.id, x.name)); });
+    if (A.sites.some(function (x) { return x.id === cur; })) s.value = cur;
+    $('qSave').disabled = !A.sites.length; $('qErr').textContent = A.sites.length ? '' : t('noSites');
+    loadQuestions();
+  }
+  async function loadQuestions() {
+    var sid = $('qSite').value, box = $('qList'); box.innerHTML = '';
+    if (!sid) return;
+    var r = await sb.from('site_questions').select('id,position,text').eq('site_id', sid).order('position');
+    Q.rows = r.data || [];
+    for (var i = 1; i <= 5; i++) {
+      var q = Q.rows.filter(function (x) { return x.position === i; })[0];
+      var row = el('div', 'qrow'), inp = el('input', 'inp'); inp.type = 'text'; inp.maxLength = 500; inp.id = 'q' + i; inp.value = q ? q.text : ''; inp.setAttribute('aria-label', t('navQuestions') + ' ' + i);
+      row.appendChild(el('b', null, i + '.')); row.appendChild(inp); box.appendChild(row);
+    }
+  }
+  $('qSite').onchange = loadQuestions;
+  $('qSave').onclick = async function () {
+    var sid = $('qSite').value, b = this; b.disabled = true; $('qErr').textContent = '';
+    for (var i = 1; i <= 5; i++) {
+      var txt = $('q' + i).value.trim(), q = Q.rows.filter(function (x) { return x.position === i; })[0], r = null;
+      if (txt && q && q.text !== txt) r = await sb.from('site_questions').update({ text: txt }).eq('id', q.id).select('id');
+      else if (txt && !q) r = await sb.from('site_questions').insert({ site_id: sid, position: i, text: txt }).select('id');
+      else if (!txt && q) r = await sb.from('site_questions').delete().eq('id', q.id).select('id');
+      if (r && r.error) { $('qErr').textContent = t('saveErr', { e: niceErr(r.error) }); break; }
+    }
+    b.disabled = false; if (!$('qErr').textContent) say(t('questionsSaved'));
+    loadQuestions();
+  };
+
+  // ---- languages ----
+  function renderLangs() {
+    var tb = $('langTable').tBodies[0]; tb.innerHTML = '';
+    A.langs.forEach(function (l) {
+      var tr = el('tr'); tr.appendChild(el('td', null, l.code));
+      var td1 = el('td'), lab = el('input', 'inp'); lab.type = 'text'; lab.maxLength = 120; lab.value = l.label; lab.setAttribute('aria-label', t('colLabel') + ' ' + l.code); td1.appendChild(lab); tr.appendChild(td1);
+      var td2 = el('td'), pos = el('input', 'inp'); pos.type = 'number'; pos.min = 0; pos.max = 999; pos.value = l.position; pos.style.width = '80px'; pos.setAttribute('aria-label', t('colOrder') + ' ' + l.code); td2.appendChild(pos); tr.appendChild(td2);
+      var td = el('td'), sv = el('button', 'btn-sec btn-sm', t('save')), dl = el('button', 'btn-danger btn-sm', t('del')); sv.type = dl.type = 'button';
+      sv.onclick = async function () { var r = await sb.from('story_languages').update({ label: lab.value.trim() || l.label, position: +pos.value || 0 }).eq('code', l.code).select('code'); if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; } l.label = lab.value.trim() || l.label; l.position = +pos.value || 0; say(t('saved')); };
+      dl.onclick = async function () { var r = await sb.from('story_languages').delete().eq('code', l.code).select('code'); if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; } A.langs = A.langs.filter(function (x) { return x !== l; }); renderLangs(); };
+      td.appendChild(sv); td.appendChild(document.createTextNode(' ')); td.appendChild(dl); tr.appendChild(td); tb.appendChild(tr);
+    });
+    $('lCode').placeholder = t('colCode'); $('lLabel').placeholder = t('colLabel');
+  }
+  $('langForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault(); $('lErr').textContent = '';
+    var c = $('lCode').value.trim().toLowerCase(), l = $('lLabel').value.trim();
+    if (!/^[a-z0-9-]{2,40}$/.test(c)) { $('lErr').textContent = t('badCode'); $('lCode').focus(); return; }
+    if (!l) { $('lErr').textContent = t('needLabel'); $('lLabel').focus(); return; }
+    var r = await sb.from('story_languages').insert({ code: c, label: l, position: (A.langs.length ? Math.max.apply(null, A.langs.map(function (x) { return x.position; })) : 0) + 1 }).select('code,label,position').single();
+    if (r.error) { $('lErr').textContent = t('saveErr', { e: niceErr(r.error) }); return; }
+    A.langs.push(r.data); $('lCode').value = ''; $('lLabel').value = ''; renderLangs(); say(t('saved'));
+  });
+
+  // ---- accounts ----
+  function renderUsers() {
+    var tb = $('accTable').tBodies[0]; tb.innerHTML = '';
+    A.users.forEach(function (u) {
+      var tr = el('tr'), td0 = el('td'); td0.appendChild(el('div', null, u.email)); td0.appendChild(el('div', 'note', u.name)).style.margin = '0'; tr.appendChild(td0);
+      var td1 = el('td'), role = el('select', 'inp'); ['facilitator', 'annotator'].forEach(function (r) { role.appendChild(opt(r, t('role_' + r))); }); role.value = u.role || 'facilitator'; role.setAttribute('aria-label', t('colRole') + ' ' + u.email); td1.appendChild(role); tr.appendChild(td1);
+      var td2 = el('td'), site = el('select', 'inp'); site.appendChild(opt('', t('noSite'))); A.sites.forEach(function (s) { site.appendChild(opt(s.id, s.name)); }); site.value = u.site_id || ''; site.setAttribute('aria-label', t('site') + ' ' + u.email); td2.appendChild(site); tr.appendChild(td2);
+      var td3 = el('td'), val = el('input'); val.type = 'checkbox'; val.checked = !!u.is_validator; val.setAttribute('aria-label', t('colValidator') + ' ' + u.email); td3.appendChild(val); tr.appendChild(td3);
+      var td4 = el('td'), adm = el('input'); adm.type = 'checkbox'; adm.checked = !!u.is_admin; adm.setAttribute('aria-label', t('colAdmin') + ' ' + u.email); td4.appendChild(adm); tr.appendChild(td4);
+      tr.appendChild(el('td', null, when(u.last_sign_in_at)));
+      var td5 = el('td'), sv = el('button', 'btn btn-sm', t('save')); sv.type = 'button';
+      function sync() { val.disabled = role.value !== 'annotator'; if (val.disabled) val.checked = false; }
+      role.onchange = sync; sync();
+      sv.onclick = async function () {
+        if (role.value === 'facilitator' && !site.value) { say(t('needSiteFac'), true); site.focus(); return; }
+        sv.disabled = true;
+        var r = await sb.rpc('admin_set_user', { p_user: u.user_id, p_role: role.value, p_site: site.value || null, p_validator: val.checked, p_admin: adm.checked });
+        sv.disabled = false;
+        if (r.error) { say(t('saveErr', { e: niceErr(r.error) }), true); return; }
+        u.role = role.value; u.site_id = site.value || null; u.is_validator = val.checked; u.is_admin = adm.checked; renderSites(); say(t('saved'));
+      };
+      td5.appendChild(sv); tr.appendChild(td5); tb.appendChild(tr);
+    });
+  }
+
+  // ---- audit log ----
+  var ENTITIES = ['consents', 'consent_narrators', 'stories', 'story_media', 'fragment_notes', 'workshops', 'workshop_stories', 'sites', 'site_questions', 'story_languages', 'profiles'];
+  function renderAuditFilters() {
+    var e = $('aEntity'), cur = e.value; e.innerHTML = ''; e.appendChild(opt('', t('allEntities'))); ENTITIES.forEach(function (x) { e.appendChild(opt(x, x)); }); e.value = cur;
+    var a = $('aAction'), ca = a.value; a.innerHTML = ''; a.appendChild(opt('', t('allActions'))); ['insert', 'update', 'delete'].forEach(function (x) { a.appendChild(opt(x, t('a_' + x))); }); a.value = ca;
+  }
+  async function loadAudit() {
+    var q = sb.from('audit_log').select('id,at,user_id,entity,entity_id,action,previous,changes,workshop_id').order('at', { ascending: false }).limit(200);
+    if ($('aEntity').value) q = q.eq('entity', $('aEntity').value);
+    if ($('aAction').value) q = q.eq('action', $('aAction').value);
+    var r = await q, tb = $('auditTable').tBodies[0]; tb.innerHTML = '';
+    if (r.error) { var tr0 = el('tr'), td0 = el('td', 'err', t('loadErr', { e: niceErr(r.error) })); td0.colSpan = 4; tr0.appendChild(td0); tb.appendChild(tr0); return; }
+    var names = {}; A.users.forEach(function (u) { names[u.user_id] = u.email; });
+    (r.data || []).forEach(function (x) {
+      var tr = el('tr'); tr.appendChild(el('td', null, when(x.at)));
+      tr.appendChild(el('td', null, x.user_id ? (names[x.user_id] || x.user_id) : t('system')));
+      var td = el('td'); td.appendChild(el('span', 'chip', x.entity)); td.appendChild(document.createTextNode(' ' + t('a_' + x.action) + ' · ' + (x.entity_id || '').slice(0, 13) + (x.workshop_id ? ' · ' + t('inWorkshop') : ''))); tr.appendChild(td);
+      var tc = el('td');
+      if (x.changes) tc.appendChild(el('pre', 'json', JSON.stringify(x.changes, null, 1)));
+      if (x.previous) { var d = el('details'), s = el('summary', null, t('previous')); d.appendChild(s); d.appendChild(el('pre', 'json', JSON.stringify(x.previous, null, 1))); tc.appendChild(d); }
+      tr.appendChild(tc); tb.appendChild(tr);
+    });
+  }
+  $('aLoad').onclick = loadAudit;
+
+  $('lang').onchange = function () { LANG = this.value; try { localStorage.setItem('dm_lang', LANG); } catch (e) {} applyLang(); if (!$('vApp').hidden) { renderSites(); renderLangs(); renderUsers(); renderAuditFilters(); loadAudit(); loadQuestions(); } };
+  applyLang();
+  if (!sb) { $('vLogin').hidden = false; $('loginErr').textContent = 'Supabase is not configured (config.js).'; return; }
+  sb.auth.onAuthStateChange(function (_e, session) { setTimeout(function () { onSession(session); }, 0); });
+})();
+</script>
+</body>
+</html>
