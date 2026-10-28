@@ -243,19 +243,7 @@ analytics like the app's map/list.
 "← Before", the walk's name and the line's label — and opens them with a tap. On the website, **Show connections between stories**
 (in "All stories") draws those lines on the map (hover for the walk and label). Only published walks and published stories are shown.
 
-## Map of all locations (annotation website)
-The **Map** button in the header (next to **Stories**) shows every location that users uploaded, **for each file** (photo, audio, video)
-and for each story:
-- a **marker for each file's own location**: 🖼 photo, 🎙 audio, 🎬 video (colour = the user; the legend lists users). When several files share the same place (for example
-  they all kept the GPS default) the dot shows their **number**; click it to list the files and open their stories. A **hollow circle**
-  is the place where a story was created;
-- **Connect files of the same story** (on by default) draws a line from the story's creation place through its files in their order
-  (dashed = draft). Files at the same place add no line;
-- **Connect each user's stories in order** (off) draws a dotted line through each user's stories in the order they were created;
-- **Connect stories that share terms** (off) draws purple lines between stories with approved terms in common (thicker = more terms;
-  **Min. shared terms** filters weak links; terms shared by very many stories are ignored);
-- **Show** filters drafts / published.
-If no file has its own location (older uploads, or `supabase/roles.sql` not yet re-run) the map says so and shows only the story places.
+## Comments and term locations (annotation website)
 
 ### Expert comments on transcript lines
 Under every transcript line there is **💬 Add comment**: a short text for visitors (background, explanation, a correction…), saved
@@ -277,18 +265,6 @@ Every term on a transcript line has a **📍 Location** button (next to Approve 
 Terms you add by hand, and suggested terms, get the Wikidata place automatically when there is one; you can always change it.
 The button then shows the coordinates. Locations are saved in `annotations.lat` / `annotations.lon` (re-run `supabase/roles.sql`
 once; until then the button does not appear). Changes are counted as term edits in the analytics.
-
-### One story at a time, in transcript order
-Choose a story in **Story** (or press **Show only this story on the map** in a marker's popup) to see only that story's files at
-their own locations, joined **in the order they appear in the transcripts**:
-- each recording (audio/video) comes in the story's order, followed by the photos shown or noted on its transcript
-  (image links and image notes with a time), in time order; a file counts at its **first** appearance;
-- terms on transcript lines that have a location are stops too (red 📍 markers), at the moment they are said;
-- markers are **numbered** in that order (several numbers on one marker = same place), and the line joins them 1 → 2 → 3 …;
-- a marker's popup gives the file details and every moment it appears (“in *recording* at mm:ss”) with the transcript line spoken then;
-- the list under the map shows the full order, marking files with **no location** (left out of the line) and files **not linked to any
-  recording** (grey markers, no line). Rejected notes are ignored; suggested and approved ones count.
-Choose **All stories** to go back to the overview.
 
 ## Help for new annotators (annotation website)
 - The start page and the **Help** button in the header show a 6-step "How it works" guide.
