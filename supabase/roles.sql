@@ -147,7 +147,7 @@ alter table public.testimonies add column if not exists withdrawn_at    timestam
 alter table public.testimonies add column if not exists narrator        text;
 alter table public.testimonies add column if not exists anonymous       boolean;
 alter table public.testimonies add column if not exists interview_date  date;
-alter table public.testimonies add column if not exists interview_place text;
+alter table public.testimonies add column if not exists interview_place text;   -- no longer asked: each story has its place
 alter table public.testimonies add column if not exists language        text references public.story_languages(code) on update cascade;
 alter table public.testimonies add column if not exists updated_at      timestamptz not null default now();
 alter table public.testimonies alter column statement_version drop not null;
@@ -219,7 +219,7 @@ create policy "read site testimonies" on public.testimonies for select to authen
 create policy "facilitators add testimonies" on public.testimonies for insert to authenticated
   with check (public.is_facilitator() and user_id = auth.uid() and site_id = public.my_site() and status = 'draft'
               and license is not null and anonymous is not null and narrator is not null and interview_date is not null
-              and interview_place is not null and language is not null
+              and language is not null
               and accepted @> '{"provide": true, "cut": true, "comment": true, "share": true, "voluntary": true}'::jsonb);
 create policy "facilitators edit testimonies" on public.testimonies for update to authenticated
   using (public.is_facilitator() and site_id = public.my_site())
@@ -227,7 +227,7 @@ create policy "facilitators edit testimonies" on public.testimonies for update t
 create policy "facilitators delete testimonies" on public.testimonies for delete to authenticated
   using (public.is_facilitator() and site_id = public.my_site() and status = 'draft');
 revoke update on public.testimonies from anon, authenticated;
-grant update (status, narrator, interview_date, interview_place, language) on public.testimonies to authenticated;
+grant update (status, narrator, interview_date, language) on public.testimonies to authenticated;
 grant select, insert, delete on public.testimonies to authenticated;
 
 -- Every story carries the licence and the language of its testimony, and the narrator's name when the narrator is not
@@ -814,12 +814,12 @@ create table if not exists public.fragment_notes (
 );
 
 -- ---------- helpers for the rules ----------
--- Can the signed-in user change this story and its fragments now? A facilitator of its site, while the story is a draft or
--- with the community (until the community has validated it).
+-- Can the signed-in user change this story and its fragments now? A facilitator of its site, while the story is a draft
+-- (with the community nothing is corrected: what the community says is written down as comments).
 create or replace function public.can_edit_story(sid uuid) returns boolean
 language sql stable security definer set search_path = public as $$
   select public.is_facilitator()
-     and exists (select 1 from public.stories s where s.id = sid and s.site_id = public.my_site() and s.status in ('draft', 'community_validation'));
+     and exists (select 1 from public.stories s where s.id = sid and s.site_id = public.my_site() and s.status = 'draft');
 $$;
 -- What still stops a testimony from moving on: 'stories' (it has none), and for any of its stories 'theme' (no theme) or
 -- 'audio' (no audio fragment).
@@ -865,11 +865,11 @@ create policy "read visible stories" on public.stories for select
     or (status <> 'withdrawn' and (
          (site_id is null and (user_id = auth.uid() or (public.is_annotator() and status in ('ready_for_annotation', 'submitted', 'returned'))))
       or (site_id is not null and public.is_annotator() and status in ('ready_for_annotation', 'submitted', 'returned') and public.sees_site(site_id)))));
--- No story outside a testimony of the same site that is still being worked on; the story takes its testimony's status.
+-- No story outside a draft testimony of the same site.
 create policy "facilitators add stories" on public.stories for insert to authenticated
-  with check (public.is_facilitator() and user_id = auth.uid() and site_id = public.my_site() and status in ('draft', 'community_validation')
+  with check (public.is_facilitator() and user_id = auth.uid() and site_id = public.my_site() and status = 'draft'
     and exists (select 1 from public.testimonies t where t.id = stories.testimony_id and t.site_id = stories.site_id
-                and t.status in ('draft', 'community_validation')));
+                and t.status = 'draft'));
 create policy "facilitators edit stories" on public.stories for update to authenticated
   using (public.is_facilitator() and site_id = public.my_site())
   with check (public.is_facilitator() and site_id = public.my_site());
@@ -885,7 +885,7 @@ revoke update on public.stories from anon, authenticated;
 grant update (status, title, lat, lon, area, radius, theme, who, place_name, period) on public.stories to authenticated;
 
 -- The rules the policies cannot express: which status changes are allowed and who may make them, and that a story's
--- content changes only while the facilitators work on it. The SQL editor (no signed-in user) is not limited.
+-- content changes only while it is a draft. The SQL editor (no signed-in user) is not limited.
 create or replace function public.guard_story() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare
@@ -896,10 +896,7 @@ begin
   if tg_op = 'INSERT' then
     if auth.uid() is not null then
       new.withdrawn_at := null;
-      -- a new story joins its testimony where it is: still a draft, or with the community
-      select case t.status when 'community_validation' then 'community_validation' else 'draft' end into new.status
-        from public.testimonies t where t.id = new.testimony_id;
-      new.status := coalesce(new.status, 'draft');
+      new.status := 'draft';
     end if;
     return new;
   end if;
@@ -908,8 +905,8 @@ begin
   fac := public.is_facilitator() and old.site_id is not distinct from public.my_site();
   if (new.title, new.lat, new.lon, new.area, new.radius, new.theme, new.who, new.place_name, new.period, new.testimony_id)
      is distinct from (old.title, old.lat, old.lon, old.area, old.radius, old.theme, old.who, old.place_name, old.period, old.testimony_id) then
-    if not fac or old.status not in ('draft', 'community_validation') then
-      raise exception 'Only the site''s facilitators can change a story, until the community has validated it' using errcode = '42501';
+    if not fac or old.status <> 'draft' then
+      raise exception 'Only the site''s facilitators can change a story, while its testimony is a draft' using errcode = '42501';
     end if;
   end if;
   if new.status is distinct from old.status then
@@ -941,8 +938,9 @@ drop trigger if exists stories_guard        on public.stories;
 create trigger stories_guard before insert or update on public.stories for each row execute function public.guard_story();
 drop function if exists public.check_story_status();
 
--- A testimony and its stories move on together. Its details (narrator, date and place, language) change only while the
--- facilitators work on it; withdrawing it withdraws all its stories; a withdrawn testimony stays withdrawn.
+-- A testimony and its stories move on together. Its details (narrator, date, language) change only while it is a draft
+-- (with the community nothing is corrected: what the community says is written down as comments on the stories; to change
+-- something the facilitator takes it back to draft); withdrawing it withdraws all its stories; withdrawn stays withdrawn.
 create or replace function public.guard_testimony() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare
@@ -959,11 +957,11 @@ begin
   fac := public.is_facilitator() and old.site_id is not distinct from public.my_site();
   if (new.narrator, new.interview_date, new.interview_place, new.language)
      is distinct from (old.narrator, old.interview_date, old.interview_place, old.language) then
-    if not fac or old.status not in ('draft', 'community_validation') then
-      raise exception 'Only the site''s facilitators can change a testimony, until the community has validated it' using errcode = '42501';
+    if not fac or old.status <> 'draft' then
+      raise exception 'Only the site''s facilitators can change a testimony, while it is a draft' using errcode = '42501';
     end if;
-    if new.narrator is null or new.interview_date is null or new.interview_place is null or new.language is null then
-      raise exception 'The narrator, the date and place of the interview and the language are needed' using errcode = '23514';
+    if new.narrator is null or new.interview_date is null or new.language is null then
+      raise exception 'The narrator, the date of the interview and the language are needed' using errcode = '23514';
     end if;
   end if;
   if new.status is distinct from old.status then
@@ -1019,7 +1017,7 @@ begin
   if tg_op = 'DELETE' then
     if auth.uid() is null or not exists (select 1 from public.stories s where s.id = old.story_id) then return old; end if;  -- story deleted
     if not public.can_edit_story(old.story_id) then
-      raise exception 'Fragments can be removed only by the site''s facilitators, until the community has validated the story' using errcode = '42501';
+      raise exception 'Fragments can be removed only by the site''s facilitators, while the story is a draft' using errcode = '42501';
     end if;
     return old;
   end if;
@@ -1046,7 +1044,7 @@ begin
     raise exception 'The order can be changed only by the site''s facilitators or, in annotation, by annotators' using errcode = '42501';
   end if;
   if not public.can_edit_story(old.story_id) then
-    raise exception 'Only the site''s facilitators can change a fragment, until the community has validated the story' using errcode = '42501';
+    raise exception 'Only the site''s facilitators can change a fragment, while the story is a draft' using errcode = '42501';
   end if;
   return new;
 end $$;
@@ -1189,7 +1187,10 @@ create policy "staff add reviews" on public.reviews for insert to authenticated
 revoke all on public.reviews from anon;
 grant select, insert on public.reviews to authenticated;
 
--- ---------- facilitator comments from the earlier review page (read by the facilitator and the annotation team) ----------
+-- ---------- comments on a story: what the community said during community validation ----------
+-- Written by the site's facilitators while the testimony is a draft or with the community, read by them and by the
+-- annotators (and admins), never public. A facilitator can delete their own comment until the community has validated it.
+-- (media_id: comments of the earlier review page could be about one fragment.)
 create table if not exists public.facilitator_comments (
   id         uuid primary key default gen_random_uuid(),
   story_id   uuid not null references public.stories(id) on delete cascade,
@@ -1204,12 +1205,25 @@ alter table public.facilitator_comments enable row level security;
 drop policy if exists "read story comments" on public.facilitator_comments;
 drop policy if exists "owners comment while reviewing" on public.facilitator_comments;
 drop policy if exists "owners delete comments while reviewing" on public.facilitator_comments;
+drop policy if exists "facilitators add story comments" on public.facilitator_comments;
+drop policy if exists "facilitators delete own story comments" on public.facilitator_comments;
 create policy "read story comments" on public.facilitator_comments for select to authenticated
   using (public.is_annotator() or public.is_admin()
-         or exists (select 1 from public.stories s where s.id = facilitator_comments.story_id and s.user_id = auth.uid()));
--- (The earlier review page is replaced by community validation; its comments stay readable, no new ones are added.)
-revoke all on public.facilitator_comments from anon;
-grant select on public.facilitator_comments to authenticated;
+         or exists (select 1 from public.stories s where s.id = facilitator_comments.story_id
+                    and (s.user_id = auth.uid() or (public.is_facilitator() and s.site_id = public.my_site()))));
+create policy "facilitators add story comments" on public.facilitator_comments for insert to authenticated
+  with check (public.is_facilitator() and user_id = auth.uid()
+              and exists (select 1 from public.stories s where s.id = facilitator_comments.story_id and s.site_id = public.my_site()
+                          and s.status in ('draft', 'community_validation')));
+create policy "facilitators delete own story comments" on public.facilitator_comments for delete to authenticated
+  using (public.is_facilitator() and user_id = auth.uid()
+         and exists (select 1 from public.stories s where s.id = facilitator_comments.story_id and s.site_id = public.my_site()
+                     and s.status in ('draft', 'community_validation')));
+revoke all on public.facilitator_comments from anon, authenticated;
+grant select, insert, delete on public.facilitator_comments to authenticated;
+drop trigger if exists facilitator_comments_audit on public.facilitator_comments;
+create trigger facilitator_comments_audit after insert or update or delete on public.facilitator_comments
+  for each row execute function public.audit_row();
 
 -- Make the API pick up new columns immediately (avoids "could not find the column ... in the schema cache")
 notify pgrst, 'reload schema';

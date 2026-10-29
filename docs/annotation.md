@@ -58,12 +58,12 @@ more, and the action is logged.
   plain words;
 - **Anonymity** (yes / no) and the **narrator**: with anonymity only the initials (e.g. "E.K."), never shown to visitors;
   without, the name as the consent allows, which visitors see with the published stories as credit;
-- the **date** and **place of the interview**, and its **language or dialect**.
+- the **date of the interview** and its **language or dialect** (no place: each story has its own place).
 
 The code, the agreements, the licence and the anonymity cannot be changed later (a testimony created by mistake, e.g. with a
-wrong code, can be deleted while it has no stories, or withdrawn). The narrator, the date, the place and the language can be
-corrected until the community has validated the testimony. The list of testimonies shows code, narrator, interview, language,
-licence, number of stories and status, with search (code, narrator, place) and a status filter.
+wrong code, can be deleted while it has no stories, or withdrawn). The narrator, the date and the language can be corrected
+while the testimony is a draft. The list of testimonies shows code, narrator, interview date, language, licence, number of
+stories and status, with search (code, narrator) and a status filter.
 
 ### Story
 On the testimony's page, **+ New story**: **Title**, **Theme** (the interview question this story answers — its "why"),
@@ -87,26 +87,29 @@ community validates it.
 ### AR pathway (AR app, facilitators only)
 Only a facilitator with a site sees **+** in the AR app; visitors cannot capture anything. Capture records audio, photo or video on
 site, with the location (GPS) and time from the device. The minimal built-in redaction stays (mute part of an audio, blur part of a
-photo) before upload. First the **testimony**: choose one of the site's testimonies still being worked on, or **+ New testimony**
+photo) before upload. First the **testimony**: choose one of the site's draft testimonies, or **+ New testimony**
 (the same fields as on the website). Then the **story** (title, theme, who, where — the place's name and the point: GPS or chosen on
 the map — when) and its fragments (a caption for each photo or video; at least one audio fragment). The story joins its testimony
-(as a draft, or with the community if the testimony is already there) with source **AR app**; it is never published directly.
+as a draft with source **AR app**; it is never published directly.
 
 ### Community validation
 **Community validation** lists the site's testimonies the community has not validated yet. Opening one shows it on a large
-screen (**Full screen** for a projector): the narrator, the interview (date, place, language), and each story with its theme,
-who, where and when, and its fragments with play buttons and captions. With the community, the facilitator can:
-- **✎ Correct** a story's title, theme, who, where (name and point) and when; **✎ Caption** of a photo or video;
-- **✎ Narrator, date, place, language** of the testimony;
-- **Comment…** on a fragment — written to the fragment's internal comment (never shown on screen; annotators see it);
-- **✓ Validated by the community** — all its stories move on to annotation (`ready_for_annotation`) and can no longer be changed
-  on the facilitator website.
+screen (**Full screen** for a projector): the narrator, the interview (date, language), and each story with its theme, who,
+where and when, and its fragments with play buttons and captions. Nothing is corrected there — the who, what, where and when stay
+as they are. The facilitator:
+- **+ Write down what the community said** under each story — dated comments with the facilitator's name, listed under the story
+  (a facilitator can delete their own comment until the testimony is validated). They are never public; the annotators see them
+  on the annotation website (**What the community said**), and the facilitators on the story's page;
+- **✓ Validated by the community** — all its stories move on to annotation (`ready_for_annotation`).
+While a testimony is with the community, it and its stories and fragments cannot be changed (on the website or in the AR app, and
+no stories are added). To change something, **Back to draft** on the testimony's page, correct it, and send it again.
 
 ### Rules kept by the database (roles.sql)
 A new testimony needs a unique code, every agreement, a licence, the anonymity, the narrator (initials only with anonymity), the
-date and place of the interview and the language; no story outside a testimony of the same site still being worked on;
-testimonies and stories are visible only within their site; only the site's facilitators create or change testimonies, stories
-and fragments, and only until the community has validated the testimony; a story moves on only together with its testimony;
+date of the interview and the language; no story outside a draft testimony of the same site; testimonies and stories are
+visible only within their site; only the site's facilitators create or change testimonies, stories and fragments, and only while
+the testimony is a draft; with the community, they only add comments (`facilitator_comments`, read by the site's facilitators and
+the annotators); a story moves on only together with its testimony;
 annotators see a story only after that; nothing is public before publication; withdrawn stays withdrawn. Every write is recorded
 in `audit_log` (user, time, entity, action, previous value, change); admins read it on the admin page.
 
@@ -120,7 +123,7 @@ sign up" in Supabase (Authentication → Sign In / Providers) so that only admin
 
 ### Older data
 Running `roles.sql` updates older data once: the earlier consent codes become testimonies (renamed, keeping their code, licence
-and agreements; their status follows their stories), so the narrator, date, place and language of those can be filled in on the
+and agreements; their status follows their stories), so the narrator, date and language of those can be filled in on the
 testimony's page; a photo's or video's title becomes its caption, and the first who / where / when of a story's fragments become
 the story's. Stories from before sites have no site: annotators and the uploader keep seeing them as before. A story an earlier
 validator had returned goes back to annotation, and a walk still waiting for a validator becomes "not a walk" again (publish it
@@ -211,7 +214,7 @@ There is no validation step after annotation: the annotators publish the stories
   (visitors see them in the app and on the stories website) and downloads two files with the same content:
   `testimony-<code>.ttl` (RDF Turtle) and `testimony-<code>.jsonld` (JSON-LD). Once everything is published the button becomes
   **Export again**, which only downloads the files.
-- What the files hold: the testimony (date, place and language of the interview, licence, and the narrator only when not
+- What the files hold: the testimony (date and language of the interview, licence, and the narrator only when not
   anonymous; not the consent code), and for each story its title, theme, who / where (name and point) / when, licence, files (with
   the captions of photos and videos), transcripts, approved terms (where in the recording, or which area of an image), image ↔
   moment links and expert comments, using CIDOC-CRM, the ECHOES heritage ontology (namespace from `WM_CONFIG.HDT_NS`), Dublin Core
@@ -329,8 +332,8 @@ select u.email, p.role from auth.users u left join public.profiles p on p.user_i
   installed, because re-running them would weaken the security rules; `roles.sql` is the only file to re-run for updates.
 
 ## Annotator workflow
-1. **Testimonies and stories** (top left) lists the stories grouped under their testimony (code · narrator, date and place of
-   the interview, how many stories and how many are waiting to be annotated); open a testimony to see its stories in the order
+1. **Testimonies and stories** (top left) lists the stories grouped under their testimony (code · narrator, date of the
+   interview, how many stories and how many are waiting to be annotated); open a testimony to see its stories in the order
    they were recorded, each with its status, and open one without having to be nearby. Testimonies with stories to annotate come
    first; older stories without a testimony are in their own group. Search finds titles, names, codes and narrators.
 2. **Transcribe and annotate**: for each audio/video get a transcript, find or add terms, approve.

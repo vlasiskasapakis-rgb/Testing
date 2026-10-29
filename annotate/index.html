@@ -955,7 +955,7 @@
       licShown: "Άδεια:",
       projectOnly: "Μόνο για το έργο",
       pendingNote: "{n} ιστορίες είναι ακόμα στους διευκολυντές (πρόχειρες ή σε επικύρωση από την κοινότητα) και θα εμφανιστούν εδώ μόλις τις επικυρώσει η κοινότητα.",
-      facTitle: "Σχόλια του διευκολυντή ({n})",
+      facTitle: "Τι είπε η κοινότητα ({n})",
       facWhole: "όλη η ιστορία",
       rev_submitted: "Ο σχολιασμός ολοκληρώθηκε",
       rev_withdrawn: "Άνοιξε ξανά",
@@ -1384,7 +1384,7 @@
       licShown: "Licence:",
       projectOnly: "Project use only",
       pendingNote: "{n} stories are still with their facilitators (drafts or in community validation) and will appear here once the community has validated them.",
-      facTitle: "Facilitator's comments ({n})",
+      facTitle: "What the community said ({n})",
       facWhole: "whole story",
       rev_submitted: "Annotation done",
       rev_withdrawn: "Reopened",
@@ -1813,7 +1813,7 @@
       licShown: "Licence :",
       projectOnly: "Usage du projet uniquement",
       pendingNote: "{n} histoires sont encore chez leurs facilitateurs (brouillons ou en validation par la communauté) et apparaîtront ici une fois validées par la communauté.",
-      facTitle: "Commentaires du facilitateur ({n})",
+      facTitle: "Ce qu'a dit la communauté ({n})",
       facWhole: "toute l'histoire",
       rev_submitted: "Annotation terminée",
       rev_withdrawn: "Rouverte",
@@ -2242,7 +2242,7 @@
       licShown: "Licenza:",
       projectOnly: "Solo per il progetto",
       pendingNote: "{n} storie sono ancora presso i loro facilitatori (bozze o in validazione della comunità) e appariranno qui quando la comunità le avrà validate.",
-      facTitle: "Commenti del facilitatore ({n})",
+      facTitle: "Cosa ha detto la comunità ({n})",
       facWhole: "tutta la storia",
       rev_submitted: "Annotazione completata",
       rev_withdrawn: "Riaperta",
@@ -2590,7 +2590,7 @@
       who: r.who || '', placeName: r.place_name || '', period: r.period || '', narrator: r.narrator || '',   // narrator: only when not anonymous
       testimony: r.testimony_id && r.testimonies ? { id: r.testimony_id, code: r.testimonies.code, narrator: r.testimonies.narrator || '',
         anonymous: r.testimonies.anonymous !== false, language: r.testimonies.language || '',
-        date: r.testimonies.interview_date || '', place: r.testimonies.interview_place || '' } : null,
+        date: r.testimonies.interview_date || '' } : null,
       lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
@@ -2733,7 +2733,7 @@
     loadReviews(s);
     loadFacComments(s);
   }
-  // Σχόλια του διευκολυντή από τον έλεγχο πριν από τον σχολιασμό (μόνο ανάγνωση)
+  // What the community said during community validation (comments on the story, and older comments on fragments); read only
   async function loadFacComments(s) {
     var box = $('facBox'); box.hidden = true; $('facList').innerHTML = '';
     if (!sb || !s.dbId || !isAnnotator()) return;
@@ -4854,7 +4854,7 @@
     var q = ($('listSearch').value || '').trim().toLowerCase();
     var items = STORIES.filter(function (x) { return f.value === 'all' || x.status === f.value; }).filter(function (x) {
       var tm = x.testimony || {};
-      return !q || [st(x).title, x.author, x.consentCode, tm.narrator, tm.place].join(' ').toLowerCase().indexOf(q) >= 0;
+      return !q || [st(x).title, x.author, x.consentCode, tm.narrator].join(' ').toLowerCase().indexOf(q) >= 0;
     });
     if (PENDING_N) { var pn = document.createElement('p'); pn.className = 'sheet-sub'; pn.textContent = t('pendingNote', { n: PENDING_N }); body.appendChild(pn); }
     if (!items.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('listEmpty'); body.appendChild(p); return; }
@@ -4878,7 +4878,6 @@
       var mm = document.createElement('span'); mm.className = 'tg-m';
       var bits = [];
       if (g.tm && g.tm.date) bits.push(fmtDay(g.tm.date));
-      if (g.tm && g.tm.place) bits.push(g.tm.place);
       bits.push(g.stories.length === 1 ? t('tgStory1') : t('tgStories', { n: g.stories.length }));
       mm.appendChild(document.createTextNode(bits.join(' · ')));
       var n = todo(g);
@@ -4959,11 +4958,10 @@
   function testimonyIri(tm) { return 'urn:walkingmemory:testimony:' + tm.id; }
   function testimonyNode(tm, list) {
     var who = tm.anonymous ? '' : tm.narrator;          // an anonymous narrator's initials stay inside the project
-    var n = { '@id': testimonyIri(tm), '@type': 'crm:E73_Information_Object', 'rdfs:label': ['Testimony', who, tm.place, tm.date].filter(Boolean).join(', '),
+    var n = { '@id': testimonyIri(tm), '@type': 'crm:E73_Information_Object', 'rdfs:label': ['Testimony', who, tm.date].filter(Boolean).join(', '),
       'dcterms:identifier': tm.id, 'dcterms:hasPart': list.map(function (s) { return { '@id': 'urn:walkingmemory:story:' + s.dbId + '#narrative' }; }) };
     if (who) n['dcterms:creator'] = who;
     if (tm.date) n['dcterms:date'] = { '@type': 'xsd:date', '@value': tm.date };
-    if (tm.place) n['dcterms:spatial'] = { '@type': 'crm:E53_Place', 'rdfs:label': tm.place };
     if (tm.language) n['dcterms:language'] = tm.language;
     addLicense(n, list[0] && list[0].license);
     return n;
@@ -5138,7 +5136,7 @@
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
       var colsV = colsW.replace('what,place_name)', 'what,place_name,who,caption)');    // the fragment's caption (and older who/where/when)
-      var r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code,narrator,anonymous,interview_date,interview_place,language),license,theme,who,place_name,period,narrator').order('created_at');
+      var r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code,narrator,anonymous,interview_date,language),license,theme,who,place_name,period,narrator').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,license').order('created_at');   // βάση χωρίς μαρτυρίες (roles.sql)
       if (r.error) r = await sb.from('stories').select(colsX + ',status').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
