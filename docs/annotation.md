@@ -96,23 +96,31 @@ the map — when) and its fragments (a caption for each photo or video; at least
 as a draft with source **AR app**; it is never published directly.
 
 ### Community validation
-**Community validation** lists the site's testimonies the community has not validated yet. Opening one shows it on a large
-screen (**Full screen** for a projector): the narrator, the interview (date, language), and each story with its theme, who,
-where and when, and its fragments with play buttons and captions. Nothing is corrected there — the who, what, where and when stay
-as they are. The facilitator:
-- **+ Write down what the community said** under each story — dated comments with the facilitator's name, listed under the story
-  (a facilitator can delete their own comment until the testimony is validated). They are never public; the annotators see them
-  on the annotation website (**What the community said**), and the facilitators on the story's page;
-- **✓ Validated by the community** — all its stories move on to annotation (`ready_for_annotation`).
+**Community validation** lists the site's testimonies with the community, each with its progress ("1 of 3 stories validated by
+the community"), and below, in green, the testimonies already validated (they stay in the list). Opening one shows it on a large
+screen (**Full screen** for a projector): its title, the narrator, the interview (date, language), how many stories are validated,
+and **its stories side by side** as cards (number, title, theme, a picture, how many fragments and comments, and "Not validated
+yet" or, in green, "✓ Validated by the community"). Opening a card shows that story full size: its theme, who, where and when,
+its fragments with play buttons and captions, and what the community said (**← All stories**, **Next story →**). Nothing is
+corrected there — the who, what, where and when stay as they are. With the community, the facilitator:
+- **+ Write down what the community said** — dated comments with the facilitator's name, listed under the story (a facilitator
+  can delete their own comment until the testimony is validated). They are never public; the annotators see them on the
+  annotation website (**What the community said**), and the facilitators on the story's page;
+- **✓ The community validates this story** — the story turns green and the screen goes back to all the stories (**Undo** on the
+  story takes it back); on the testimony's page such a story shows "With the community ✓";
+- **✓ Send the testimony to annotation** — once every story is green: all its stories move on to annotation
+  (`ready_for_annotation`). The stories stay on the screen, green, and the testimony stays in the list.
 While a testimony is with the community, it and its stories and fragments cannot be changed (on the website or in the AR app, and
-no stories are added). To change something, **Back to draft** on the testimony's page, correct it, and send it again.
+no stories are added). To change something, **Back to draft** on the testimony's page, correct it, and send it again (the
+stories then need to be validated again).
 
 ### Rules kept by the database (roles.sql)
 A new testimony needs a unique code, every agreement, a title, a licence, the anonymity, the narrator (initials only with anonymity), the
 date of the interview and the language; no story outside a draft testimony of the same site; testimonies and stories are
 visible only within their site; only the site's facilitators create or change testimonies, stories and fragments, and only while
-the testimony is a draft; with the community, they only add comments (`facilitator_comments`, read by the site's facilitators and
-the annotators); a story moves on only together with its testimony;
+the testimony is a draft; with the community, they only add comments (`facilitator_comments`, read by the site's
+facilitators and the annotators) and mark each story as validated (`stories.community_validated_at`); the testimony goes to
+annotation only when all its stories are, and a story moves on only together with its testimony;
 annotators see a story only after that; nothing is public before publication; withdrawn stays withdrawn. Every write is recorded
 in `audit_log` (user, time, entity, action, previous value, change); admins read it on the admin page.
 

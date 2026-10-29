@@ -732,6 +732,9 @@ alter table public.stories add constraint stories_workflow_check check (
 create index if not exists stories_site_idx on public.stories(site_id, status);
 drop index if exists public.stories_consent_idx;
 create index if not exists stories_testimony_idx on public.stories(testimony_id);
+-- During community validation each story is validated on its own (when the community agrees with it); the testimony goes
+-- to annotation once all its stories are. Cleared when the testimony goes back to draft.
+alter table public.stories add column if not exists community_validated_at timestamptz;
 update public.stories s set license = t.license, language = coalesce(t.language, s.language),
     narrator = case when t.anonymous is false then t.narrator end, testimony_title = t.title
   from public.testimonies t
@@ -886,7 +889,7 @@ create policy "delete stories" on public.stories for delete to authenticated
     or (public.is_annotator() and status in ('ready_for_annotation', 'submitted', 'returned', 'published')
         and (site_id is null or public.sees_site(site_id))));
 revoke update on public.stories from anon, authenticated;
-grant update (status, title, lat, lon, area, radius, theme, who, place_name, period) on public.stories to authenticated;
+grant update (status, title, lat, lon, area, radius, theme, who, place_name, period, community_validated_at) on public.stories to authenticated;
 
 -- The rules the policies cannot express: which status changes are allowed and who may make them, and that a story's
 -- content changes only while it is a draft. The SQL editor (no signed-in user) is not limited.
@@ -912,6 +915,12 @@ begin
     if not fac or old.status <> 'draft' then
       raise exception 'Only the site''s facilitators can change a story, while its testimony is a draft' using errcode = '42501';
     end if;
+  end if;
+  if new.community_validated_at is distinct from old.community_validated_at and pg_trigger_depth() < 2 then
+    if not fac or old.status <> 'community_validation' or new.status <> old.status then
+      raise exception 'Only the site''s facilitators can mark a story as validated by the community, while it is with the community' using errcode = '42501';
+    end if;
+    if new.community_validated_at is not null then new.community_validated_at := now(); end if;
   end if;
   if new.status is distinct from old.status then
     if new.status = 'withdrawn' then
@@ -976,14 +985,19 @@ begin
     elsif (old.status = 'draft' and new.status = 'community_validation') or (old.status = 'community_validation' and new.status = 'validated') then
       if not fac then raise exception 'Only the site''s facilitators can move a testimony on' using errcode = '42501'; end if;
       probs := public.testimony_problems(old.id);
+      if new.status = 'validated' and exists (select 1 from public.stories s where s.testimony_id = old.id
+           and s.status = 'community_validation' and s.community_validated_at is null) then
+        probs := probs || array['community'];       -- every story validated by the community first
+      end if;
       if cardinality(probs) > 0 then
         raise exception 'Not ready yet: %', array_to_string(probs, ', ') using errcode = '23514';
       end if;
-      update public.stories set status = case new.status when 'validated' then 'ready_for_annotation' else 'community_validation' end
+      update public.stories set status = case new.status when 'validated' then 'ready_for_annotation' else 'community_validation' end,
+          community_validated_at = case new.status when 'validated' then community_validated_at end
         where testimony_id = new.id and status = case new.status when 'validated' then 'community_validation' else 'draft' end;
     elsif old.status = 'community_validation' and new.status = 'draft' then
       if not fac then raise exception 'Only the site''s facilitators can take a testimony back' using errcode = '42501'; end if;
-      update public.stories set status = 'draft' where testimony_id = new.id and status = 'community_validation';
+      update public.stories set status = 'draft', community_validated_at = null where testimony_id = new.id and status = 'community_validation';
     else
       raise exception 'This status change is not allowed (% -> %)', old.status, new.status using errcode = '42501';
     end if;
