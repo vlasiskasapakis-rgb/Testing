@@ -144,6 +144,7 @@ alter table public.testimonies alter column site_id set default public.my_site()
 alter table public.testimonies add column if not exists status          text not null default 'draft';
 alter table public.testimonies alter column status set default 'draft';
 alter table public.testimonies add column if not exists withdrawn_at    timestamptz;
+alter table public.testimonies add column if not exists title           text;   -- shown to visitors with its stories
 alter table public.testimonies add column if not exists narrator        text;
 alter table public.testimonies add column if not exists anonymous       boolean;
 alter table public.testimonies add column if not exists interview_date  date;
@@ -166,7 +167,8 @@ alter table public.testimonies drop column if exists session_date, drop column i
 -- otherwise a name.
 alter table public.testimonies drop constraint if exists testimonies_fields_check;
 alter table public.testimonies add constraint testimonies_fields_check check (
-  (narrator is null or char_length(narrator) between 1 and 200)
+  (title is null or (char_length(title) between 1 and 120 and title = btrim(title)))
+  and (narrator is null or char_length(narrator) between 1 and 200)
   and (interview_place is null or char_length(interview_place) between 1 and 200)
   and (narrator is null or anonymous is not true
        or narrator ~ '^[A-Za-zÀ-ÖØ-öø-ɏͰ-ϿЀ-ӿἀ-῾](\.? ?[A-Za-zÀ-ÖØ-öø-ɏͰ-ϿЀ-ӿἀ-῾]){0,3}\.?$'));
@@ -218,8 +220,8 @@ create policy "read site testimonies" on public.testimonies for select to authen
 -- agreements, the licence and the anonymity never change (a mistake: delete the empty testimony, or withdraw it).
 create policy "facilitators add testimonies" on public.testimonies for insert to authenticated
   with check (public.is_facilitator() and user_id = auth.uid() and site_id = public.my_site() and status = 'draft'
-              and license is not null and anonymous is not null and narrator is not null and interview_date is not null
-              and language is not null
+              and title is not null and license is not null and anonymous is not null and narrator is not null
+              and interview_date is not null and language is not null
               and accepted @> '{"provide": true, "cut": true, "comment": true, "share": true, "voluntary": true}'::jsonb);
 create policy "facilitators edit testimonies" on public.testimonies for update to authenticated
   using (public.is_facilitator() and site_id = public.my_site())
@@ -227,12 +229,13 @@ create policy "facilitators edit testimonies" on public.testimonies for update t
 create policy "facilitators delete testimonies" on public.testimonies for delete to authenticated
   using (public.is_facilitator() and site_id = public.my_site() and status = 'draft');
 revoke update on public.testimonies from anon, authenticated;
-grant update (status, narrator, interview_date, language) on public.testimonies to authenticated;
+grant update (status, title, narrator, interview_date, language) on public.testimonies to authenticated;
 grant select, insert, delete on public.testimonies to authenticated;
 
--- Every story carries the licence and the language of its testimony, and the narrator's name when the narrator is not
--- anonymous (visitors see it as credit), copied by the database.
+-- Every story carries the licence, the language and the title of its testimony, and the narrator's name when the
+-- narrator is not anonymous (visitors see it as credit), copied by the database.
 alter table public.stories add column if not exists license  text;
+alter table public.stories add column if not exists testimony_title text;
 alter table public.stories add column if not exists narrator text;
 alter table public.stories alter column license drop not null;   -- (an earlier test version made it required)
 alter table public.stories alter column license drop default;
@@ -243,8 +246,8 @@ create or replace function public.story_from_testimony() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   if new.testimony_id is not null then
-    select t.license, coalesce(t.language, new.language), case when t.anonymous is false then t.narrator end
-      into new.license, new.language, new.narrator
+    select t.license, coalesce(t.language, new.language), case when t.anonymous is false then t.narrator end, t.title
+      into new.license, new.language, new.narrator, new.testimony_title
       from public.testimonies t where t.id = new.testimony_id;
   end if;
   return new;
@@ -730,10 +733,10 @@ create index if not exists stories_site_idx on public.stories(site_id, status);
 drop index if exists public.stories_consent_idx;
 create index if not exists stories_testimony_idx on public.stories(testimony_id);
 update public.stories s set license = t.license, language = coalesce(t.language, s.language),
-    narrator = case when t.anonymous is false then t.narrator end
+    narrator = case when t.anonymous is false then t.narrator end, testimony_title = t.title
   from public.testimonies t
-  where t.id = s.testimony_id and (s.license, s.language, s.narrator) is distinct from
-        (t.license, coalesce(t.language, s.language), case when t.anonymous is false then t.narrator end);
+  where t.id = s.testimony_id and (s.license, s.language, s.narrator, s.testimony_title) is distinct from
+        (t.license, coalesce(t.language, s.language), case when t.anonymous is false then t.narrator end, t.title);
 
 -- Fragment fields: the file (its kind detected automatically), its order (position), and a caption for a photo or a
 -- video. (Title, who, where and when of a fragment belong to an earlier version: they are now the story's.)
@@ -821,8 +824,8 @@ language sql stable security definer set search_path = public as $$
   select public.is_facilitator()
      and exists (select 1 from public.stories s where s.id = sid and s.site_id = public.my_site() and s.status = 'draft');
 $$;
--- What still stops a testimony from moving on: 'stories' (it has none), and for any of its stories 'theme' (no theme) or
--- 'audio' (no audio fragment).
+-- What still stops a testimony from moving on: 'title' (it has none: older testimonies), 'stories' (it has none), and for
+-- any of its stories 'theme' (no theme) or 'audio' (no audio fragment).
 create or replace function public.story_problems(sid uuid) returns text[]
 language sql stable security definer set search_path = public as $$
   select array_remove(array[
@@ -832,7 +835,8 @@ language sql stable security definer set search_path = public as $$
 $$;
 create or replace function public.testimony_problems(tid uuid) returns text[]
 language sql stable security definer set search_path = public as $$
-  select case when not exists (select 1 from public.stories s where s.testimony_id = tid and s.status <> 'withdrawn') then array['stories']
+  select case when exists (select 1 from public.testimonies t where t.id = tid and t.title is not null) then '{}'::text[] else array['title'] end
+    || case when not exists (select 1 from public.stories s where s.testimony_id = tid and s.status <> 'withdrawn') then array['stories']
     else (select coalesce(array_agg(distinct p order by p), '{}') from public.stories s, unnest(public.story_problems(s.id)) p
           where s.testimony_id = tid and s.status <> 'withdrawn') end;
 $$;
@@ -938,7 +942,7 @@ drop trigger if exists stories_guard        on public.stories;
 create trigger stories_guard before insert or update on public.stories for each row execute function public.guard_story();
 drop function if exists public.check_story_status();
 
--- A testimony and its stories move on together. Its details (narrator, date, language) change only while it is a draft
+-- A testimony and its stories move on together. Its details (title, narrator, date, language) change only while it is a draft
 -- (with the community nothing is corrected: what the community says is written down as comments on the stories; to change
 -- something the facilitator takes it back to draft); withdrawing it withdraws all its stories; withdrawn stays withdrawn.
 create or replace function public.guard_testimony() returns trigger
@@ -955,13 +959,13 @@ begin
   if auth.uid() is null then return new; end if;
   if old.status = 'withdrawn' then raise exception 'A withdrawn testimony cannot be changed' using errcode = '42501'; end if;
   fac := public.is_facilitator() and old.site_id is not distinct from public.my_site();
-  if (new.narrator, new.interview_date, new.interview_place, new.language)
-     is distinct from (old.narrator, old.interview_date, old.interview_place, old.language) then
+  if (new.title, new.narrator, new.interview_date, new.interview_place, new.language)
+     is distinct from (old.title, old.narrator, old.interview_date, old.interview_place, old.language) then
     if not fac or old.status <> 'draft' then
       raise exception 'Only the site''s facilitators can change a testimony, while it is a draft' using errcode = '42501';
     end if;
-    if new.narrator is null or new.interview_date is null or new.language is null then
-      raise exception 'The narrator, the date of the interview and the language are needed' using errcode = '23514';
+    if new.title is null or new.narrator is null or new.interview_date is null or new.language is null then
+      raise exception 'The title, the narrator, the date of the interview and the language are needed' using errcode = '23514';
     end if;
   end if;
   if new.status is distinct from old.status then
@@ -984,8 +988,9 @@ begin
       raise exception 'This status change is not allowed (% -> %)', old.status, new.status using errcode = '42501';
     end if;
   end if;
-  if new.status <> 'withdrawn' and (new.language, new.narrator) is distinct from (old.language, old.narrator) then
-    update public.stories set language = new.language, narrator = case when new.anonymous is false then new.narrator end
+  if new.status <> 'withdrawn' and (new.language, new.narrator, new.title) is distinct from (old.language, old.narrator, old.title) then
+    update public.stories set language = new.language, narrator = case when new.anonymous is false then new.narrator end,
+        testimony_title = new.title
       where testimony_id = new.id and status <> 'withdrawn';
   end if;
   return new;

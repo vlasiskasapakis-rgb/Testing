@@ -2588,7 +2588,7 @@
       id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', license: r.license || null,
       consentId: r.testimony_id || null, consentCode: (r.testimonies && r.testimonies.code) || null, theme: r.theme || '',
       who: r.who || '', placeName: r.place_name || '', period: r.period || '', narrator: r.narrator || '',   // narrator: only when not anonymous
-      testimony: r.testimony_id && r.testimonies ? { id: r.testimony_id, code: r.testimonies.code, narrator: r.testimonies.narrator || '',
+      testimony: r.testimony_id && r.testimonies ? { id: r.testimony_id, code: r.testimonies.code, title: r.testimonies.title || '', narrator: r.testimonies.narrator || '',
         anonymous: r.testimonies.anonymous !== false, language: r.testimonies.language || '',
         date: r.testimonies.interview_date || '' } : null,
       lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
@@ -4854,7 +4854,7 @@
     var q = ($('listSearch').value || '').trim().toLowerCase();
     var items = STORIES.filter(function (x) { return f.value === 'all' || x.status === f.value; }).filter(function (x) {
       var tm = x.testimony || {};
-      return !q || [st(x).title, x.author, x.consentCode, tm.narrator].join(' ').toLowerCase().indexOf(q) >= 0;
+      return !q || [st(x).title, x.author, x.consentCode, tm.title, tm.narrator].join(' ').toLowerCase().indexOf(q) >= 0;
     });
     if (PENDING_N) { var pn = document.createElement('p'); pn.className = 'sheet-sub'; pn.textContent = t('pendingNote', { n: PENDING_N }); body.appendChild(pn); }
     if (!items.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('listEmpty'); body.appendChild(p); return; }
@@ -4873,7 +4873,7 @@
       d.addEventListener('toggle', function () { if (!q) OPEN_T[g.key] = d.open; });
       var sm = document.createElement('summary');
       var tt = document.createElement('span'); tt.className = 'tg-t';
-      tt.textContent = g.tm ? [g.tm.code, g.tm.narrator].filter(Boolean).join(' · ') : t('tgNoTestimony');
+      tt.textContent = g.tm ? [g.tm.title, g.tm.code, g.tm.narrator].filter(Boolean).join(' · ') : t('tgNoTestimony');
       sm.appendChild(tt);
       var mm = document.createElement('span'); mm.className = 'tg-m';
       var bits = [];
@@ -4958,8 +4958,9 @@
   function testimonyIri(tm) { return 'urn:walkingmemory:testimony:' + tm.id; }
   function testimonyNode(tm, list) {
     var who = tm.anonymous ? '' : tm.narrator;          // an anonymous narrator's initials stay inside the project
-    var n = { '@id': testimonyIri(tm), '@type': 'crm:E73_Information_Object', 'rdfs:label': ['Testimony', who, tm.date].filter(Boolean).join(', '),
+    var n = { '@id': testimonyIri(tm), '@type': 'crm:E73_Information_Object', 'rdfs:label': tm.title || ['Testimony', who, tm.date].filter(Boolean).join(', '),
       'dcterms:identifier': tm.id, 'dcterms:hasPart': list.map(function (s) { return { '@id': 'urn:walkingmemory:story:' + s.dbId + '#narrative' }; }) };
+    if (tm.title) n['dcterms:title'] = tm.title;
     if (who) n['dcterms:creator'] = who;
     if (tm.date) n['dcterms:date'] = { '@type': 'xsd:date', '@value': tm.date };
     if (tm.language) n['dcterms:language'] = tm.language;
@@ -5136,7 +5137,7 @@
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
       var colsV = colsW.replace('what,place_name)', 'what,place_name,who,caption)');    // the fragment's caption (and older who/where/when)
-      var r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code,narrator,anonymous,interview_date,language),license,theme,who,place_name,period,narrator').order('created_at');
+      var r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code,title,narrator,anonymous,interview_date,language),license,theme,who,place_name,period,narrator').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,license').order('created_at');   // βάση χωρίς μαρτυρίες (roles.sql)
       if (r.error) r = await sb.from('stories').select(colsX + ',status').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');

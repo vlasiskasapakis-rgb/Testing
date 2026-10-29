@@ -56,14 +56,17 @@ more, and the action is logged.
   chosen licence; that they take part freely and can withdraw at any time;
 - the **licence** — CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, CC BY-NC-ND 4.0, Project use only, each explained in
   plain words;
+- a **title** (e.g. "Feasts and work at the harbour") — visitors see it with every story of the testimony, in the app and on the
+  stories website, so with anonymity it must not contain the narrator's name;
 - **Anonymity** (yes / no) and the **narrator**: with anonymity only the initials (e.g. "E.K."), never shown to visitors;
   without, the name as the consent allows, which visitors see with the published stories as credit;
 - the **date of the interview** and its **language or dialect** (no place: each story has its own place).
 
 The code, the agreements, the licence and the anonymity cannot be changed later (a testimony created by mistake, e.g. with a
-wrong code, can be deleted while it has no stories, or withdrawn). The narrator, the date and the language can be corrected
-while the testimony is a draft. The list of testimonies shows code, narrator, interview date, language, licence, number of
-stories and status, with search (code, narrator) and a status filter.
+wrong code, can be deleted while it has no stories, or withdrawn). The title, the narrator, the date and the language can be
+corrected while the testimony is a draft (a new title reaches its stories at once). The list of testimonies shows code, title,
+narrator, interview date, language, licence, number of stories and status, with search (code, title, narrator) and a status
+filter. Older testimonies without a title need one before they can go to the community.
 
 ### Story
 On the testimony's page, **+ New story**: **Title**, **Theme** (the interview question this story answers — its "why"),
@@ -105,7 +108,7 @@ While a testimony is with the community, it and its stories and fragments cannot
 no stories are added). To change something, **Back to draft** on the testimony's page, correct it, and send it again.
 
 ### Rules kept by the database (roles.sql)
-A new testimony needs a unique code, every agreement, a licence, the anonymity, the narrator (initials only with anonymity), the
+A new testimony needs a unique code, every agreement, a title, a licence, the anonymity, the narrator (initials only with anonymity), the
 date of the interview and the language; no story outside a draft testimony of the same site; testimonies and stories are
 visible only within their site; only the site's facilitators create or change testimonies, stories and fragments, and only while
 the testimony is a draft; with the community, they only add comments (`facilitator_comments`, read by the site's facilitators and
@@ -243,7 +246,7 @@ own location (📍 details) as before.
 ## Stories website for visitors
 `…/stories/` (it opens `index.html?view=1`; the app's start screen links to it: "No phone at hand? See the stories on the website")
 lets anyone see the stories without logging in, on a computer or a phone: a map of all **published** stories and a list with a
-photo, narrator and number of recordings/photos, with search. **Show** offers the published walks: choosing one lists its stops in
+photo, the testimony's title and number of recordings/photos, with search (titles of stories and testimonies). **Show** offers the published walks: choosing one lists its stops in
 order (1, 2, 3…) and draws the route on the map. Clicking a story (map or list) opens the same story view as the app — recordings
 with the photos appearing as they are mentioned, subtitles and terms. There is no AR distance lock here. Openings are counted in the
 analytics like the app's map/list.
@@ -332,7 +335,7 @@ select u.email, p.role from auth.users u left join public.profiles p on p.user_i
   installed, because re-running them would weaken the security rules; `roles.sql` is the only file to re-run for updates.
 
 ## Annotator workflow
-1. **Testimonies and stories** (top left) lists the stories grouped under their testimony (code · narrator, date of the
+1. **Testimonies and stories** (top left) lists the stories grouped under their testimony (title · code · narrator, date of the
    interview, how many stories and how many are waiting to be annotated); open a testimony to see its stories in the order
    they were recorded, each with its status, and open one without having to be nearby. Testimonies with stories to annotate come
    first; older stories without a testimony are in their own group. Search finds titles, names, codes and narrators.
@@ -362,7 +365,7 @@ A term points at the seconds where its word is spoken, not at its whole transcri
 See "Facilitator workflow" above: the licence is chosen with the narrator when the testimony is created (on the facilitator
 website or in the AR app); the database copies it to every story of that testimony (`stories.license`, not editable). The licence
 is shown on the story (app and stories website, linked to the licence text in the viewer's language) and on the annotation
-website, and is written in the final export. Visitors also see the story's theme, who, where, when and, when the narrator is not anonymous, the narrator.
+website, and is written in the final export. Visitors also see the story's testimony (its title), theme, who, where, when and, when the narrator is not anonymous, the narrator.
 
 ## Annotating (simplified)
 For each audio/video the sheet has two steps: **1 · Transcript** (get or edit the text; options such as language and speed are tucked

@@ -726,6 +726,7 @@
           <label class="check"><input type="radio" name="cnAnon" value="yes"><span data-i18n="arAnonYes"></span></label>
           <label class="check"><input type="radio" name="cnAnon" value="no"><span data-i18n="arAnonNo"></span></label>
         </fieldset>
+        <div class="input-group"><label for="cnTitle" data-i18n="arTmTitle"></label><input type="text" id="cnTitle" maxlength="120" autocomplete="off" aria-describedby="cnTitleHint"><p id="cnTitleHint" class="sheet-sub" style="margin:4px 0 0" data-i18n="arTmTitleHint"></p></div>
         <div class="input-group"><label for="cnNarrator" data-i18n="arNarrator"></label><input type="text" id="cnNarrator" maxlength="200" autocomplete="off" aria-describedby="cnNarratorHint"><p id="cnNarratorHint" class="sheet-sub" style="margin:4px 0 0"></p></div>
         <div class="input-group"><label for="cnDate" data-i18n="arInterviewDate"></label><input type="date" id="cnDate"></div>
         <div class="input-group"><label for="cnLanguage" data-i18n="arLanguage"></label><select id="cnLanguage" class="lang-select"></select></div>
@@ -1006,7 +1007,7 @@
       arConsentNew: "+ Νέα μαρτυρία",
       arConsentChoose: "— διάλεξε μαρτυρία —",
       arLicence: "Άδεια",
-      arConsentMissing: "Γράψε τον κωδικό του εντύπου (2 έως 40 χαρακτήρες), τσέκαρε όλες τις συμφωνίες, διάλεξε άδεια και ανωνυμία και συμπλήρωσε αφηγητή, ημερομηνία της συνέντευξης και γλώσσα.",
+      arConsentMissing: "Γράψε τον κωδικό του εντύπου (2 έως 40 χαρακτήρες), τσέκαρε όλες τις συμφωνίες, διάλεξε άδεια και ανωνυμία και συμπλήρωσε τίτλο, αφηγητή, ημερομηνία της συνέντευξης και γλώσσα.",
       arConsentSaved: "Η μαρτυρία {c} αποθηκεύτηκε.",
       factNarrator: "Αφηγητής",
       factWhen: "Πότε",
@@ -1024,6 +1025,9 @@
       arNarratorHintName: "Το όνομα, όπως το επιτρέπει η συναίνεση. Οι επισκέπτες το βλέπουν στις δημοσιευμένες ιστορίες.",
       arNarratorHintAnon: "Μόνο αρχικά, π.χ. Ε.Κ. Οι επισκέπτες δεν τα βλέπουν ποτέ.",
       arNarratorHint: "Αρχικά, ή το όνομα αν συμφωνεί ο αφηγητής (δες την Ανωνυμία).",
+      arTmTitle: "Τίτλος της μαρτυρίας",
+      arTmTitleHint: "Τον βλέπουν οι επισκέπτες μαζί με τις ιστορίες. Με ανωνυμία, μη γράψεις σε αυτόν το όνομα του αφηγητή.",
+      factTestimony: "Μαρτυρία",
       arNarrator: "Αφηγητής",
       arAnonNo: "Όχι: μπορεί να χρησιμοποιηθεί το όνομα του αφηγητή",
       arAnonYes: "Ναι: κρατάμε μόνο τα αρχικά του αφηγητή",
@@ -1431,7 +1435,7 @@
       arConsentNew: "+ New testimony",
       arConsentChoose: "— choose a testimony —",
       arLicence: "Licence",
-      arConsentMissing: "Type the form’s code (2 to 40 characters), tick every agreement, choose the licence and the anonymity, and fill in the narrator, the date of the interview and the language.",
+      arConsentMissing: "Type the form’s code (2 to 40 characters), tick every agreement, choose the licence and the anonymity, and fill in the title, the narrator, the date of the interview and the language.",
       arConsentSaved: "Testimony {c} saved.",
       factNarrator: "Narrator",
       factWhen: "When",
@@ -1449,6 +1453,9 @@
       arNarratorHintName: "The name, as the consent allows. Visitors see it with the published stories.",
       arNarratorHintAnon: "Initials only, e.g. E.K. Visitors never see them.",
       arNarratorHint: "Initials, or the name if the narrator agrees (see Anonymity).",
+      arTmTitle: "Title of the testimony",
+      arTmTitleHint: "Visitors see it with the stories. With anonymity, do not put the narrator’s name in it.",
+      factTestimony: "Testimony",
       arNarrator: "Narrator",
       arAnonNo: "No: the narrator’s name may be used",
       arAnonYes: "Yes: keep only the narrator’s initials",
@@ -1856,7 +1863,7 @@
       arConsentNew: "+ Nouveau témoignage",
       arConsentChoose: "— choisir un témoignage —",
       arLicence: "Licence",
-      arConsentMissing: "Saisissez le code du formulaire (2 à 40 caractères), cochez tous les accords, choisissez la licence et l’anonymat, et indiquez le narrateur, la date de l’entretien et la langue.",
+      arConsentMissing: "Saisissez le code du formulaire (2 à 40 caractères), cochez tous les accords, choisissez la licence et l’anonymat, et indiquez le titre, le narrateur, la date de l’entretien et la langue.",
       arConsentSaved: "Témoignage {c} enregistré.",
       factNarrator: "Narrateur",
       factWhen: "Quand",
@@ -1874,6 +1881,9 @@
       arNarratorHintName: "Le nom, comme le consentement le permet. Les visiteurs le voient avec les histoires publiées.",
       arNarratorHintAnon: "Initiales seulement, p. ex. E.K. Les visiteurs ne les voient jamais.",
       arNarratorHint: "Les initiales, ou le nom si le narrateur l’accepte (voir Anonymat).",
+      arTmTitle: "Titre du témoignage",
+      arTmTitleHint: "Les visiteurs le voient avec les histoires. Avec l’anonymat, n’y mettez pas le nom du narrateur.",
+      factTestimony: "Témoignage",
       arNarrator: "Narrateur",
       arAnonNo: "Non : le nom du narrateur peut être utilisé",
       arAnonYes: "Oui : ne garder que les initiales du narrateur",
@@ -2281,7 +2291,7 @@
       arConsentNew: "+ Nuova testimonianza",
       arConsentChoose: "— scegli una testimonianza —",
       arLicence: "Licenza",
-      arConsentMissing: "Scrivi il codice del modulo (da 2 a 40 caratteri), spunta tutti gli accordi, scegli licenza e anonimato e compila narratore, data dell’intervista e lingua.",
+      arConsentMissing: "Scrivi il codice del modulo (da 2 a 40 caratteri), spunta tutti gli accordi, scegli licenza e anonimato e compila titolo, narratore, data dell’intervista e lingua.",
       arConsentSaved: "Testimonianza {c} salvata.",
       factNarrator: "Narratore",
       factWhen: "Quando",
@@ -2299,6 +2309,9 @@
       arNarratorHintName: "Il nome, come consente il consenso. I visitatori lo vedono con le storie pubblicate.",
       arNarratorHintAnon: "Solo iniziali, es. E.K. I visitatori non le vedono mai.",
       arNarratorHint: "Le iniziali, o il nome se il narratore è d’accordo (vedi Anonimato).",
+      arTmTitle: "Titolo della testimonianza",
+      arTmTitleHint: "I visitatori lo vedono con le storie. Con l’anonimato, non scriverci il nome del narratore.",
+      factTestimony: "Testimonianza",
       arNarrator: "Narratore",
       arAnonNo: "No: si può usare il nome del narratore",
       arAnonYes: "Sì: teniamo solo le iniziali del narratore",
@@ -2920,11 +2933,12 @@
     renderConnections(s, via);
     openDialog('infoSheet');
   }
-  // the story's theme (the interview question), who, where (linked to the map), when, and the narrator when not anonymous
+  // the story's testimony (its title), theme (the interview question), who, where (linked to the map), when, and the narrator
+  // when not anonymous
   function renderStoryFacts(s) {
     var box = $('sheetFacts'); box.innerHTML = '';
     function row(label, val) { if (!val) return; var dt = document.createElement('dt'); dt.textContent = t(label); var dd = document.createElement('dd'); if (typeof val === 'string') dd.textContent = val; else dd.appendChild(val); box.appendChild(dt); box.appendChild(dd); }
-    row('factTheme', s.theme); row('factWho', s.who);
+    row('factTestimony', s.testimonyTitle); row('factTheme', s.theme); row('factWho', s.who);
     if (s.place) {
       var a = document.createElement('a'); a.href = osmLink(s.lat, s.lon); a.target = '_blank'; a.rel = 'noopener'; a.textContent = s.place; a.setAttribute('aria-label', t('miOpenMap') + ': ' + s.place);
       row('factWhere', a);
@@ -3615,7 +3629,7 @@
     return {
       id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', license: r.license || null,
       consentId: r.testimony_id || null, consentCode: (r.testimonies && r.testimonies.code) || null,
-      theme: r.theme || '', who: r.who || '', place: r.place_name || '', period: r.period || '', narrator: r.narrator || '',
+      theme: r.theme || '', who: r.who || '', place: r.place_name || '', period: r.period || '', narrator: r.narrator || '', testimonyTitle: r.testimony_title || '',
       lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
@@ -3641,7 +3655,8 @@
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
       var colsV = colsW.replace('what,place_name)', 'what,place_name,who,caption)');    // the fragment's caption (and older who/where/when)
       // a story: its testimony, theme, who, where, when, licence and (when not anonymous) the narrator
-      var r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code),license,theme,who,place_name,period,narrator').order('created_at');
+      var r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code),license,theme,who,place_name,period,narrator,testimony_title').order('created_at');
+      if (r.error) r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code),license,theme,who,place_name,period,narrator').order('created_at');   // (before testimony titles)
       if (r.error) r = await sb.from('stories').select(colsW + ',status,license').order('created_at');   // βάση χωρίς μαρτυρίες (roles.sql)
       if (r.error) r = await sb.from('stories').select(colsX + ',status').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');
@@ -3698,7 +3713,7 @@
       }
       return storyFromRow({ id: sid, user_id: uid, status: 'draft', testimony_id: consent.id,
         testimonies: { code: consent.code }, title: story.title, theme: story.theme, who: story.who, place_name: story.place, period: story.period, lat: pos.lat, lon: pos.lon,
-        radius: 40, author_name: userName(currentUser), story_media: rows });
+        radius: 40, author_name: userName(currentUser), testimony_title: consent.title || '', story_media: rows });
     }
   };
   loadRemoteStories();
@@ -4960,7 +4975,7 @@
   function showConsentLicense(lic) {
     var p = $('uploadLicense'); p.innerHTML = ''; p.appendChild(document.createTextNode(t('licShown') + ' ')); p.appendChild(licLinkEl(lic));
   }
-  function consentLabelOf(c) { return [c.code, c.narrator, c.interview_date].filter(Boolean).join(' · '); }
+  function consentLabelOf(c) { return [c.title, c.code, c.narrator].filter(Boolean).join(' · '); }
   var AGREE = ['provide', 'cut', 'comment', 'share', 'voluntary'];
   var INITIALS = /^\p{L}(\.? ?\p{L}){0,3}\.?$/u;      // with anonymity, only the narrator's initials (e.g. "EK", "E.K.")
   var SITE_CONSENTS = [];
@@ -4976,7 +4991,7 @@
   }
   function consentPicked() {
     var c = SITE_CONSENTS.filter(function (x) { return x.id === $('consentPick').value; })[0];
-    activeConsent = c ? { id: c.id, code: c.code, label: consentLabelOf(c), license: c.license, status: c.status } : null;
+    activeConsent = c ? { id: c.id, code: c.code, title: c.title || '', label: consentLabelOf(c), license: c.license, status: c.status } : null;
     $('consentInfo').textContent = c ? t('licShown') + ' ' + licName(c.license) + ' · ' + t('statusFacDraft') : '';
     $('consentContinue').disabled = !activeConsent;
   }
@@ -4993,7 +5008,7 @@
     document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { x.checked = false; });
     $('cnCodeIn').value = ''; $('cnLicense').value = ''; $('consentError').textContent = '';
     document.querySelectorAll('input[name="cnAnon"]').forEach(function (x) { x.checked = false; });
-    ['cnNarrator', 'cnDate', 'cnLanguage'].forEach(function (id) { $(id).value = ''; });
+    ['cnTitle', 'cnNarrator', 'cnDate', 'cnLanguage'].forEach(function (id) { $(id).value = ''; });
     renderConsentNewForm();
   }
   onLangChange(function () { if ($('consentSheet').classList.contains('on')) { renderConsentPick($('consentPick').value); renderConsentNewForm(); } if (activeConsent) showConsentLicense(activeConsent.license); });
@@ -5005,7 +5020,7 @@
     SITE_CONSENTS = [];
     renderConsentPick('');
     try {
-      var r = await sb.from('testimonies').select('id,code,narrator,interview_date,license,status,created_at').eq('site_id', currentSite)
+      var r = await sb.from('testimonies').select('id,code,title,narrator,interview_date,license,status,created_at').eq('site_id', currentSite)
         .eq('status', 'draft').order('created_at', { ascending: false }).limit(300);   // stories are added only while a testimony is a draft
       if (r.error) throw r.error;
       SITE_CONSENTS = r.data || [];
@@ -5023,19 +5038,20 @@
     var code = $('cnCodeIn').value.replace(/\s+/g, ' ').trim().toUpperCase();
     var acc = {}; document.querySelectorAll('input[name="cnAgree"]').forEach(function (x) { acc[x.value] = x.checked; });
     var lic = $('cnLicense').value, an = document.querySelector('input[name="cnAnon"]:checked'), anon = an ? an.value === 'yes' : null;
+    var title = $('cnTitle').value.replace(/\s+/g, ' ').trim().slice(0, 120);
     var narrator = $('cnNarrator').value.replace(/\s+/g, ' ').trim().slice(0, 200), date = $('cnDate').value, lang = $('cnLanguage').value;
-    if (code.length < 2 || !AGREE.every(function (k) { return acc[k]; }) || !lic || anon == null || !narrator || !date || !lang) {
+    if (code.length < 2 || !AGREE.every(function (k) { return acc[k]; }) || !lic || anon == null || !title || !narrator || !date || !lang) {
       err.textContent = t('arConsentMissing');
       (code.length < 2 ? $('cnCodeIn') : !AGREE.every(function (k) { return acc[k]; }) ? document.querySelector('input[name="cnAgree"]:not(:checked)') : !lic ? $('cnLicense')
-        : anon == null ? document.querySelector('input[name="cnAnon"]') : !narrator ? $('cnNarrator') : !date ? $('cnDate') : $('cnLanguage')).focus(); return;
+        : anon == null ? document.querySelector('input[name="cnAnon"]') : !title ? $('cnTitle') : !narrator ? $('cnNarrator') : !date ? $('cnDate') : $('cnLanguage')).focus(); return;
     }
     if (anon && !INITIALS.test(narrator)) { err.textContent = t('arNeedInitials'); $('cnNarrator').focus(); return; }
     var b = this; b.disabled = true;
     try {
       // the code printed in advance on the consent form
-      var r = await sb.from('testimonies').insert({ user_id: currentUser.id, code: code, license: lic, accepted: acc, anonymous: anon, narrator: narrator,
+      var r = await sb.from('testimonies').insert({ user_id: currentUser.id, code: code, title: title, license: lic, accepted: acc, anonymous: anon, narrator: narrator,
         interview_date: date, language: lang, statement_version: 'v4', lang: LANG })
-        .select('id,code,narrator,interview_date,license,status,created_at').single();
+        .select('id,code,title,narrator,interview_date,license,status,created_at').single();
       if (r.error) throw r.error;
       SITE_CONSENTS.unshift(r.data);
       consentResetForm(); renderConsentPick(r.data.id);
@@ -6027,7 +6043,7 @@
     $('browseWalkDesc').textContent = w ? w.description : '';
     var all = w ? walkStopsOf(w) : STORIES.filter(function (x) { return x.dbId && x.status === 'published'; }).sort(function (a, b) { return st(a).title.localeCompare(st(b).title); });
     var q = ($('browseSearch').value || '').trim().toLowerCase();
-    var list = all.filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '')).toLowerCase().indexOf(q) >= 0; });
+    var list = all.filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.testimonyTitle || '')).toLowerCase().indexOf(q) >= 0; });
     $('browseCount').textContent = list.length === 1 ? t('browseCount1') : list.length ? t('browseCount', { n: list.length }) : t('browseEmpty');
     var ol = $('browseList'); ol.innerHTML = '';
     list.forEach(function (x) {
@@ -6039,7 +6055,7 @@
       var tx = document.createElement('span'); tx.className = 'tx';
       var tb = document.createElement('b'); tb.textContent = (w ? (all.indexOf(x) + 1) + '. ' : '') + st(x).title; tx.appendChild(tb);
       var cnt = {}; x.media.forEach(function (m) { cnt[m.kind] = (cnt[m.kind] || 0) + 1; });
-      var meta = document.createElement('span'); meta.textContent = [x.author ? t('browseByAuthor', { n: x.author }) : '', ['audio', 'video', 'image'].filter(function (k) { return cnt[k]; }).map(function (k) { return KIND_ICON[k] + ' ' + cnt[k]; }).join('  ')].filter(Boolean).join(' · ');
+      var meta = document.createElement('span'); meta.textContent = [x.testimonyTitle ? '📖 ' + x.testimonyTitle : '', x.author ? t('browseByAuthor', { n: x.author }) : '', ['audio', 'video', 'image'].filter(function (k) { return cnt[k]; }).map(function (k) { return KIND_ICON[k] + ' ' + cnt[k]; }).join('  ')].filter(Boolean).join(' · ');
       tx.appendChild(meta); b.appendChild(tx);
       b.onclick = function () { browseMap.setView([x.lat, x.lon], Math.max(browseMap.getZoom(), 16)); openStorySheet(x, 'list'); };
       li.appendChild(b); ol.appendChild(li);
