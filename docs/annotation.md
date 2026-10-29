@@ -1,20 +1,22 @@
 # Roles, annotation and playback
 
 ## Who can do what
-| | Not logged in | Facilitator (with a site) | Annotator | Validator | Admin |
-|---|---|---|---|---|---|
-| See published stories | yes | yes | yes | yes | yes |
-| Testimonies, their stories and fragments, of **their site** | no | yes | no | no | sees all |
-| Capture stories in the AR app | no | yes | no | no | no |
-| Community validation of the site's testimonies | no | yes | no | no | no |
-| See stories once the community has validated their testimony (annotation, validation) | no | own site | yes (their site, or all sites without one) | yes | yes |
-| Transcribe, annotate, submit for validation | no | no | yes | yes | no |
-| Publish or return | no | no | no | yes | no |
-| Who works where, accounts, sites, languages, audit log (`admin/`) | no | no | no | no | yes |
+| | Not logged in | Facilitator (with a site) | Annotator | Admin |
+|---|---|---|---|---|
+| See published stories | yes | yes | yes | yes |
+| Testimonies, their stories and fragments, of **their site** | no | yes | no | sees all |
+| Capture stories in the AR app | no | yes | no | no |
+| Community validation of the site's testimonies | no | yes | no | no |
+| See stories once the community has validated their testimony | no | own site | yes (their site, or all sites without one) | yes |
+| Transcribe, annotate, mark a story as done | no | no | yes | no |
+| Final export of a testimony (RDF + JSON-LD), which publishes its stories; reopen a story | no | no | yes | no |
+| Publish walks (Story links page) | no | no | yes | no |
+| Who works where, accounts, sites, languages, audit log (`admin/`) | no | no | no | yes |
 
 Accounts are personal and created by an admin (there is no sign-up in the app). Each account belongs to one **pilot site**; a
 facilitator sees and uploads only to that site. All of this is enforced by the database rules, not only by hiding buttons, and
-every write is kept in the audit log. Nothing is public before a validator publishes it.
+every write is kept in the audit log. Nothing is public before the final export of its testimony. There are no validators any
+more: after the community has validated a testimony, the annotators annotate its stories and publish them with the final export.
 
 ## File names
 A fragment is named by its type and number in the story ("Audio 2", "Image 1", numbered per type) in the upload list, the story
@@ -41,8 +43,8 @@ The facilitator website is `…/facilitator/` (the AR app's start screen links t
 with a site sees a message instead.
 
 **Status flow.** Testimony: `draft` → `community_validation` → `validated`. Its stories follow it (`draft` →
-`community_validation` → `ready_for_annotation`); from then on each story goes on alone: `submitted` → `published` (or
-`returned`). **Withdrawn**: at any status a facilitator of the site can withdraw one story, or a whole testimony (which withdraws
+`community_validation` → `ready_for_annotation`); from then on each story goes on alone: `submitted` (annotation done) →
+`published` (the final export of its testimony); an annotator can reopen a story (back to `ready_for_annotation`). **Withdrawn**: at any status a facilitator of the site can withdraw one story, or a whole testimony (which withdraws
 all its stories). A withdrawn story is hidden everywhere (only admins and the site's facilitators still see it), cannot change any
 more, and the action is logged.
 
@@ -96,7 +98,7 @@ screen (**Full screen** for a projector): the narrator, the interview (date, pla
 who, where and when, and its fragments with play buttons and captions. With the community, the facilitator can:
 - **✎ Correct** a story's title, theme, who, where (name and point) and when; **✎ Caption** of a photo or video;
 - **✎ Narrator, date, place, language** of the testimony;
-- **Comment…** on a fragment — written to the fragment's internal comment (never shown on screen; annotators and validators see it);
+- **Comment…** on a fragment — written to the fragment's internal comment (never shown on screen; annotators see it);
 - **✓ Validated by the community** — all its stories move on to annotation (`ready_for_annotation`) and can no longer be changed
   on the facilitator website.
 
@@ -111,7 +113,7 @@ in `audit_log` (user, time, entity, action, previous value, change); admins read
 ### Admin page (`admin/`)
 For admins (`profiles.is_admin`). It opens with **Who works on which pilot site**: for each site, its facilitators (with the
 number of testimonies and stories each has created) and annotators, and the accounts without a site (a facilitator without a site
-cannot upload). Then **Accounts** (role facilitator/annotator, site, validator, admin — the accounts themselves are created in
+cannot upload). Then **Accounts** (role facilitator/annotator, site, admin — the accounts themselves are created in
 Supabase: Authentication → Users → Add user), **Pilot sites** (add, rename, delete), **Languages and dialects** (code + label;
 e.g. `el-lesvos` "Lesvian Greek") and the **Audit log** (latest 200 writes, with the previous value). Turn off "Allow new users to
 sign up" in Supabase (Authentication → Sign In / Providers) so that only admins create accounts.
@@ -120,7 +122,9 @@ sign up" in Supabase (Authentication → Sign In / Providers) so that only admin
 Running `roles.sql` updates older data once: the earlier consent codes become testimonies (renamed, keeping their code, licence
 and agreements; their status follows their stories), so the narrator, date, place and language of those can be filled in on the
 testimony's page; a photo's or video's title becomes its caption, and the first who / where / when of a story's fragments become
-the story's. Stories from before sites have no site: annotators and the uploader keep seeing them as before.
+the story's. Stories from before sites have no site: annotators and the uploader keep seeing them as before. A story an earlier
+validator had returned goes back to annotation, and a walk still waiting for a validator becomes "not a walk" again (publish it
+from the Story links page); published stories and walks stay published.
 
 ## One dropdown per recording in the player area
 In the story view (the app and the annotation website) each audio or video is its own dropdown ("Audio 2 · Second tape") holding its
@@ -185,7 +189,8 @@ annotators edit, administrators can read.
   boards. Tables: `story_boards`, `story_board_items` (position of each story), `story_board_links` — re-run `supabase/roles.sql` once.
 
 ### Walks in the AR app
-Tick **Walk in the AR app** under a board (and optionally write a short description) to offer it to visitors as a walk.
+Under a board, **Publish as a walk in the app** (and optionally write a short description) offers it to visitors as a walk;
+**Withdraw the walk** takes it back. Annotators publish walks directly; only published stories are shown in a walk.
 In the app, the start screen asks **How do you want to explore?**:
 - **Free roam** — all stories around you, as before;
 - **Follow a walk** — pick a walk (with its number of stops and description). Only its stories are shown, numbered in the order of
@@ -197,29 +202,29 @@ The button under the language (🧭 Free roam / 🚶 walk name · 2/5) switches 
 can **restart the walk**. Without any published walk the app works exactly as before. Openings from the walk card are counted in
 the analytics as "Walk (next stop)". Needs `supabase/roles.sql` re-run (columns `is_walk`, `description`; visitors may read walks).
 
-## Validation before publishing (validate/ page)
-Annotators no longer publish directly: a **validator** approves every story and every walk first.
-- **Stories**: on the annotation site the button is **Submit for validation** (with an optional message). The story becomes
-  *Submitted for validation*; **Withdraw from validation** turns it back into a draft. A validator then either **approves and
-  publishes** it, or **returns it with comments** — the story becomes *Returned with comments*, the comments are shown in red at the top
-  of the story (with the whole validation history), and the annotator fixes it and presses **Submit again for validation**.
-  Published stories can still be unpublished by annotators. The story list shows the status and can be filtered by it.
-- **Walks**: on the Story links page, **Submit as a walk for validation** replaces the old checkbox; states: *Not a walk*, *Waiting for
-  validation* (Withdraw), *Returned by the validator* (with the comment; Submit again), *Published walk in the app* (Withdraw the walk).
-  Visitors see a walk only after a validator approves it.
-- **Validator page** `…/validate/` (also a **Validation** button in the annotation site's header for validators): stories and walks
-  waiting for validation. Each story shows who submitted it and their message, its files (with a preview player), transcript lines,
-  approved terms, a warning for term suggestions not yet reviewed, expert comments, consent code and location, and opens in full in the
-  annotation site. Each walk shows its stops in order and warns about stops that are not published (visitors won't see them).
-  **Approve and publish** or **Return with comments** (a comment is required). Recent decisions are listed at the bottom.
-- The database enforces it: only validators can publish or return a story and approve or return a walk (trigger), and every
-  submission/decision is recorded in `reviews`. Make someone a validator (they also need the annotator role) in the SQL editor:
-  `update public.profiles set role = 'annotator', is_validator = true where user_id = (select id from auth.users where email = '…');`
-  Existing published stories and walks stay published. Re-run `supabase/roles.sql` once (as written, without enabling RLS).
+## Annotation done and final export (annotation website)
+There is no validation step after annotation: the annotators publish the stories themselves, a whole testimony at a time.
+- **✓ Annotation done** (on a story): asks for confirmation, and says how many term suggestions are still unreviewed (they stay
+  hidden). The story becomes *Annotated: waiting for the final export*. **Reopen for annotation** turns it back.
+- Under each testimony in the list: "2 of 3 stories done" and **Final export (RDF + JSON)**, which works once every story of the
+  testimony is done. After a confirmation it builds one graph for the testimony and all its stories, **publishes** the stories
+  (visitors see them in the app and on the stories website) and downloads two files with the same content:
+  `testimony-<code>.ttl` (RDF Turtle) and `testimony-<code>.jsonld` (JSON-LD). Once everything is published the button becomes
+  **Export again**, which only downloads the files.
+- What the files hold: the testimony (date, place and language of the interview, licence, and the narrator only when not
+  anonymous; not the consent code), and for each story its title, theme, who / where (name and point) / when, licence, files (with
+  the captions of photos and videos), transcripts, approved terms (where in the recording, or which area of an image), image ↔
+  moment links and expert comments, using CIDOC-CRM, the ECHOES heritage ontology (namespace from `WM_CONFIG.HDT_NS`), Dublin Core
+  and Web Annotation. Term suggestions that were not approved are left out.
+- **Unpublish and reopen** (on a published story) takes it off the app and back to annotation; export the testimony again when it
+  is done.
+- The database enforces it: only annotators mark stories done, reopen them and publish them (and only stories marked done), and
+  every step is recorded in `reviews` (shown as **History** on the story). The old `validate/` address opens the annotation website.
+  Re-run `supabase/roles.sql` once.
 
 ## Deleting a story (annotation website)
 Withdrawal (facilitator website) is the normal way to take a story away. Deleting is for mistakes: a facilitator can delete a
-**draft** of their site, and annotators can delete a story that is already in annotation, validation or published. Open the story
+**draft** of their site, and annotators can delete a story that is already in annotation, annotated or published. Open the story
 and press **Delete story** (top right). A dialog lists what goes with it — its files, transcripts, terms and image notes, and its view
 statistics — and the button only works after ticking **I understand this cannot be undone**. The story disappears for everyone
 (app, map, annotation website); its uploaded files are removed from storage. The audit log and the history of annotators'
@@ -269,7 +274,7 @@ once; until then the button does not appear). Changes are counted as term edits 
 ## Help for new annotators (annotation website)
 - The start page and the **Help** button in the header show a 6-step "How it works" guide.
 - Drafts are listed first. Collapsible boxes show ▸ / ▾. The transcription language picker is labelled "Recording language".
-- **Publish** and **Unpublish** ask for confirmation; publishing also says how many suggestions are still unreviewed.
+- **✓ Annotation done**, **Reopen**, **Unpublish and reopen** and the final export ask for confirmation; "done" also says how many suggestions are still unreviewed.
 - Leaving a story, logging out or closing the tab with an unsaved transcript asks first.
 - Image notes: each step gets a ✓ when done, and **Add note** stays disabled with a "Still needed: …" hint until all three are done.
 
@@ -294,7 +299,7 @@ starts from then on.
 - **The facilitator website** (`…/facilitator/`): testimonies, their stories and fragments, and community validation.
 - **The annotation website** (`annotate/index.html`, same hosting, address `…/annotate/`): annotators log in with their account
   (the same Supabase accounts and the same `config.js`), see all stories, and on a wide screen work with the player, timeline and
-  public preview on the left and the transcription / terms / image notes on the right. Publishing is there too.
+  public preview on the left and the transcription / terms / image notes on the right. The final export (which publishes) is there too.
   Accounts without the annotator role see a message instead. The right side has two tabs, **Transcript & terms** and **Images**; click a line's time to play from there, and the current line is highlighted (and followed while playing, unless you untick **Follow playback**). Everything below about annotating happens on this website.
 
 ## Setup (once, in this order)
@@ -335,7 +340,8 @@ select u.email, p.role from auth.users u left join public.profiles p on p.user_i
    Each term on an audio/video row has a **Time** button: set when in the recording it applies (the
    player on that section has Start/End = current time), or choose **Whole recording**. Transcript-based
    suggestions start with their transcript line's range.
-4. **Publish for everyone**.
+4. **✓ Annotation done** on each story; when all the stories of a testimony are done, **Final export (RDF + JSON)** under the
+   testimony downloads the files and publishes its stories.
 
 ## Exact seconds for suggestions
 A term points at the seconds where its word is spoken, not at its whole transcript line:
@@ -352,8 +358,8 @@ A term points at the seconds where its word is spoken, not at its whole transcri
 ## Testimonies and licences
 See "Facilitator workflow" above: the licence is chosen with the narrator when the testimony is created (on the facilitator
 website or in the AR app); the database copies it to every story of that testimony (`stories.license`, not editable). The licence
-is shown on the story (app and stories website, linked to the licence text in the viewer's language), on the annotation and
-validation pages. Visitors also see the story's theme, who, where, when and, when the narrator is not anonymous, the narrator.
+is shown on the story (app and stories website, linked to the licence text in the viewer's language) and on the annotation
+website, and is written in the final export. Visitors also see the story's theme, who, where, when and, when the narrator is not anonymous, the narrator.
 
 ## Annotating (simplified)
 For each audio/video the sheet has two steps: **1 · Transcript** (get or edit the text; options such as language and speed are tucked

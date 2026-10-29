@@ -73,8 +73,7 @@
   .walk-chk input { width: 20px; height: 20px; }
   .walk-state { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
   .walk-state b { color: var(--petrol); font-size: 14px; }
-  .walk-state b.sub { color: #1565C0; } .walk-state b.ret { color: var(--danger); } .walk-state b.ok { color: #2E7D32; }
-  .walk-ret { margin-top: 6px; padding: 6px 10px; border-radius: 8px; background: #FDECEA; border-left: 4px solid var(--danger); font-size: 13px; white-space: pre-wrap; }
+  .walk-state b.ok { color: #2E7D32; }
   #walkDesc { width: 100%; margin-top: 6px; padding: 6px 8px; border: 2px solid var(--line-strong); border-radius: 8px; font: inherit; font-size: 14px; resize: vertical; }
   .walk-box .note { margin: 4px 0 0; font-size: 12px; }
   details.fold > summary { cursor: pointer; font-weight: 700; color: var(--petrol); font-size: 17px; }
@@ -163,7 +162,6 @@
       </div>
       <div id="walkBox" class="walk-box">
         <div class="walk-state"><b id="walkState"></b><button id="walkAct" type="button" class="btn-sec btn-sm"></button></div>
-        <div id="walkRet" class="walk-ret" hidden></div>
         <label for="walkDesc" class="sr-only" data-i="walkDescLbl"></label>
         <textarea id="walkDesc" rows="2" maxlength="1000" data-i-ph="walkDescPh"></textarea>
         <p class="note" data-i="walkNote"></p>
@@ -224,16 +222,12 @@
   var I18N = {
     el: {
       walkNone: "Δεν είναι διαδρομή",
-      walkSubmit: "Υποβολή ως διαδρομή για έλεγχο",
-      walkWaiting: "Περιμένει έλεγχο",
-      walkWithdraw: "Απόσυρση",
-      walkReturned: "Επιστράφηκε από τον ελεγκτή",
-      walkResubmit: "Νέα υποβολή",
+      walkPublish: "Δημοσίευση ως διαδρομή στην εφαρμογή",
+      walkPublishQ: "Δημοσίευση του «{t}» ως διαδρομή; Οι επισκέπτες θα τη βλέπουν στην εφαρμογή.",
       walkApproved: "Δημοσιευμένη διαδρομή στην εφαρμογή",
       walkUnpublish: "Απόσυρση διαδρομής",
-      walkSubmitQ: "Υποβολή του «{t}» ως διαδρομή. Προαιρετικό μήνυμα για τους ελεγκτές:",
-      walkNeedSql: "Ο έλεγχος διαδρομών χρειάζεται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.",
-      walkNote: "Ένας ελεγκτής εγκρίνει τη διαδρομή πριν τη δουν οι επισκέπτες. Οι πρόχειρες ιστορίες δεν εμφανίζονται.",
+      walkNeedSql: "Οι διαδρομές χρειάζονται ενημέρωση της βάσης: τρέξε μία φορά το supabase/roles.sql.",
+      walkNote: "Οι επισκέπτες βλέπουν τη διαδρομή στην εφαρμογή μόλις δημοσιευτεί. Εμφανίζονται μόνο οι δημοσιευμένες ιστορίες.",
       isWalk: "Διαδρομή στην εφαρμογή AR",
       walkDescLbl: "Περιγραφή διαδρομής",
       walkDescPh: "Σύντομη περιγραφή για τους επισκέπτες (προαιρετικά)",
@@ -259,16 +253,12 @@
     },
     en: {
       walkNone: "Not a walk",
-      walkSubmit: "Submit as a walk for validation",
-      walkWaiting: "Waiting for validation",
-      walkWithdraw: "Withdraw",
-      walkReturned: "Returned by the validator",
-      walkResubmit: "Submit again",
+      walkPublish: "Publish as a walk in the app",
+      walkPublishQ: "Publish “{t}” as a walk? Visitors will see it in the app.",
       walkApproved: "Published walk in the app",
       walkUnpublish: "Withdraw the walk",
-      walkSubmitQ: "Submit “{t}” as a walk. Optional message for the validators:",
-      walkNeedSql: "Walk validation needs a database update: run supabase/roles.sql once.",
-      walkNote: "A validator approves the walk before visitors see it. Draft stories are not shown.",
+      walkNeedSql: "Walks need a database update: run supabase/roles.sql once.",
+      walkNote: "Visitors see the walk in the app once it is published. Only published stories are shown.",
       isWalk: "Walk in the AR app",
       walkDescLbl: "Walk description",
       walkDescPh: "Short description for visitors (optional)",
@@ -294,16 +284,12 @@
     },
     fr: {
       walkNone: "Pas un parcours",
-      walkSubmit: "Soumettre comme parcours",
-      walkWaiting: "En attente de validation",
-      walkWithdraw: "Retirer",
-      walkReturned: "Renvoyé par le validateur",
-      walkResubmit: "Soumettre à nouveau",
+      walkPublish: "Publier comme parcours dans l’application",
+      walkPublishQ: "Publier « {t} » comme parcours ? Les visiteurs le verront dans l’application.",
       walkApproved: "Parcours publié dans l’application",
       walkUnpublish: "Retirer le parcours",
-      walkSubmitQ: "Soumettre « {t} » comme parcours. Message facultatif pour les validateurs :",
-      walkNeedSql: "La validation des parcours nécessite une mise à jour de la base : exécutez une fois supabase/roles.sql.",
-      walkNote: "Un validateur approuve le parcours avant que les visiteurs le voient. Les brouillons ne sont pas affichés.",
+      walkNeedSql: "Les parcours nécessitent une mise à jour de la base : exécutez une fois supabase/roles.sql.",
+      walkNote: "Les visiteurs voient le parcours dans l’application dès sa publication. Seules les histoires publiées sont affichées.",
       isWalk: "Parcours dans l’application AR",
       walkDescLbl: "Description du parcours",
       walkDescPh: "Courte description pour les visiteurs (facultatif)",
@@ -329,16 +315,12 @@
     },
     it: {
       walkNone: "Non è un percorso",
-      walkSubmit: "Invia come percorso per la validazione",
-      walkWaiting: "In attesa di validazione",
-      walkWithdraw: "Ritira",
-      walkReturned: "Restituito dal validatore",
-      walkResubmit: "Invia di nuovo",
+      walkPublish: "Pubblica come percorso nell’app",
+      walkPublishQ: "Pubblicare «{t}» come percorso? I visitatori lo vedranno nell’app.",
       walkApproved: "Percorso pubblicato nell’app",
       walkUnpublish: "Ritira il percorso",
-      walkSubmitQ: "Inviare «{t}» come percorso. Messaggio facoltativo per i validatori:",
-      walkNeedSql: "La validazione dei percorsi richiede un aggiornamento del database: esegui una volta supabase/roles.sql.",
-      walkNote: "Un validatore approva il percorso prima che i visitatori lo vedano. Le bozze non vengono mostrate.",
+      walkNeedSql: "I percorsi richiedono un aggiornamento del database: esegui una volta supabase/roles.sql.",
+      walkNote: "I visitatori vedono il percorso nell’app appena pubblicato. Vengono mostrate solo le storie pubblicate.",
       isWalk: "Percorso nell’app AR",
       walkDescLbl: "Descrizione del percorso",
       walkDescPh: "Breve descrizione per i visitatori (facoltativa)",
@@ -476,36 +458,28 @@
     $('walkBox').hidden = !cur;
     if (cur) { renderWalkState(cur); if (document.activeElement !== $('walkDesc')) $('walkDesc').value = cur.description || ''; }
   }
-  // Διαδρομή: υποβολή για έλεγχο → ο ελεγκτής εγκρίνει (εμφανίζεται στην εφαρμογή) ή επιστρέφει με σχόλια
-  function walkStatusOf(b) { return b.walk_status || (b.is_walk ? 'approved' : 'none'); }
+  // Walk: an annotator publishes it in the app, or takes it back (walks once waiting for a validator count as not published)
+  function walkStatusOf(b) { return b.is_walk ? 'approved' : 'none'; }
   function renderWalkState(b) {
     var ws = walkStatusOf(b), el = $('walkState'), act = $('walkAct');
-    el.textContent = t({ none: 'walkNone', submitted: 'walkWaiting', returned: 'walkReturned', approved: 'walkApproved' }[ws]);
-    el.className = { submitted: 'sub', returned: 'ret', approved: 'ok' }[ws] || '';
-    act.textContent = t({ none: 'walkSubmit', submitted: 'walkWithdraw', returned: 'walkResubmit', approved: 'walkUnpublish' }[ws]);
-    act.className = (ws === 'none' || ws === 'returned' ? 'btn' : 'btn-sec') + ' btn-sm';
-    var ret = $('walkRet'); ret.hidden = true; ret.textContent = '';
-    if (ws === 'returned') {
-      sb.from('reviews').select('message,user_name,created_at').eq('board_id', b.id).eq('action', 'returned').order('created_at', { ascending: false }).limit(1).then(function (r) {
-        if (r.error || !r.data || !r.data.length || b.id !== boardId) return;
-        ret.textContent = '↩ ' + (r.data[0].user_name || '') + ': ' + (r.data[0].message || ''); ret.hidden = false;
-      });
-    }
+    el.textContent = t(ws === 'approved' ? 'walkApproved' : 'walkNone');
+    el.className = ws === 'approved' ? 'ok' : '';
+    act.textContent = t(ws === 'approved' ? 'walkUnpublish' : 'walkPublish');
+    act.className = (ws === 'approved' ? 'btn-sec' : 'btn') + ' btn-sm';
   }
   function myName() { return user ? ((user.user_metadata && user.user_metadata.display_name) || (user.email || '').split('@')[0]) : ''; }
   $('walkAct').onclick = async function () {
     var b = BOARDS.filter(function (x) { return x.id === boardId; })[0]; if (!b) return;
-    var ws = walkStatusOf(b), patch, action, note = null;
-    if (ws === 'none' || ws === 'returned') {
-      note = window.prompt(t('walkSubmitQ', { t: b.title }), ''); if (note === null) return;
-      patch = { walk_status: 'submitted' }; action = 'submitted';
-    } else if (ws === 'submitted') { patch = { walk_status: 'none' }; action = 'withdrawn'; }
-    else { patch = { walk_status: 'none', is_walk: false }; action = 'unpublished'; }
+    var ws = walkStatusOf(b), patch, action;
+    if (ws === 'none') {
+      if (!window.confirm(t('walkPublishQ', { t: b.title }))) return;
+      patch = { walk_status: 'approved', is_walk: true }; action = 'approved';
+    } else { patch = { walk_status: 'none', is_walk: false }; action = 'unpublished'; }
     patch.updated_at = new Date().toISOString();
     var r = await write(sb.from('story_boards').update(patch).eq('id', b.id));
-    if (r.error) { if (/walk_status|reviews|schema cache/i.test(r.error.message || '')) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('walkNeedSql'); } return; }
+    if (r.error) { if (/walk_status|reviews|schema cache|validator/i.test(r.error.message || '')) { $('saveStatus').className = 'bad'; $('saveStatus').textContent = t('walkNeedSql'); } return; }
     Object.assign(b, patch);
-    await write(sb.from('reviews').insert({ board_id: b.id, action: action, message: note ? note.trim().slice(0, 4000) : null, user_id: user.id, user_name: myName() }));
+    await write(sb.from('reviews').insert({ board_id: b.id, action: action, user_id: user.id, user_name: myName() }));
     renderBoards();
   };
   // Διαδρομή στην εφαρμογή: αποθηκεύεται αμέσως

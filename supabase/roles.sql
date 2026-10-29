@@ -5,9 +5,10 @@
 --                the stories' fragments for that site, and goes through each testimony with the community (community
 --                validation).
 --                An account without a site can do nothing yet.
---   annotator:   transcribes, annotates, links images to moments of audio/video and submits stories for validation
---                (the stories of testimonies the community has validated). Annotators without a site see every site.
---   validator:   an annotator who also publishes or returns stories.
+--   annotator:   transcribes, annotates and links images to moments of audio/video in the stories of testimonies the
+--                community has validated, marks each story as annotated, and makes the final export of a testimony,
+--                which publishes its stories. Also publishes walks. Annotators without a site see every site.
+--                (There are no validators any more.)
 --   admin:       manages sites, languages and accounts (admin page); sees everything.
 --   everyone else (not logged in): sees only published stories.
 --
@@ -623,10 +624,7 @@ revoke all on public.story_heritage from anon;
 grant select (id, story_id, uri, label) on public.story_heritage to anon;
 grant select, insert, update, delete on public.story_heritage to authenticated;
 
--- ---------- validation: a validator approves stories and walks before they are published ----------
--- Make someone a validator (they also need the annotator role, to see and fix drafts):
---   update public.profiles set role = 'annotator', is_validator = true
---   where user_id = (select id from auth.users where email = 'validator@example.com');
+-- ---------- (an earlier version had validators who approved stories and walks; annotators now publish them) ----------
 alter table public.profiles add column if not exists is_validator boolean not null default false;
 create or replace function public.is_validator() returns boolean language sql stable security definer set search_path = public as $$ select exists (select 1 from public.profiles where user_id = auth.uid() and is_validator) $$;
 grant execute on function public.is_validator() to anon, authenticated;
@@ -635,8 +633,9 @@ grant execute on function public.is_validator() to anon, authenticated;
 -- ---------- facilitator workflow: testimonies, stories, fragments, community validation ----------
 -- Testimony status: draft (the facilitator adds its stories and their fragments) -> community_validation (the facilitator
 --   goes through it with the community, who correct and complete it) -> validated. Its stories follow it: draft ->
---   community_validation -> ready_for_annotation, and then each story on its own: submitted (annotator) -> published or
---   returned (validator) -> ...
+--   community_validation -> ready_for_annotation, and then each story on its own: submitted (the annotator marks it as
+--   annotated) -> published (the final export of its testimony, once all its stories are annotated). An annotator can
+--   take a story back to annotation at any time.
 -- withdrawn: at any status a facilitator of the site can withdraw a story, or its whole testimony; it is then hidden
 -- everywhere (admins still see it) and nothing about it can change any more. Every write is in audit_log.
 
@@ -657,6 +656,11 @@ begin
     alter table public.stories drop constraint if exists stories_status_check;
     update public.stories set status = 'community_validation' where status = 'ready_for_workshop';
     insert into public.wm_migrations (name) values ('story_status_v3');
+  end if;
+  -- no validators any more: a story an earlier validator returned goes back to annotation
+  if not exists (select 1 from public.wm_migrations where name = 'no_validator_v5') then
+    update public.stories set status = 'ready_for_annotation' where status = 'returned';
+    insert into public.wm_migrations (name) values ('no_validator_v5');
   end if;
 end $$;
 alter table public.stories drop constraint if exists stories_status_check;
@@ -800,8 +804,8 @@ begin
 end $$;
 drop function if exists public.texts_ok(text[], integer);   -- (used by the list of names of an earlier version)
 
--- Internal comment on a fragment (e.g. what the community said): seen by the site's facilitators and by annotators and
--- validators, never public.
+-- Internal comment on a fragment (e.g. what the community said): seen by the site's facilitators and by annotators,
+-- never public.
 create table if not exists public.fragment_notes (
   media_id   uuid primary key references public.story_media(id) on delete cascade,
   body       text not null check (char_length(body) <= 8000),
@@ -922,8 +926,9 @@ begin
       if not public.is_annotator() then raise exception 'Only an annotator can submit a story' using errcode = '42501'; end if;
     elsif new.status = 'ready_for_annotation' and old.status in ('submitted', 'published') then
       if not public.is_annotator() then raise exception 'Only an annotator can take a story back' using errcode = '42501'; end if;
-    elsif old.status = 'submitted' and new.status in ('published', 'returned') then
-      if not public.is_validator() then raise exception 'Only a validator can publish or return a story' using errcode = '42501'; end if;
+    elsif old.status = 'submitted' and new.status = 'published' then
+      -- the final export of its testimony
+      if not public.is_annotator() then raise exception 'Only an annotator can publish a story (final export)' using errcode = '42501'; end if;
     else
       raise exception 'This status change is not allowed (% -> %)', old.status, new.status using errcode = '42501';
     end if;
@@ -1140,18 +1145,20 @@ end $$;
 revoke execute on function public.admin_users(), public.admin_set_user(uuid, text, uuid, boolean, boolean) from public, anon;
 grant execute on function public.admin_users(), public.admin_set_user(uuid, text, uuid, boolean, boolean) to authenticated;
 
--- Walks: an annotator submits a board as a walk; it is shown in the app (is_walk) only after a validator approves it.
+-- Walks: an annotator publishes a board as a walk; it is then shown in the app (is_walk). (An earlier version had
+-- validators approve them first: walks still waiting for one go back to "not a walk".)
 alter table public.story_boards add column if not exists walk_status text not null default 'none';
 alter table public.story_boards drop constraint if exists story_boards_walk_status_check;
 alter table public.story_boards add constraint story_boards_walk_status_check check (walk_status in ('none', 'submitted', 'returned', 'approved'));
 update public.story_boards set walk_status = 'approved' where is_walk and walk_status = 'none';
+update public.story_boards set walk_status = 'none' where walk_status in ('submitted', 'returned');
 create or replace function public.check_walk_status() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  if auth.uid() is not null and not public.is_validator() and (
+  if auth.uid() is not null and not public.is_annotator() and (
        (new.is_walk and not coalesce(old.is_walk, false))
        or (new.walk_status is distinct from old.walk_status and new.walk_status in ('approved', 'returned'))) then
-    raise exception 'Only a validator can approve or return a walk' using errcode = '42501';
+    raise exception 'Only an annotator can publish a walk' using errcode = '42501';
   end if;
   return new;
 end $$;
@@ -1159,7 +1166,7 @@ drop trigger if exists story_boards_walk_guard on public.story_boards;
 create trigger story_boards_walk_guard before update on public.story_boards for each row execute function public.check_walk_status();
 grant select (walk_status) on public.story_boards to anon;
 
--- History of submissions and decisions (with the validator's comments)
+-- History of status changes (annotated, reopened, final export; earlier validators' decisions)
 create table if not exists public.reviews (
   id         uuid primary key default gen_random_uuid(),
   story_id   uuid references public.stories(id) on delete cascade,
@@ -1178,7 +1185,7 @@ drop policy if exists "staff read reviews" on public.reviews;
 drop policy if exists "staff add reviews"  on public.reviews;
 create policy "staff read reviews" on public.reviews for select to authenticated using (public.is_annotator() or public.is_admin());
 create policy "staff add reviews" on public.reviews for insert to authenticated
-  with check (public.is_annotator() and user_id = auth.uid() and (action in ('submitted', 'withdrawn', 'unpublished') or public.is_validator()));
+  with check (public.is_annotator() and user_id = auth.uid() and action in ('submitted', 'withdrawn', 'unpublished', 'approved'));
 revoke all on public.reviews from anon;
 grant select, insert on public.reviews to authenticated;
 
