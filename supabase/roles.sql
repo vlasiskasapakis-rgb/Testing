@@ -1220,10 +1220,10 @@ create policy "staff add reviews" on public.reviews for insert to authenticated
 revoke all on public.reviews from anon;
 grant select, insert on public.reviews to authenticated;
 
--- ---------- comments on a story or one of its fragments: what the community said during community validation ----------
+-- ---------- comments on a story's fragments: what the community said during community validation ----------
 -- Written by the site's facilitators while the testimony is a draft or with the community, read by them and by the
 -- annotators (and admins), never public. A facilitator can delete their own comment until the community has validated it.
--- (media_id: about one fragment of the story; null: about the whole story.)
+-- (media_id: the fragment it is about; new comments always have one. Null: an earlier comment on the whole story.)
 create table if not exists public.facilitator_comments (
   id         uuid primary key default gen_random_uuid(),
   story_id   uuid not null references public.stories(id) on delete cascade,
@@ -1248,8 +1248,8 @@ create policy "facilitators add story comments" on public.facilitator_comments f
   with check (public.is_facilitator() and user_id = auth.uid()
               and exists (select 1 from public.stories s where s.id = facilitator_comments.story_id and s.site_id = public.my_site()
                           and s.status in ('draft', 'community_validation'))
-              and (media_id is null or exists (select 1 from public.story_media m where m.id = facilitator_comments.media_id
-                                               and m.story_id = facilitator_comments.story_id)));
+              and exists (select 1 from public.story_media m where m.id = facilitator_comments.media_id
+                          and m.story_id = facilitator_comments.story_id));
 create policy "facilitators delete own story comments" on public.facilitator_comments for delete to authenticated
   using (public.is_facilitator() and user_id = auth.uid()
          and exists (select 1 from public.stories s where s.id = facilitator_comments.story_id and s.site_id = public.my_site()

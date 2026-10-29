@@ -103,11 +103,11 @@ the community"), and below, in green, the testimonies already validated (they st
 screen (**Full screen** for a projector): its title, the narrator, the interview (date, language), how many stories are validated,
 and **its stories side by side** as cards (number, title, theme, a picture, how many fragments and comments, and "Not validated
 yet" or, in green, "✓ Validated by the community"). Opening a card shows that story full size: its theme, who, where and when,
-its fragments with play buttons and captions, and what the community said (**← All stories**, **Next story →**). Nothing is
+its fragments with play buttons, captions and what the community said about each (**← All stories**, **Next story →**). Nothing is
 corrected there — the who, what, where and when stay as they are. With the community, the facilitator:
-- **+ Write down what the community said** — dated comments with the facilitator's name about the whole story, listed under it,
-  and **+ Comment** under each fragment (a photo, a recording, a video) for what the community said about that one (a
-  facilitator can delete their own comment until the testimony is validated). They are never public; the annotators see them on
+- **+ Comment** under each fragment (a photo, a recording, a video) — what the community said about that one: dated comments
+  with the facilitator's name, listed under the fragment (a facilitator can delete their own comment until the testimony is
+  validated; there are no comments on the story as a whole). They are never public; the annotators see them on
   the annotation website (**What the community said**, with the fragment each one is about), and the facilitators on the
   story's page;
 - **✓ The community validates this story** — the story turns green and the screen goes back to all the stories (**Undo** on the
@@ -122,8 +122,8 @@ stories then need to be validated again).
 A new testimony needs a unique code, every agreement, a title, a licence, the anonymity, the narrator (initials only with anonymity), the
 date of the interview and the language; no story outside a draft testimony of the same site; testimonies and stories are
 visible only within their site; only the site's facilitators create or change testimonies, stories and fragments, and only while
-the testimony is a draft; with the community, they only add comments (`facilitator_comments`, read by the site's
-facilitators and the annotators) and mark each story as validated (`stories.community_validated_at`); the testimony goes to
+the testimony is a draft; with the community, they only add comments on fragments (`facilitator_comments`, read by the
+site's facilitators and the annotators) and mark each story as validated (`stories.community_validated_at`); the testimony goes to
 annotation only when all its stories are, and a story moves on only together with its testimony;
 annotators see a story only after that; nothing is public before publication; withdrawn stays withdrawn. Every write is recorded
 in `audit_log` (user, time, entity, action, previous value, change); admins read it on the admin page.
