@@ -44,9 +44,10 @@ with a site sees a message instead.
 
 **Status flow.** Testimony: `draft` → `community_validation` → `validated`. Its stories follow it (`draft` →
 `community_validation` → `ready_for_annotation`); from then on each story goes on alone: `submitted` (annotation done) →
-`published` (the final export of its testimony); an annotator can reopen a story (back to `ready_for_annotation`). **Withdrawn**: at any status a facilitator of the site can withdraw one story, or a whole testimony (which withdraws
-all its stories). A withdrawn story is hidden everywhere (only admins and the site's facilitators still see it), cannot change any
-more, and the action is logged.
+`published` (the final export of its testimony); an annotator can reopen a story (back to `ready_for_annotation`). **Deleted**: while a story is a draft (a mistake while uploading), **Delete this story** on its page removes it completely, with
+its fragments and their files — it does not appear as withdrawn. **Withdrawn**: after that, a facilitator of the site can withdraw
+one story, or a whole testimony at any status (which withdraws all its stories). A withdrawn story is hidden everywhere (only
+admins and the site's facilitators still see it), cannot change any more, and the action is logged.
 
 ### Testimony
 **+ New testimony** asks for:
@@ -82,6 +83,7 @@ narrator's name), copied by the database. The source is set by the system: websi
   date is read from the file name (`YYYYMMDD…`) or the file.
 - **Order**: drag a fragment by its handle (or ↑ / ↓); the position is saved. Each fragment plays inline (audio, photo, video).
 - **Caption**: for a photo or a video only.
+- **Delete** a fragment (while the story is a draft): its files are removed too.
 
 **Send to community validation** (on the testimony's page) is possible when the testimony has at least one story and every story
 has its theme and at least one audio fragment (a checklist shows what is missing). **Back to draft** is possible until the
@@ -103,9 +105,11 @@ and **its stories side by side** as cards (number, title, theme, a picture, how 
 yet" or, in green, "✓ Validated by the community"). Opening a card shows that story full size: its theme, who, where and when,
 its fragments with play buttons and captions, and what the community said (**← All stories**, **Next story →**). Nothing is
 corrected there — the who, what, where and when stay as they are. With the community, the facilitator:
-- **+ Write down what the community said** — dated comments with the facilitator's name, listed under the story (a facilitator
-  can delete their own comment until the testimony is validated). They are never public; the annotators see them on the
-  annotation website (**What the community said**), and the facilitators on the story's page;
+- **+ Write down what the community said** — dated comments with the facilitator's name about the whole story, listed under it,
+  and **+ Comment** under each fragment (a photo, a recording, a video) for what the community said about that one (a
+  facilitator can delete their own comment until the testimony is validated). They are never public; the annotators see them on
+  the annotation website (**What the community said**, with the fragment each one is about), and the facilitators on the
+  story's page;
 - **✓ The community validates this story** — the story turns green and the screen goes back to all the stories (**Undo** on the
   story takes it back); on the testimony's page such a story shows "With the community ✓";
 - **✓ Send the testimony to annotation** — once every story is green: all its stories move on to annotation
@@ -237,11 +241,12 @@ There is no validation step after annotation: the annotators publish the stories
   Re-run `supabase/roles.sql` once.
 
 ## Deleting a story (annotation website)
-Withdrawal (facilitator website) is the normal way to take a story away. Deleting is for mistakes: a facilitator can delete a
-**draft** of their site, and annotators can delete a story that is already in annotation, annotated or published. Open the story
+Withdrawal (facilitator website) is the normal way to take a story away once it is with the community. Deleting is for
+mistakes: a facilitator can delete a **draft** of their site (on the facilitator website: **Delete this story** on its page), and annotators can delete a story that is already in annotation, annotated or published. Open the story
 and press **Delete story** (top right). A dialog lists what goes with it — its files, transcripts, terms and image notes, and its view
 statistics — and the button only works after ticking **I understand this cannot be undone**. The story disappears for everyone
-(app, map, annotation website); its uploaded files are removed from storage. The audit log and the history of annotators'
+(app, map, annotation website); its uploaded files are removed from storage (a facilitator can remove only files in their own
+folder that no fragment uses any more; annotators any). The audit log and the history of annotators'
 corrections are kept.
 
 ## Story location (app)

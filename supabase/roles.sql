@@ -1072,6 +1072,20 @@ drop trigger if exists story_media_guard       on public.story_media;
 create trigger story_media_guard before insert or update or delete on public.story_media for each row execute function public.guard_fragment();
 drop function if exists public.check_review_edit();
 
+-- A facilitator who deletes a draft story or a fragment also removes its files: only files in their own folder that no
+-- fragment uses any more.
+create or replace function public.file_in_use(p text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.story_media m where m.path = p or m.thumb_path = p);
+$$;
+revoke execute on function public.file_in_use(text) from public, anon;
+grant execute on function public.file_in_use(text) to authenticated;
+drop policy if exists "owners delete files" on storage.objects;   -- (earlier: any file of one's own, even in use)
+drop policy if exists "facilitators delete unused files" on storage.objects;
+create policy "facilitators delete unused files" on storage.objects for delete to authenticated
+  using (bucket_id = 'story-media' and public.is_facilitator() and (storage.foldername(name))[1] = auth.uid()::text
+         and not public.file_in_use(name));
+
 -- Only staff can upload files, into their own folder.
 drop policy if exists "owners upload files" on storage.objects;
 create policy "owners upload files" on storage.objects for insert to authenticated
@@ -1206,10 +1220,10 @@ create policy "staff add reviews" on public.reviews for insert to authenticated
 revoke all on public.reviews from anon;
 grant select, insert on public.reviews to authenticated;
 
--- ---------- comments on a story: what the community said during community validation ----------
+-- ---------- comments on a story or one of its fragments: what the community said during community validation ----------
 -- Written by the site's facilitators while the testimony is a draft or with the community, read by them and by the
 -- annotators (and admins), never public. A facilitator can delete their own comment until the community has validated it.
--- (media_id: comments of the earlier review page could be about one fragment.)
+-- (media_id: about one fragment of the story; null: about the whole story.)
 create table if not exists public.facilitator_comments (
   id         uuid primary key default gen_random_uuid(),
   story_id   uuid not null references public.stories(id) on delete cascade,
@@ -1233,7 +1247,9 @@ create policy "read story comments" on public.facilitator_comments for select to
 create policy "facilitators add story comments" on public.facilitator_comments for insert to authenticated
   with check (public.is_facilitator() and user_id = auth.uid()
               and exists (select 1 from public.stories s where s.id = facilitator_comments.story_id and s.site_id = public.my_site()
-                          and s.status in ('draft', 'community_validation')));
+                          and s.status in ('draft', 'community_validation'))
+              and (media_id is null or exists (select 1 from public.story_media m where m.id = facilitator_comments.media_id
+                                               and m.story_id = facilitator_comments.story_id)));
 create policy "facilitators delete own story comments" on public.facilitator_comments for delete to authenticated
   using (public.is_facilitator() and user_id = auth.uid()
          and exists (select 1 from public.stories s where s.id = facilitator_comments.story_id and s.site_id = public.my_site()
