@@ -301,6 +301,14 @@
   .list-item { display: block; width: 100%; text-align: left; border-radius: 14px; background: var(--mist); color: var(--ink); padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--line); }
   .list-item .t { display: block; font-weight: 700; color: var(--petrol); font-style: italic; }
   .list-item .m { display: block; font-size: 13px; color: var(--muted); }
+  .tm-group { border: 1px solid var(--line); border-radius: 14px; margin-bottom: 10px; background: #fff; }
+  .tm-group > summary { cursor: pointer; padding: 10px 12px; border-radius: 14px; }
+  .tm-group > summary:hover { background: var(--mist); }
+  .tm-group .tg-t { font-weight: 700; color: var(--petrol); overflow-wrap: anywhere; }
+  .tm-group .tg-m { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
+  .tm-group .tg-todo { color: var(--amber-text); font-weight: 700; }
+  .tm-group .tg-body { padding: 0 8px 2px; }
+  .tm-group .list-item { background: var(--mist); }
   .chip-draft { color: var(--amber-text); font-weight: 700; } .chip-pub { color: var(--petrol); font-weight: 700; }
   .chip-sub { color: #1565C0; font-weight: 700; } .chip-ret { color: var(--danger); font-weight: 700; }
   .review-box { margin: 6px 0 10px; }
@@ -869,6 +877,10 @@
       listDraftF: "Σε σχολιασμό",
       listPubF: "Δημοσιευμένες",
       listEmpty: "Δεν υπάρχουν ιστορίες.",
+      tgTodo: "{n} για σχολιασμό",
+      tgStory1: "1 ιστορία",
+      tgStories: "{n} ιστορίες",
+      tgNoTestimony: "Παλαιότερες ιστορίες (χωρίς μαρτυρία)",
       imgTimeline: "Εικόνες που συνδέονται με την αφήγηση",
       imgPlayPart: "▶ από {t}",
       imgNow: "Τώρα εμφανίζεται",
@@ -1018,7 +1030,7 @@
       siteLoginHint: "Η σελίδα αυτή είναι μόνο για σχολιαστές. Οι διευκολυντές χρησιμοποιούν την εφαρμογή.",
       siteNoAccess: "Ο λογαριασμός σας δεν έχει ρόλο σχολιαστή. Ζητήστε από τον διαχειριστή να τον ορίσει.",
       siteSelect: "Διάλεξε μια ιστορία από τη λίστα για να ξεκινήσεις.",
-      siteStories: "Ιστορίες",
+      siteStories: "Μαρτυρίες και ιστορίες",
       siteLoading: "Φόρτωση…",
       stageIdle: "Εδώ θα εμφανίζονται οι εικόνες και οι όροι όσο παίζει η αφήγηση.",
       trPlay: "Αναπαραγωγή από {t}",
@@ -1129,7 +1141,7 @@
       noteDelete: "Διαγραφή",
       imgNoTranscript: "Πρόσθεσε πρώτα απομαγνητοφώνηση σε αυτή την καταγραφή.",
       imgLinkNone: "Δεν εμφανίζεται ακόμα κατά την αναπαραγωγή.",
-      listSearch: "Αναζήτηση με τίτλο, όνομα ή κωδικό συναίνεσης"
+      listSearch: "Αναζήτηση με τίτλο, όνομα, κωδικό ή αφηγητή"
     },
     en: {
       storyTheme: "Theme (interview question): {t}",
@@ -1290,6 +1302,10 @@
       listDraftF: "In annotation",
       listPubF: "Published",
       listEmpty: "No stories.",
+      tgTodo: "{n} to annotate",
+      tgStory1: "1 story",
+      tgStories: "{n} stories",
+      tgNoTestimony: "Older stories (no testimony)",
       imgTimeline: "Images tied to the story",
       imgPlayPart: "▶ from {t}",
       imgNow: "Now showing",
@@ -1439,7 +1455,7 @@
       siteLoginHint: "This site is for annotators only. Facilitators use the app.",
       siteNoAccess: "Your account does not have the annotator role. Ask the administrator to set it.",
       siteSelect: "Choose a story from the list to start.",
-      siteStories: "Stories",
+      siteStories: "Testimonies and stories",
       siteLoading: "Loading…",
       stageIdle: "Images and terms appear here as the recording plays.",
       trPlay: "Play from {t}",
@@ -1550,7 +1566,7 @@
       noteDelete: "Delete",
       imgNoTranscript: "Add a transcript to this recording first.",
       imgLinkNone: "Not shown during playback yet.",
-      listSearch: "Search by title, name or consent code"
+      listSearch: "Search by title, name, code or narrator"
     },
     fr: {
       storyTheme: "Thème (question de l’entretien) : {t}",
@@ -1711,6 +1727,10 @@
       listDraftF: "En annotation",
       listPubF: "Publiées",
       listEmpty: "Aucune histoire.",
+      tgTodo: "{n} à annoter",
+      tgStory1: "1 histoire",
+      tgStories: "{n} histoires",
+      tgNoTestimony: "Histoires plus anciennes (sans témoignage)",
       imgTimeline: "Images liées au récit",
       imgPlayPart: "▶ à partir de {t}",
       imgNow: "En ce moment",
@@ -1857,7 +1877,7 @@
       siteLoginHint: "Ce site est réservé aux annotateurs. Les facilitateurs utilisent l'application.",
       siteNoAccess: "Votre compte n'a pas le rôle d'annotateur. Demandez à l'administrateur de le définir.",
       siteSelect: "Choisissez une histoire dans la liste pour commencer.",
-      siteStories: "Histoires",
+      siteStories: "Témoignages et histoires",
       siteLoading: "Chargement…",
       stageIdle: "Les images et les termes apparaissent ici pendant la lecture.",
       trPlay: "Lire à partir de {t}",
@@ -1971,7 +1991,7 @@
       tabRec: "Transcription et termes",
       tabImg: "Images",
       followPb: "Suivre la lecture",
-      listSearch: "Rechercher par titre, nom ou code de consentement"
+      listSearch: "Rechercher par titre, nom, code ou narrateur"
     },
     it: {
       storyTheme: "Tema (domanda dell’intervista): {t}",
@@ -2132,6 +2152,10 @@
       listDraftF: "In annotazione",
       listPubF: "Pubblicate",
       listEmpty: "Nessuna storia.",
+      tgTodo: "{n} da annotare",
+      tgStory1: "1 storia",
+      tgStories: "{n} storie",
+      tgNoTestimony: "Storie più vecchie (senza testimonianza)",
       imgTimeline: "Immagini legate al racconto",
       imgPlayPart: "▶ da {t}",
       imgNow: "In questo momento",
@@ -2281,7 +2305,7 @@
       siteLoginHint: "Questo sito è solo per gli annotatori. I facilitatori usano l'app.",
       siteNoAccess: "Il tuo account non ha il ruolo di annotatore. Chiedi all'amministratore di impostarlo.",
       siteSelect: "Scegli una storia dalla lista per iniziare.",
-      siteStories: "Storie",
+      siteStories: "Testimonianze e storie",
       siteLoading: "Caricamento…",
       stageIdle: "Immagini e termini compaiono qui durante la riproduzione.",
       trPlay: "Riproduci da {t}",
@@ -2392,7 +2416,7 @@
       noteDelete: "Elimina",
       imgNoTranscript: "Aggiungi prima una trascrizione a questa registrazione.",
       imgLinkNone: "Non ancora mostrata durante la riproduzione.",
-      listSearch: "Cerca per titolo, nome o codice di consenso"
+      listSearch: "Cerca per titolo, nome, codice o narratore"
     }
   };
 
@@ -2545,6 +2569,8 @@
     return {
       id: 'u-' + r.id, dbId: r.id, ownerId: r.user_id, status: r.status || 'published', license: r.license || null,
       consentId: r.testimony_id || null, consentCode: (r.testimonies && r.testimonies.code) || null, theme: r.theme || '',
+      testimony: r.testimony_id && r.testimonies ? { id: r.testimony_id, code: r.testimonies.code, narrator: r.testimonies.narrator || '',
+        date: r.testimonies.interview_date || '', place: r.testimonies.interview_place || '' } : null,
       lat: r.lat, lon: r.lon, radius: r.radius || 40, author: r.author_name || '',
       t: { el: tr },
       media: (r.story_media || []).slice().sort(function (a, b) { return a.position - b.position; }).map(function (m) {
@@ -4790,6 +4816,21 @@
     $('storyView').hidden = true; $('workEmpty').hidden = false; $('panelRec').innerHTML = ''; $('panelImg').innerHTML = '';
   }
 
+  // The stories grouped under their testimony (one interview, one narrator), in the order they were recorded; a testimony
+  // opens to show its stories. Testimonies with stories to annotate come first; stories without a testimony (older) last.
+  var OPEN_T = {};                // testimony id -> opened or closed by the annotator
+  function fmtDay(d) { var x = new Date(String(d) + 'T12:00:00'); return isNaN(x) ? String(d) : x.toLocaleDateString(LANG, { year: 'numeric', month: 'short', day: 'numeric' }); }
+  function storyItem(x) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item' + (currentSheetStory === x ? ' current' : '');
+    var ti = document.createElement('span'); ti.className = 't'; ti.textContent = st(x).title;
+    var me_ = document.createElement('span'); me_.className = 'm';
+    var chip = document.createElement('span'); chip.className = STATUS_CHIP[x.status] || 'chip-draft'; chip.textContent = statusText(x.status);
+    me_.appendChild(chip);
+    me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length + (x.consentCode && !x.testimony ? ' · ' + x.consentCode : '')));
+    b.appendChild(ti); b.appendChild(me_);
+    b.onclick = function () { if (x !== currentSheetStory && !okToLeave()) return; openStory(x); };
+    return b;
+  }
   function renderList() {
     var f = $('listFilter'), cur = f.value || 'all';
     f.innerHTML = '';
@@ -4797,22 +4838,42 @@
     f.value = cur;
     var body = $('listBody'); body.innerHTML = '';
     var q = ($('listSearch').value || '').trim().toLowerCase();
-    var items = STORIES.filter(function (x) { return f.value === 'all' || x.status === f.value; })
-      .filter(function (x) { return !q || (st(x).title + ' ' + (x.author || '') + ' ' + (x.consentCode || '')).toLowerCase().indexOf(q) >= 0; }).reverse();
-    var RANK = { returned: 0, ready_for_annotation: 1, submitted: 2, published: 3 };
-    items.sort(function (a, b) { return (RANK[a.status] || 0) - (RANK[b.status] || 0); });   // πρώτα όσα θέλουν δουλειά (επιστραμμένα, πρόχειρα)
+    var items = STORIES.filter(function (x) { return f.value === 'all' || x.status === f.value; }).filter(function (x) {
+      var tm = x.testimony || {};
+      return !q || [st(x).title, x.author, x.consentCode, tm.narrator, tm.place].join(' ').toLowerCase().indexOf(q) >= 0;
+    });
     if (PENDING_N) { var pn = document.createElement('p'); pn.className = 'sheet-sub'; pn.textContent = t('pendingNote', { n: PENDING_N }); body.appendChild(pn); }
     if (!items.length) { var p = document.createElement('p'); p.className = 'sheet-sub'; p.textContent = t('listEmpty'); body.appendChild(p); return; }
-    items.forEach(function (x) {
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'list-item' + (currentSheetStory === x ? ' current' : '');
-      var ti = document.createElement('span'); ti.className = 't'; ti.textContent = st(x).title;
-      var me_ = document.createElement('span'); me_.className = 'm';
-      var chip = document.createElement('span'); chip.className = STATUS_CHIP[x.status] || 'chip-draft'; chip.textContent = statusText(x.status);
-      me_.appendChild(chip);
-      me_.appendChild(document.createTextNode((x.author ? ' · ' + x.author : '') + ' · ' + x.media.length + (x.consentCode ? ' · ' + x.consentCode : '')));
-      b.appendChild(ti); b.appendChild(me_);
-      b.onclick = function () { if (x !== currentSheetStory && !okToLeave()) return; openStory(x); };
-      body.appendChild(b);
+    var groups = [], byT = {};
+    items.forEach(function (x, i) {                      // STORIES come in the order they were created
+      var key = x.testimony ? x.testimony.id : '';
+      var g = byT[key]; if (!g) { g = byT[key] = { key: key, tm: x.testimony, stories: [], last: 0 }; groups.push(g); }
+      g.stories.push(x); g.last = i;
+    });
+    function todo(g) { return g.stories.filter(function (x) { return x.status === 'returned' || x.status === 'ready_for_annotation'; }).length; }
+    groups.sort(function (a, b) { return (!a.key) - (!b.key) || (todo(b) > 0) - (todo(a) > 0) || b.last - a.last; });
+    groups.forEach(function (g) {
+      var d = document.createElement('details'); d.className = 'tm-group';
+      var mine = g.stories.indexOf(currentSheetStory) >= 0;
+      d.open = !!q || (OPEN_T[g.key] != null ? OPEN_T[g.key] : mine || groups.length === 1);
+      d.addEventListener('toggle', function () { if (!q) OPEN_T[g.key] = d.open; });
+      var sm = document.createElement('summary');
+      var tt = document.createElement('span'); tt.className = 'tg-t';
+      tt.textContent = g.tm ? [g.tm.code, g.tm.narrator].filter(Boolean).join(' · ') : t('tgNoTestimony');
+      sm.appendChild(tt);
+      var mm = document.createElement('span'); mm.className = 'tg-m';
+      var bits = [];
+      if (g.tm && g.tm.date) bits.push(fmtDay(g.tm.date));
+      if (g.tm && g.tm.place) bits.push(g.tm.place);
+      bits.push(g.stories.length === 1 ? t('tgStory1') : t('tgStories', { n: g.stories.length }));
+      mm.appendChild(document.createTextNode(bits.join(' · ')));
+      var n = todo(g);
+      if (n) { var td = document.createElement('span'); td.className = 'tg-todo'; td.textContent = ' · ' + t('tgTodo', { n: n }); mm.appendChild(td); }
+      sm.appendChild(mm); d.appendChild(sm);
+      var inner = document.createElement('div'); inner.className = 'tg-body';
+      g.stories.forEach(function (x) { inner.appendChild(storyItem(x)); });
+      d.appendChild(inner);
+      body.appendChild(d);
     });
   }
   $('listFilter').onchange = renderList;
@@ -4827,7 +4888,7 @@
       var colsX = cols.replace('position)', 'position,title,about,recorded_at,period,lat,lon)');   // στήλες στοιχείων αρχείου (roles.sql)
       var colsW = colsX.replace('lat,lon)', 'lat,lon,what,place_name)');                     // ποιος/τι/πού/πότε
       var colsV = colsW.replace('what,place_name)', 'what,place_name,who,caption)');    // the fragment's caption (and older who/where/when)
-      var r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code),license,theme,who,place_name,period').order('created_at');
+      var r = await sb.from('stories').select(colsV + ',status,testimony_id,testimonies(code,narrator,interview_date,interview_place),license,theme,who,place_name,period').order('created_at');
       if (r.error) r = await sb.from('stories').select(colsW + ',status,license').order('created_at');   // βάση χωρίς μαρτυρίες (roles.sql)
       if (r.error) r = await sb.from('stories').select(colsX + ',status').order('created_at');
       if (r.error) r = await sb.from('stories').select(cols + ',status').order('created_at');

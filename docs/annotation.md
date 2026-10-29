@@ -324,7 +324,10 @@ select u.email, p.role from auth.users u left join public.profiles p on p.user_i
   installed, because re-running them would weaken the security rules; `roles.sql` is the only file to re-run for updates.
 
 ## Annotator workflow
-1. **Stories** (top left) lists every story with its status; open one without having to be nearby.
+1. **Testimonies and stories** (top left) lists the stories grouped under their testimony (code · narrator, date and place of
+   the interview, how many stories and how many are waiting to be annotated); open a testimony to see its stories in the order
+   they were recorded, each with its status, and open one without having to be nearby. Testimonies with stories to annotate come
+   first; older stories without a testimony are in their own group. Search finds titles, names, codes and narrators.
 2. **Transcribe and annotate**: for each audio/video get a transcript, find or add terms, approve.
 3. For each image (shown as a small thumbnail; tap it to open it larger in a popup): tick the terms it shows, optionally mark an area (**Mark area** opens the popup, drag on the image), and use **Link this image to a
    moment of the story**: choose the audio/video, pick a transcript line or set start/end (the small
