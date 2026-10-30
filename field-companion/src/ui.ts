@@ -2,7 +2,7 @@
 import { t, setLang, getLang, LICENCES } from './i18n';
 import { appendFile, flushFile, readFile, removeFile, removeTestimonyFiles, storageKind } from './files';
 import { canRecord, keepAwake, openStream, pickMime, Recording, snapshot, stopStream } from './media';
-import { locate } from './geo';
+import { locate, ROUGH_M } from './geo';
 import { checkShare } from './nextcloud';
 import { extFor, itemFileName, sendProblems } from './pkg';
 import { sendTestimony } from './send';
@@ -245,7 +245,8 @@ async function renderTestimony(id: string): Promise<void> {
   if (!items.length) sec.append(h('p', { class: 'empty' }, t('none')));
   const ol = h('ol', { class: 'items' });
   items.forEach((i) => {
-    const where = i.lat != null ? '📍 ±' + Math.round(i.accuracy || 0) + ' m' : t('noLocation');
+    const acc = Math.round(i.accuracy || 0);
+    const where = i.lat != null ? '📍 ±' + (acc >= 1000 ? (acc / 1000).toFixed(1) + ' km' : acc + ' m') + (acc > ROUGH_M ? ' ⚠ ' + t('roughLoc') : '') : t('noLocation');
     ol.append(h('li', null,
       h('div', { class: 'ititle' }, h('span', { class: 'no' }, String(i.order).padStart(3, '0')), (i.type === 'audio' ? '🎙 ' : i.type === 'video' ? '🎬 ' : '📷 '),
         i.title ? h('b', null, i.title) : h('b', { class: 'need' }, '⚠ ' + t('needTitle'))),
@@ -358,7 +359,7 @@ async function capture(x: Testimony, kind: Kind | 'consent'): Promise<void> {
                            lat: null, lon: null, accuracy: null, time: new Date().toISOString(), complete: false };
         await putItem(it); await appendFile(x.id, it.file, blob); it.complete = true; it.size = blob.size; await putItem(it);
         await close();
-        void pos.then(async (p) => { if (p) { const cur = (await listItems(x.id)).find((y) => y.id === it.id); if (cur) { Object.assign(cur, { lat: p.lat, lon: p.lon, accuracy: p.accuracy }); await putItem(cur); } } });
+        void pos.then((p) => setLocation(x.id, it, p));
         await finishItem(x, it);
       } }, t('shutter')),
       h('button', { type: 'button', onclick: async () => {
@@ -401,7 +402,7 @@ async function capture(x: Testimony, kind: Kind | 'consent'): Promise<void> {
       activeItem = it.id;
       await putItem(it);       // saved before the first second: an interruption keeps what was recorded
       const target = it;
-      void locate().then(async (p) => { if (p) { Object.assign(target, { lat: p.lat, lon: p.lon, accuracy: p.accuracy }); await putItem(target); } });
+      void locate().then((p) => setLocation(x.id, target, p));
     }
     rec = new Recording(stream!, mime, (b) => appendFile(x.id, file, b));
     rec.start(); await keepAwake(true);
@@ -426,11 +427,22 @@ async function capture(x: Testimony, kind: Kind | 'consent'): Promise<void> {
     }
     if (it) {
       it.complete = true; it.mime = realMime || it.mime;
-      const cur = (await listItems(x.id)).find((y) => y.id === it!.id); if (cur) { it.lat = cur.lat; it.lon = cur.lon; it.accuracy = cur.accuracy; }
-      await putItem(it); activeItem = '';
+      const cur = (await listItems(x.id)).find((y) => y.id === it!.id);
+      if (cur) { cur.complete = true; cur.mime = it.mime; await putItem(cur); it = cur; } else await putItem(it);
+      activeItem = '';
       await finishItem(x, it);
     }
   };
+}
+
+// The location may arrive after the title was saved: only the location fields of the stored item change.
+async function setLocation(tid: string, it: Item, p: { lat: number; lon: number; accuracy: number } | null): Promise<void> {
+  if (!p) return;
+  Object.assign(it, { lat: p.lat, lon: p.lon, accuracy: p.accuracy });
+  const cur = (await listItems(tid)).find((y) => y.id === it.id);
+  if (!cur) return;                                   // deleted meanwhile
+  Object.assign(cur, { lat: p.lat, lon: p.lon, accuracy: p.accuracy }); await putItem(cur);
+  if (location.hash === '#t/' + tid && !busy && !document.querySelector('dialog[open]')) void renderTestimony(tid);
 }
 
 async function finishItem(x: Testimony, it: Item): Promise<void> {
