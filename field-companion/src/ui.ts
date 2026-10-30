@@ -459,9 +459,24 @@ async function sendOne(x: Testimony, out: HTMLElement, btn: HTMLButtonElement): 
   const r = await sendTestimony(x.id, settings!, siteCfg!, (i, n) => { out.textContent = t('sending', { i, n }); });
   await keepAwake(false); busy = false; btn.disabled = false;
   if (r.ok) { sentThisSession.push(x.title); toast(t('sentDone', { t: x.title })); if (location.hash.startsWith('#t/')) location.hash = '#'; else void renderHome(); return true; }
-  out.textContent = r.error === 'https' ? t('sendHttps') : t('sendFailed', { n: r.total - r.sent });
+  out.textContent = r.error === 'https' ? t('sendHttps') : t('sendFailed', { n: r.total - r.sent }) + ' ' + reason(r.error || '');
   if (location.hash.startsWith('#t/' + x.id)) { const keep = out.textContent; await renderTestimony(x.id); const o = document.querySelector('[role=status].note'); if (o) o.textContent = keep; }
   return false;
+}
+
+// Why a send failed, in words: no answer at all (offline, or Nextcloud does not allow this app: CORS), or Nextcloud's answer.
+function reason(e: string): string {
+  const m = /HTTP (\d+)/.exec(e);
+  if (m) {
+    const c = +m[1];
+    if (c === 401 || c === 403) return t('why_denied', { c });
+    if (c === 404) return t('why_notfound', { c });
+    if (c === 413 || c === 507) return t('why_full', { c });
+    return t('why_http', { c });
+  }
+  if (e === 'timeout') return t('why_timeout');
+  if (e.startsWith('problems:')) return '';
+  return t('why_network');
 }
 
 async function sendMany(ids: string[]): Promise<void> {
