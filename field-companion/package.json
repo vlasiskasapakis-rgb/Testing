@@ -1,0 +1,29 @@
+{
+  "name": "walking-memory-field-companion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Walking Memory Field Companion: offline PWA for recording testimonies in the field, plus a minimal upload server",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "start": "node server/server.mjs",
+    "test": "vitest run && node --test test/",
+    "old-inbox": "node server/scripts/old-inbox.mjs"
+  },
+  "dependencies": {
+    "busboy": "^1.6.0",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.22",
+    "leaflet": "^1.9.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.7",
+    "vitest": "^3.2.7"
+  }
+}
