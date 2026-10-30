@@ -13,7 +13,7 @@ export function showMap(box: HTMLElement, items: Item[], onTap: (i: Item) => voi
   if (!pts.length) return;
   const m = L.map(box, { zoomControl: true, attributionControl: true });
   current = m;
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap', referrerPolicy: 'strict-origin-when-cross-origin' } as L.TileLayerOptions).addTo(m);
   const color: Record<string, string> = { audio: '#186078', video: '#7B1FA2', photo: '#C25E00' };
   const ll: L.LatLngExpression[] = [];
   pts.forEach((i) => {
