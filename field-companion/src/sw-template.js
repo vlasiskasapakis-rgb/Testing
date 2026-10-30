@@ -1,6 +1,6 @@
 /* Walking Memory Field Companion: service worker (generated at build time from src/sw-template.js).
-   The app shell is cached on install so the app works fully offline. The upload API (/field/...) and map tiles
-   are never cached. */
+   The app shell is cached on install so the app works fully offline. Uploads to Nextcloud and map tiles
+   are never cached. sites.json is fetched fresh when online (the cached copy is used offline). */
 const CACHE = 'wm-field-__VERSION__';
 const ASSETS = __ASSETS__;
 
@@ -16,7 +16,7 @@ self.addEventListener('fetch', (ev) => {
   const req = ev.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin || url.pathname.includes('/field/')) return;   // API and tiles: network only
+  if (url.origin !== self.location.origin || url.pathname.endsWith('/sites.json') && navigator.onLine) return;   // other sites (Nextcloud, map tiles): network only
   if (req.mode === 'navigate') {
     ev.respondWith(caches.match('./', { ignoreSearch: true }).then((r) => r || fetch(req)));
     return;

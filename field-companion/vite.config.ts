@@ -9,7 +9,7 @@ function serviceWorker(): Plugin {
     apply: 'build',
     generateBundle(_opts, bundle) {
       const files = Object.keys(bundle).filter((f) => !f.endsWith('.map'));
-      const extra = ['./', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
+      const extra = ['./', 'sites.json', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
       const assets = Array.from(new Set(extra.concat(files.map((f) => f.replace(/^\/?/, '')))));
       const version = createHash('sha256').update(assets.join('|') + Date.now()).digest('hex').slice(0, 12);
       const tpl = readFileSync(new URL('./src/sw-template.js', import.meta.url), 'utf8');
@@ -21,7 +21,6 @@ function serviceWorker(): Plugin {
 export default defineConfig({
   base: './',
   plugins: [serviceWorker()],
-  build: { outDir: 'dist', sourcemap: false, target: 'es2021' },
-  server: { proxy: { '/field': 'http://localhost:8080' } },
+  build: { outDir: '../field', emptyOutDir: true, sourcemap: false, target: 'es2021' },
   test: { include: ['test/**/*.test.ts'], environment: 'node' },
 } as any);

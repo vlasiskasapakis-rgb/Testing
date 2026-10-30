@@ -1,4 +1,0 @@
-{
-  "_comment": "Site codes accepted by the upload server (case-insensitive). Replace these examples with your pilot sites' codes.",
-  "sites": ["DEMO", "SITE1", "SITE2"]
-}

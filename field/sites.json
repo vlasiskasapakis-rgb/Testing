@@ -1,0 +1,10 @@
+{
+  "_comment": "Site codes accepted by the app, and the Nextcloud upload link (a public 'File drop / upload only' share) of each. Codes are case-insensitive. Add a password only if the share has one.",
+  "sites": {
+    "DEMO": {
+      "name": "Demo site",
+      "share": "https://nextcloud.aegean.gr/index.php/s/PZF4XtxEHKcWRN9",
+      "password": ""
+    }
+  }
+}
