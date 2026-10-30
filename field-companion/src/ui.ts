@@ -5,7 +5,7 @@ import { canRecord, keepAwake, openStream, pickMime, Recording, snapshot, stopSt
 import { locate, ROUGH_M } from './geo';
 import { checkShare } from './nextcloud';
 import { extFor, itemFileName, sendProblems } from './pkg';
-import { sendTestimony } from './send';
+import { forgetTestimony, packageZip, sendTestimony } from './send';
 import { showMap } from './map';
 import { deleteItem, deleteTestimonyMeta, getSetting, getTestimony, listItems, listTestimonies, putItem, putTestimony, setSetting } from './store';
 import type { Item, Kind, Settings, SiteConfig, Testimony } from './types';
@@ -274,10 +274,39 @@ async function renderTestimony(id: string): Promise<void> {
   const out = h('p', { role: 'status', class: 'note', 'aria-live': 'polite' });
   const send = h('button', { type: 'button', class: 'big primary', disabled: !!probs.length, onclick: () => { void sendOne(x, out, send as HTMLButtonElement); } }, t('sendAll'));
   if (probs.length && x.consent) out.textContent = t('cannotSend', { p: probs.map((p) => t('pr_' + p)).join(', ') });
-  main.append(h('section', { class: 'card' }, send, out,
+  main.append(h('section', { class: 'card' }, send, out, manualUpload(x, !!probs.length),
     h('button', { type: 'button', class: 'danger small', onclick: async () => {
       if (!confirmAsk(t('delTestimonyQ', { t: x.title }))) return;
       await removeTestimonyFiles(x.id); await deleteTestimonyMeta(x.id); location.hash = '#'; } }, t('delTestimony'))));
+}
+
+// When the app cannot send directly (e.g. the Nextcloud server does not allow it): the testimony as one ZIP file, uploaded
+// by hand on the share's own page, then removed from the phone.
+function manualUpload(x: Testimony, blocked: boolean): HTMLElement {
+  const st = h('p', { class: 'note', role: 'status' });
+  let saved = false;
+  const doneBtn = h('button', { type: 'button', class: 'big', disabled: true, onclick: async () => {
+    if (!confirmAsk(t('manualDoneQ', { t: x.title }))) return;
+    await forgetTestimony(x.id); sentThisSession.push(x.title); toast(t('sentDone', { t: x.title })); location.hash = '#';
+  } }, t('manualDone')) as HTMLButtonElement;
+  const saveBtn = h('button', { type: 'button', class: 'big', disabled: blocked, onclick: async () => {
+    saveBtn.disabled = true; st.textContent = t('manualMaking');
+    try {
+      const z = await packageZip(x.id, settings!);
+      const url = URL.createObjectURL(z.blob);
+      const a = h('a', { href: url, download: z.name }) as HTMLAnchorElement;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      saved = true; doneBtn.disabled = false;
+      st.textContent = t('manualSaved', { f: z.name, mb: (z.blob.size / 1048576).toFixed(1) });
+    } catch (e) { st.textContent = t('manualErr', { e: String((e as Error).message || e) }); }
+    finally { saveBtn.disabled = false; }
+  } }, t('manualSave')) as HTMLButtonElement;
+  const openBtn = h('a', { class: 'btnlink big', href: siteCfg ? siteCfg.share : '#', target: '_blank', rel: 'noopener noreferrer',
+    onclick: () => { if (saved) doneBtn.disabled = false; } }, t('manualOpen'));
+  return h('details', { class: 'manual' }, h('summary', null, t('manualTitle')),
+    h('ol', null, h('li', null, t('manualStep1'), saveBtn), h('li', null, t('manualStep2'), openBtn), h('li', null, t('manualStep3'), doneBtn)),
+    st);
 }
 
 function consentForm(x: Testimony): HTMLElement {

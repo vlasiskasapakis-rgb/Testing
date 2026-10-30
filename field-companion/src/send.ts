@@ -53,3 +53,33 @@ export async function sendTestimony(id: string, settings: Settings, site: SiteCo
   await deleteTestimonyMeta(id);
   return { ok: true, sent: order.length, total: order.length };
 }
+
+/** The whole testimony as one ZIP file (a folder named after the testimony id with the same files as a direct send),
+ *  for uploading by hand on the Nextcloud share page when the app cannot send directly. */
+export async function packageZip(id: string, settings: Settings): Promise<{ blob: Blob; name: string }> {
+  const { makeZip } = await import('./zip');
+  const t = await getTestimony(id);
+  if (!t) throw new Error('missing');
+  const items = await listItems(id);
+  const problems = sendProblems(t, items);
+  if (problems.length) throw new Error('problems:' + problems.join(','));
+  const pkg = buildPackage(t, items, settings.site, settings.collector);
+  const mimes: Record<string, string> = {};
+  items.forEach((i) => { mimes[i.file] = i.mime; });
+  if (t.consent && t.consent.type === 'spoken') mimes[t.consent.file] = t.consentMime || 'audio/webm';
+  const entries: { name: string; data: Blob }[] = [];
+  for (const name of sendOrder(t, items)) {
+    const data = name === 'info.txt' ? new Blob([infoTxt(pkg)], { type: 'text/plain' })
+      : name === 'testimony.json' ? new Blob([testimonyJson(pkg)], { type: 'application/json' })
+      : await readFile(id, name, mimes[name] || 'application/octet-stream');
+    entries.push({ name: t.id + '/' + name, data });
+  }
+  const day = t.created.slice(0, 10);
+  return { blob: await makeZip(entries), name: 'WM_' + settings.site + '_' + day + '_' + t.id.slice(0, 8) + '.zip' };
+}
+
+/** After an upload by hand: the testimony leaves the phone. */
+export async function forgetTestimony(id: string): Promise<void> {
+  await removeTestimonyFiles(id);
+  await deleteTestimonyMeta(id);
+}

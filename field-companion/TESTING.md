@@ -33,3 +33,9 @@ simulated Nextcloud. Repeat it on a real **Android phone (Chrome)** and **iPhone
 - [ ] In Nextcloud: one folder per testimony with all media, `info.txt` (Greek, readable) and `testimony.json`
       (matching the items).
 - [ ] The facilitator's synced folder receives the same.
+
+**Upload by hand (when the direct send says "no answer from Nextcloud … CORS")**
+- [ ] *Save as file* saves `WM_<site>_<date>_<id>.zip` to Files/Downloads (not the gallery); it opens on a computer with all
+      media, `info.txt` and `testimony.json`.
+- [ ] *Open the Nextcloud page* opens the share; uploading the .zip there works.
+- [ ] *Uploaded – delete from device* removes the testimony from the phone (after a confirmation).

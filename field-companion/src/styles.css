@@ -70,3 +70,7 @@ dialog.ask form { display: grid; gap: 8px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 .pin { background: none; border: 0; }
 .pin span { display: inline-block; white-space: nowrap; padding: 3px 8px; border-radius: 999px; border: 2px solid #fff; color: #fff; font: 700 13px/18px system-ui, sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+.manual { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.manual summary { cursor: pointer; font-weight: 700; color: var(--petrol); min-height: 44px; display: flex; align-items: center; }
+.manual ol { padding-left: 22px; margin: 6px 0; } .manual li { margin: 10px 0; }
+a.btnlink { display: flex; align-items: center; justify-content: center; min-height: 60px; margin-top: 10px; border: 2px solid var(--petrol2); border-radius: 12px; color: var(--petrol); font-weight: 700; text-decoration: none; }

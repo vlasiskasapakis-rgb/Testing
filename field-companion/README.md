@@ -46,6 +46,18 @@ Sending goes file by file. Each file Nextcloud confirms is remembered on the pho
 phone) continues with the missing files only. When the phone comes back online the app offers to send what is waiting. If the
 share does not allow folders, the files are sent as `<id>_001.webm` etc.
 
+### When the app cannot send directly: upload by hand
+
+Until the Nextcloud server allows uploads from the app (see CORS below), use **"Cannot send? Upload by hand"** under
+*Send all* on the testimony's screen:
+1. **Save as file**: the whole testimony as one `.zip` (a folder named after the testimony id with the media, `info.txt` and
+   `testimony.json`), saved to the phone's Files / Downloads (not the gallery).
+2. **Open the Nextcloud page** (the share link) and upload that `.zip` there.
+3. **Uploaded – delete from device**: the testimony leaves the phone. Delete the `.zip` from Downloads too.
+
+The facilitator unzips it on the computer. A failed direct send now also says why (no answer / CORS, refused, link not
+found, size).
+
 ## Configuration: site codes and Nextcloud links (`public/sites.json`)
 
 ```json

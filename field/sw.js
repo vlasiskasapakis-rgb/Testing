@@ -1,8 +1,8 @@
 /* Walking Memory Field Companion: service worker (generated at build time from src/sw-template.js).
    The app shell is cached on install so the app works fully offline. Uploads to Nextcloud and map tiles
    are never cached. sites.json is fetched fresh when online (the cached copy is used offline). */
-const CACHE = 'wm-field-769cae3ead4d';
-const ASSETS = ["./","sites.json","manifest.webmanifest","icons/icon.svg","icons/icon-192.png","icons/icon-512.png","icons/apple-touch-icon.png","assets/index-C4x3gAf-.css","assets/index-Cms4gF1F.js","assets/opfs-worker-Q3PKi-1x.js"];
+const CACHE = 'wm-field-b3edc5677596';
+const ASSETS = ["./","sites.json","manifest.webmanifest","icons/icon.svg","icons/icon-192.png","icons/icon-512.png","icons/apple-touch-icon.png","assets/index-dhKvM8f9.css","assets/index-CBKtUL_y.js","assets/zip-jD-qyEz6.js","assets/opfs-worker-Q3PKi-1x.js"];
 
 self.addEventListener('install', (ev) => {
   ev.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
