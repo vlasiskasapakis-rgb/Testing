@@ -7,7 +7,7 @@ export function locate(timeoutMs = 15000): Promise<Fix | null> {
     navigator.geolocation.getCurrentPosition(
       (p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude, accuracy: p.coords.accuracy }),
       () => resolve(null),
-      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 30000 },
+      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 5000 },
     );
   });
 }

@@ -68,3 +68,5 @@ dialog.ask form { display: grid; gap: 8px; }
 #toast[hidden] { display: none; }
 #toast button { background: #fff; color: var(--petrol); border: 0; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+.pin { background: none; border: 0; }
+.pin span { display: inline-block; white-space: nowrap; padding: 3px 8px; border-radius: 999px; border: 2px solid #fff; color: #fff; font: 700 13px/18px system-ui, sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,.4); }
